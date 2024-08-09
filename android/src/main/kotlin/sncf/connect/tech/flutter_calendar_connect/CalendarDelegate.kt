@@ -1,5 +1,4 @@
-package com.evoyageurs.invictus.plugins.calendar
-
+package sncf.connect.tech.flutter_calendar_connect
 
 import Calendar
 import CalendarActions
