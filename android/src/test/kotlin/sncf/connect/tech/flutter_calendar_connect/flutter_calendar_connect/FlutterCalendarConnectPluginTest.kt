@@ -1,4 +1,4 @@
-package sncf.connect.tech.flutter_calendar_connect.flutter_calendar_connect
+package sncf.connect.tech.flutter_calendar_connect
 
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel

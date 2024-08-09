@@ -15,17 +15,21 @@ class CalendarCubit extends ValueCubit<CalendarValue> {
   }
 
   Future<void> fetchCalendars() async {
-    await state.withValue((value) async {
-      await perform(() async {
-        if (await _requestCalendarAccess()) {
-          final calendars = await _calendarActions.retrieveCalendars();
+    try {
+      await state.withValue((value) async {
+        await perform(() async {
+          if (await _requestCalendarAccess()) {
+            final calendars = await _calendarActions.retrieveCalendars();
 
-          emit(value.copyWith(
-            calendars: calendars.whereType<Calendar>().toList(growable: false),
-          ).toState());
-        }
+            emit(value.copyWith(
+              calendars: calendars.whereType<Calendar>().toList(growable: false),
+            ).toState());
+          }
+        });
       });
-    });
+    } catch (e) {
+      print(e);
+    }
   }
 
   Future<bool> _requestCalendarAccess() async {

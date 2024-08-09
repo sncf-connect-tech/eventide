@@ -22,10 +22,10 @@ class CalendarScreen extends StatelessWidget {
             children: [
               ElevatedButton(
                 onPressed: BlocProvider.of<CalendarCubit>(context).fetchCalendars,
-                child: const Text('Refetch calendars'),
+                child: const Text('Fetch calendars'),
               ),
               const SizedBox(height: 16),
-              ...state.value.calendars.map((calendar) => Container(
+              ...state.value.calendars.map((calendar) => SizedBox(
                 height: 50,
                 child: Row(
                   children: [

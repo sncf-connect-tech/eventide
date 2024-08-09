@@ -5,20 +5,26 @@ import CalendarActions
 import Event
 import android.Manifest.permission.READ_CALENDAR
 import android.Manifest.permission.WRITE_CALENDAR
+import android.app.Activity
 import android.content.Context
 import android.content.pm.PackageManager.PERMISSION_GRANTED
 import android.net.Uri
 import android.provider.CalendarContract
 import androidx.core.app.ActivityCompat
-import androidx.core.app.ActivityCompat.OnRequestPermissionsResultCallback
 import androidx.core.content.ContextCompat
 import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
+import io.flutter.plugin.common.PluginRegistry.RequestPermissionsResultListener
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
 
-class CalendarDelegate(
-    private val binding: ActivityPluginBinding,
-    private val context: Context,
-): CalendarActions, OnRequestPermissionsResultCallback {
-    private val CALENDAR_REQUEST_CODE = 956
+class CalendarApi(
+    private val pluginActivity: Activity,
+): CalendarActions, RequestPermissionsResultListener {
+    private val calendarRequestCode = 956
+    private val permissionsMutex = Mutex(locked = false)
+    private var _ioScope = CoroutineScope(Dispatchers.IO)
     private var arePermissionsGranted = false
 
     override fun createCalendar(
@@ -35,7 +41,7 @@ class CalendarDelegate(
             return
         }
 
-        val cursor = context.contentResolver.query(
+        val cursor = pluginActivity.contentResolver.query(
             Uri.parse("content://com.android.calendar/calendars"),
             Array(3) {
                 CalendarContract.Calendars._ID
@@ -74,33 +80,51 @@ class CalendarDelegate(
     }
 
     override fun requestCalendarAccess(callback: (Result<Boolean>) -> Unit) {
-        checkPermissionsGranted()
+        _ioScope.launch {
+            checkPermissions()
 
-        if (arePermissionsGranted) {
-            callback(Result.success(true))
-            return
+            if (!arePermissionsGranted) {
+                ActivityCompat.requestPermissions(
+                    pluginActivity,
+                    arrayOf(READ_CALENDAR, WRITE_CALENDAR),
+                    calendarRequestCode,
+                )
+
+                permissionsMutex.lock()
+            }
+
+            callback(Result.success(arePermissionsGranted))
         }
-
-        ActivityCompat.requestPermissions(
-            binding.activity,
-            arrayOf(READ_CALENDAR, WRITE_CALENDAR),
-            CALENDAR_REQUEST_CODE,
-        )
     }
 
     override fun onRequestPermissionsResult(
         requestCode: Int,
         permissions: Array<out String>,
         grantResults: IntArray
-    ) {
-        arePermissionsGranted = requestCode == CALENDAR_REQUEST_CODE
-                && grantResults.isNotEmpty()
-                && grantResults.fold(true) { acc, i -> acc && i == PERMISSION_GRANTED }
+    ): Boolean {
+        var handled = false
+
+        _ioScope.launch {
+            when (requestCode) {
+                calendarRequestCode -> {
+                    arePermissionsGranted = grantResults.isNotEmpty()
+                            && grantResults.fold(true) { acc, i -> acc && i == PERMISSION_GRANTED }
+
+                    handled = true
+                }
+            }
+
+            permissionsMutex.unlock()
+        }
+
+        return handled
     }
 
-    private fun checkPermissionsGranted() {
-        val hasReadPermission = ContextCompat.checkSelfPermission(binding.activity.applicationContext, READ_CALENDAR)
-        val hasWritePermission = ContextCompat.checkSelfPermission(binding.activity.applicationContext, WRITE_CALENDAR)
-        arePermissionsGranted = hasReadPermission == PERMISSION_GRANTED && hasWritePermission == PERMISSION_GRANTED
+    private fun checkPermissions() {
+        val hasReadPermission = ContextCompat.checkSelfPermission(pluginActivity.applicationContext, READ_CALENDAR)
+        val hasWritePermission = ContextCompat.checkSelfPermission(pluginActivity.applicationContext, WRITE_CALENDAR)
+
+        arePermissionsGranted = hasReadPermission == PERMISSION_GRANTED
+                && hasWritePermission == PERMISSION_GRANTED
     }
 }

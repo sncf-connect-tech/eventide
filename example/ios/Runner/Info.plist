@@ -45,5 +45,11 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>NSCalendarsUsageDescription</key>
+	<string>We need access to your calendar to add information about your trip.</string>
+	<key>NSCalendarsFullAccessUsageDescription</key>
+	<string>We need access to your calendar to add information about your trip.</string>
+	<key>NSCalendarsWriteOnlyAccessUsageDescription</key>
+	<string>We need access to your calendar to add information about your trip.</string>
 </dict>
 </plist>

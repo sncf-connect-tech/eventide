@@ -4,7 +4,22 @@ A Flutter plugin to access & modify native calendars on user's device (iOS & And
 
 ## Getting Started
 
-To read calendar data, your app must include the READ_CALENDAR permission in its manifest file. It must include the WRITE_CALENDAR permission to delete, insert or update calendar data:
+### iOS
+
+To read/write calendar data, your app must include the following permissions in its info.plist file.
+
+```xml
+<key>NSCalendarsUsageDescription</key>
+<string>We need access to your calendar to add information about your trip.</string>
+<key>NSCalendarsFullAccessUsageDescription</key>
+<string>We need access to your calendar to add information about your trip.</string>
+<key>NSCalendarsWriteOnlyAccessUsageDescription</key>
+<string>We need access to your calendar to add information about your trip.</string>
+```
+
+### Android
+
+To read/write calendar data, your app must include the READ_CALENDAR permission in its manifest file. It must include the WRITE_CALENDAR permission to delete, insert or update calendar data:
 
 ```xml
 <?xml version="1.0" encoding="utf-8"?>

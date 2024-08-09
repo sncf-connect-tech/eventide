@@ -2,20 +2,17 @@ package sncf.connect.tech.flutter_calendar_connect
 
 import CalendarActions
 import android.content.Context
-import androidx.activity.result.ActivityResultLauncher
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.embedding.engine.plugins.activity.ActivityAware
 import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
+import io.flutter.plugin.common.BinaryMessenger
 
 /** CalendarPlugin */
 class CalendarPlugin: FlutterPlugin, ActivityAware {
-  private lateinit var _context: Context
-  private var _calendarDelegate: CalendarDelegate? = null
-  private lateinit var launcher: ActivityResultLauncher<Boolean>
+  private lateinit var binaryMessenger: BinaryMessenger
 
   override fun onAttachedToEngine(flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
-    _context = flutterPluginBinding.applicationContext
-    CalendarActions.setUp(flutterPluginBinding.binaryMessenger, _calendarDelegate)
+    binaryMessenger = flutterPluginBinding.binaryMessenger
   }
 
   override fun onDetachedFromEngine(flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
@@ -23,18 +20,18 @@ class CalendarPlugin: FlutterPlugin, ActivityAware {
   }
 
   override fun onAttachedToActivity(binding: ActivityPluginBinding) {
-    _calendarDelegate = CalendarDelegate(binding, _context)
+    CalendarActions.setUp(binaryMessenger, CalendarApi(binding.activity))
   }
 
   override fun onDetachedFromActivityForConfigChanges() {
-    _calendarDelegate = null
+    CalendarActions.setUp(binaryMessenger, null)
   }
 
   override fun onReattachedToActivityForConfigChanges(binding: ActivityPluginBinding) {
-    _calendarDelegate = CalendarDelegate(binding, _context)
+    CalendarActions.setUp(binaryMessenger, CalendarApi(binding.activity))
   }
 
   override fun onDetachedFromActivity() {
-    _calendarDelegate = null
+    CalendarActions.setUp(binaryMessenger, null)
   }
 }
