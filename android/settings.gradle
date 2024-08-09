@@ -1,1 +1,3 @@
+include ':android'
+
 rootProject.name = 'flutter_calendar_connect'

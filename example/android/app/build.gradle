@@ -24,8 +24,8 @@ if (flutterVersionName == null) {
 
 android {
     namespace "sncf.connect.tech.flutter_calendar_connect.flutter_calendar_connect_example"
-    compileSdk flutter.compileSdkVersion
-    ndkVersion flutter.ndkVersion
+    compileSdk 34
+    ndkVersion '25.1.8937393'
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8

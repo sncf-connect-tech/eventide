@@ -22,7 +22,7 @@ flutter:
   plugin:
     platforms:
       android:
-        package: sncf.connect.tech.flutter_calendar_connect.flutter_calendar_connect
-        pluginClass: FlutterCalendarConnectPlugin
+        package: sncf.connect.tech.flutter_calendar_connect
+        pluginClass: CalendarPlugin
       ios:
-        pluginClass: FlutterCalendarConnectPlugin
+        pluginClass: CalendarPlugin

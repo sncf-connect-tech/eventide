@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:calendar_example/calendar_screen.dart';
-import 'package:calendar_example/calendar_cubit.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_calendar_connect_example/calendar_cubit.dart';
+import 'package:flutter_calendar_connect_example/calendar_screen.dart';
 
 void main() {
   runApp(const MyApp());
