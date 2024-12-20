@@ -23,9 +23,8 @@ class CalendarApi(
     private val pluginActivity: Activity,
 ): CalendarActions, RequestPermissionsResultListener {
     private val calendarRequestCode = 956
-    private val permissionsMutex = Mutex(locked = false)
-    private var _ioScope = CoroutineScope(Dispatchers.IO)
     private var arePermissionsGranted = false
+    private var permissionResponseHandleCallback: (Result<Boolean>) -> Unit = {}
 
     override fun createCalendar(
         title: String,
@@ -80,20 +79,19 @@ class CalendarApi(
     }
 
     override fun requestCalendarAccess(callback: (Result<Boolean>) -> Unit) {
-        _ioScope.launch {
-            checkPermissions()
+        checkPermissions()
 
-            if (!arePermissionsGranted) {
-                ActivityCompat.requestPermissions(
-                    pluginActivity,
-                    arrayOf(READ_CALENDAR, WRITE_CALENDAR),
-                    calendarRequestCode,
-                )
+        if (arePermissionsGranted) {
+            callback(Result.success(true))
 
-                permissionsMutex.lock()
-            }
+        } else {
+            ActivityCompat.requestPermissions(
+                pluginActivity,
+                arrayOf(READ_CALENDAR, WRITE_CALENDAR),
+                calendarRequestCode,
+            )
 
-            callback(Result.success(arePermissionsGranted))
+            permissionResponseHandleCallback = callback
         }
     }
 
@@ -104,17 +102,15 @@ class CalendarApi(
     ): Boolean {
         var handled = false
 
-        _ioScope.launch {
-            when (requestCode) {
-                calendarRequestCode -> {
-                    arePermissionsGranted = grantResults.isNotEmpty()
-                            && grantResults.fold(true) { acc, i -> acc && i == PERMISSION_GRANTED }
+        when (requestCode) {
+            calendarRequestCode -> {
+                arePermissionsGranted = grantResults.isNotEmpty()
+                        && grantResults.fold(true) { acc, i -> acc && i == PERMISSION_GRANTED }
 
-                    handled = true
-                }
+                permissionResponseHandleCallback(Result.success(arePermissionsGranted))
+
+                handled = true
             }
-
-            permissionsMutex.unlock()
         }
 
         return handled
