@@ -57,6 +57,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.8"
+  equatable:
+    dependency: "direct main"
+    description:
+      name: equatable
+      sha256: "567c64b3cb4cf82397aac55f4f0cbd3ca20d77c6c03bedbc4ceaddc08904aef7"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.0.7"
   fake_async:
     dependency: transitive
     description:
@@ -111,14 +119,6 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
-  flutter_value_state:
-    dependency: "direct main"
-    description:
-      name: flutter_value_state
-      sha256: ca13b90948f002cad8eb06732d410515e32aa63cc6786954fc6c7459cd8ffb8e
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.3.6"
   fuchsia_remote_debug_protocol:
     dependency: transitive
     description: flutter
@@ -262,14 +262,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.1.2"
-  stream_transform:
-    dependency: transitive
-    description:
-      name: stream_transform
-      sha256: "14a00e794c7c11aa145a170587321aedce29769c08d7f58b1d141da75e3b1c6f"
-      url: "https://pub.dev"
-    source: hosted
-    version: "2.1.0"
   string_scanner:
     dependency: transitive
     description:
@@ -286,14 +278,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.3.1"
-  synchronized:
-    dependency: transitive
-    description:
-      name: synchronized
-      sha256: "539ef412b170d65ecdafd780f924e5be3f60032a1128df156adad6c5b373d558"
-      url: "https://pub.dev"
-    source: hosted
-    version: "3.1.0+1"
   term_glyph:
     dependency: transitive
     description:
@@ -310,22 +294,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.6.1"
-  value_cubit:
-    dependency: "direct main"
-    description:
-      name: value_cubit
-      sha256: d8db3d4aadcf0c54de97c67dd0bd0328cea25bcb45ac234685e9c845e2a86d7d
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.3.3"
-  value_state:
-    dependency: transitive
-    description:
-      name: value_state
-      sha256: "6ce9462b0114c807f3c5fc3a4acd7e3784e0b02887c3358b424e2da65face359"
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.5.1"
   vector_math:
     dependency: transitive
     description:

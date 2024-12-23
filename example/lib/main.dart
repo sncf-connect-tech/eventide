@@ -18,7 +18,7 @@ class MyApp extends StatelessWidget {
           title: const Text('Calendar plugin example app'),
         ),
         body: BlocProvider(
-          create: (_) => CalendarCubit()..init(),
+          create: (_) => CalendarCubit(),
           child: const CalendarScreen(),
         ),
       ),

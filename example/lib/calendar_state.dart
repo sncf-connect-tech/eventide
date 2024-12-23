@@ -1,20 +1,38 @@
+import 'package:equatable/equatable.dart';
 import 'package:flutter_calendar_connect/calendar_plugin.dart';
-import 'package:flutter_value_state/flutter_value_state.dart';
 
-typedef CalendarState = BaseState<CalendarValue>;
+abstract class CalendarState extends Equatable {
+  @override
+  List<Object?> get props => [];
 
-class CalendarValue {
+  const CalendarState();
+}
+
+class CalendarInitial extends CalendarState {
+  @override
+  List<Object?> get props => [];
+  
+  const CalendarInitial();
+}
+
+class CalendarSuccess extends CalendarState {
   final List<Calendar> calendars;
+  
+  @override
+  List<Object?> get props => [calendars];
 
-  const CalendarValue({
+  const CalendarSuccess({
     required this.calendars,
   });
+}
 
-  CalendarValue copyWith({
-    List<Calendar>? calendars,
-  }) {
-    return CalendarValue(
-      calendars: calendars ?? this.calendars,
-    );
-  }
+class CalendarError extends CalendarState {
+  final String message;
+
+  @override
+  List<Object?> get props => [message];
+
+  const CalendarError({
+    required this.message,
+  });
 }

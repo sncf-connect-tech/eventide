@@ -8,6 +8,7 @@ import 'package:pigeon/pigeon.dart';
   swiftOut: 'ios/Classes/CalendarActions.swift',
   swiftOptions: SwiftOptions(),
 ))
+
 @HostApi()
 abstract class CalendarActions {
   @async
