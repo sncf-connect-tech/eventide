@@ -26,6 +26,13 @@ class CalendarSuccess extends CalendarState {
   });
 }
 
+class CalendarNoValue extends CalendarState {
+  @override
+  List<Object?> get props => [];
+  
+  const CalendarNoValue();
+}
+
 class CalendarError extends CalendarState {
   final String message;
 

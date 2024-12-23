@@ -99,16 +99,23 @@ public class CalendarApi: CalendarActions {
 
     }
 
-    func retrieveCalendars(completion: @escaping (Result<[Calendar], Error>) -> Void) {
+    func retrieveCalendars(onlyWritableCalendars: Bool, completion: @escaping (Result<[Calendar], Error>) -> Void) {
         checkCalendarAccessThenExecute {
-            let calendars = eventStore.calendars(for: .event).map {
-                Calendar(
-                    id: $0.calendarIdentifier,
-                    title: $0.title,
-                    hexColor: UIColor(cgColor: $0.cgColor).hexString,
-                    sourceName: $0.source.sourceName
-                )
-            }
+            let calendars = eventStore.calendars(for: .event)
+                .filter({ calendar in
+                    guard onlyWritableCalendars else {
+                        return true
+                    }
+                    return calendar.allowsContentModifications
+                })
+                .map {
+                    Calendar(
+                        id: $0.calendarIdentifier,
+                        title: $0.title,
+                        hexColor: UIColor(cgColor: $0.cgColor).hexString,
+                        sourceName: $0.source.sourceName
+                    )
+                }
             
             completion(.success(calendars))
             
@@ -145,6 +152,7 @@ public class CalendarApi: CalendarActions {
             ekEvent.startDate = converter.parseDate(from: flutterEvent.startDate)
             ekEvent.endDate = converter.parseDate(from: flutterEvent.endDate)
             ekEvent.calendar = eventStore.calendar(withIdentifier: flutterEvent.calendarId)
+            ekEvent.timeZone = TimeZone(identifier: flutterEvent.timeZone)
             
             if flutterEvent.url != nil {
                 ekEvent.url = URL(string: flutterEvent.url!)

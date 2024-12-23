@@ -11,14 +11,18 @@ class CalendarCubit extends Cubit<CalendarState> {
   }) : _calendarActions = calendarActions ?? CalendarActions(),
         super(const CalendarInitial());
 
-  Future<void> fetchCalendars() async {
+  Future<void> fetchCalendars({required bool onlyWritable}) async {
     try {
       if (await _calendarActions.requestCalendarAccess()) {
-        final calendars = await _calendarActions.retrieveCalendars();
-        emit(CalendarSuccess(calendars: calendars));
+        final calendars = await _calendarActions.retrieveCalendars(onlyWritableCalendars: onlyWritable);
+        if (calendars.isEmpty) {
+          emit(const CalendarNoValue());
+        } else {
+          emit(CalendarSuccess(calendars: calendars));
+        }
       }
     } catch (e) {
-      emit(const CalendarError(message: "error while fetching calendars"));
+      emit(CalendarError(message: e.toString()));
     }
   }
 }

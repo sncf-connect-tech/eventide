@@ -10,56 +10,74 @@ class CalendarScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<CalendarCubit, CalendarState>(
       builder: (_, state) {
-        return CustomScrollView(
-          slivers: [
-            const SliverAppBar(
-              title: Text('Calendar'),
-            ),
-            if (state is CalendarInitial)
-              SliverFillRemaining(
-                child: Center(
-                  child: ElevatedButton(
-                    onPressed: BlocProvider.of<CalendarCubit>(context).fetchCalendars,
-                    child: const Text('Fetch calendars'),
+        return SafeArea(
+          child: Stack(
+            children: [
+              CustomScrollView(
+                slivers: [
+                  const SliverAppBar(
+                    pinned: true,
+                    title: Text('Calendar plugin example app'),
                   ),
-                ),
-              ),
-            if (state is CalendarSuccess)
-              SliverList.separated(
-                itemBuilder: (context, index) {
-                  return ColoredBox(
-                    color: state.calendars[index].hexColor.toRgbColor(),
-                    child: SizedBox(
-                      height: 50,
-                      child: Row(
-                        children: [
-                          Text(state.calendars[index].title),
-                          const SizedBox(width: 16),
-                          Text(state.calendars[index].id),
-                    
-                        ],
+                  if (state is CalendarSuccess)
+                    SliverList(
+                      delegate: SliverChildListDelegate(state.calendars.map((calendar) => SizedBox(
+                        height: 50,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          child: Row(
+                            children: [
+                              Container(
+                                color: calendar.hexColor.toRgbColor(),
+                                width: 16,
+                                height: 16,
+                              ),
+                              const SizedBox(width: 32),
+                              Text(calendar.title, maxLines: 3, overflow: TextOverflow.fade,),
+                            ],
+                          ),
+                        ),
+                      )).toList(),
                       ),
                     ),
-                  );
-                },
-                separatorBuilder: (context, index) => const Divider(),
+                  SliverToBoxAdapter(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        if (state is CalendarNoValue) ...[
+                          const Text('No calendars found'),
+                          const SizedBox(height: 16),
+                        ],
+                        if (state is CalendarError) ...[
+                          Text('Error: ${state.message}'),
+                          const SizedBox(height: 16),
+                        ],
+                      ],
+                    ),
+                  ),
+                ]
               ),
-            if (state is CalendarError)
-              SliverFillRemaining(
+              Positioned(
+                right: 16,
+                bottom: 16,
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    Text('Error: ${state.message}'),
+                    ElevatedButton(
+                      onPressed: () => BlocProvider.of<CalendarCubit>(context).fetchCalendars(onlyWritable: true),
+                      child: const Text('Writable calendars'),
+                    ),
                     const SizedBox(height: 16),
                     ElevatedButton(
-                    onPressed: BlocProvider.of<CalendarCubit>(context).fetchCalendars,
-                    child: const Text('Fetch calendars'),
-                  )
+                      onPressed: () => BlocProvider.of<CalendarCubit>(context).fetchCalendars(onlyWritable: false),
+                      child: const Text('All calendars'),
+                    ),
                   ],
                 ),
               ),
-          ]
+            ],
+          ),
         );
       }
     );

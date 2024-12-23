@@ -6,18 +6,16 @@ import Event
 import android.Manifest.permission.READ_CALENDAR
 import android.Manifest.permission.WRITE_CALENDAR
 import android.app.Activity
-import android.content.Context
 import android.content.pm.PackageManager.PERMISSION_GRANTED
 import android.net.Uri
 import android.provider.CalendarContract
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
 import io.flutter.plugin.common.PluginRegistry.RequestPermissionsResultListener
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.Mutex
+
 
 class CalendarApi(
     private val pluginActivity: Activity,
@@ -34,41 +32,41 @@ class CalendarApi(
         TODO("Not yet implemented")
     }
 
-    override fun retrieveCalendars(callback: (Result<List<Calendar>>) -> Unit) {
+    override fun retrieveCalendars(onlyWritableCalendars: Boolean, callback: (Result<List<Calendar>>) -> Unit) {
         if (!arePermissionsGranted) {
             callback(Result.failure(Exception("Calendar permissions not granted")))
             return
         }
+        
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val uri: Uri = CalendarContract.Calendars.CONTENT_URI
+                val projection = arrayOf(
+                    CalendarContract.Calendars._ID,
+                    CalendarContract.Calendars.CALENDAR_DISPLAY_NAME,
+                    CalendarContract.Calendars.CALENDAR_COLOR,
+                )
+                val selection = if (onlyWritableCalendars) ("(" + CalendarContract.Calendars.CALENDAR_ACCESS_LEVEL + " >=  ?)") else null
+                val selectionArgs = if (onlyWritableCalendars) arrayOf(CalendarContract.Calendars.CAL_ACCESS_CONTRIBUTOR.toString()) else null
 
-        val cursor = pluginActivity.contentResolver.query(
-            Uri.parse("content://com.android.calendar/calendars"),
-            Array(3) {
-                CalendarContract.Calendars._ID
-                CalendarContract.Calendars.NAME
-                CalendarContract.Calendars.CALENDAR_COLOR
-            },
-            null,
-            null,
-            null,
-        )
+                val cursor = pluginActivity.contentResolver.query(uri, projection, selection, selectionArgs, null)
+                val calendars = mutableListOf<Calendar>()
 
-        if (cursor == null) {
-            callback(Result.failure(Exception("No calendars found")))
-            return
+                cursor?.use {
+                    while (it.moveToNext()) {
+                        val id = it.getLong(it.getColumnIndexOrThrow(CalendarContract.Calendars._ID)).toString()
+                        val displayName = it.getString(it.getColumnIndexOrThrow(CalendarContract.Calendars.CALENDAR_DISPLAY_NAME))
+                        val color = it.getString(it.getColumnIndexOrThrow(CalendarContract.Calendars.CALENDAR_COLOR))
+
+                        calendars.add(Calendar(id, displayName, color))
+                    }
+                }
+
+                callback(Result.success(calendars))
+            } catch (e: Exception) {
+                callback(Result.failure(e))
+            }
         }
-
-        val calendars = mutableListOf<Calendar>()
-        cursor.moveToFirst()
-
-        do {
-            val id = cursor.getLong(0)
-            val name = cursor.getString(1)
-            val color = cursor.getInt(2)
-            calendars.add(Calendar(id.toString(), name, color.toString()))
-
-        } while (cursor.moveToNext())
-
-        cursor.close()
     }
 
     override fun createOrUpdateEvent(

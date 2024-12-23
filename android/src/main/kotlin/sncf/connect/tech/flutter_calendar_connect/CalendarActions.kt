@@ -78,6 +78,7 @@ data class Event (
   val title: String,
   val startDate: Long,
   val endDate: Long,
+  val timeZone: String,
   val calendarId: String,
   val description: String? = null,
   val url: String? = null,
@@ -90,11 +91,12 @@ data class Event (
       val title = pigeonVar_list[1] as String
       val startDate = pigeonVar_list[2] as Long
       val endDate = pigeonVar_list[3] as Long
-      val calendarId = pigeonVar_list[4] as String
-      val description = pigeonVar_list[5] as String?
-      val url = pigeonVar_list[6] as String?
-      val alarms = pigeonVar_list[7] as List<Alarm?>
-      return Event(id, title, startDate, endDate, calendarId, description, url, alarms)
+      val timeZone = pigeonVar_list[4] as String
+      val calendarId = pigeonVar_list[5] as String
+      val description = pigeonVar_list[6] as String?
+      val url = pigeonVar_list[7] as String?
+      val alarms = pigeonVar_list[8] as List<Alarm?>
+      return Event(id, title, startDate, endDate, timeZone, calendarId, description, url, alarms)
     }
   }
   fun toList(): List<Any?> {
@@ -103,6 +105,7 @@ data class Event (
       title,
       startDate,
       endDate,
+      timeZone,
       calendarId,
       description,
       url,
@@ -173,7 +176,7 @@ private open class CalendarActionsPigeonCodec : StandardMessageCodec() {
 interface CalendarActions {
   fun requestCalendarAccess(callback: (Result<Boolean>) -> Unit)
   fun createCalendar(title: String, hexColor: String, callback: (Result<Calendar>) -> Unit)
-  fun retrieveCalendars(callback: (Result<List<Calendar>>) -> Unit)
+  fun retrieveCalendars(onlyWritableCalendars: Boolean, callback: (Result<List<Calendar>>) -> Unit)
   fun createOrUpdateEvent(flutterEvent: Event, callback: (Result<Boolean>) -> Unit)
 
   companion object {
@@ -227,8 +230,10 @@ interface CalendarActions {
       run {
         val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.flutter_calendar_connect.CalendarActions.retrieveCalendars$separatedMessageChannelSuffix", codec)
         if (api != null) {
-          channel.setMessageHandler { _, reply ->
-            api.retrieveCalendars{ result: Result<List<Calendar>> ->
+          channel.setMessageHandler { message, reply ->
+            val args = message as List<Any?>
+            val onlyWritableCalendarsArg = args[0] as Boolean
+            api.retrieveCalendars(onlyWritableCalendarsArg) { result: Result<List<Calendar>> ->
               val error = result.exceptionOrNull()
               if (error != null) {
                 reply.reply(wrapError(error))

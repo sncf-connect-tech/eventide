@@ -14,9 +14,6 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       home: Scaffold(
-        appBar: AppBar(
-          title: const Text('Calendar plugin example app'),
-        ),
         body: BlocProvider(
           create: (_) => CalendarCubit(),
           child: const CalendarScreen(),

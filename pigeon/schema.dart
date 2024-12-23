@@ -18,7 +18,7 @@ abstract class CalendarActions {
   Calendar createCalendar(String title, String hexColor);
 
   @async
-  List<Calendar> retrieveCalendars();
+  List<Calendar> retrieveCalendars({required bool onlyWritableCalendars});
 
   @async
   bool createOrUpdateEvent(Event flutterEvent);
@@ -43,6 +43,7 @@ class Event {
   final String title;
   final int startDate; // millisecondsSinceEpoch
   final int endDate; // millisecondsSinceEpoch
+  final String timeZone; // String identifier
   final String calendarId;
   final String? description;
   final String? url;
@@ -53,6 +54,7 @@ class Event {
     required this.title,
     required this.startDate,
     required this.endDate,
+    required this.timeZone,
     required this.calendarId,
     required this.description,
     required this.url,

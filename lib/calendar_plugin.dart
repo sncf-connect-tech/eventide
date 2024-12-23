@@ -57,6 +57,7 @@ class Event {
     required this.title,
     required this.startDate,
     required this.endDate,
+    required this.timeZone,
     required this.calendarId,
     this.description,
     this.url,
@@ -70,6 +71,8 @@ class Event {
   int startDate;
 
   int endDate;
+
+  String timeZone;
 
   String calendarId;
 
@@ -85,6 +88,7 @@ class Event {
       title,
       startDate,
       endDate,
+      timeZone,
       calendarId,
       description,
       url,
@@ -99,10 +103,11 @@ class Event {
       title: result[1]! as String,
       startDate: result[2]! as int,
       endDate: result[3]! as int,
-      calendarId: result[4]! as String,
-      description: result[5] as String?,
-      url: result[6] as String?,
-      alarms: (result[7] as List<Object?>?)!.cast<Alarm?>(),
+      timeZone: result[4]! as String,
+      calendarId: result[5]! as String,
+      description: result[6] as String?,
+      url: result[7] as String?,
+      alarms: (result[8] as List<Object?>?)!.cast<Alarm?>(),
     );
   }
 }
@@ -232,7 +237,7 @@ class CalendarActions {
     }
   }
 
-  Future<List<Calendar>> retrieveCalendars() async {
+  Future<List<Calendar>> retrieveCalendars({required bool onlyWritableCalendars}) async {
     final String pigeonVar_channelName = 'dev.flutter.pigeon.flutter_calendar_connect.CalendarActions.retrieveCalendars$pigeonVar_messageChannelSuffix';
     final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
       pigeonVar_channelName,
@@ -240,7 +245,7 @@ class CalendarActions {
       binaryMessenger: pigeonVar_binaryMessenger,
     );
     final List<Object?>? pigeonVar_replyList =
-        await pigeonVar_channel.send(null) as List<Object?>?;
+        await pigeonVar_channel.send(<Object?>[onlyWritableCalendars]) as List<Object?>?;
     if (pigeonVar_replyList == null) {
       throw _createConnectionError(pigeonVar_channelName);
     } else if (pigeonVar_replyList.length > 1) {

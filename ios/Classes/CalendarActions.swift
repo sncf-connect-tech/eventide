@@ -102,6 +102,7 @@ struct Event {
   var title: String
   var startDate: Int64
   var endDate: Int64
+  var timeZone: String
   var calendarId: String
   var description: String? = nil
   var url: String? = nil
@@ -114,16 +115,18 @@ struct Event {
     let title = pigeonVar_list[1] as! String
     let startDate = pigeonVar_list[2] as! Int64
     let endDate = pigeonVar_list[3] as! Int64
-    let calendarId = pigeonVar_list[4] as! String
-    let description: String? = nilOrValue(pigeonVar_list[5])
-    let url: String? = nilOrValue(pigeonVar_list[6])
-    let alarms = pigeonVar_list[7] as! [Alarm?]
+    let timeZone = pigeonVar_list[4] as! String
+    let calendarId = pigeonVar_list[5] as! String
+    let description: String? = nilOrValue(pigeonVar_list[6])
+    let url: String? = nilOrValue(pigeonVar_list[7])
+    let alarms = pigeonVar_list[8] as! [Alarm?]
 
     return Event(
       id: id,
       title: title,
       startDate: startDate,
       endDate: endDate,
+      timeZone: timeZone,
       calendarId: calendarId,
       description: description,
       url: url,
@@ -136,6 +139,7 @@ struct Event {
       title,
       startDate,
       endDate,
+      timeZone,
       calendarId,
       description,
       url,
@@ -215,7 +219,7 @@ class CalendarActionsPigeonCodec: FlutterStandardMessageCodec, @unchecked Sendab
 protocol CalendarActions {
   func requestCalendarAccess(completion: @escaping (Result<Bool, Error>) -> Void)
   func createCalendar(title: String, hexColor: String, completion: @escaping (Result<Calendar, Error>) -> Void)
-  func retrieveCalendars(completion: @escaping (Result<[Calendar], Error>) -> Void)
+  func retrieveCalendars(onlyWritableCalendars: Bool, completion: @escaping (Result<[Calendar], Error>) -> Void)
   func createOrUpdateEvent(flutterEvent: Event, completion: @escaping (Result<Bool, Error>) -> Void)
 }
 
@@ -260,8 +264,10 @@ class CalendarActionsSetup {
     }
     let retrieveCalendarsChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.flutter_calendar_connect.CalendarActions.retrieveCalendars\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
     if let api = api {
-      retrieveCalendarsChannel.setMessageHandler { _, reply in
-        api.retrieveCalendars { result in
+      retrieveCalendarsChannel.setMessageHandler { message, reply in
+        let args = message as! [Any?]
+        let onlyWritableCalendarsArg = args[0] as! Bool
+        api.retrieveCalendars(onlyWritableCalendars: onlyWritableCalendarsArg) { result in
           switch result {
           case .success(let res):
             reply(wrapResult(res))
