@@ -55,11 +55,11 @@ public class CalendarApi: CalendarActions {
                 return
             }
             
-            guard let cgColor = UIColor(hex: hexColor)?.cgColor else {
+            guard let uiColor = UIColor(hex: hexColor) else {
                 completion(.failure(PigeonError(
                     code: "400",
                     message: "Unable to parse cgColor from hex",
-                    details: "hexadecimal number needs to start with 0x and to be 8 char long"
+                    details: "hexadecimal number needs to start with # and to be 8 or 6 char long"
                 )))
                 return
             }
@@ -67,7 +67,7 @@ public class CalendarApi: CalendarActions {
             let ekCalendar = EKCalendar.init(for: .event, eventStore: eventStore)
             
             ekCalendar.title = title
-            ekCalendar.cgColor = cgColor
+            ekCalendar.cgColor = uiColor.cgColor
             ekCalendar.source = source
             
             do {
@@ -75,7 +75,7 @@ public class CalendarApi: CalendarActions {
                 let calendar = Calendar(
                     id: ekCalendar.calendarIdentifier,
                     title: title,
-                    hexColor: hexColor,
+                    hexColor: uiColor.hexString,
                     sourceName: source.sourceName
                 )
                 completion(.success(calendar))
@@ -241,51 +241,37 @@ fileprivate class Converter {
 
 extension UIColor {
     var hexString: String {
-        let cgColorInRGB = cgColor.converted(to: CGColorSpace(name: CGColorSpace.sRGB)!, intent: .defaultIntent, options: nil)!
-        let colorRef = cgColorInRGB.components
-        let r = colorRef?[0] ?? 0
-        let g = colorRef?[1] ?? 0
-        let b = ((colorRef?.count ?? 0) > 2 ? colorRef?[2] : g) ?? 0
-        let a = cgColor.alpha
+        var red: CGFloat = 0
+        var green: CGFloat = 0
+        var blue: CGFloat = 0
+        var alpha: CGFloat = 0
+        self.getRed(&red, green: &green, blue: &blue, alpha: &alpha)
 
-        var color = String(
-            format: "#%02lX%02lX%02lX",
-            lroundf(Float(r * 255)),
-            lroundf(Float(g * 255)),
-            lroundf(Float(b * 255))
-        )
+        let rgb: UInt32 = (UInt32)(red*255)<<16 | (UInt32)(green*255)<<8 | (UInt32)(blue*255)<<0
 
-        if a < 1 {
-            color += String(format: "%02lX", lroundf(Float(a * 255)))
-        }
-
-        return color
+        return String(format:"#%06X", rgb)
     }
     
-    public convenience init?(hex: String) {
-        let r, g, b, a: CGFloat
-        
-        if hex.hasPrefix("0x") {
-            let start = hex.index(hex.startIndex, offsetBy: 2)
-            let hexColor = String(hex[start...])
-            
-            if hexColor.count == 8 {
-                let scanner = Scanner(string: hexColor)
-                var hexNumber: UInt64 = 0
-                
-                if scanner.scanHexInt64(&hexNumber) {
-                    a = CGFloat((hexNumber & 0xff000000) >> 24) / 255
-                    r = CGFloat((hexNumber & 0x00ff0000) >> 16) / 255
-                    g = CGFloat((hexNumber & 0x0000ff00) >> 8) / 255
-                    b = CGFloat((hexNumber & 0x000000ff)) / 255
-                    
-                    self.init(red: r, green: g, blue: b, alpha: a)
-                    return
-                }
-            }
+    convenience init?(hex: String) {
+        var cString: String = hex.trimmingCharacters(in: .whitespacesAndNewlines).uppercased()
+
+        if (cString.hasPrefix("#")) {
+            cString.remove(at: cString.startIndex)
         }
-        
-        return nil
+
+        if ((cString.count) != 6) {
+            return nil
+        }
+
+        var rgbValue: UInt64 = 0
+        Scanner(string: cString).scanHexInt64(&rgbValue)
+
+        self.init(
+            red: CGFloat((rgbValue & 0xFF0000) >> 16) / 255.0,
+            green: CGFloat((rgbValue & 0x00FF00) >> 8) / 255.0,
+            blue: CGFloat(rgbValue & 0x0000FF) / 255.0,
+            alpha: CGFloat(1.0)
+        )
     }
 }
 

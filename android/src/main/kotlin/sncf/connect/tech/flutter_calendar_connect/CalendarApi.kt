@@ -6,7 +6,9 @@ import Event
 import android.Manifest.permission.READ_CALENDAR
 import android.Manifest.permission.WRITE_CALENDAR
 import android.app.Activity
+import android.content.ContentValues
 import android.content.pm.PackageManager.PERMISSION_GRANTED
+import android.graphics.Color
 import android.net.Uri
 import android.provider.CalendarContract
 import androidx.core.app.ActivityCompat
@@ -29,7 +31,48 @@ class CalendarApi(
         hexColor: String,
         callback: (Result<Calendar>) -> Unit
     ) {
-        TODO("Not yet implemented")
+        if (!arePermissionsGranted) {
+            callback(Result.failure(Exception("Calendar permissions not granted")))
+            return
+        }
+
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+            val values = ContentValues().apply {
+                put(CalendarContract.Calendars.ACCOUNT_NAME, "account_name")
+                put(CalendarContract.Calendars.ACCOUNT_TYPE, CalendarContract.ACCOUNT_TYPE_LOCAL)
+                put(CalendarContract.Calendars.NAME, title)
+                put(CalendarContract.Calendars.CALENDAR_DISPLAY_NAME, title)
+                put(CalendarContract.Calendars.CALENDAR_COLOR, Color.parseColor(hexColor))
+                put(CalendarContract.Calendars.CALENDAR_ACCESS_LEVEL, CalendarContract.Calendars.CAL_ACCESS_OWNER)
+                put(CalendarContract.Calendars.OWNER_ACCOUNT, "owner_account")
+                put(CalendarContract.Calendars.VISIBLE, 1)
+                put(CalendarContract.Calendars.SYNC_EVENTS, 1)
+            }
+
+            val uri = CalendarContract.Calendars.CONTENT_URI
+                .buildUpon()
+                .appendQueryParameter(CalendarContract.CALLER_IS_SYNCADAPTER, "true")
+                .appendQueryParameter(CalendarContract.Calendars.ACCOUNT_NAME, "account_name")
+                .appendQueryParameter(CalendarContract.Calendars.ACCOUNT_TYPE, CalendarContract.ACCOUNT_TYPE_LOCAL)
+                .build()
+
+            val calendarUri = pluginActivity.contentResolver.insert(uri, values)
+            if (calendarUri != null) {
+                val calendarId = calendarUri.lastPathSegment?.toLong()
+                if (calendarId != null) {
+                    val calendar = Calendar(calendarId.toString(), title, hexColor)
+                    callback(Result.success(calendar))
+                } else {
+                    callback(Result.failure(Exception("Failed to retrieve calendar ID")))
+                }
+            } else {
+                callback(Result.failure(Exception("Failed to create calendar")))
+            }
+            } catch (e: Exception) {
+                callback(Result.failure(e))
+            }
+        }
     }
 
     override fun retrieveCalendars(onlyWritableCalendars: Boolean, callback: (Result<List<Calendar>>) -> Unit) {

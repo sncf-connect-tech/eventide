@@ -11,6 +11,15 @@ class CalendarCubit extends Cubit<CalendarState> {
   }) : _calendarActions = calendarActions ?? CalendarActions(),
         super(const CalendarInitial());
 
+  Future<void> createCalendar({
+    required String title,
+    required String hexColor,
+  }) async {
+    if (await _calendarActions.requestCalendarAccess()) {
+      await _calendarActions.createCalendar(title, hexColor);
+    }
+  }
+
   Future<void> fetchCalendars({required bool onlyWritable}) async {
     try {
       if (await _calendarActions.requestCalendarAccess()) {

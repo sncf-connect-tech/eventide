@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_calendar_connect_example/calendar_cubit.dart';
+import 'package:flutter_calendar_connect_example/calendar_form.dart';
 import 'package:flutter_calendar_connect_example/calendar_state.dart';
 
 class CalendarScreen extends StatelessWidget {
@@ -18,6 +19,19 @@ class CalendarScreen extends StatelessWidget {
                   const SliverAppBar(
                     pinned: true,
                     title: Text('Calendar plugin example app'),
+                  ),
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                      child: CalendarForm(
+                        onSubmit: (title, hexColor) async {
+                          await BlocProvider.of<CalendarCubit>(context).createCalendar(title: title, hexColor: hexColor);
+                          if (context.mounted) {
+                            await BlocProvider.of<CalendarCubit>(context).fetchCalendars(onlyWritable: false);
+                          }
+                        },
+                      ),
+                    ),
                   ),
                   if (state is CalendarSuccess)
                     SliverList(
