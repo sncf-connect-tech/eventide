@@ -15,7 +15,7 @@ abstract class CalendarActions {
   bool requestCalendarAccess();
 
   @async
-  Calendar createCalendar(String title, String hexColor);
+  Calendar createCalendar(String title, int color);
 
   @async
   List<Calendar> retrieveCalendars({required bool onlyWritableCalendars});
@@ -27,13 +27,13 @@ abstract class CalendarActions {
 class Calendar {
   final String id;
   final String title;
-  final String hexColor;
+  final int color;
   final String? sourceName;
 
   const Calendar({
     required this.id,
     required this.title,
-    required this.hexColor,
+    required this.color,
     required this.sourceName,
   });
 }

@@ -49,7 +49,7 @@ class FlutterError (
 data class Calendar (
   val id: String,
   val title: String,
-  val hexColor: String,
+  val color: Long,
   val sourceName: String? = null
 )
  {
@@ -57,16 +57,16 @@ data class Calendar (
     fun fromList(pigeonVar_list: List<Any?>): Calendar {
       val id = pigeonVar_list[0] as String
       val title = pigeonVar_list[1] as String
-      val hexColor = pigeonVar_list[2] as String
+      val color = pigeonVar_list[2] as Long
       val sourceName = pigeonVar_list[3] as String?
-      return Calendar(id, title, hexColor, sourceName)
+      return Calendar(id, title, color, sourceName)
     }
   }
   fun toList(): List<Any?> {
     return listOf(
       id,
       title,
-      hexColor,
+      color,
       sourceName,
     )
   }
@@ -175,7 +175,7 @@ private open class CalendarActionsPigeonCodec : StandardMessageCodec() {
 /** Generated interface from Pigeon that represents a handler of messages from Flutter. */
 interface CalendarActions {
   fun requestCalendarAccess(callback: (Result<Boolean>) -> Unit)
-  fun createCalendar(title: String, hexColor: String, callback: (Result<Calendar>) -> Unit)
+  fun createCalendar(title: String, color: Long, callback: (Result<Calendar>) -> Unit)
   fun retrieveCalendars(onlyWritableCalendars: Boolean, callback: (Result<List<Calendar>>) -> Unit)
   fun createOrUpdateEvent(flutterEvent: Event, callback: (Result<Boolean>) -> Unit)
 
@@ -212,8 +212,8 @@ interface CalendarActions {
           channel.setMessageHandler { message, reply ->
             val args = message as List<Any?>
             val titleArg = args[0] as String
-            val hexColorArg = args[1] as String
-            api.createCalendar(titleArg, hexColorArg) { result: Result<Calendar> ->
+            val colorArg = args[1] as Long
+            api.createCalendar(titleArg, colorArg) { result: Result<Calendar> ->
               val error = result.exceptionOrNull()
               if (error != null) {
                 reply.reply(wrapError(error))

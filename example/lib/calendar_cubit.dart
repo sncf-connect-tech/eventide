@@ -13,10 +13,17 @@ class CalendarCubit extends Cubit<CalendarState> {
 
   Future<void> createCalendar({
     required String title,
-    required String hexColor,
+    required int color,
   }) async {
     if (await _calendarActions.requestCalendarAccess()) {
-      await _calendarActions.createCalendar(title, hexColor);
+      final calendar = await _calendarActions.createCalendar(title, color);
+      
+      if (state is CalendarSuccess) {
+        final calendars = (state as CalendarSuccess).calendars;
+        emit(CalendarSuccess(calendars: [...calendars, calendar]));
+      } else {
+        fetchCalendars(onlyWritable: false);
+      }
     }
   }
 

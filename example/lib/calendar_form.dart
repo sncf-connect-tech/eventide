@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-typedef OnCalendarFormSubmit = void Function(String title, String hexColor);
+typedef OnCalendarFormSubmit = void Function(String title, Color color);
 
 class CalendarForm extends StatefulWidget {
   final OnCalendarFormSubmit onSubmit;
@@ -15,66 +15,69 @@ class CalendarForm extends StatefulWidget {
 }
 
 class _CalendarFormState extends State<CalendarForm> {
-  final _titleController = TextEditingController();
-  final _colorController = TextEditingController();
-  final _formKey = GlobalKey<FormState>();
+  late final TextEditingController _titleController;
+  late Color selectedColor;
+
+  @override
+  void initState() {
+    super.initState();
+    
+    _titleController = TextEditingController();
+    selectedColor = Colors.red;
+  }
+
+  @override
+  void dispose() {
+    _titleController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Form(
-      key: _formKey,
-      child: Column(
-        children: [
-          TextFormField(
-            controller: _titleController,
-            decoration: const InputDecoration(
-              labelText: 'Calendar title',
+    return Column(
+      children: [
+        TextFormField(
+          controller: _titleController,
+          decoration: const InputDecoration(
+            labelText: 'Calendar title',
+          ),
+        ),
+        DropdownButtonFormField(
+          value: selectedColor,
+          items: const [
+            DropdownMenuItem(
+              value: Colors.red,
+              child: Text('Red'),
             ),
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Please enter a value';
-              }
-
-              return null;
-            },
-          ),
-          TextFormField(
-            controller: _colorController,
-            decoration: const InputDecoration(
-              labelText: 'Calendar color',
+            DropdownMenuItem(
+              value: Colors.green,
+              child: Text('Green'),
             ),
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Please enter a value';
-              }
+            DropdownMenuItem(
+              value: Colors.blue,
+              child: Text('Blue'),
+            ),
+          ],
+          onChanged: (Color? value) {
+            setState(() {
+              selectedColor = value ?? selectedColor;
+            });
+          },
+        ),
+        const SizedBox(height: 16),
+        ElevatedButton(
+          onPressed: () {
+            final title = _titleController.text;
+  
+            widget.onSubmit(title, selectedColor);
 
-              if (!value.startsWith('#')) {
-                return 'Hex color should start with # (#RRGGBB)';
-              }
-
-              if (value.length != 7) {
-                return 'Hex color should be 7 characters long (#RRGGBB)';
-              }
-
-              return null;
-            },
-          ),
-          const SizedBox(height: 16),
-          ElevatedButton(
-            onPressed: () {
-              if (_formKey.currentState!.validate()) {
-                final title = _titleController.text;
-                final hexColor = _colorController.text;
-                widget.onSubmit(title, hexColor);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Creating calendar...')),
-                );
-              }
-            },
-            child: const Text('Create calendar'),
-          ),
-        ],
-      ),
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Creating calendar...')),
+            );
+          },
+          child: const Text('Create calendar'),
+        ),
+      ],
     );
   }
 }

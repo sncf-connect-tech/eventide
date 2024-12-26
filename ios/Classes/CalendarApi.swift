@@ -42,7 +42,7 @@ public class CalendarApi: CalendarActions {
     
     func createCalendar(
         title: String,
-        hexColor: String,
+        color: Int64,
         completion: @escaping (Result<Calendar, Error>) -> Void
     ) {
         checkCalendarAccessThenExecute {
@@ -55,7 +55,7 @@ public class CalendarApi: CalendarActions {
                 return
             }
             
-            guard let uiColor = UIColor(hex: hexColor) else {
+            guard let uiColor = UIColor(int64: color) else {
                 completion(.failure(PigeonError(
                     code: "400",
                     message: "Unable to parse cgColor from hex",
@@ -75,7 +75,7 @@ public class CalendarApi: CalendarActions {
                 let calendar = Calendar(
                     id: ekCalendar.calendarIdentifier,
                     title: title,
-                    hexColor: uiColor.hexString,
+                    color: uiColor.toInt64(),
                     sourceName: source.sourceName
                 )
                 completion(.success(calendar))
@@ -112,7 +112,7 @@ public class CalendarApi: CalendarActions {
                     Calendar(
                         id: $0.calendarIdentifier,
                         title: $0.title,
-                        hexColor: UIColor(cgColor: $0.cgColor).hexString,
+                        color: UIColor(cgColor: $0.cgColor).toInt64(),
                         sourceName: $0.source.sourceName
                     )
                 }
@@ -240,37 +240,36 @@ fileprivate class Converter {
 }
 
 extension UIColor {
-    var hexString: String {
+    func toInt64() -> Int64 {
         var red: CGFloat = 0
         var green: CGFloat = 0
         var blue: CGFloat = 0
         var alpha: CGFloat = 0
-        self.getRed(&red, green: &green, blue: &blue, alpha: &alpha)
 
-        let rgb: UInt32 = (UInt32)(red*255)<<16 | (UInt32)(green*255)<<8 | (UInt32)(blue*255)<<0
+        if self.getRed(&red, green: &green, blue: &blue, alpha: &alpha) {
+            let redInt = Int(red * 255)
+            let greenInt = Int(green * 255)
+            let blueInt = Int(blue * 255)
+            let alphaInt = Int(alpha * 255)
 
-        return String(format:"#%06X", rgb)
+            // Format ARGB
+            let rgb = (alphaInt << 24) + (redInt << 16) + (greenInt << 8) + blueInt
+            return Int64(rgb)
+        } else {
+            return Int64(0xFF000000)
+        }
     }
     
-    convenience init?(hex: String) {
-        var cString: String = hex.trimmingCharacters(in: .whitespacesAndNewlines).uppercased()
-
-        if (cString.hasPrefix("#")) {
-            cString.remove(at: cString.startIndex)
-        }
-
-        if ((cString.count) != 6) {
-            return nil
-        }
-
+    convenience init?(int64: Int64) {
+        let hexString = String(int64, radix: 16)
         var rgbValue: UInt64 = 0
-        Scanner(string: cString).scanHexInt64(&rgbValue)
+        Scanner(string: hexString).scanHexInt64(&rgbValue)
 
         self.init(
-            red: CGFloat((rgbValue & 0xFF0000) >> 16) / 255.0,
-            green: CGFloat((rgbValue & 0x00FF00) >> 8) / 255.0,
-            blue: CGFloat(rgbValue & 0x0000FF) / 255.0,
-            alpha: CGFloat(1.0)
+            red: CGFloat((rgbValue & 0x00ff0000) >> 16) / 255,
+            green: CGFloat((rgbValue & 0x0000ff00) >> 8) / 255,
+            blue: CGFloat((rgbValue & 0x000000ff)) / 255,
+            alpha: CGFloat((rgbValue & 0xff000000) >> 24) / 255
         )
     }
 }

@@ -28,7 +28,7 @@ class CalendarApi(
 
     override fun createCalendar(
         title: String,
-        hexColor: String,
+        color: Long,
         callback: (Result<Calendar>) -> Unit
     ) {
         if (!arePermissionsGranted) {
@@ -43,7 +43,7 @@ class CalendarApi(
                 put(CalendarContract.Calendars.ACCOUNT_TYPE, CalendarContract.ACCOUNT_TYPE_LOCAL)
                 put(CalendarContract.Calendars.NAME, title)
                 put(CalendarContract.Calendars.CALENDAR_DISPLAY_NAME, title)
-                put(CalendarContract.Calendars.CALENDAR_COLOR, Color.parseColor(hexColor))
+                put(CalendarContract.Calendars.CALENDAR_COLOR, color)
                 put(CalendarContract.Calendars.CALENDAR_ACCESS_LEVEL, CalendarContract.Calendars.CAL_ACCESS_OWNER)
                 put(CalendarContract.Calendars.OWNER_ACCOUNT, "owner_account")
                 put(CalendarContract.Calendars.VISIBLE, 1)
@@ -61,7 +61,7 @@ class CalendarApi(
             if (calendarUri != null) {
                 val calendarId = calendarUri.lastPathSegment?.toLong()
                 if (calendarId != null) {
-                    val calendar = Calendar(calendarId.toString(), title, hexColor)
+                    val calendar = Calendar(calendarId.toString(), title, color)
                     callback(Result.success(calendar))
                 } else {
                     callback(Result.failure(Exception("Failed to retrieve calendar ID")))
@@ -99,7 +99,7 @@ class CalendarApi(
                     while (it.moveToNext()) {
                         val id = it.getLong(it.getColumnIndexOrThrow(CalendarContract.Calendars._ID)).toString()
                         val displayName = it.getString(it.getColumnIndexOrThrow(CalendarContract.Calendars.CALENDAR_DISPLAY_NAME))
-                        val color = it.getString(it.getColumnIndexOrThrow(CalendarContract.Calendars.CALENDAR_COLOR))
+                        val color = it.getLong(it.getColumnIndexOrThrow(CalendarContract.Calendars.CALENDAR_COLOR))
 
                         calendars.add(Calendar(id, displayName, color))
                     }

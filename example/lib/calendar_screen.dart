@@ -24,11 +24,8 @@ class CalendarScreen extends StatelessWidget {
                     child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16.0),
                       child: CalendarForm(
-                        onSubmit: (title, hexColor) async {
-                          await BlocProvider.of<CalendarCubit>(context).createCalendar(title: title, hexColor: hexColor);
-                          if (context.mounted) {
-                            await BlocProvider.of<CalendarCubit>(context).fetchCalendars(onlyWritable: false);
-                          }
+                        onSubmit: (title, color) async {
+                          await BlocProvider.of<CalendarCubit>(context).createCalendar(title: title, color: color.value);
                         },
                       ),
                     ),
@@ -42,7 +39,7 @@ class CalendarScreen extends StatelessWidget {
                           child: Row(
                             children: [
                               Container(
-                                color: calendar.hexColor.toRgbColor(),
+                                color: Color(calendar.color),
                                 width: 16,
                                 height: 16,
                               ),
@@ -97,48 +94,3 @@ class CalendarScreen extends StatelessWidget {
     );
   }
 }
-
-extension StringHexToRgbColorExtension on String {
-  Color toRgbColor() => Color.fromRGBO(
-    int.tryParse(substring(0, 2), radix: 16) ?? 0,
-    int.tryParse(substring(2, 4), radix: 16) ?? 0,
-    int.tryParse(substring(4, 6), radix: 16) ?? 0,
-    1.0,
-  );
-}
-
-/*
-state.buildWidget(
-  onNoValue: (context, _) => Center(
-    child: ElevatedButton(
-      onPressed: BlocProvider.of<CalendarCubit>(context).fetchCalendars,
-      child: const Text('Fetch calendars'),
-    ),
-  ),
-  onValue: (context, state, _) => Center(
-    child: Column(
-      children: [
-        ElevatedButton(
-          onPressed: BlocProvider.of<CalendarCubit>(context).fetchCalendars,
-          child: const Text('Fetch calendars'),
-        ),
-        const SizedBox(height: 16),
-        ...state.value.calendars.map((calendar) => SizedBox(
-          height: 50,
-          child: Row(
-            children: [
-              Text(calendar.title),
-              const SizedBox(width: 16),
-              Text(calendar.id),
-            ],
-          ),
-        )),
-      ],
-    ),
-  ),
-  onWaiting: (_, __) => const Center(child: CircularProgressIndicator()),
-  onError: (context, error) => Center(
-    child: Text('Error: $error'),
-  ),
-)
-*/

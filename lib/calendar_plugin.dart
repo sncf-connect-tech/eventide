@@ -19,7 +19,7 @@ class Calendar {
   Calendar({
     required this.id,
     required this.title,
-    required this.hexColor,
+    required this.color,
     this.sourceName,
   });
 
@@ -27,7 +27,7 @@ class Calendar {
 
   String title;
 
-  String hexColor;
+  int color;
 
   String? sourceName;
 
@@ -35,7 +35,7 @@ class Calendar {
     return <Object?>[
       id,
       title,
-      hexColor,
+      color,
       sourceName,
     ];
   }
@@ -45,7 +45,7 @@ class Calendar {
     return Calendar(
       id: result[0]! as String,
       title: result[1]! as String,
-      hexColor: result[2]! as String,
+      color: result[2]! as int,
       sourceName: result[3] as String?,
     );
   }
@@ -210,7 +210,7 @@ class CalendarActions {
     }
   }
 
-  Future<Calendar> createCalendar(String title, String hexColor) async {
+  Future<Calendar> createCalendar(String title, int color) async {
     final String pigeonVar_channelName = 'dev.flutter.pigeon.flutter_calendar_connect.CalendarActions.createCalendar$pigeonVar_messageChannelSuffix';
     final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
       pigeonVar_channelName,
@@ -218,7 +218,7 @@ class CalendarActions {
       binaryMessenger: pigeonVar_binaryMessenger,
     );
     final List<Object?>? pigeonVar_replyList =
-        await pigeonVar_channel.send(<Object?>[title, hexColor]) as List<Object?>?;
+        await pigeonVar_channel.send(<Object?>[title, color]) as List<Object?>?;
     if (pigeonVar_replyList == null) {
       throw _createConnectionError(pigeonVar_channelName);
     } else if (pigeonVar_replyList.length > 1) {

@@ -24,6 +24,14 @@ class CalendarSuccess extends CalendarState {
   const CalendarSuccess({
     required this.calendars,
   });
+
+  CalendarSuccess copyWith({
+    List<Calendar>? calendars,
+  }) {
+    return CalendarSuccess(
+      calendars: calendars ?? this.calendars,
+    );
+  }
 }
 
 class CalendarNoValue extends CalendarState {

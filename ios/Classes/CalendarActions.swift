@@ -68,7 +68,7 @@ private func nilOrValue<T>(_ value: Any?) -> T? {
 struct Calendar {
   var id: String
   var title: String
-  var hexColor: String
+  var color: Int64
   var sourceName: String? = nil
 
 
@@ -76,13 +76,13 @@ struct Calendar {
   static func fromList(_ pigeonVar_list: [Any?]) -> Calendar? {
     let id = pigeonVar_list[0] as! String
     let title = pigeonVar_list[1] as! String
-    let hexColor = pigeonVar_list[2] as! String
+    let color = pigeonVar_list[2] as! Int64
     let sourceName: String? = nilOrValue(pigeonVar_list[3])
 
     return Calendar(
       id: id,
       title: title,
-      hexColor: hexColor,
+      color: color,
       sourceName: sourceName
     )
   }
@@ -90,7 +90,7 @@ struct Calendar {
     return [
       id,
       title,
-      hexColor,
+      color,
       sourceName,
     ]
   }
@@ -218,7 +218,7 @@ class CalendarActionsPigeonCodec: FlutterStandardMessageCodec, @unchecked Sendab
 /// Generated protocol from Pigeon that represents a handler of messages from Flutter.
 protocol CalendarActions {
   func requestCalendarAccess(completion: @escaping (Result<Bool, Error>) -> Void)
-  func createCalendar(title: String, hexColor: String, completion: @escaping (Result<Calendar, Error>) -> Void)
+  func createCalendar(title: String, color: Int64, completion: @escaping (Result<Calendar, Error>) -> Void)
   func retrieveCalendars(onlyWritableCalendars: Bool, completion: @escaping (Result<[Calendar], Error>) -> Void)
   func createOrUpdateEvent(flutterEvent: Event, completion: @escaping (Result<Bool, Error>) -> Void)
 }
@@ -249,8 +249,8 @@ class CalendarActionsSetup {
       createCalendarChannel.setMessageHandler { message, reply in
         let args = message as! [Any?]
         let titleArg = args[0] as! String
-        let hexColorArg = args[1] as! String
-        api.createCalendar(title: titleArg, hexColor: hexColorArg) { result in
+        let colorArg = args[1] as! Int64
+        api.createCalendar(title: titleArg, color: colorArg) { result in
           switch result {
           case .success(let res):
             reply(wrapResult(res))
