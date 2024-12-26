@@ -41,4 +41,24 @@ class CalendarCubit extends Cubit<CalendarState> {
       emit(CalendarError(message: e.toString()));
     }
   }
+
+  Future<bool> createOrUpdateEvent({
+    required String calendarId,
+    String? id,
+  }) async {
+    final event = Event(
+      title: 'Event title',
+      description: 'Event description',
+      startDate: DateTime.now().millisecondsSinceEpoch,
+      endDate: DateTime.now().add(const Duration(hours: 2)).millisecondsSinceEpoch,
+      timeZone: 'UTC',
+      calendarId: calendarId,
+      id: id,
+      alarms: [],
+    );
+    if (await _calendarActions.requestCalendarAccess()) {
+      return await _calendarActions.createOrUpdateEvent(event);
+    }
+    return false;
+  }
 }

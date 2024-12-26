@@ -43,8 +43,21 @@ class CalendarScreen extends StatelessWidget {
                                 width: 16,
                                 height: 16,
                               ),
-                              const SizedBox(width: 32),
-                              Text(calendar.title, maxLines: 3, overflow: TextOverflow.fade,),
+                              const SizedBox(width: 16),
+                              Expanded(child: Text(calendar.title, maxLines: 3, overflow: TextOverflow.fade,)),
+                              const SizedBox(width: 16),
+                              ElevatedButton(
+                                onPressed: () async {
+                                  final hasBeenCreated = await BlocProvider.of<CalendarCubit>(context).createOrUpdateEvent(
+                                    calendarId: calendar.id,
+                                  );
+
+                                  if (hasBeenCreated && context.mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Event created')));
+                                  }
+                                },
+                                child: const Icon(Icons.add),
+                              ),
                             ],
                           ),
                         ),

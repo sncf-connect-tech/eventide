@@ -116,7 +116,37 @@ class CalendarApi(
         flutterEvent: Event,
         callback: (Result<Boolean>) -> Unit
     ) {
-        TODO("Not yet implemented")
+        if (!arePermissionsGranted) {
+            callback(Result.failure(Exception("Calendar permissions not granted")))
+            return
+        }
+
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                // TODO: API < 34
+                // TODO: location
+                val eventValues = ContentValues().apply {
+                    put(CalendarContract.Events.CALENDAR_ID, flutterEvent.calendarId)
+                    put(CalendarContract.Events.TITLE, flutterEvent.title)
+                    put(CalendarContract.Events.DESCRIPTION, flutterEvent.description)
+                    put(CalendarContract.Events.DTSTART, flutterEvent.startDate)
+                    put(CalendarContract.Events.DTEND, flutterEvent.endDate)
+                    put(CalendarContract.Events.EVENT_TIMEZONE, flutterEvent.timeZone)
+
+                    // TODO: alarms
+                    // TODO: url
+                }
+
+                val eventUri = pluginActivity.contentResolver.insert(CalendarContract.Events.CONTENT_URI, eventValues)
+                if (eventUri != null) {
+                    callback(Result.success(true))
+                } else {
+                    callback(Result.failure(Exception("Failed to create event")))
+                }
+            } catch (e: Exception) {
+                callback(Result.failure(e))
+            }
+        }
     }
 
     override fun requestCalendarAccess(callback: (Result<Boolean>) -> Unit) {

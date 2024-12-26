@@ -20,7 +20,6 @@ class EventStoreManager: ObservableObject {
 
 public class CalendarApi: CalendarActions {
     let eventStore = EventStoreManager.shared.eventStore
-    private let converter = Converter()
 
     public func requestCalendarAccess(completion: @escaping (Result<Bool, Error>) -> Void) {
         let handler: EKEventStoreRequestAccessCompletionHandler = { isGranted, error in
@@ -147,11 +146,12 @@ public class CalendarApi: CalendarActions {
                 return
             }
             
+            // TODO: location
+            ekEvent.calendar = eventStore.calendar(withIdentifier: flutterEvent.calendarId)
             ekEvent.title = flutterEvent.title
             ekEvent.notes = flutterEvent.description
-            ekEvent.startDate = converter.parseDate(from: flutterEvent.startDate)
-            ekEvent.endDate = converter.parseDate(from: flutterEvent.endDate)
-            ekEvent.calendar = eventStore.calendar(withIdentifier: flutterEvent.calendarId)
+            ekEvent.startDate = Date(from: flutterEvent.startDate)
+            ekEvent.endDate = Date(from: flutterEvent.endDate)
             ekEvent.timeZone = TimeZone(identifier: flutterEvent.timeZone)
             
             if flutterEvent.url != nil {
@@ -232,10 +232,9 @@ public class CalendarApi: CalendarActions {
     }
 }
 
-fileprivate class Converter {
-    func parseDate(from millisecondsSinceEpoch: Int64) -> Date {
-        let timeInterval = TimeInterval(integerLiteral: millisecondsSinceEpoch)
-        return Date(timeIntervalSince1970: timeInterval)
+extension Date {
+    init(from millisecondsSinceEpoch: Int64) {
+        self.init(timeIntervalSince1970: Double(millisecondsSinceEpoch) / 1000)
     }
 }
 
