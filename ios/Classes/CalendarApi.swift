@@ -21,31 +21,13 @@ class EventStoreManager: ObservableObject {
 public class CalendarApi: CalendarActions {
     let eventStore = EventStoreManager.shared.eventStore
 
-    public func requestCalendarAccess(completion: @escaping (Result<Bool, Error>) -> Void) {
-        let handler: EKEventStoreRequestAccessCompletionHandler = { isGranted, error in
-            guard error == nil else {
-                let pigeonError = PigeonError(code: error!.localizedDescription, message: nil, details: nil)
-                completion(.failure(pigeonError))
-                return
-            }
-            
-            completion(.success(isGranted))
-        }
-        
-        if #available(iOS 17, *) {
-            eventStore.requestFullAccessToEvents(completion: handler)
-        } else {
-            eventStore.requestAccess(to: .event, completion: handler)
-        }
-    }
-    
     func createCalendar(
         title: String,
         color: Int64,
         completion: @escaping (Result<Calendar, Error>) -> Void
     ) {
         checkCalendarAccessThenExecute {
-            guard let source = getSource() else {
+            guard let source = self.getSource() else {
                 completion(.failure(PigeonError(
                     code: "404",
                     message: "Calendar source was not found",
@@ -63,14 +45,14 @@ public class CalendarApi: CalendarActions {
                 return
             }
             
-            let ekCalendar = EKCalendar.init(for: .event, eventStore: eventStore)
+            let ekCalendar = EKCalendar.init(for: .event, eventStore: self.eventStore)
             
             ekCalendar.title = title
             ekCalendar.cgColor = uiColor.cgColor
             ekCalendar.source = source
             
             do {
-                try eventStore.saveCalendar(ekCalendar, commit: true)
+                try self.eventStore.saveCalendar(ekCalendar, commit: true)
                 let calendar = Calendar(
                     id: ekCalendar.calendarIdentifier,
                     title: title,
@@ -80,7 +62,7 @@ public class CalendarApi: CalendarActions {
                 completion(.success(calendar))
                 
             } catch {
-                eventStore.reset()
+                self.eventStore.reset()
                 completion(.failure(PigeonError(
                     code: "500",
                     message: "Error while saving calendar",
@@ -100,7 +82,7 @@ public class CalendarApi: CalendarActions {
 
     func retrieveCalendars(onlyWritableCalendars: Bool, completion: @escaping (Result<[Calendar], Error>) -> Void) {
         checkCalendarAccessThenExecute {
-            let calendars = eventStore.calendars(for: .event)
+            let calendars = self.eventStore.calendars(for: .event)
                 .filter({ calendar in
                     guard onlyWritableCalendars else {
                         return true
@@ -132,9 +114,9 @@ public class CalendarApi: CalendarActions {
             var ekEvent: EKEvent?
             
             if flutterEvent.id == nil {
-                ekEvent = EKEvent(eventStore: eventStore)
+                ekEvent = EKEvent(eventStore: self.eventStore)
             } else {
-                ekEvent = eventStore.event(withIdentifier: flutterEvent.id!)
+                ekEvent = self.eventStore.event(withIdentifier: flutterEvent.id!)
             }
             
             guard let ekEvent else {
@@ -147,7 +129,7 @@ public class CalendarApi: CalendarActions {
             }
             
             // TODO: location
-            ekEvent.calendar = eventStore.calendar(withIdentifier: flutterEvent.calendarId)
+            ekEvent.calendar = self.eventStore.calendar(withIdentifier: flutterEvent.calendarId)
             ekEvent.title = flutterEvent.title
             ekEvent.notes = flutterEvent.description
             ekEvent.startDate = Date(from: flutterEvent.startDate)
@@ -167,11 +149,11 @@ public class CalendarApi: CalendarActions {
             ekEvent.alarms = alarms
             
             do {
-                try eventStore.save(ekEvent, span: EKSpan.thisEvent, commit: true)
+                try self.eventStore.save(ekEvent, span: EKSpan.thisEvent, commit: true)
                 completion(.success(true))
                 
             } catch {
-                eventStore.reset()
+                self.eventStore.reset()
                 completion(.failure(PigeonError(
                     code: "500",
                     message: "Event not created",
@@ -221,13 +203,37 @@ public class CalendarApi: CalendarActions {
     }
     
     private func checkCalendarAccessThenExecute(
-        _ permissionsGrantedCallback: () -> Void,
-        noAccess permissionsRefusedCallback: () -> Void
+        _ permissionsGrantedCallback: @escaping () -> Void,
+        noAccess permissionsRefusedCallback: @escaping () -> Void
     ) {
         if hasCalendarAccess() {
             permissionsGrantedCallback()
         } else {
-            permissionsRefusedCallback()
+            requestCalendarAccess { granted in
+                if (granted) {
+                    permissionsGrantedCallback()
+                } else {
+                    permissionsRefusedCallback()
+                }
+            }
+        }
+    }
+    
+    private func requestCalendarAccess(completion: @escaping (_ isGranted: Bool) -> Void) {
+        let handler: EKEventStoreRequestAccessCompletionHandler = { isGranted, error in
+            guard error == nil else {
+                let pigeonError = PigeonError(code: error!.localizedDescription, message: nil, details: nil)
+                completion(isGranted)
+                return
+            }
+            
+            completion(isGranted)
+        }
+        
+        if #available(iOS 17, *) {
+            eventStore.requestFullAccessToEvents(completion: handler)
+        } else {
+            eventStore.requestAccess(to: .event, completion: handler)
         }
     }
 }

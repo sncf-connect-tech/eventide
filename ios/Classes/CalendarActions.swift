@@ -217,7 +217,6 @@ class CalendarActionsPigeonCodec: FlutterStandardMessageCodec, @unchecked Sendab
 
 /// Generated protocol from Pigeon that represents a handler of messages from Flutter.
 protocol CalendarActions {
-  func requestCalendarAccess(completion: @escaping (Result<Bool, Error>) -> Void)
   func createCalendar(title: String, color: Int64, completion: @escaping (Result<Calendar, Error>) -> Void)
   func retrieveCalendars(onlyWritableCalendars: Bool, completion: @escaping (Result<[Calendar], Error>) -> Void)
   func createOrUpdateEvent(flutterEvent: Event, completion: @escaping (Result<Bool, Error>) -> Void)
@@ -229,21 +228,6 @@ class CalendarActionsSetup {
   /// Sets up an instance of `CalendarActions` to handle messages through the `binaryMessenger`.
   static func setUp(binaryMessenger: FlutterBinaryMessenger, api: CalendarActions?, messageChannelSuffix: String = "") {
     let channelSuffix = messageChannelSuffix.count > 0 ? ".\(messageChannelSuffix)" : ""
-    let requestCalendarAccessChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.flutter_calendar_connect.CalendarActions.requestCalendarAccess\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
-    if let api = api {
-      requestCalendarAccessChannel.setMessageHandler { _, reply in
-        api.requestCalendarAccess { result in
-          switch result {
-          case .success(let res):
-            reply(wrapResult(res))
-          case .failure(let error):
-            reply(wrapError(error))
-          }
-        }
-      }
-    } else {
-      requestCalendarAccessChannel.setMessageHandler(nil)
-    }
     let createCalendarChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.flutter_calendar_connect.CalendarActions.createCalendar\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
     if let api = api {
       createCalendarChannel.setMessageHandler { message, reply in

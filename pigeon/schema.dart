@@ -12,9 +12,6 @@ import 'package:pigeon/pigeon.dart';
 @HostApi()
 abstract class CalendarActions {
   @async
-  bool requestCalendarAccess();
-
-  @async
   Calendar createCalendar(String title, int color);
 
   @async

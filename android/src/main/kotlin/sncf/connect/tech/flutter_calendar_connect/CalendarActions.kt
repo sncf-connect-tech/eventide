@@ -174,7 +174,6 @@ private open class CalendarActionsPigeonCodec : StandardMessageCodec() {
 
 /** Generated interface from Pigeon that represents a handler of messages from Flutter. */
 interface CalendarActions {
-  fun requestCalendarAccess(callback: (Result<Boolean>) -> Unit)
   fun createCalendar(title: String, color: Long, callback: (Result<Calendar>) -> Unit)
   fun retrieveCalendars(onlyWritableCalendars: Boolean, callback: (Result<List<Calendar>>) -> Unit)
   fun createOrUpdateEvent(flutterEvent: Event, callback: (Result<Boolean>) -> Unit)
@@ -188,24 +187,6 @@ interface CalendarActions {
     @JvmOverloads
     fun setUp(binaryMessenger: BinaryMessenger, api: CalendarActions?, messageChannelSuffix: String = "") {
       val separatedMessageChannelSuffix = if (messageChannelSuffix.isNotEmpty()) ".$messageChannelSuffix" else ""
-      run {
-        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.flutter_calendar_connect.CalendarActions.requestCalendarAccess$separatedMessageChannelSuffix", codec)
-        if (api != null) {
-          channel.setMessageHandler { _, reply ->
-            api.requestCalendarAccess{ result: Result<Boolean> ->
-              val error = result.exceptionOrNull()
-              if (error != null) {
-                reply.reply(wrapError(error))
-              } else {
-                val data = result.getOrNull()
-                reply.reply(wrapResult(data))
-              }
-            }
-          }
-        } else {
-          channel.setMessageHandler(null)
-        }
-      }
       run {
         val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.flutter_calendar_connect.CalendarActions.createCalendar$separatedMessageChannelSuffix", codec)
         if (api != null) {

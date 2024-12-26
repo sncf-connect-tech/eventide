@@ -15,27 +15,23 @@ class CalendarCubit extends Cubit<CalendarState> {
     required String title,
     required int color,
   }) async {
-    if (await _calendarActions.requestCalendarAccess()) {
-      final calendar = await _calendarActions.createCalendar(title, color);
+    final calendar = await _calendarActions.createCalendar(title, color);
       
-      if (state is CalendarSuccess) {
-        final calendars = (state as CalendarSuccess).calendars;
-        emit(CalendarSuccess(calendars: [...calendars, calendar]));
-      } else {
-        fetchCalendars(onlyWritable: false);
-      }
+    if (state is CalendarSuccess) {
+      final calendars = (state as CalendarSuccess).calendars;
+      emit(CalendarSuccess(calendars: [...calendars, calendar]));
+    } else {
+      fetchCalendars(onlyWritable: false);
     }
   }
 
   Future<void> fetchCalendars({required bool onlyWritable}) async {
     try {
-      if (await _calendarActions.requestCalendarAccess()) {
-        final calendars = await _calendarActions.retrieveCalendars(onlyWritableCalendars: onlyWritable);
-        if (calendars.isEmpty) {
-          emit(const CalendarNoValue());
-        } else {
-          emit(CalendarSuccess(calendars: calendars));
-        }
+      final calendars = await _calendarActions.retrieveCalendars(onlyWritableCalendars: onlyWritable);
+      if (calendars.isEmpty) {
+        emit(const CalendarNoValue());
+      } else {
+        emit(CalendarSuccess(calendars: calendars));
       }
     } catch (e) {
       emit(CalendarError(message: e.toString()));
@@ -56,9 +52,7 @@ class CalendarCubit extends Cubit<CalendarState> {
       id: id,
       alarms: [],
     );
-    if (await _calendarActions.requestCalendarAccess()) {
-      return await _calendarActions.createOrUpdateEvent(event);
-    }
-    return false;
+    
+    return await _calendarActions.createOrUpdateEvent(event);
   }
 }
