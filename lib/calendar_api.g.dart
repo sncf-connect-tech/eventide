@@ -170,11 +170,11 @@ class _PigeonCodec extends StandardMessageCodec {
   }
 }
 
-class CalendarActions {
-  /// Constructor for [CalendarActions].  The [binaryMessenger] named argument is
+class CalendarApi {
+  /// Constructor for [CalendarApi].  The [binaryMessenger] named argument is
   /// available for dependency injection.  If it is left null, the default
   /// BinaryMessenger will be used which routes to the host platform.
-  CalendarActions({BinaryMessenger? binaryMessenger, String messageChannelSuffix = ''})
+  CalendarApi({BinaryMessenger? binaryMessenger, String messageChannelSuffix = ''})
       : pigeonVar_binaryMessenger = binaryMessenger,
         pigeonVar_messageChannelSuffix = messageChannelSuffix.isNotEmpty ? '.$messageChannelSuffix' : '';
   final BinaryMessenger? pigeonVar_binaryMessenger;
@@ -184,7 +184,7 @@ class CalendarActions {
   final String pigeonVar_messageChannelSuffix;
 
   Future<Calendar> createCalendar(String title, int color) async {
-    final String pigeonVar_channelName = 'dev.flutter.pigeon.flutter_calendar_connect.CalendarActions.createCalendar$pigeonVar_messageChannelSuffix';
+    final String pigeonVar_channelName = 'dev.flutter.pigeon.flutter_calendar_connect.CalendarApi.createCalendar$pigeonVar_messageChannelSuffix';
     final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
       pigeonVar_channelName,
       pigeonChannelCodec,
@@ -210,8 +210,8 @@ class CalendarActions {
     }
   }
 
-  Future<List<Calendar>> retrieveCalendars({required bool onlyWritableCalendars}) async {
-    final String pigeonVar_channelName = 'dev.flutter.pigeon.flutter_calendar_connect.CalendarActions.retrieveCalendars$pigeonVar_messageChannelSuffix';
+  Future<List<Calendar>> retrieveCalendars(bool onlyWritableCalendars) async {
+    final String pigeonVar_channelName = 'dev.flutter.pigeon.flutter_calendar_connect.CalendarApi.retrieveCalendars$pigeonVar_messageChannelSuffix';
     final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
       pigeonVar_channelName,
       pigeonChannelCodec,
@@ -237,15 +237,15 @@ class CalendarActions {
     }
   }
 
-  Future<bool> createOrUpdateEvent(Event flutterEvent) async {
-    final String pigeonVar_channelName = 'dev.flutter.pigeon.flutter_calendar_connect.CalendarActions.createOrUpdateEvent$pigeonVar_messageChannelSuffix';
+  Future<bool> createOrUpdateEvent(Event event) async {
+    final String pigeonVar_channelName = 'dev.flutter.pigeon.flutter_calendar_connect.CalendarApi.createOrUpdateEvent$pigeonVar_messageChannelSuffix';
     final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
       pigeonVar_channelName,
       pigeonChannelCodec,
       binaryMessenger: pigeonVar_binaryMessenger,
     );
     final List<Object?>? pigeonVar_replyList =
-        await pigeonVar_channel.send(<Object?>[flutterEvent]) as List<Object?>?;
+        await pigeonVar_channel.send(<Object?>[event]) as List<Object?>?;
     if (pigeonVar_replyList == null) {
       throw _createConnectionError(pigeonVar_channelName);
     } else if (pigeonVar_replyList.length > 1) {

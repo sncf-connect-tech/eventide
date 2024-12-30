@@ -51,7 +51,8 @@ android {
 
     dependencies {
         testImplementation 'org.jetbrains.kotlin:kotlin-test'
-        testImplementation 'org.mockito:mockito-core:5.0.0'
+        testImplementation "io.mockk:mockk:1.13.6"
+        testImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3"
     }
 
     testOptions {
@@ -64,6 +65,8 @@ android {
                showStandardStreams = true
             }
         }
+
+        unitTests.returnDefaultValues = true
     }
 }
 

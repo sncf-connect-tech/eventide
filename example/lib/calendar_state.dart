@@ -1,5 +1,5 @@
 import 'package:equatable/equatable.dart';
-import 'package:flutter_calendar_connect/calendar_plugin.dart';
+import 'package:flutter_calendar_connect/calendar_api.g.dart';
 
 abstract class CalendarState extends Equatable {
   @override

@@ -1,21 +1,27 @@
+import 'dart:ui';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_calendar_connect/calendar_plugin.dart';
+import 'package:flutter_calendar_connect/flutter_calendar_connect.dart';
+import 'package:flutter_calendar_connect/calendar_api.g.dart';
 import 'package:flutter_calendar_connect_example/calendar_state.dart';
 
 class CalendarCubit extends Cubit<CalendarState> {
-  final CalendarActions _calendarActions;
+  final FlutterCalendarConnect _calendarPlugin;
 
   CalendarCubit({
-    @visibleForTesting CalendarActions? calendarActions,
-  }) : _calendarActions = calendarActions ?? CalendarActions(),
+    @visibleForTesting FlutterCalendarConnect? calendarActions,
+  }) : _calendarPlugin = calendarActions ?? FlutterCalendarConnect(),
         super(const CalendarInitial());
 
   Future<void> createCalendar({
     required String title,
-    required int color,
+    required Color color,
   }) async {
-    final calendar = await _calendarActions.createCalendar(title, color);
+    final calendar = await _calendarPlugin.createCalendar(
+      title: title,
+      color: color,
+    );
       
     if (state is CalendarSuccess) {
       final calendars = (state as CalendarSuccess).calendars;
@@ -27,7 +33,7 @@ class CalendarCubit extends Cubit<CalendarState> {
 
   Future<void> fetchCalendars({required bool onlyWritable}) async {
     try {
-      final calendars = await _calendarActions.retrieveCalendars(onlyWritableCalendars: onlyWritable);
+      final calendars = await _calendarPlugin.retrieveCalendars(onlyWritableCalendars: onlyWritable);
       if (calendars.isEmpty) {
         emit(const CalendarNoValue());
       } else {
@@ -53,6 +59,6 @@ class CalendarCubit extends Cubit<CalendarState> {
       alarms: [],
     );
     
-    return await _calendarActions.createOrUpdateEvent(event);
+    return await _calendarPlugin.createOrUpdateEvent(event: event);
   }
 }

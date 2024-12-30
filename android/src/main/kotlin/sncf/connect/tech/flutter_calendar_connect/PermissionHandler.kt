@@ -5,17 +5,19 @@ import android.Manifest.permission.WRITE_CALENDAR
 import android.app.Activity
 import android.content.pm.PackageManager.PERMISSION_GRANTED
 import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
 import io.flutter.plugin.common.PluginRegistry.RequestPermissionsResultListener
 
-class PermissionHandler(private val activity: Activity): RequestPermissionsResultListener {
-    private val readRequestCode = 1001
-    private val writeRequestCode = 1002
-    private var readPermissionCallback: (Boolean) -> Unit = {}
-    private var writePermissionCallback: (Boolean) -> Unit = {}
+open class PermissionHandler(private val activity: Activity): RequestPermissionsResultListener {
+    protected var readPermissionCallback: (Boolean) -> Unit = {}
+    protected var writePermissionCallback: (Boolean) -> Unit = {}
+
+    companion object {
+        @JvmStatic val readRequestCode = 1001
+        @JvmStatic val writeRequestCode = 1002
+    }
 
     fun requestReadPermission(callback: (Boolean) -> Unit) {
-        val hasReadPermission = ContextCompat.checkSelfPermission(activity, READ_CALENDAR) == PERMISSION_GRANTED
+        val hasReadPermission = ActivityCompat.checkSelfPermission(activity, READ_CALENDAR) == PERMISSION_GRANTED
         if (hasReadPermission) {
             callback(true)
         } else {
@@ -25,7 +27,7 @@ class PermissionHandler(private val activity: Activity): RequestPermissionsResul
     }
 
     fun requestWritePermission(callback: (Boolean) -> Unit) {
-        val hasWritePermission = ContextCompat.checkSelfPermission(activity, WRITE_CALENDAR) == PERMISSION_GRANTED
+        val hasWritePermission = ActivityCompat.checkSelfPermission(activity, WRITE_CALENDAR) == PERMISSION_GRANTED
         if (hasWritePermission) {
             callback(true)
         } else {

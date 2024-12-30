@@ -25,7 +25,7 @@ class CalendarScreen extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(horizontal: 16.0),
                       child: CalendarForm(
                         onSubmit: (title, color) async {
-                          await BlocProvider.of<CalendarCubit>(context).createCalendar(title: title, color: color.value);
+                          await BlocProvider.of<CalendarCubit>(context).createCalendar(title: title, color: color);
                         },
                       ),
                     ),

@@ -2,6 +2,7 @@
 // See also: https://pub.dev/packages/pigeon
 @file:Suppress("UNCHECKED_CAST", "ArrayInDataClass")
 
+package sncf.connect.tech.flutter_calendar_connect
 
 import android.util.Log
 import io.flutter.plugin.common.BasicMessageChannel
@@ -131,7 +132,7 @@ data class Alarm (
     )
   }
 }
-private open class CalendarActionsPigeonCodec : StandardMessageCodec() {
+private open class CalendarApiPigeonCodec : StandardMessageCodec() {
   override fun readValueOfType(type: Byte, buffer: ByteBuffer): Any? {
     return when (type) {
       129.toByte() -> {
@@ -173,22 +174,22 @@ private open class CalendarActionsPigeonCodec : StandardMessageCodec() {
 
 
 /** Generated interface from Pigeon that represents a handler of messages from Flutter. */
-interface CalendarActions {
+interface CalendarApi {
   fun createCalendar(title: String, color: Long, callback: (Result<Calendar>) -> Unit)
   fun retrieveCalendars(onlyWritableCalendars: Boolean, callback: (Result<List<Calendar>>) -> Unit)
-  fun createOrUpdateEvent(flutterEvent: Event, callback: (Result<Boolean>) -> Unit)
+  fun createOrUpdateEvent(event: Event, callback: (Result<Boolean>) -> Unit)
 
   companion object {
-    /** The codec used by CalendarActions. */
+    /** The codec used by CalendarApi. */
     val codec: MessageCodec<Any?> by lazy {
-      CalendarActionsPigeonCodec()
+      CalendarApiPigeonCodec()
     }
-    /** Sets up an instance of `CalendarActions` to handle messages through the `binaryMessenger`. */
+    /** Sets up an instance of `CalendarApi` to handle messages through the `binaryMessenger`. */
     @JvmOverloads
-    fun setUp(binaryMessenger: BinaryMessenger, api: CalendarActions?, messageChannelSuffix: String = "") {
+    fun setUp(binaryMessenger: BinaryMessenger, api: CalendarApi?, messageChannelSuffix: String = "") {
       val separatedMessageChannelSuffix = if (messageChannelSuffix.isNotEmpty()) ".$messageChannelSuffix" else ""
       run {
-        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.flutter_calendar_connect.CalendarActions.createCalendar$separatedMessageChannelSuffix", codec)
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.flutter_calendar_connect.CalendarApi.createCalendar$separatedMessageChannelSuffix", codec)
         if (api != null) {
           channel.setMessageHandler { message, reply ->
             val args = message as List<Any?>
@@ -209,7 +210,7 @@ interface CalendarActions {
         }
       }
       run {
-        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.flutter_calendar_connect.CalendarActions.retrieveCalendars$separatedMessageChannelSuffix", codec)
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.flutter_calendar_connect.CalendarApi.retrieveCalendars$separatedMessageChannelSuffix", codec)
         if (api != null) {
           channel.setMessageHandler { message, reply ->
             val args = message as List<Any?>
@@ -229,12 +230,12 @@ interface CalendarActions {
         }
       }
       run {
-        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.flutter_calendar_connect.CalendarActions.createOrUpdateEvent$separatedMessageChannelSuffix", codec)
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.flutter_calendar_connect.CalendarApi.createOrUpdateEvent$separatedMessageChannelSuffix", codec)
         if (api != null) {
           channel.setMessageHandler { message, reply ->
             val args = message as List<Any?>
-            val flutterEventArg = args[0] as Event
-            api.createOrUpdateEvent(flutterEventArg) { result: Result<Boolean> ->
+            val eventArg = args[0] as Event
+            api.createOrUpdateEvent(eventArg) { result: Result<Boolean> ->
               val error = result.exceptionOrNull()
               if (error != null) {
                 reply.reply(wrapError(error))

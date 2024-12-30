@@ -168,7 +168,7 @@ struct Alarm {
   }
 }
 
-private class CalendarActionsPigeonCodecReader: FlutterStandardReader {
+private class CalendarApiPigeonCodecReader: FlutterStandardReader {
   override func readValue(ofType type: UInt8) -> Any? {
     switch type {
     case 129:
@@ -183,7 +183,7 @@ private class CalendarActionsPigeonCodecReader: FlutterStandardReader {
   }
 }
 
-private class CalendarActionsPigeonCodecWriter: FlutterStandardWriter {
+private class CalendarApiPigeonCodecWriter: FlutterStandardWriter {
   override func writeValue(_ value: Any) {
     if let value = value as? Calendar {
       super.writeByte(129)
@@ -200,35 +200,35 @@ private class CalendarActionsPigeonCodecWriter: FlutterStandardWriter {
   }
 }
 
-private class CalendarActionsPigeonCodecReaderWriter: FlutterStandardReaderWriter {
+private class CalendarApiPigeonCodecReaderWriter: FlutterStandardReaderWriter {
   override func reader(with data: Data) -> FlutterStandardReader {
-    return CalendarActionsPigeonCodecReader(data: data)
+    return CalendarApiPigeonCodecReader(data: data)
   }
 
   override func writer(with data: NSMutableData) -> FlutterStandardWriter {
-    return CalendarActionsPigeonCodecWriter(data: data)
+    return CalendarApiPigeonCodecWriter(data: data)
   }
 }
 
-class CalendarActionsPigeonCodec: FlutterStandardMessageCodec, @unchecked Sendable {
-  static let shared = CalendarActionsPigeonCodec(readerWriter: CalendarActionsPigeonCodecReaderWriter())
+class CalendarApiPigeonCodec: FlutterStandardMessageCodec, @unchecked Sendable {
+  static let shared = CalendarApiPigeonCodec(readerWriter: CalendarApiPigeonCodecReaderWriter())
 }
 
 
 /// Generated protocol from Pigeon that represents a handler of messages from Flutter.
-protocol CalendarActions {
+protocol CalendarApi {
   func createCalendar(title: String, color: Int64, completion: @escaping (Result<Calendar, Error>) -> Void)
   func retrieveCalendars(onlyWritableCalendars: Bool, completion: @escaping (Result<[Calendar], Error>) -> Void)
-  func createOrUpdateEvent(flutterEvent: Event, completion: @escaping (Result<Bool, Error>) -> Void)
+  func createOrUpdate(event: Event, completion: @escaping (Result<Bool, Error>) -> Void)
 }
 
 /// Generated setup class from Pigeon to handle messages through the `binaryMessenger`.
-class CalendarActionsSetup {
-  static var codec: FlutterStandardMessageCodec { CalendarActionsPigeonCodec.shared }
-  /// Sets up an instance of `CalendarActions` to handle messages through the `binaryMessenger`.
-  static func setUp(binaryMessenger: FlutterBinaryMessenger, api: CalendarActions?, messageChannelSuffix: String = "") {
+class CalendarApiSetup {
+  static var codec: FlutterStandardMessageCodec { CalendarApiPigeonCodec.shared }
+  /// Sets up an instance of `CalendarApi` to handle messages through the `binaryMessenger`.
+  static func setUp(binaryMessenger: FlutterBinaryMessenger, api: CalendarApi?, messageChannelSuffix: String = "") {
     let channelSuffix = messageChannelSuffix.count > 0 ? ".\(messageChannelSuffix)" : ""
-    let createCalendarChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.flutter_calendar_connect.CalendarActions.createCalendar\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
+    let createCalendarChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.flutter_calendar_connect.CalendarApi.createCalendar\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
     if let api = api {
       createCalendarChannel.setMessageHandler { message, reply in
         let args = message as! [Any?]
@@ -246,7 +246,7 @@ class CalendarActionsSetup {
     } else {
       createCalendarChannel.setMessageHandler(nil)
     }
-    let retrieveCalendarsChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.flutter_calendar_connect.CalendarActions.retrieveCalendars\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
+    let retrieveCalendarsChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.flutter_calendar_connect.CalendarApi.retrieveCalendars\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
     if let api = api {
       retrieveCalendarsChannel.setMessageHandler { message, reply in
         let args = message as! [Any?]
@@ -263,12 +263,12 @@ class CalendarActionsSetup {
     } else {
       retrieveCalendarsChannel.setMessageHandler(nil)
     }
-    let createOrUpdateEventChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.flutter_calendar_connect.CalendarActions.createOrUpdateEvent\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
+    let createOrUpdateEventChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.flutter_calendar_connect.CalendarApi.createOrUpdateEvent\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
     if let api = api {
       createOrUpdateEventChannel.setMessageHandler { message, reply in
         let args = message as! [Any?]
-        let flutterEventArg = args[0] as! Event
-        api.createOrUpdateEvent(flutterEvent: flutterEventArg) { result in
+        let eventArg = args[0] as! Event
+        api.createOrUpdate(event: eventArg) { result in
           switch result {
           case .success(let res):
             reply(wrapResult(res))
