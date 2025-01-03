@@ -9,14 +9,29 @@ import Foundation
 import EventKit
 
 class CalendarImplem: CalendarApi {
-    let eventStore = EventStoreManager.shared.eventStore
+    let eventStore: EKEventStore
+    let permissionHandler: PermissionHandler
+    
+    init() {
+        self.eventStore = EventStoreManager.shared.eventStore
+        self.permissionHandler = PermissionHandler()
+    }
+    
+    func requestCalendarPermission(completion: @escaping (Result<Bool, any Error>) -> Void) {
+        permissionHandler.checkCalendarAccessThenExecute {
+            completion(.success(true))
+        } noAccess: {
+            completion(.success(false))
+        }
+
+    }
     
     func createCalendar(
         title: String,
         color: Int64,
         completion: @escaping (Result<Calendar, Error>) -> Void
     ) {
-        checkCalendarAccessThenExecute {
+        permissionHandler.checkCalendarAccessThenExecute {
             guard let source = self.getSource() else {
                 completion(.failure(PigeonError(
                     code: "404",
@@ -47,7 +62,7 @@ class CalendarImplem: CalendarApi {
                     id: ekCalendar.calendarIdentifier,
                     title: title,
                     color: uiColor.toInt64(),
-                    sourceName: source.sourceName
+                    isWritable: true
                 )
                 completion(.success(calendar))
                 
@@ -71,7 +86,7 @@ class CalendarImplem: CalendarApi {
     }
 
     func retrieveCalendars(onlyWritableCalendars: Bool, completion: @escaping (Result<[Calendar], Error>) -> Void) {
-        checkCalendarAccessThenExecute {
+        permissionHandler.checkCalendarAccessThenExecute {
             let calendars = self.eventStore.calendars(for: .event)
                 .filter({ calendar in
                     guard onlyWritableCalendars else {
@@ -84,7 +99,7 @@ class CalendarImplem: CalendarApi {
                         id: $0.calendarIdentifier,
                         title: $0.title,
                         color: UIColor(cgColor: $0.cgColor).toInt64(),
-                        sourceName: $0.source.sourceName
+                        isWritable: $0.allowsContentModifications
                     )
                 }
             
@@ -99,16 +114,72 @@ class CalendarImplem: CalendarApi {
         }
     }
     
-    func createOrUpdate(event: Event, completion: @escaping (Result<Bool, Error>) -> Void) {
-        checkCalendarAccessThenExecute {
-            var ekEvent: EKEvent?
+    func deleteCalendar(_ calendarId: String, completion: @escaping (Result<Void, any Error>) -> Void) {
+        permissionHandler.checkCalendarAccessThenExecute {
+            let calendar = self.eventStore.calendar(withIdentifier: calendarId)
             
+            guard let calendar = calendar else {
+                completion(.failure(PigeonError(
+                    code: "404",
+                    message: "Calendar not found",
+                    details: "The provided calendar.id is certainly incorrect"
+                )))
+                return
+            }
+            
+            guard calendar.allowsContentModifications else {
+                completion(.failure(PigeonError(
+                    code: "403",
+                    message: "Calendar not editable",
+                    details: "Calendar does not allow content modifications"
+                )))
+                return
+            }
+                
+            do {
+                try self.eventStore.removeCalendar(calendar, commit: true)
+                completion(.success(()))
+                
+            } catch {
+                self.eventStore.reset()
+                completion(.failure(PigeonError(
+                    code: "500",
+                    message: "Unknown error",
+                    details: error.localizedDescription
+                )))
+            }
+            
+        } noAccess: {
+            completion(.failure(PigeonError(
+                code: "403",
+                message: "Calendar access has been refused or has not been given yet",
+                details: nil
+            )))
+        }
+
+    }
+    
+    func createEvent(
+        title: String,
+        startDate: Int64,
+        endDate: Int64,
+        calendarId: String,
+        timeZone: String,
+        description: String?,
+        url: String?,
+        alarms: [Alarm]?,
+        completion: @escaping (Result<Event, Error>
+    ) -> Void) {
+        permissionHandler.checkCalendarAccessThenExecute {
+            let ekEvent = EKEvent(eventStore: self.eventStore)
+            
+            /*
             if event.id == nil {
                 ekEvent = EKEvent(eventStore: self.eventStore)
             } else {
                 ekEvent = self.eventStore.event(withIdentifier: event.id!)
             }
-            
+                         
             guard let ekEvent else {
                 completion(.failure(PigeonError(
                     code: "404",
@@ -117,30 +188,43 @@ class CalendarImplem: CalendarApi {
                 )))
                 return
             }
-            
-            ekEvent.calendar = self.eventStore.calendar(withIdentifier: event.calendarId)
-            ekEvent.title = event.title
-            ekEvent.notes = event.description
-            ekEvent.startDate = Date(from: event.startDate)
-            ekEvent.endDate = Date(from: event.endDate)
-            ekEvent.timeZone = TimeZone(identifier: event.timeZone)
+             */
+
+            ekEvent.calendar = self.eventStore.calendar(withIdentifier: calendarId)
+            ekEvent.title = title
+            ekEvent.notes = description
+            ekEvent.startDate = Date(from: startDate)
+            ekEvent.endDate = Date(from: endDate)
+            ekEvent.timeZone = TimeZone(identifier: timeZone)
             // TODO: location
             
-            if event.url != nil {
-                ekEvent.url = URL(string: event.url!)
+            if url != nil {
+                ekEvent.url = URL(string: url!)
             }
             
-            var alarms = [EKAlarm]()
-            for alarm in event.alarms.compactMap({ $0 }) {
-                let timeInterval = TimeInterval(-alarm.minutes)
-                alarms.append(EKAlarm(relativeOffset: timeInterval))
+            var ekAlarms = [EKAlarm]()
+            if (alarms != nil) {
+                for alarm in alarms!.compactMap({ $0 }) {
+                    let timeInterval = TimeInterval(-alarm.minutes)
+                    ekAlarms.append(EKAlarm(relativeOffset: timeInterval))
+                }
+                
+                ekEvent.alarms = ekAlarms
             }
-            
-            ekEvent.alarms = alarms
             
             do {
                 try self.eventStore.save(ekEvent, span: EKSpan.thisEvent, commit: true)
-                completion(.success(true))
+                completion(.success(
+                    Event(
+                        id: ekEvent.eventIdentifier,
+                        title: title,
+                        startDate: startDate,
+                        endDate: endDate,
+                        timeZone: timeZone,
+                        calendarId: calendarId,
+                        alarms: alarms
+                    )
+                ))
                 
             } catch {
                 self.eventStore.reset()
@@ -157,8 +241,110 @@ class CalendarImplem: CalendarApi {
                 details: nil
             )))
         }
-
-
+    }
+    
+    func retrieveEvents(
+        calendarId: String,
+        startDate: Int64,
+        endDate: Int64,
+        completion: @escaping (Result<[Event], any Error>) -> Void
+    ) {
+        permissionHandler.checkCalendarAccessThenExecute {
+            let calendar = self.eventStore.calendar(withIdentifier: calendarId)
+            
+            guard let calendar = calendar else {
+                completion(.failure(PigeonError(
+                    code: "404",
+                    message: "Calendar not found",
+                    details: "The provided calendar.id is certainly incorrect"
+                )))
+                return
+            }
+            
+            let predicate = self.eventStore.predicateForEvents(
+                withStart: Date(from: startDate),
+                end: Date(from: endDate),
+                calendars: [calendar]
+            )
+            
+            let ekEvents = self.eventStore.events(matching: predicate)
+            
+            completion(.success(ekEvents.map { ekEvent in
+                return Event(
+                    id: ekEvent.eventIdentifier,
+                    title: ekEvent.title,
+                    startDate: ekEvent.startDate.millisecondsSince1970,
+                    endDate: ekEvent.endDate.millisecondsSince1970,
+                    timeZone: ekEvent.timeZone?.identifier ?? "",
+                    calendarId: ekEvent.calendar.calendarIdentifier,
+                    alarms: ekEvent.alarms?.map({ ekAlarm in
+                        return Alarm(minutes: Int64(ekAlarm.relativeOffset/60))
+                    }) ?? []
+                )
+            }))
+        } noAccess: {
+            completion(.failure(PigeonError(
+                code: "403",
+                message: "Calendar access has been refused or has not been given yet",
+                details: nil
+            )))
+        }
+    }
+    
+    func deleteEvent(withId eventId: String, _ calendarId: String, completion: @escaping (Result<Void, any Error>) -> Void) {
+        permissionHandler.checkCalendarAccessThenExecute {
+            let calendar = self.eventStore.calendar(withIdentifier: calendarId)
+            
+            guard let calendar = calendar else {
+                completion(.failure(PigeonError(
+                    code: "404",
+                    message: "Calendar not found",
+                    details: "The provided calendar.id is certainly incorrect"
+                )))
+                return
+            }
+            
+            guard calendar.allowsContentModifications else {
+                completion(.failure(PigeonError(
+                    code: "403",
+                    message: "Calendar not editable",
+                    details: "Calendar does not allow content modifications"
+                )))
+                return
+            }
+            
+            let event = self.eventStore.event(withIdentifier: eventId)
+            
+            guard let event = event else {
+                completion(.failure(PigeonError(
+                    code: "404",
+                    message: "Event not found",
+                    details: "The provided event.id is certainly incorrect"
+                )))
+                return
+            }
+                
+            do {
+                try self.eventStore.remove(event, span: .thisEvent)
+                // TODO: handle recurrent events
+                completion(.success(()))
+                
+            } catch {
+                self.eventStore.reset()
+                completion(.failure(PigeonError(
+                    code: "500",
+                    message: "Unknown error",
+                    details: error.localizedDescription
+                )))
+            }
+            
+        } noAccess: {
+            completion(.failure(PigeonError(
+                code: "403",
+                message: "Calendar access has been refused or has not been given yet",
+                details: nil
+            )))
+        }
     }
     
     private func getSource() -> EKSource? {
@@ -180,50 +366,5 @@ class CalendarImplem: CalendarApi {
         }
 
         return defaultSource
-    }
-    
-    private func hasCalendarAccess() -> Bool {
-        let status = EKEventStore.authorizationStatus(for: .event)
-        
-        if #available(iOS 17, *) {
-            return status == EKAuthorizationStatus.fullAccess
-        } else {
-            return status == EKAuthorizationStatus.authorized
-        }
-    }
-    
-    private func checkCalendarAccessThenExecute(
-        _ permissionsGrantedCallback: @escaping () -> Void,
-        noAccess permissionsRefusedCallback: @escaping () -> Void
-    ) {
-        if hasCalendarAccess() {
-            permissionsGrantedCallback()
-        } else {
-            requestCalendarAccess { granted in
-                if (granted) {
-                    permissionsGrantedCallback()
-                } else {
-                    permissionsRefusedCallback()
-                }
-            }
-        }
-    }
-    
-    private func requestCalendarAccess(completion: @escaping (_ isGranted: Bool) -> Void) {
-        let handler: EKEventStoreRequestAccessCompletionHandler = { isGranted, error in
-            guard error == nil else {
-                let pigeonError = PigeonError(code: error!.localizedDescription, message: nil, details: nil)
-                completion(isGranted)
-                return
-            }
-            
-            completion(isGranted)
-        }
-        
-        if #available(iOS 17, *) {
-            eventStore.requestFullAccessToEvents(completion: handler)
-        } else {
-            eventStore.requestAccess(to: .event, completion: handler)
-        }
     }
 }

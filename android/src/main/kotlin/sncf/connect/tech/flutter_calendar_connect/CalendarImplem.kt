@@ -13,6 +13,11 @@ class CalendarImplem(
     private var permissionHandler: PermissionHandler,
     private var contentUri: Uri = CalendarContract.Calendars.CONTENT_URI
 ): CalendarApi {
+    override fun requestCalendarPermission(callback: (Result<Boolean>) -> Unit) {
+        permissionHandler.requestWritePermission { granted ->
+            callback(Result.success(granted))
+        }
+    }
 
     override fun createCalendar(
         title: String,
@@ -46,7 +51,7 @@ class CalendarImplem(
                         if (calendarUri != null) {
                             val calendarId = calendarUri.lastPathSegment?.toLong()
                             if (calendarId != null) {
-                                val calendar = Calendar(calendarId.toString(), title, color)
+                                val calendar = Calendar(calendarId.toString(), title, color, isWritable = true)
                                 callback(Result.success(calendar))
                             } else {
                                 callback(Result.failure(Exception("Failed to retrieve calendar ID")))
@@ -69,16 +74,16 @@ class CalendarImplem(
             if (granted) {
                 CoroutineScope(Dispatchers.IO).launch {
                     try {
-                        val uri: Uri = contentUri
                         val projection = arrayOf(
                             CalendarContract.Calendars._ID,
                             CalendarContract.Calendars.CALENDAR_DISPLAY_NAME,
                             CalendarContract.Calendars.CALENDAR_COLOR,
+                            CalendarContract.Calendars.CALENDAR_ACCESS_LEVEL
                         )
                         val selection = if (onlyWritableCalendars) ("(" + CalendarContract.Calendars.CALENDAR_ACCESS_LEVEL + " >=  ?)") else null
                         val selectionArgs = if (onlyWritableCalendars) arrayOf(CalendarContract.Calendars.CAL_ACCESS_CONTRIBUTOR.toString()) else null
 
-                        val cursor = contentResolver.query(uri, projection, selection, selectionArgs, null)
+                        val cursor = contentResolver.query(contentUri, projection, selection, selectionArgs, null)
                         val calendars = mutableListOf<Calendar>()
 
                         cursor?.use {
@@ -86,8 +91,16 @@ class CalendarImplem(
                                 val id = it.getLong(it.getColumnIndexOrThrow(CalendarContract.Calendars._ID)).toString()
                                 val displayName = it.getString(it.getColumnIndexOrThrow(CalendarContract.Calendars.CALENDAR_DISPLAY_NAME))
                                 val color = it.getLong(it.getColumnIndexOrThrow(CalendarContract.Calendars.CALENDAR_COLOR))
+                                val accessLevel = it.getInt(it.getColumnIndexOrThrow(CalendarContract.Calendars.CALENDAR_ACCESS_LEVEL))
 
-                                calendars.add(Calendar(id, displayName, color))
+                                val calendar = Calendar(
+                                    id,
+                                    displayName,
+                                    color,
+                                    isWritable = accessLevel >= CalendarContract.Calendars.CAL_ACCESS_CONTRIBUTOR
+                                )
+
+                                calendars.add(calendar)
                             }
                         }
 
@@ -103,32 +116,161 @@ class CalendarImplem(
         }
     }
 
-    override fun createOrUpdateEvent(
-        event: Event,
-        callback: (Result<Boolean>) -> Unit
+    override fun deleteCalendar(calendarId: String, callback: (Result<Unit>) -> Unit) {
+        permissionHandler.requestWritePermission { granted ->
+            if (granted) {
+                CoroutineScope(Dispatchers.IO).launch {
+                    try {
+                        val selection = CalendarContract.Calendars._ID + " = ?"
+                        val selectionArgs = arrayOf(calendarId)
+
+                        val deleted = contentResolver.delete(contentUri, selection, selectionArgs)
+                        if (deleted > 0) {
+                            callback(Result.success(Unit))
+                        } else {
+                            callback(Result.failure(Exception("Failed to delete calendar")))
+                        }
+                    } catch (e: Exception) {
+                        callback(Result.failure(e))
+                    }
+                }
+            } else {
+                callback(Result.failure(Exception("Calendar permissions not granted")))
+            }
+        }
+    }
+
+    override fun createEvent(
+        title: String,
+        startDate: Long,
+        endDate: Long,
+        calendarId: String,
+        timeZone: String,
+        description: String?,
+        url: String?,
+        alarms: List<Alarm>?,
+        callback: (Result<Event>) -> Unit
     ) {
         permissionHandler.requestWritePermission { granted ->
             if (granted) {
                 CoroutineScope(Dispatchers.IO).launch {
                     try {
                         val eventValues = ContentValues().apply {
-                            put(CalendarContract.Events.CALENDAR_ID, event.calendarId)
-                            put(CalendarContract.Events.TITLE, event.title)
-                            put(CalendarContract.Events.DESCRIPTION, event.description)
-                            put(CalendarContract.Events.DTSTART, event.startDate)
-                            put(CalendarContract.Events.DTEND, event.endDate)
-                            put(CalendarContract.Events.EVENT_TIMEZONE, event.timeZone)
+                            put(CalendarContract.Events.CALENDAR_ID, calendarId)
+                            put(CalendarContract.Events.TITLE, title)
+                            put(CalendarContract.Events.DESCRIPTION, description)
+                            put(CalendarContract.Events.DTSTART, startDate)
+                            put(CalendarContract.Events.DTEND, endDate)
+                            put(CalendarContract.Events.EVENT_TIMEZONE, timeZone)
 
                             // TODO: location
                             // TODO: alarms
                             // TODO: url
                         }
 
-                        val eventUri = contentResolver.insert(CalendarContract.Events.CONTENT_URI, eventValues)
+                        val eventUri = contentResolver.insert(contentUri, eventValues)
                         if (eventUri != null) {
-                            callback(Result.success(true))
+                            val eventId = eventUri.lastPathSegment?.toLong()
+                            if (eventId != null) {
+                                val event = Event(
+                                    id = eventId.toString(),
+                                    title = title,
+                                    startDate = startDate,
+                                    endDate = endDate,
+                                    timeZone = timeZone,
+                                    calendarId = calendarId,
+                                    description = description,
+                                    alarms = alarms
+                                )
+                                callback(Result.success(event))
+                            } else {
+                                callback(Result.failure(Exception("Failed to retrieve event ID")))
+                            }
                         } else {
                             callback(Result.failure(Exception("Failed to create event")))
+                        }
+                    } catch (e: Exception) {
+                        callback(Result.failure(e))
+                    }
+                }
+            } else {
+                callback(Result.failure(Exception("Calendar permissions not granted")))
+            }
+        }
+    }
+
+    override fun retrieveEvents(
+        calendarId: String,
+        startDate: Long,
+        endDate: Long,
+        callback: (Result<List<Event>>) -> Unit
+    ) {
+        permissionHandler.requestReadPermission { granted ->
+            if (granted) {
+                CoroutineScope(Dispatchers.IO).launch {
+                    try {
+                        val projection = arrayOf(
+                            CalendarContract.Events._ID,
+                            CalendarContract.Events.TITLE,
+                            CalendarContract.Events.DESCRIPTION,
+                            CalendarContract.Events.DTSTART,
+                            CalendarContract.Events.DTEND,
+                            CalendarContract.Events.EVENT_TIMEZONE,
+                        )
+                        val selection = CalendarContract.Events.CALENDAR_ID + " = ? AND " + CalendarContract.Events.DTSTART + " >= ? AND " + CalendarContract.Events.DTEND + " <= ?"
+                        val selectionArgs = arrayOf(calendarId, startDate.toString(), endDate.toString())
+
+                        val cursor = contentResolver.query(contentUri, projection, selection, selectionArgs, null)
+                        val events = mutableListOf<Event>()
+
+                        cursor?.use {
+                            while (it.moveToNext()) {
+                                val id = it.getLong(it.getColumnIndexOrThrow(CalendarContract.Events._ID)).toString()
+                                val title = it.getString(it.getColumnIndexOrThrow(CalendarContract.Events.TITLE))
+                                val description = it.getString(it.getColumnIndexOrThrow(CalendarContract.Events.DESCRIPTION))
+                                val start = it.getLong(it.getColumnIndexOrThrow(CalendarContract.Events.DTSTART))
+                                val end = it.getLong(it.getColumnIndexOrThrow(CalendarContract.Events.DTEND))
+                                val timeZone = it.getString(it.getColumnIndexOrThrow(CalendarContract.Events.EVENT_TIMEZONE))
+
+                                events.add(Event(
+                                    id = id,
+                                    title = title,
+                                    startDate = start,
+                                    endDate = end,
+                                    timeZone = timeZone,
+                                    calendarId = calendarId,
+                                    description = description,
+                                    alarms = emptyList()
+                                ))
+                            }
+                        }
+
+                        callback(Result.success(events))
+
+                    } catch (e: Exception) {
+                        callback(Result.failure(e))
+                    }
+                }
+
+            } else {
+                callback(Result.failure(Exception("Calendar permissions not granted")))
+            }
+        }
+    }
+
+    override fun deleteEvent(eventId: String, calendarId: String, callback: (Result<Unit>) -> Unit) {
+        permissionHandler.requestWritePermission { granted ->
+            if (granted) {
+                CoroutineScope(Dispatchers.IO).launch {
+                    try {
+                        val selection = CalendarContract.Events._ID + " = ? AND " + CalendarContract.Events.CALENDAR_ID + " = ?"
+                        val selectionArgs = arrayOf(eventId, calendarId)
+
+                        val deleted = contentResolver.delete(contentUri, selection, selectionArgs)
+                        if (deleted > 0) {
+                            callback(Result.success(Unit))
+                        } else {
+                            callback(Result.failure(Exception("Failed to delete event")))
                         }
                     } catch (e: Exception) {
                         callback(Result.failure(e))

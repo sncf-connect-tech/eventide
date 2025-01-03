@@ -7,7 +7,7 @@ import io.flutter.plugin.common.BinaryMessenger
 
 /** CalendarPlugin */
 class CalendarPlugin: FlutterPlugin, ActivityAware {
-  lateinit var binaryMessenger: BinaryMessenger
+  private lateinit var binaryMessenger: BinaryMessenger
 
   override fun onAttachedToEngine(flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
     binaryMessenger = flutterPluginBinding.binaryMessenger

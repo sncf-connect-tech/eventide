@@ -51,7 +51,7 @@ data class Calendar (
   val id: String,
   val title: String,
   val color: Long,
-  val sourceName: String? = null
+  val isWritable: Boolean
 )
  {
   companion object {
@@ -59,8 +59,8 @@ data class Calendar (
       val id = pigeonVar_list[0] as String
       val title = pigeonVar_list[1] as String
       val color = pigeonVar_list[2] as Long
-      val sourceName = pigeonVar_list[3] as String?
-      return Calendar(id, title, color, sourceName)
+      val isWritable = pigeonVar_list[3] as Boolean
+      return Calendar(id, title, color, isWritable)
     }
   }
   fun toList(): List<Any?> {
@@ -68,14 +68,14 @@ data class Calendar (
       id,
       title,
       color,
-      sourceName,
+      isWritable,
     )
   }
 }
 
 /** Generated class from Pigeon that represents data sent in messages. */
 data class Event (
-  val id: String? = null,
+  val id: String,
   val title: String,
   val startDate: Long,
   val endDate: Long,
@@ -83,12 +83,12 @@ data class Event (
   val calendarId: String,
   val description: String? = null,
   val url: String? = null,
-  val alarms: List<Alarm?>
+  val alarms: List<Alarm>? = null
 )
  {
   companion object {
     fun fromList(pigeonVar_list: List<Any?>): Event {
-      val id = pigeonVar_list[0] as String?
+      val id = pigeonVar_list[0] as String
       val title = pigeonVar_list[1] as String
       val startDate = pigeonVar_list[2] as Long
       val endDate = pigeonVar_list[3] as Long
@@ -96,7 +96,7 @@ data class Event (
       val calendarId = pigeonVar_list[5] as String
       val description = pigeonVar_list[6] as String?
       val url = pigeonVar_list[7] as String?
-      val alarms = pigeonVar_list[8] as List<Alarm?>
+      val alarms = pigeonVar_list[8] as List<Alarm>?
       return Event(id, title, startDate, endDate, timeZone, calendarId, description, url, alarms)
     }
   }
@@ -175,9 +175,13 @@ private open class CalendarApiPigeonCodec : StandardMessageCodec() {
 
 /** Generated interface from Pigeon that represents a handler of messages from Flutter. */
 interface CalendarApi {
+  fun requestCalendarPermission(callback: (Result<Boolean>) -> Unit)
   fun createCalendar(title: String, color: Long, callback: (Result<Calendar>) -> Unit)
   fun retrieveCalendars(onlyWritableCalendars: Boolean, callback: (Result<List<Calendar>>) -> Unit)
-  fun createOrUpdateEvent(event: Event, callback: (Result<Boolean>) -> Unit)
+  fun deleteCalendar(calendarId: String, callback: (Result<Unit>) -> Unit)
+  fun createEvent(title: String, startDate: Long, endDate: Long, calendarId: String, timeZone: String, description: String?, url: String?, alarms: List<Alarm>?, callback: (Result<Event>) -> Unit)
+  fun retrieveEvents(calendarId: String, startDate: Long, endDate: Long, callback: (Result<List<Event>>) -> Unit)
+  fun deleteEvent(eventId: String, calendarId: String, callback: (Result<Unit>) -> Unit)
 
   companion object {
     /** The codec used by CalendarApi. */
@@ -188,6 +192,24 @@ interface CalendarApi {
     @JvmOverloads
     fun setUp(binaryMessenger: BinaryMessenger, api: CalendarApi?, messageChannelSuffix: String = "") {
       val separatedMessageChannelSuffix = if (messageChannelSuffix.isNotEmpty()) ".$messageChannelSuffix" else ""
+      run {
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.flutter_calendar_connect.CalendarApi.requestCalendarPermission$separatedMessageChannelSuffix", codec)
+        if (api != null) {
+          channel.setMessageHandler { _, reply ->
+            api.requestCalendarPermission{ result: Result<Boolean> ->
+              val error = result.exceptionOrNull()
+              if (error != null) {
+                reply.reply(wrapError(error))
+              } else {
+                val data = result.getOrNull()
+                reply.reply(wrapResult(data))
+              }
+            }
+          }
+        } else {
+          channel.setMessageHandler(null)
+        }
+      }
       run {
         val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.flutter_calendar_connect.CalendarApi.createCalendar$separatedMessageChannelSuffix", codec)
         if (api != null) {
@@ -230,18 +252,86 @@ interface CalendarApi {
         }
       }
       run {
-        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.flutter_calendar_connect.CalendarApi.createOrUpdateEvent$separatedMessageChannelSuffix", codec)
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.flutter_calendar_connect.CalendarApi.deleteCalendar$separatedMessageChannelSuffix", codec)
         if (api != null) {
           channel.setMessageHandler { message, reply ->
             val args = message as List<Any?>
-            val eventArg = args[0] as Event
-            api.createOrUpdateEvent(eventArg) { result: Result<Boolean> ->
+            val calendarIdArg = args[0] as String
+            api.deleteCalendar(calendarIdArg) { result: Result<Unit> ->
+              val error = result.exceptionOrNull()
+              if (error != null) {
+                reply.reply(wrapError(error))
+              } else {
+                reply.reply(wrapResult(null))
+              }
+            }
+          }
+        } else {
+          channel.setMessageHandler(null)
+        }
+      }
+      run {
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.flutter_calendar_connect.CalendarApi.createEvent$separatedMessageChannelSuffix", codec)
+        if (api != null) {
+          channel.setMessageHandler { message, reply ->
+            val args = message as List<Any?>
+            val titleArg = args[0] as String
+            val startDateArg = args[1] as Long
+            val endDateArg = args[2] as Long
+            val calendarIdArg = args[3] as String
+            val timeZoneArg = args[4] as String
+            val descriptionArg = args[5] as String?
+            val urlArg = args[6] as String?
+            val alarmsArg = args[7] as List<Alarm>?
+            api.createEvent(titleArg, startDateArg, endDateArg, calendarIdArg, timeZoneArg, descriptionArg, urlArg, alarmsArg) { result: Result<Event> ->
               val error = result.exceptionOrNull()
               if (error != null) {
                 reply.reply(wrapError(error))
               } else {
                 val data = result.getOrNull()
                 reply.reply(wrapResult(data))
+              }
+            }
+          }
+        } else {
+          channel.setMessageHandler(null)
+        }
+      }
+      run {
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.flutter_calendar_connect.CalendarApi.retrieveEvents$separatedMessageChannelSuffix", codec)
+        if (api != null) {
+          channel.setMessageHandler { message, reply ->
+            val args = message as List<Any?>
+            val calendarIdArg = args[0] as String
+            val startDateArg = args[1] as Long
+            val endDateArg = args[2] as Long
+            api.retrieveEvents(calendarIdArg, startDateArg, endDateArg) { result: Result<List<Event>> ->
+              val error = result.exceptionOrNull()
+              if (error != null) {
+                reply.reply(wrapError(error))
+              } else {
+                val data = result.getOrNull()
+                reply.reply(wrapResult(data))
+              }
+            }
+          }
+        } else {
+          channel.setMessageHandler(null)
+        }
+      }
+      run {
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.flutter_calendar_connect.CalendarApi.deleteEvent$separatedMessageChannelSuffix", codec)
+        if (api != null) {
+          channel.setMessageHandler { message, reply ->
+            val args = message as List<Any?>
+            val eventIdArg = args[0] as String
+            val calendarIdArg = args[1] as String
+            api.deleteEvent(eventIdArg, calendarIdArg) { result: Result<Unit> ->
+              val error = result.exceptionOrNull()
+              if (error != null) {
+                reply.reply(wrapError(error))
+              } else {
+                reply.reply(wrapResult(null))
               }
             }
           }

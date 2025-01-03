@@ -1,64 +1,96 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_calendar_connect_example/calendar_cubit.dart';
-import 'package:flutter_calendar_connect_example/calendar_form.dart';
-import 'package:flutter_calendar_connect_example/calendar_state.dart';
+import 'package:flutter_calendar_connect/calendar_api.g.dart';
+import 'package:flutter_calendar_connect_example/calendar_details.dart';
+import 'package:flutter_calendar_connect_example/logic/calendar_cubit.dart';
+import 'package:flutter_calendar_connect_example/forms/calendar_form.dart';
+import 'package:flutter_calendar_connect_example/logic/event_cubit.dart';
+import 'package:value_state/value_state.dart';
 
 class CalendarScreen extends StatelessWidget {
   const CalendarScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<CalendarCubit, CalendarState>(
+    return BlocBuilder<CalendarCubit, Value<List<Calendar>>>(
       builder: (_, state) {
         return SafeArea(
           child: Stack(
             children: [
               CustomScrollView(
                 slivers: [
-                  const SliverAppBar(
+                  SliverAppBar(
                     pinned: true,
-                    title: Text('Calendar plugin example app'),
-                  ),
-                  SliverToBoxAdapter(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                      child: CalendarForm(
-                        onSubmit: (title, color) async {
-                          await BlocProvider.of<CalendarCubit>(context).createCalendar(title: title, color: color);
+                    title: const Text('Calendar plugin example app'),
+                    actions: [
+                      IconButton(
+                        icon: const Icon(Icons.add),
+                        onPressed: () {
+                          showDialog(
+                            context: context,
+                            builder: (context) => AlertDialog(
+                              title: const Text('Create calendar'),
+                              content: Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                                child: CalendarForm(
+                                  onSubmit: (title, color) async {
+                                    await BlocProvider.of<CalendarCubit>(context).createCalendar(title: title, color: color);
+                                  },
+                                ),
+                              ),
+                            ),
+                          );
                         },
                       ),
-                    ),
+                    ],
                   ),
-                  if (state is CalendarSuccess)
+                  if (state case Value(:final data?))
                     SliverList(
-                      delegate: SliverChildListDelegate(state.calendars.map((calendar) => SizedBox(
+                      delegate: SliverChildListDelegate(data.map((calendar) => SizedBox(
                         height: 50,
                         child: Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 16),
-                          child: Row(
-                            children: [
-                              Container(
-                                color: Color(calendar.color),
-                                width: 16,
-                                height: 16,
-                              ),
-                              const SizedBox(width: 16),
-                              Expanded(child: Text(calendar.title, maxLines: 3, overflow: TextOverflow.fade,)),
-                              const SizedBox(width: 16),
-                              ElevatedButton(
-                                onPressed: () async {
-                                  final hasBeenCreated = await BlocProvider.of<CalendarCubit>(context).createOrUpdateEvent(
-                                    calendarId: calendar.id,
+                          child: InkWell(
+                            onTap: () async {
+                              try {
+                                await BlocProvider.of<EventCubit>(context).selectCalendar(calendar);
+                                if (context.mounted) {
+                                  Navigator.of(context).push(
+                                    MaterialPageRoute(builder: (context) => const CalendarDetails()),
                                   );
-
-                                  if (hasBeenCreated && context.mounted) {
-                                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Event created')));
-                                  }
-                                },
-                                child: const Icon(Icons.add),
-                              ),
-                            ],
+                                }
+                              } catch (error) {
+                                if (context.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: ${error.toString()}')));
+                                }
+                              }
+                            },
+                            child: Row(
+                              children: [
+                                Container(
+                                  color: Color(calendar.color),
+                                  width: 16,
+                                  height: 16,
+                                ),
+                                const SizedBox(width: 16),
+                                Expanded(
+                                  child: Text(calendar.title,
+                                    maxLines: 3,
+                                    overflow: TextOverflow.fade,
+                                  ),
+                                ),
+                                const SizedBox(width: 16),
+                                if (calendar.isWritable)
+                                  IconButton(
+                                    icon: const Icon(Icons.delete),
+                                    onPressed: () {
+                                      BlocProvider.of<CalendarCubit>(context).deleteCalendar(calendar.id);
+                                    },
+                                  ),
+                                const SizedBox(width: 16),
+                                const Icon(Icons.arrow_right),
+                              ],
+                            ),
                           ),
                         ),
                       )).toList(),
@@ -69,12 +101,12 @@ class CalendarScreen extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.center,
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        if (state is CalendarNoValue) ...[
+                        if (state case Value(:final data?) when data.isEmpty) ...[
                           const Text('No calendars found'),
                           const SizedBox(height: 16),
                         ],
-                        if (state is CalendarError) ...[
-                          Text('Error: ${state.message}'),
+                        if (state case Value(:final error?)) ...[
+                          Text('Error: ${error.toString()}'),
                           const SizedBox(height: 16),
                         ],
                       ],
@@ -92,7 +124,7 @@ class CalendarScreen extends StatelessWidget {
                       onPressed: () => BlocProvider.of<CalendarCubit>(context).fetchCalendars(onlyWritable: true),
                       child: const Text('Writable calendars'),
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 8),
                     ElevatedButton(
                       onPressed: () => BlocProvider.of<CalendarCubit>(context).fetchCalendars(onlyWritable: false),
                       child: const Text('All calendars'),

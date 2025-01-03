@@ -69,7 +69,7 @@ struct Calendar {
   var id: String
   var title: String
   var color: Int64
-  var sourceName: String? = nil
+  var isWritable: Bool
 
 
   // swift-format-ignore: AlwaysUseLowerCamelCase
@@ -77,13 +77,13 @@ struct Calendar {
     let id = pigeonVar_list[0] as! String
     let title = pigeonVar_list[1] as! String
     let color = pigeonVar_list[2] as! Int64
-    let sourceName: String? = nilOrValue(pigeonVar_list[3])
+    let isWritable = pigeonVar_list[3] as! Bool
 
     return Calendar(
       id: id,
       title: title,
       color: color,
-      sourceName: sourceName
+      isWritable: isWritable
     )
   }
   func toList() -> [Any?] {
@@ -91,14 +91,14 @@ struct Calendar {
       id,
       title,
       color,
-      sourceName,
+      isWritable,
     ]
   }
 }
 
 /// Generated class from Pigeon that represents data sent in messages.
 struct Event {
-  var id: String? = nil
+  var id: String
   var title: String
   var startDate: Int64
   var endDate: Int64
@@ -106,12 +106,12 @@ struct Event {
   var calendarId: String
   var description: String? = nil
   var url: String? = nil
-  var alarms: [Alarm?]
+  var alarms: [Alarm]? = nil
 
 
   // swift-format-ignore: AlwaysUseLowerCamelCase
   static func fromList(_ pigeonVar_list: [Any?]) -> Event? {
-    let id: String? = nilOrValue(pigeonVar_list[0])
+    let id = pigeonVar_list[0] as! String
     let title = pigeonVar_list[1] as! String
     let startDate = pigeonVar_list[2] as! Int64
     let endDate = pigeonVar_list[3] as! Int64
@@ -119,7 +119,7 @@ struct Event {
     let calendarId = pigeonVar_list[5] as! String
     let description: String? = nilOrValue(pigeonVar_list[6])
     let url: String? = nilOrValue(pigeonVar_list[7])
-    let alarms = pigeonVar_list[8] as! [Alarm?]
+    let alarms: [Alarm]? = nilOrValue(pigeonVar_list[8])
 
     return Event(
       id: id,
@@ -217,9 +217,13 @@ class CalendarApiPigeonCodec: FlutterStandardMessageCodec, @unchecked Sendable {
 
 /// Generated protocol from Pigeon that represents a handler of messages from Flutter.
 protocol CalendarApi {
+  func requestCalendarPermission(completion: @escaping (Result<Bool, Error>) -> Void)
   func createCalendar(title: String, color: Int64, completion: @escaping (Result<Calendar, Error>) -> Void)
   func retrieveCalendars(onlyWritableCalendars: Bool, completion: @escaping (Result<[Calendar], Error>) -> Void)
-  func createOrUpdate(event: Event, completion: @escaping (Result<Bool, Error>) -> Void)
+  func deleteCalendar(_ calendarId: String, completion: @escaping (Result<Void, Error>) -> Void)
+  func createEvent(title: String, startDate: Int64, endDate: Int64, calendarId: String, timeZone: String, description: String?, url: String?, alarms: [Alarm]?, completion: @escaping (Result<Event, Error>) -> Void)
+  func retrieveEvents(calendarId: String, startDate: Int64, endDate: Int64, completion: @escaping (Result<[Event], Error>) -> Void)
+  func deleteEvent(withId eventId: String, _ calendarId: String, completion: @escaping (Result<Void, Error>) -> Void)
 }
 
 /// Generated setup class from Pigeon to handle messages through the `binaryMessenger`.
@@ -228,6 +232,21 @@ class CalendarApiSetup {
   /// Sets up an instance of `CalendarApi` to handle messages through the `binaryMessenger`.
   static func setUp(binaryMessenger: FlutterBinaryMessenger, api: CalendarApi?, messageChannelSuffix: String = "") {
     let channelSuffix = messageChannelSuffix.count > 0 ? ".\(messageChannelSuffix)" : ""
+    let requestCalendarPermissionChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.flutter_calendar_connect.CalendarApi.requestCalendarPermission\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
+    if let api = api {
+      requestCalendarPermissionChannel.setMessageHandler { _, reply in
+        api.requestCalendarPermission { result in
+          switch result {
+          case .success(let res):
+            reply(wrapResult(res))
+          case .failure(let error):
+            reply(wrapError(error))
+          }
+        }
+      }
+    } else {
+      requestCalendarPermissionChannel.setMessageHandler(nil)
+    }
     let createCalendarChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.flutter_calendar_connect.CalendarApi.createCalendar\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
     if let api = api {
       createCalendarChannel.setMessageHandler { message, reply in
@@ -263,12 +282,36 @@ class CalendarApiSetup {
     } else {
       retrieveCalendarsChannel.setMessageHandler(nil)
     }
-    let createOrUpdateEventChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.flutter_calendar_connect.CalendarApi.createOrUpdateEvent\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
+    let deleteCalendarChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.flutter_calendar_connect.CalendarApi.deleteCalendar\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
     if let api = api {
-      createOrUpdateEventChannel.setMessageHandler { message, reply in
+      deleteCalendarChannel.setMessageHandler { message, reply in
         let args = message as! [Any?]
-        let eventArg = args[0] as! Event
-        api.createOrUpdate(event: eventArg) { result in
+        let calendarIdArg = args[0] as! String
+        api.deleteCalendar(calendarIdArg) { result in
+          switch result {
+          case .success:
+            reply(wrapResult(nil))
+          case .failure(let error):
+            reply(wrapError(error))
+          }
+        }
+      }
+    } else {
+      deleteCalendarChannel.setMessageHandler(nil)
+    }
+    let createEventChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.flutter_calendar_connect.CalendarApi.createEvent\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
+    if let api = api {
+      createEventChannel.setMessageHandler { message, reply in
+        let args = message as! [Any?]
+        let titleArg = args[0] as! String
+        let startDateArg = args[1] as! Int64
+        let endDateArg = args[2] as! Int64
+        let calendarIdArg = args[3] as! String
+        let timeZoneArg = args[4] as! String
+        let descriptionArg: String? = nilOrValue(args[5])
+        let urlArg: String? = nilOrValue(args[6])
+        let alarmsArg: [Alarm]? = nilOrValue(args[7])
+        api.createEvent(title: titleArg, startDate: startDateArg, endDate: endDateArg, calendarId: calendarIdArg, timeZone: timeZoneArg, description: descriptionArg, url: urlArg, alarms: alarmsArg) { result in
           switch result {
           case .success(let res):
             reply(wrapResult(res))
@@ -278,7 +321,44 @@ class CalendarApiSetup {
         }
       }
     } else {
-      createOrUpdateEventChannel.setMessageHandler(nil)
+      createEventChannel.setMessageHandler(nil)
+    }
+    let retrieveEventsChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.flutter_calendar_connect.CalendarApi.retrieveEvents\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
+    if let api = api {
+      retrieveEventsChannel.setMessageHandler { message, reply in
+        let args = message as! [Any?]
+        let calendarIdArg = args[0] as! String
+        let startDateArg = args[1] as! Int64
+        let endDateArg = args[2] as! Int64
+        api.retrieveEvents(calendarId: calendarIdArg, startDate: startDateArg, endDate: endDateArg) { result in
+          switch result {
+          case .success(let res):
+            reply(wrapResult(res))
+          case .failure(let error):
+            reply(wrapError(error))
+          }
+        }
+      }
+    } else {
+      retrieveEventsChannel.setMessageHandler(nil)
+    }
+    let deleteEventChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.flutter_calendar_connect.CalendarApi.deleteEvent\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
+    if let api = api {
+      deleteEventChannel.setMessageHandler { message, reply in
+        let args = message as! [Any?]
+        let eventIdArg = args[0] as! String
+        let calendarIdArg = args[1] as! String
+        api.deleteEvent(withId: eventIdArg, calendarIdArg) { result in
+          switch result {
+          case .success:
+            reply(wrapResult(nil))
+          case .failure(let error):
+            reply(wrapError(error))
+          }
+        }
+      }
+    } else {
+      deleteEventChannel.setMessageHandler(nil)
     }
   }
 }

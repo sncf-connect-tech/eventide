@@ -20,7 +20,7 @@ class Calendar {
     required this.id,
     required this.title,
     required this.color,
-    this.sourceName,
+    required this.isWritable,
   });
 
   String id;
@@ -29,14 +29,14 @@ class Calendar {
 
   int color;
 
-  String? sourceName;
+  bool isWritable;
 
   Object encode() {
     return <Object?>[
       id,
       title,
       color,
-      sourceName,
+      isWritable,
     ];
   }
 
@@ -46,14 +46,14 @@ class Calendar {
       id: result[0]! as String,
       title: result[1]! as String,
       color: result[2]! as int,
-      sourceName: result[3] as String?,
+      isWritable: result[3]! as bool,
     );
   }
 }
 
 class Event {
   Event({
-    this.id,
+    required this.id,
     required this.title,
     required this.startDate,
     required this.endDate,
@@ -61,10 +61,10 @@ class Event {
     required this.calendarId,
     this.description,
     this.url,
-    required this.alarms,
+    this.alarms,
   });
 
-  String? id;
+  String id;
 
   String title;
 
@@ -80,7 +80,7 @@ class Event {
 
   String? url;
 
-  List<Alarm?> alarms;
+  List<Alarm>? alarms;
 
   Object encode() {
     return <Object?>[
@@ -99,7 +99,7 @@ class Event {
   static Event decode(Object result) {
     result as List<Object?>;
     return Event(
-      id: result[0] as String?,
+      id: result[0]! as String,
       title: result[1]! as String,
       startDate: result[2]! as int,
       endDate: result[3]! as int,
@@ -107,7 +107,7 @@ class Event {
       calendarId: result[5]! as String,
       description: result[6] as String?,
       url: result[7] as String?,
-      alarms: (result[8] as List<Object?>?)!.cast<Alarm?>(),
+      alarms: (result[8] as List<Object?>?)?.cast<Alarm>(),
     );
   }
 }
@@ -183,6 +183,33 @@ class CalendarApi {
 
   final String pigeonVar_messageChannelSuffix;
 
+  Future<bool> requestCalendarPermission() async {
+    final String pigeonVar_channelName = 'dev.flutter.pigeon.flutter_calendar_connect.CalendarApi.requestCalendarPermission$pigeonVar_messageChannelSuffix';
+    final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
+      pigeonVar_channelName,
+      pigeonChannelCodec,
+      binaryMessenger: pigeonVar_binaryMessenger,
+    );
+    final List<Object?>? pigeonVar_replyList =
+        await pigeonVar_channel.send(null) as List<Object?>?;
+    if (pigeonVar_replyList == null) {
+      throw _createConnectionError(pigeonVar_channelName);
+    } else if (pigeonVar_replyList.length > 1) {
+      throw PlatformException(
+        code: pigeonVar_replyList[0]! as String,
+        message: pigeonVar_replyList[1] as String?,
+        details: pigeonVar_replyList[2],
+      );
+    } else if (pigeonVar_replyList[0] == null) {
+      throw PlatformException(
+        code: 'null-error',
+        message: 'Host platform returned null value for non-null return value.',
+      );
+    } else {
+      return (pigeonVar_replyList[0] as bool?)!;
+    }
+  }
+
   Future<Calendar> createCalendar(String title, int color) async {
     final String pigeonVar_channelName = 'dev.flutter.pigeon.flutter_calendar_connect.CalendarApi.createCalendar$pigeonVar_messageChannelSuffix';
     final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
@@ -237,15 +264,37 @@ class CalendarApi {
     }
   }
 
-  Future<bool> createOrUpdateEvent(Event event) async {
-    final String pigeonVar_channelName = 'dev.flutter.pigeon.flutter_calendar_connect.CalendarApi.createOrUpdateEvent$pigeonVar_messageChannelSuffix';
+  Future<void> deleteCalendar(String calendarId) async {
+    final String pigeonVar_channelName = 'dev.flutter.pigeon.flutter_calendar_connect.CalendarApi.deleteCalendar$pigeonVar_messageChannelSuffix';
     final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
       pigeonVar_channelName,
       pigeonChannelCodec,
       binaryMessenger: pigeonVar_binaryMessenger,
     );
     final List<Object?>? pigeonVar_replyList =
-        await pigeonVar_channel.send(<Object?>[event]) as List<Object?>?;
+        await pigeonVar_channel.send(<Object?>[calendarId]) as List<Object?>?;
+    if (pigeonVar_replyList == null) {
+      throw _createConnectionError(pigeonVar_channelName);
+    } else if (pigeonVar_replyList.length > 1) {
+      throw PlatformException(
+        code: pigeonVar_replyList[0]! as String,
+        message: pigeonVar_replyList[1] as String?,
+        details: pigeonVar_replyList[2],
+      );
+    } else {
+      return;
+    }
+  }
+
+  Future<Event> createEvent({required String title, required int startDate, required int endDate, required String calendarId, required String timeZone, required String? description, required String? url, required List<Alarm>? alarms, }) async {
+    final String pigeonVar_channelName = 'dev.flutter.pigeon.flutter_calendar_connect.CalendarApi.createEvent$pigeonVar_messageChannelSuffix';
+    final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
+      pigeonVar_channelName,
+      pigeonChannelCodec,
+      binaryMessenger: pigeonVar_binaryMessenger,
+    );
+    final List<Object?>? pigeonVar_replyList =
+        await pigeonVar_channel.send(<Object?>[title, startDate, endDate, calendarId, timeZone, description, url, alarms]) as List<Object?>?;
     if (pigeonVar_replyList == null) {
       throw _createConnectionError(pigeonVar_channelName);
     } else if (pigeonVar_replyList.length > 1) {
@@ -260,7 +309,56 @@ class CalendarApi {
         message: 'Host platform returned null value for non-null return value.',
       );
     } else {
-      return (pigeonVar_replyList[0] as bool?)!;
+      return (pigeonVar_replyList[0] as Event?)!;
+    }
+  }
+
+  Future<List<Event>> retrieveEvents(String calendarId, int startDate, int endDate) async {
+    final String pigeonVar_channelName = 'dev.flutter.pigeon.flutter_calendar_connect.CalendarApi.retrieveEvents$pigeonVar_messageChannelSuffix';
+    final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
+      pigeonVar_channelName,
+      pigeonChannelCodec,
+      binaryMessenger: pigeonVar_binaryMessenger,
+    );
+    final List<Object?>? pigeonVar_replyList =
+        await pigeonVar_channel.send(<Object?>[calendarId, startDate, endDate]) as List<Object?>?;
+    if (pigeonVar_replyList == null) {
+      throw _createConnectionError(pigeonVar_channelName);
+    } else if (pigeonVar_replyList.length > 1) {
+      throw PlatformException(
+        code: pigeonVar_replyList[0]! as String,
+        message: pigeonVar_replyList[1] as String?,
+        details: pigeonVar_replyList[2],
+      );
+    } else if (pigeonVar_replyList[0] == null) {
+      throw PlatformException(
+        code: 'null-error',
+        message: 'Host platform returned null value for non-null return value.',
+      );
+    } else {
+      return (pigeonVar_replyList[0] as List<Object?>?)!.cast<Event>();
+    }
+  }
+
+  Future<void> deleteEvent(String eventId, String calendarId) async {
+    final String pigeonVar_channelName = 'dev.flutter.pigeon.flutter_calendar_connect.CalendarApi.deleteEvent$pigeonVar_messageChannelSuffix';
+    final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
+      pigeonVar_channelName,
+      pigeonChannelCodec,
+      binaryMessenger: pigeonVar_binaryMessenger,
+    );
+    final List<Object?>? pigeonVar_replyList =
+        await pigeonVar_channel.send(<Object?>[eventId, calendarId]) as List<Object?>?;
+    if (pigeonVar_replyList == null) {
+      throw _createConnectionError(pigeonVar_channelName);
+    } else if (pigeonVar_replyList.length > 1) {
+      throw PlatformException(
+        code: pigeonVar_replyList[0]! as String,
+        message: pigeonVar_replyList[1] as String?,
+        details: pigeonVar_replyList[2],
+      );
+    } else {
+      return;
     }
   }
 }

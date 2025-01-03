@@ -18,9 +18,40 @@ abstract class FlutterCalendarConnectPlatform extends PlatformInterface {
     _instance = instance;
   }
 
-  Future<Calendar> createCalendar({required String title, required Color color});
+  Future<bool> requestCalendarPermission();
+
+  Future<Calendar> createCalendar({
+    required String title,
+    required Color color,
+  });
   
-  Future<bool> createOrUpdateEvent({required Event event});
+  Future<List<Calendar>> retrieveCalendars({
+    required bool onlyWritableCalendars,
+  });
   
-  Future<List<Calendar>> retrieveCalendars({required bool onlyWritableCalendars});
+  Future<void> deleteCalendar({
+    required String calendarId,
+  });
+  
+  Future<Event> createEvent({
+    required String title,
+    required DateTime startDate,
+    required DateTime endDate,
+    required String calendarId,
+    String timeZone = 'UTC',
+    String? description,
+    String? url,
+    List<Alarm>? alarms,
+  });
+  
+  Future<List<Event>> retrieveEvents({
+    required String calendarId,
+    DateTime? startDate,
+    DateTime? endDate,
+  });
+  
+  Future<void> deleteEvent({
+    required String eventId,
+    required String calendarId,
+  });
 }

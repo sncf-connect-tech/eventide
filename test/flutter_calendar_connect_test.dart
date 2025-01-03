@@ -31,7 +31,7 @@ void main() {
 
   test('createCalendar returns a Calendar', () async {
     // Given
-    final calendar = Calendar(id: '1', title: 'Test Calendar', color: Colors.blue.value);
+    final calendar = Calendar(id: '1', title: 'Test Calendar', color: Colors.blue.value, isWritable: true);
     when(() => mockCalendarApi.createCalendar(any(), any())).thenAnswer((_) async => calendar);
 
     // When
@@ -44,21 +44,54 @@ void main() {
 
   test('createOrUpdateEvent returns true', () async {
     // Given
-    when(() => mockCalendarApi.createOrUpdateEvent(any())).thenAnswer((_) async => true);
+    final event = Event(
+      id: '1', 
+      title: 'Test Event',
+      startDate: DateTime.now().millisecondsSinceEpoch,
+      endDate: DateTime.now().add(const Duration(hours: 1)).millisecondsSinceEpoch,
+      timeZone: 'UTC',
+      calendarId: '1',
+      alarms: [],
+    );
+
+    when(() => mockCalendarApi.createEvent(
+      title: any(named: 'title'),
+      startDate: any(named: 'startDate'),
+      endDate: any(named: 'endDate'),
+      calendarId: any(named: 'calendarId'),
+      timeZone: any(named: 'timeZone'),
+      description: any(named: 'description'),
+      url: any(named: 'url'),
+      alarms: any(named: 'alarms'))
+    ).thenAnswer((_) async => event);
 
     // When
-    final result = await flutterCalendarConnect.createOrUpdateEvent(event: event);
+    final result = await flutterCalendarConnect.createEvent(
+      title: 'Test Event', 
+      startDate: DateTime.now(),
+      endDate: DateTime.now(),
+      calendarId: '',
+    );
 
     // Then
-    expect(result, isTrue);
-    verify(() => mockCalendarApi.createOrUpdateEvent(event)).called(1);
+    expect(result, event);
+    verify(() => mockCalendarApi.createEvent(
+      title: any(named: 'title'),
+      startDate: any(named: 'startDate'),
+      endDate: any(named: 'endDate'),
+      calendarId: any(named: 'calendarId'),
+      timeZone: any(named: 'timeZone'),
+      description: any(named: 'description'),
+      url: any(named: 'url'),
+      alarms: any(named: 'alarms'),
+    )).called(1);
   });
 
   test('retrieveCalendars returns a list of Calendars', () async {
     // Given
     final calendars = [
-      Calendar(id: '1', title: 'Test Calendar 1', color: Colors.blue.value),
-      Calendar(id: '2', title: 'Test Calendar 2', color: Colors.red.value),
+      Calendar(id: '1', title: 'Test Calendar 1', color: Colors.blue.value, isWritable: true),
+      Calendar(id: '2', title: 'Test Calendar 2', color: Colors.red.value, isWritable: true),
     ];
     when(() => mockCalendarApi.retrieveCalendars(any())).thenAnswer((_) async => calendars);
 
@@ -84,13 +117,36 @@ void main() {
 
   test('createOrUpdateEvent throws an exception when API fails', () async {
     // Given
-    when(() => mockCalendarApi.createOrUpdateEvent(any())).thenThrow(Exception('API Error'));
+    when(() => mockCalendarApi.createEvent(
+      title: any(named: 'title'),
+      startDate: any(named: 'startDate'),
+      endDate: any(named: 'endDate'),
+      calendarId: any(named: 'calendarId'),
+      timeZone: any(named: 'timeZone'),
+      description: any(named: 'description'),
+      url: any(named: 'url'),
+      alarms: any(named: 'alarms'))
+    ).thenThrow(Exception('API Error'));
 
     // When
-    Future<bool> call() => flutterCalendarConnect.createOrUpdateEvent(event: event);
+    Future<Event> call() => flutterCalendarConnect.createEvent(
+      title: 'Test Event', 
+      startDate: DateTime.now(),
+      endDate: DateTime.now(),
+      calendarId: '',
+    );
 
     // Then
     expect(call, throwsException);
-    verify(() => mockCalendarApi.createOrUpdateEvent(event)).called(1);
+    verify(() => mockCalendarApi.createEvent(
+      title: any(named: 'title'),
+      startDate: any(named: 'startDate'),
+      endDate: any(named: 'endDate'),
+      calendarId: any(named: 'calendarId'),
+      timeZone: any(named: 'timeZone'),
+      description: any(named: 'description'),
+      url: any(named: 'url'),
+      alarms: any(named: 'alarms'),
+    )).called(1);
   });
 }
