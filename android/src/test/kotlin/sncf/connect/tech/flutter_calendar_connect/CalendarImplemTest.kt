@@ -33,7 +33,9 @@ class CalendarImplemTest {
         calendarImplem = CalendarImplem(
             contentResolver,
             permissionHandler,
-            mockk(relaxed = true)
+            mockk(relaxed = true),
+            mockk(relaxed = true),
+            mockk(relaxed = true),
         )
     }
 
@@ -550,6 +552,245 @@ class CalendarImplemTest {
         var result: Result<Unit>? = null
         val lock = Lock()
         calendarImplem.deleteEvent("1", "1") {
+            result = it
+            lock.unlock()
+        }
+
+        while (lock.isLocked()) {
+            delay(100)
+        }
+
+        assertTrue(result!!.isFailure)
+    }
+
+    @Test
+    fun createReminder_withGrantedPermission_createsReminderSuccessfully() = runTest {
+        every { permissionHandler.requestWritePermission(any()) } answers {
+            firstArg<(Boolean) -> Unit>().invoke(true)
+        }
+        val eventId = "1"
+        val minutes = 10L
+        every { contentResolver.insert(any(), any()) } returns mockk<Uri>(relaxed = true)
+
+        var result: Result<Unit>? = null
+        val lock = Lock()
+        calendarImplem.createReminder(minutes, eventId) {
+            result = it
+            lock.unlock()
+        }
+
+        while (lock.isLocked()) {
+            delay(100)
+        }
+
+        assertTrue(result!!.isSuccess)
+    }
+
+    @Test
+    fun createReminder_withDeniedPermission_failsToCreateReminder() = runTest {
+        every { permissionHandler.requestWritePermission(any()) } answers {
+            firstArg<(Boolean) -> Unit>().invoke(false)
+        }
+        val eventId = "1"
+        val minutes = 10L
+
+        var result: Result<Unit>? = null
+        calendarImplem.createReminder(minutes, eventId) {
+            result = it
+        }
+
+        assertTrue(result!!.isFailure)
+    }
+
+    @Test
+    fun createReminder_withException_failsToCreateReminder() = runTest {
+        every { permissionHandler.requestWritePermission(any()) } answers {
+            firstArg<(Boolean) -> Unit>().invoke(true)
+        }
+        val eventId = "1"
+        val minutes = 10L
+        every { contentResolver.insert(any(), any()) } throws Exception("Insert failed")
+
+        var result: Result<Unit>? = null
+        val lock = Lock()
+        calendarImplem.createReminder(minutes, eventId) {
+            result = it
+            lock.unlock()
+        }
+
+        while (lock.isLocked()) {
+            delay(100)
+        }
+
+        assertTrue(result!!.isFailure)
+    }
+
+    @Test
+    fun retrieveReminders_withGrantedPermission_returnsReminders() = runTest {
+        every { permissionHandler.requestWritePermission(any()) } answers {
+            firstArg<(Boolean) -> Unit>().invoke(true)
+        }
+
+        val eventId = "1"
+        val cursor = mockk<Cursor>(relaxed = true)
+        every { contentResolver.query(any(), any(), any(), any(), any()) } returns cursor
+        every { cursor.moveToNext() } returnsMany listOf(true, false)
+        every { cursor.getLong(any()) } returns 10L
+
+        var result: Result<List<Long>>? = null
+        val lock = Lock()
+        calendarImplem.retrieveReminders(eventId) {
+            result = it
+            lock.unlock()
+        }
+
+        while (lock.isLocked()) {
+            delay(100)
+        }
+
+        assertTrue(result!!.isSuccess)
+        assertEquals(1, result!!.getOrNull()?.size)
+        assertEquals(10L, result!!.getOrNull()?.get(0))
+    }
+
+    @Test
+    fun retrieveReminders_withDeniedPermission_failsToRetrieveReminders() = runTest {
+        val eventId = "1"
+        every { permissionHandler.requestWritePermission(any()) } answers {
+            firstArg<(Boolean) -> Unit>().invoke(false)
+        }
+
+        var result: Result<List<Long>>? = null
+        calendarImplem.retrieveReminders(eventId) {
+            result = it
+        }
+
+        assertTrue(result!!.isFailure)
+    }
+
+    @Test
+    fun retrieveReminders_withEmptyCursor_returnsEmptyList() = runTest {
+        every { permissionHandler.requestWritePermission(any()) } answers {
+            firstArg<(Boolean) -> Unit>().invoke(true)
+        }
+
+        val eventId = "1"
+        val cursor = mockk<Cursor>(relaxed = true)
+        every { contentResolver.query(any(), any(), any(), any(), any()) } returns cursor
+        every { cursor.moveToNext() } returns false
+
+        var result: Result<List<Long>>? = null
+        val lock = Lock()
+        calendarImplem.retrieveReminders(eventId) {
+            result = it
+            lock.unlock()
+        }
+
+        while (lock.isLocked()) {
+            delay(100)
+        }
+
+        assertTrue(result!!.isSuccess)
+        assertTrue(result!!.getOrNull()?.isEmpty()!!)
+    }
+
+    @Test
+    fun retrieveReminders_withException_failsToRetrieveReminders() = runTest {
+        every { permissionHandler.requestWritePermission(any()) } answers {
+            firstArg<(Boolean) -> Unit>().invoke(true)
+        }
+
+        val eventId = "1"
+        every { contentResolver.query(any(), any(), any(), any(), any()) } throws Exception("Query failed")
+
+        var result: Result<List<Long>>? = null
+        val lock = Lock()
+        calendarImplem.retrieveReminders(eventId) {
+            result = it
+            lock.unlock()
+        }
+
+        while (lock.isLocked()) {
+            delay(100)
+        }
+
+        assertTrue(result!!.isFailure)
+    }
+
+    @Test
+    fun deleteReminder_withGrantedPermission_deletesReminderSuccessfully() = runTest {
+        val eventId = "1"
+        val minutes = 10L
+        every { permissionHandler.requestWritePermission(any()) } answers {
+            firstArg<(Boolean) -> Unit>().invoke(true)
+        }
+        every { contentResolver.delete(any(), any(), any()) } returns 1
+
+        var result: Result<Unit>? = null
+        val lock = Lock()
+        calendarImplem.deleteReminder(minutes, eventId) {
+            result = it
+            lock.unlock()
+        }
+
+        while (lock.isLocked()) {
+            delay(100)
+        }
+
+        assertTrue(result!!.isSuccess)
+    }
+
+    @Test
+    fun deleteReminder_withDeniedPermission_failsToDeleteReminder() = runTest {
+        val eventId = "1"
+        val minutes = 10L
+        every { permissionHandler.requestWritePermission(any()) } answers {
+            firstArg<(Boolean) -> Unit>().invoke(false)
+        }
+
+        var result: Result<Unit>? = null
+        calendarImplem.deleteReminder(minutes, eventId) {
+            result = it
+        }
+
+        assertTrue(result!!.isFailure)
+    }
+
+    @Test
+    fun deleteReminder_withException_failsToDeleteReminder() = runTest {
+        val eventId = "1"
+        val minutes = 10L
+        every { permissionHandler.requestWritePermission(any()) } answers {
+            firstArg<(Boolean) -> Unit>().invoke(true)
+        }
+        every { contentResolver.delete(any(), any(), any()) } throws Exception("Delete failed")
+
+        var result: Result<Unit>? = null
+        val lock = Lock()
+        calendarImplem.deleteReminder(minutes, eventId) {
+            result = it
+            lock.unlock()
+        }
+
+        while (lock.isLocked()) {
+            delay(100)
+        }
+
+        assertTrue(result!!.isFailure)
+    }
+
+    @Test
+    fun deleteReminder_withNoRowsDeleted_failsToDeleteReminder() = runTest {
+        val eventId = "1"
+        val minutes = 10L
+        every { permissionHandler.requestWritePermission(any()) } answers {
+            firstArg<(Boolean) -> Unit>().invoke(true)
+        }
+        every { contentResolver.delete(any(), any(), any()) } returns 0
+
+        var result: Result<Unit>? = null
+        val lock = Lock()
+        calendarImplem.deleteReminder(minutes, eventId) {
             result = it
             lock.unlock()
         }

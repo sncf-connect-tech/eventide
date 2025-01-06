@@ -106,6 +106,7 @@ struct Event {
   var calendarId: String
   var description: String? = nil
   var url: String? = nil
+  var reminders: [Int64]? = nil
 
 
   // swift-format-ignore: AlwaysUseLowerCamelCase
@@ -118,6 +119,7 @@ struct Event {
     let calendarId = pigeonVar_list[5] as! String
     let description: String? = nilOrValue(pigeonVar_list[6])
     let url: String? = nilOrValue(pigeonVar_list[7])
+    let reminders: [Int64]? = nilOrValue(pigeonVar_list[8])
 
     return Event(
       id: id,
@@ -127,7 +129,8 @@ struct Event {
       timeZone: timeZone,
       calendarId: calendarId,
       description: description,
-      url: url
+      url: url,
+      reminders: reminders
     )
   }
   func toList() -> [Any?] {
@@ -140,6 +143,7 @@ struct Event {
       calendarId,
       description,
       url,
+      reminders,
     ]
   }
 }
@@ -195,6 +199,9 @@ protocol CalendarApi {
   func createEvent(title: String, startDate: Int64, endDate: Int64, calendarId: String, timeZone: String, description: String?, url: String?, completion: @escaping (Result<Event, Error>) -> Void)
   func retrieveEvents(calendarId: String, startDate: Int64, endDate: Int64, completion: @escaping (Result<[Event], Error>) -> Void)
   func deleteEvent(withId eventId: String, _ calendarId: String, completion: @escaping (Result<Void, Error>) -> Void)
+  func createReminder(_ minutes: Int64, forEventId eventId: String, completion: @escaping (Result<Void, Error>) -> Void)
+  func retrieveReminders(withEventId eventId: String, completion: @escaping (Result<[Int64], Error>) -> Void)
+  func deleteReminder(_ minutes: Int64, withEventId eventId: String, completion: @escaping (Result<Void, Error>) -> Void)
 }
 
 /// Generated setup class from Pigeon to handle messages through the `binaryMessenger`.
@@ -329,6 +336,59 @@ class CalendarApiSetup {
       }
     } else {
       deleteEventChannel.setMessageHandler(nil)
+    }
+    let createReminderChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.flutter_calendar_connect.CalendarApi.createReminder\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
+    if let api = api {
+      createReminderChannel.setMessageHandler { message, reply in
+        let args = message as! [Any?]
+        let minutesArg = args[0] as! Int64
+        let eventIdArg = args[1] as! String
+        api.createReminder(minutesArg, forEventId: eventIdArg) { result in
+          switch result {
+          case .success:
+            reply(wrapResult(nil))
+          case .failure(let error):
+            reply(wrapError(error))
+          }
+        }
+      }
+    } else {
+      createReminderChannel.setMessageHandler(nil)
+    }
+    let retrieveRemindersChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.flutter_calendar_connect.CalendarApi.retrieveReminders\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
+    if let api = api {
+      retrieveRemindersChannel.setMessageHandler { message, reply in
+        let args = message as! [Any?]
+        let eventIdArg = args[0] as! String
+        api.retrieveReminders(withEventId: eventIdArg) { result in
+          switch result {
+          case .success(let res):
+            reply(wrapResult(res))
+          case .failure(let error):
+            reply(wrapError(error))
+          }
+        }
+      }
+    } else {
+      retrieveRemindersChannel.setMessageHandler(nil)
+    }
+    let deleteReminderChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.flutter_calendar_connect.CalendarApi.deleteReminder\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
+    if let api = api {
+      deleteReminderChannel.setMessageHandler { message, reply in
+        let args = message as! [Any?]
+        let minutesArg = args[0] as! Int64
+        let eventIdArg = args[1] as! String
+        api.deleteReminder(minutesArg, withEventId: eventIdArg) { result in
+          switch result {
+          case .success:
+            reply(wrapResult(nil))
+          case .failure(let error):
+            reply(wrapError(error))
+          }
+        }
+      }
+    } else {
+      deleteReminderChannel.setMessageHandler(nil)
     }
   }
 }

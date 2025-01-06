@@ -42,6 +42,18 @@ abstract class CalendarApi {
   @async
   @SwiftFunction('deleteEvent(withId:_:)')
   void deleteEvent(String eventId, String calendarId);
+
+  @async
+  @SwiftFunction('createReminder(_:forEventId:)')
+  void createReminder(int minutes, String eventId);
+
+  @async
+  @SwiftFunction('retrieveReminders(withEventId:)')
+  List<int> retrieveReminders(String eventId);
+
+  @async
+  @SwiftFunction('deleteReminder(_:withEventId:)')
+  void deleteReminder(int minutes, String eventId);
 }
 
 class Calendar {
@@ -58,7 +70,7 @@ class Calendar {
   });
 }
 
-class Event {
+class Event{
   final String id;
   final String title;
   final int startDate;    // millisecondsSinceEpoch
@@ -67,6 +79,7 @@ class Event {
   final String calendarId;
   final String? description;
   final String? url;
+  final List<int>? reminders;
 
   const Event({
     required this.id,
@@ -76,6 +89,7 @@ class Event {
     required this.timeZone,
     required this.calendarId,
     required this.description,
-    required this.url,
+    this.url,
+    this.reminders,
   });
 }

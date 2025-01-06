@@ -116,9 +116,7 @@ class CalendarImplem: CalendarApi {
     
     func deleteCalendar(_ calendarId: String, completion: @escaping (Result<Void, any Error>) -> Void) {
         permissionHandler.checkCalendarAccessThenExecute {
-            let calendar = self.eventStore.calendar(withIdentifier: calendarId)
-            
-            guard let calendar = calendar else {
+            guard let calendar = self.eventStore.calendar(withIdentifier: calendarId) else {
                 completion(.failure(PigeonError(
                     code: "404",
                     message: "Calendar not found",
@@ -238,9 +236,7 @@ class CalendarImplem: CalendarApi {
         completion: @escaping (Result<[Event], any Error>) -> Void
     ) {
         permissionHandler.checkCalendarAccessThenExecute {
-            let calendar = self.eventStore.calendar(withIdentifier: calendarId)
-            
-            guard let calendar = calendar else {
+            guard let calendar = self.eventStore.calendar(withIdentifier: calendarId) else {
                 completion(.failure(PigeonError(
                     code: "404",
                     message: "Calendar not found",
@@ -298,9 +294,7 @@ class CalendarImplem: CalendarApi {
                 return
             }
             
-            let event = self.eventStore.event(withIdentifier: eventId)
-            
-            guard let event = event else {
+            guard let event = self.eventStore.event(withIdentifier: eventId) else {
                 completion(.failure(PigeonError(
                     code: "404",
                     message: "Event not found",
@@ -323,6 +317,104 @@ class CalendarImplem: CalendarApi {
                 )))
             }
             
+        } noAccess: {
+            completion(.failure(PigeonError(
+                code: "403",
+                message: "Calendar access has been refused or has not been given yet",
+                details: nil
+            )))
+        }
+    }
+    
+    func createReminder(_ minutes: Int64, forEventId eventId: String, completion: @escaping (Result<Void, any Error>) -> Void) {
+        permissionHandler.checkCalendarAccessThenExecute {
+            guard let event = self.eventStore.event(withIdentifier: eventId) else {
+                completion(.failure(PigeonError(
+                    code: "404",
+                    message: "Event not found",
+                    details: "The provided event.id is certainly incorrect"
+                )))
+                return
+            }
+            
+            let ekAlarm = EKAlarm(relativeOffset: TimeInterval(-minutes))
+            if (event.alarms == nil) {
+                event.alarms = [ekAlarm]
+            } else {
+                event.alarms!.append(ekAlarm)
+            }
+
+            do {
+                try self.eventStore.save(event, span: EKSpan.thisEvent, commit: true)
+                completion(.success(()))
+                
+            } catch {
+                self.eventStore.reset()
+                completion(.failure(PigeonError(
+                    code: "500",
+                    message: "Unknown error",
+                    details: error.localizedDescription
+                )))
+            }
+            
+        } noAccess: {
+            completion(.failure(PigeonError(
+                code: "403",
+                message: "Calendar access has been refused or has not been given yet",
+                details: nil
+            )))
+        }
+
+    }
+    
+    func retrieveReminders(withEventId eventId: String, completion: @escaping (Result<[Int64], any Error>) -> Void) {
+        permissionHandler.checkCalendarAccessThenExecute {
+            guard let ekEvent = self.eventStore.event(withIdentifier: eventId) else {
+                completion(.failure(PigeonError(
+                    code: "404",
+                    message: "Event not found",
+                    details: "The provided event.id is certainly incorrect"
+                )))
+                return
+            }
+            
+            completion(.success(ekEvent.alarms?.map { Int64($0.relativeOffset/60) } ?? []))
+            
+        } noAccess: {
+            completion(.failure(PigeonError(
+                code: "403",
+                message: "Calendar access has been refused or has not been given yet",
+                details: nil
+            )))
+        }
+
+    }
+    
+    func deleteReminder(_ minute: Int64, withEventId eventId: String, completion: @escaping (Result<Void, any Error>) -> Void) {
+        permissionHandler.checkCalendarAccessThenExecute {
+            guard let ekEvent = self.eventStore.event(withIdentifier: eventId) else {
+                completion(.failure(PigeonError(
+                    code: "404",
+                    message: "Event not found",
+                    details: "The provided event.id is certainly incorrect"
+                )))
+                return
+            }
+            
+            do {
+                ekEvent.alarms?.removeAll(where: { $0.relativeOffset == -Double(minute) })
+                try self.eventStore.save(ekEvent, span: EKSpan.thisEvent, commit: true)
+                
+                completion(.success(()))
+                
+            } catch {
+                self.eventStore.reset()
+                completion(.failure(PigeonError(
+                    code: "500",
+                    message: "Unknown error",
+                    details: error.localizedDescription
+                )))
+            }
         } noAccess: {
             completion(.failure(PigeonError(
                 code: "403",

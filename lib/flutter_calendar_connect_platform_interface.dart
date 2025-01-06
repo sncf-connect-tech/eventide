@@ -53,4 +53,45 @@ abstract class FlutterCalendarConnectPlatform extends PlatformInterface {
     required String eventId,
     required String calendarId,
   });
+
+  Future<void> createReminder({
+    required int minutes,
+    required String eventId,
+  });
+
+  Future<List<int>> retrieveReminders({
+    required String eventId,
+  });
+
+  Future<void> deleteReminder({
+    required int minutes,
+    required String eventId,
+  });
+}
+
+
+extension EventCopy on Event {
+  Event copyWith({
+    String? id,
+    String? title,
+    int? startDate,
+    int? endDate,
+    String? timeZone,
+    String? calendarId,
+    String? description,
+    String? url,
+    List<int>? reminders,
+  }) {
+    return Event(
+      id: id ?? this.id,
+      title: title ?? this.title,
+      startDate: startDate ?? this.startDate,
+      endDate: endDate ?? this.endDate,
+      timeZone: timeZone ?? this.timeZone,
+      calendarId: calendarId ?? this.calendarId,
+      description: description ?? this.description,
+      url: url ?? this.url,
+      reminders: reminders ?? this.reminders,
+    );
+  }
 }

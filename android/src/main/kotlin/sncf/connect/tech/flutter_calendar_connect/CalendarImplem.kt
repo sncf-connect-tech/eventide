@@ -13,6 +13,7 @@ class CalendarImplem(
     private var permissionHandler: PermissionHandler,
     private var calendarContentUri: Uri = CalendarContract.Calendars.CONTENT_URI,
     private var eventContentUri: Uri = CalendarContract.Events.CONTENT_URI,
+    private var remindersContentUri: Uri = CalendarContract.Reminders.CONTENT_URI,
     ): CalendarApi {
     override fun requestCalendarPermission(callback: (Result<Boolean>) -> Unit) {
         permissionHandler.requestWritePermission { granted ->
@@ -269,6 +270,88 @@ class CalendarImplem(
                             callback(Result.success(Unit))
                         } else {
                             callback(Result.failure(Exception("Failed to delete event")))
+                        }
+                    } catch (e: Exception) {
+                        callback(Result.failure(e))
+                    }
+                }
+            } else {
+                callback(Result.failure(Exception("Calendar permissions not granted")))
+            }
+        }
+    }
+
+    override fun createReminder(minutes: Long, eventId: String, callback: (Result<Unit>) -> Unit) {
+        permissionHandler.requestWritePermission { granted ->
+            if (granted) {
+                CoroutineScope(Dispatchers.IO).launch {
+                    try {
+                        val values = ContentValues().apply {
+                            put(CalendarContract.Reminders.EVENT_ID, eventId)
+                            put(CalendarContract.Reminders.MINUTES, minutes)
+                            put(CalendarContract.Reminders.METHOD, CalendarContract.Reminders.METHOD_ALERT)
+                        }
+                        contentResolver.insert(remindersContentUri, values)
+
+                        callback(Result.success(Unit))
+
+                    } catch (e: Exception) {
+                        callback(Result.failure(e))
+                    }
+                }
+            } else {
+                callback(Result.failure(Exception("Calendar permissions not granted")))
+            }
+        }
+    }
+
+    override fun retrieveReminders(eventId: String, callback: (Result<List<Long>>) -> Unit) {
+        permissionHandler.requestWritePermission { granted ->
+            if (granted) {
+                CoroutineScope(Dispatchers.IO).launch {
+                    try {
+                        val reminders = mutableListOf<Long>()
+                        val projection = arrayOf(
+                            CalendarContract.Reminders._ID,
+                            CalendarContract.Reminders.MINUTES,
+                            CalendarContract.Reminders.METHOD
+                        )
+                        val selection = CalendarContract.Reminders.EVENT_ID + " = ?"
+                        val selectionArgs = arrayOf(eventId)
+
+                        val cursor = contentResolver.query(remindersContentUri, projection, selection, selectionArgs, null)
+                        cursor?.use {
+                            while (it.moveToNext()) {
+                                val minutes = it.getLong(it.getColumnIndexOrThrow(CalendarContract.Reminders.MINUTES))
+                                reminders.add(minutes)
+                            }
+                        }
+
+                        callback(Result.success(reminders))
+
+                    } catch (e: Exception) {
+                        callback(Result.failure(e))
+                    }
+                }
+            } else {
+                callback(Result.failure(Exception("Calendar permissions not granted")))
+            }
+        }
+    }
+
+    override fun deleteReminder(minutes: Long, eventId: String, callback: (Result<Unit>) -> Unit) {
+        permissionHandler.requestWritePermission { granted ->
+            if (granted) {
+                CoroutineScope(Dispatchers.IO).launch {
+                    try {
+                        val selection = CalendarContract.Reminders.EVENT_ID + " = ?" + " AND " + CalendarContract.Reminders.MINUTES + " = ?"
+                        val selectionArgs = arrayOf(eventId, minutes.toString())
+
+                        val deleted = contentResolver.delete(remindersContentUri, selection, selectionArgs)
+                        if (deleted > 0) {
+                            callback(Result.success(Unit))
+                        } else {
+                            callback(Result.failure(Exception("Failed to delete reminder")))
                         }
                     } catch (e: Exception) {
                         callback(Result.failure(e))

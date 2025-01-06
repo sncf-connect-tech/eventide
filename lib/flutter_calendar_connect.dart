@@ -40,8 +40,9 @@ class FlutterCalendarConnect extends FlutterCalendarConnectPlatform {
     String timeZone = 'UTC',
     String? description,
     String? url,
+    List<int>? reminders,
   }) async {
-    return await _calendarApi.createEvent(
+    final event = await _calendarApi.createEvent(
       title: title,
       startDate: startDate.millisecondsSinceEpoch,
       endDate: endDate.millisecondsSinceEpoch,
@@ -50,6 +51,12 @@ class FlutterCalendarConnect extends FlutterCalendarConnectPlatform {
       description: description, 
       url: url,
     );
+
+    for (final minutes in reminders ?? []) {
+      await _calendarApi.createReminder(minutes, event.id);
+    }
+
+    return event.copyWith(reminders: reminders);
   }
 
   @override
@@ -57,11 +64,34 @@ class FlutterCalendarConnect extends FlutterCalendarConnectPlatform {
     final start = startDate ?? DateTime.now();
     final end = endDate ?? DateTime.now().add(const Duration(days: 7));
     
-    return await _calendarApi.retrieveEvents(calendarId, start.millisecondsSinceEpoch, end.microsecondsSinceEpoch);
+    final events = await _calendarApi.retrieveEvents(calendarId, start.millisecondsSinceEpoch, end.microsecondsSinceEpoch);
+
+    final fcEvents = <Event>[];
+    for (final event in events) {
+      fcEvents.add(event.copyWith(
+        reminders: await _calendarApi.retrieveReminders(event.id),
+      ));
+    }
+    return fcEvents;
   }
 
   @override
   Future<void> deleteEvent({required String eventId, required String calendarId}) async {
     await _calendarApi.deleteEvent(eventId, calendarId);
+  }
+
+  @override
+  Future<void> createReminder({required int minutes, required String eventId}) async {
+    await _calendarApi.createReminder(minutes, eventId);
+  }
+
+  @override
+  Future<List<int>> retrieveReminders({required String eventId}) async {
+    return await _calendarApi.retrieveReminders(eventId);
+  }
+
+  @override
+  Future<void> deleteReminder({required int minutes, required String eventId}) async {
+    await _calendarApi.deleteReminder(minutes, eventId);
   }
 }

@@ -10,13 +10,18 @@ void main() {
   late _MockCalendarApi mockCalendarApi;
   late FlutterCalendarConnect flutterCalendarConnect;
   
+  final startDate = DateTime.now();
+  final endDate = startDate.add(const Duration(hours: 1));
   final event = Event(
     id: '1', 
     title: 'Test Event',
-    startDate: DateTime.now().millisecondsSinceEpoch,
-    endDate: DateTime.now().add(const Duration(hours: 1)).millisecondsSinceEpoch,
+    startDate: startDate.millisecondsSinceEpoch,
+    endDate: endDate.add(const Duration(hours: 1)).millisecondsSinceEpoch,
     timeZone: 'UTC',
     calendarId: '1',
+    description: null,
+    url: null,
+    reminders: [],
   );
 
   setUpAll(() {
@@ -46,8 +51,8 @@ void main() {
     final event = Event(
       id: '1', 
       title: 'Test Event',
-      startDate: DateTime.now().millisecondsSinceEpoch,
-      endDate: DateTime.now().add(const Duration(hours: 1)).millisecondsSinceEpoch,
+      startDate: startDate.millisecondsSinceEpoch,
+      endDate: endDate.add(const Duration(hours: 1)).millisecondsSinceEpoch,
       timeZone: 'UTC',
       calendarId: '1',
     );
@@ -65,13 +70,13 @@ void main() {
     // When
     final result = await flutterCalendarConnect.createEvent(
       title: 'Test Event', 
-      startDate: DateTime.now(),
-      endDate: DateTime.now(),
+      startDate: startDate,
+      endDate: endDate,
       calendarId: '',
     );
 
     // Then
-    expect(result, event);
+    expect(result.id, event.id);
     verify(() => mockCalendarApi.createEvent(
       title: any(named: 'title'),
       startDate: any(named: 'startDate'),
@@ -126,8 +131,8 @@ void main() {
     // When
     Future<Event> call() => flutterCalendarConnect.createEvent(
       title: 'Test Event', 
-      startDate: DateTime.now(),
-      endDate: DateTime.now(),
+      startDate: startDate,
+      endDate: endDate,
       calendarId: '',
     );
 
@@ -142,5 +147,57 @@ void main() {
       description: any(named: 'description'),
       url: any(named: 'url'),
     )).called(1);
+  });
+
+  test('createEvent with reminders returns an Event with reminders', () async {
+    // Given
+    when(() => mockCalendarApi.createEvent(
+      title: any(named: 'title'),
+      startDate: any(named: 'startDate'),
+      endDate: any(named: 'endDate'),
+      calendarId: any(named: 'calendarId'),
+      timeZone: any(named: 'timeZone'),
+      description: any(named: 'description'),
+      url: any(named: 'url'),
+    )).thenAnswer((_) async => event);
+    when(() => mockCalendarApi.createReminder(any(), any())).thenAnswer((_) async => {});
+
+    // When
+    final result = await flutterCalendarConnect.createEvent(
+      title: 'Test Event', 
+      startDate: startDate,
+      endDate: endDate,
+      calendarId: '1',
+      reminders: [10, 20],
+    );
+
+    // Then
+    expect(result.reminders, equals([10, 20]));
+    verify(() => mockCalendarApi.createEvent(
+      title: any(named: 'title'),
+      startDate: any(named: 'startDate'),
+      endDate: any(named: 'endDate'),
+      calendarId: any(named: 'calendarId'),
+      timeZone: any(named: 'timeZone'),
+      description: any(named: 'description'),
+      url: any(named: 'url'),
+    )).called(1);
+    verify(() => mockCalendarApi.createReminder(10, event.id)).called(1);
+    verify(() => mockCalendarApi.createReminder(20, event.id)).called(1);
+  });
+
+  test('retrieveEvents returns a list of Events with reminders', () async {
+    // Given
+    final events = [event];
+    when(() => mockCalendarApi.retrieveEvents(any(), any(), any())).thenAnswer((_) async => events);
+    when(() => mockCalendarApi.retrieveReminders(any())).thenAnswer((_) async => [10, 20]);
+
+    // When
+    final result = await flutterCalendarConnect.retrieveEvents(calendarId: '1');
+
+    // Then
+    expect(result.first.reminders, equals([10, 20]));
+    verify(() => mockCalendarApi.retrieveEvents('1', any(), any())).called(1);
+    verify(() => mockCalendarApi.retrieveReminders(event.id)).called(1);
   });
 }
