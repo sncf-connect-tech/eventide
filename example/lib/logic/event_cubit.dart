@@ -56,4 +56,13 @@ class EventCubit extends Cubit<EventState> {
       }).forEach(emit);
     }
   }
+
+  Future<void> createReminder(int minutes, String eventId) async {
+    await _calendarPlugin.createReminder(minutes: minutes, eventId: eventId);
+  }
+
+  Future<int> getNumberOfReminders(String eventId) async {
+    final reminders = await _calendarPlugin.retrieveReminders(eventId: eventId);
+    return reminders.length;
+  }
 }

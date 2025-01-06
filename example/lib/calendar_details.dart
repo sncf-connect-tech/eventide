@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_calendar_connect_example/forms/event_form.dart';
@@ -84,6 +86,16 @@ class CalendarDetails extends StatelessWidget {
                                     ],
                                   ),
                                 ),
+                                if (event.reminders != null)
+                                  Text('${event.reminders!.length}'),
+                                if (state.data?.calendar.isWritable ?? false)
+                                  IconButton(
+                                    icon: const Icon(Icons.add),
+                                    onPressed: () {
+                                      BlocProvider.of<EventCubit>(context).createReminder(Random().nextInt(30), event.id);
+                                      BlocProvider.of<EventCubit>(context).getNumberOfReminders(event.id);
+                                    },
+                                  ),
                                 if (state.data?.calendar.isWritable ?? false)
                                   IconButton(
                                     icon: const Icon(Icons.delete),
