@@ -11,8 +11,9 @@ import kotlinx.coroutines.launch
 class CalendarImplem(
     private var contentResolver: ContentResolver,
     private var permissionHandler: PermissionHandler,
-    private var contentUri: Uri = CalendarContract.Calendars.CONTENT_URI
-): CalendarApi {
+    private var calendarContentUri: Uri = CalendarContract.Calendars.CONTENT_URI,
+    private var eventContentUri: Uri = CalendarContract.Events.CONTENT_URI,
+    ): CalendarApi {
     override fun requestCalendarPermission(callback: (Result<Boolean>) -> Unit) {
         permissionHandler.requestWritePermission { granted ->
             callback(Result.success(granted))
@@ -40,7 +41,7 @@ class CalendarImplem(
                             put(CalendarContract.Calendars.SYNC_EVENTS, 1)
                         }
 
-                        val uri = contentUri
+                        val uri = calendarContentUri
                             .buildUpon()
                             .appendQueryParameter(CalendarContract.CALLER_IS_SYNCADAPTER, "true")
                             .appendQueryParameter(CalendarContract.Calendars.ACCOUNT_NAME, "account_name")
@@ -83,7 +84,7 @@ class CalendarImplem(
                         val selection = if (onlyWritableCalendars) ("(" + CalendarContract.Calendars.CALENDAR_ACCESS_LEVEL + " >=  ?)") else null
                         val selectionArgs = if (onlyWritableCalendars) arrayOf(CalendarContract.Calendars.CAL_ACCESS_CONTRIBUTOR.toString()) else null
 
-                        val cursor = contentResolver.query(contentUri, projection, selection, selectionArgs, null)
+                        val cursor = contentResolver.query(calendarContentUri, projection, selection, selectionArgs, null)
                         val calendars = mutableListOf<Calendar>()
 
                         cursor?.use {
@@ -124,7 +125,7 @@ class CalendarImplem(
                         val selection = CalendarContract.Calendars._ID + " = ?"
                         val selectionArgs = arrayOf(calendarId)
 
-                        val deleted = contentResolver.delete(contentUri, selection, selectionArgs)
+                        val deleted = contentResolver.delete(calendarContentUri, selection, selectionArgs)
                         if (deleted > 0) {
                             callback(Result.success(Unit))
                         } else {
@@ -167,7 +168,7 @@ class CalendarImplem(
                             // TODO: url
                         }
 
-                        val eventUri = contentResolver.insert(contentUri, eventValues)
+                        val eventUri = contentResolver.insert(eventContentUri, eventValues)
                         if (eventUri != null) {
                             val eventId = eventUri.lastPathSegment?.toLong()
                             if (eventId != null) {
@@ -218,7 +219,7 @@ class CalendarImplem(
                         val selection = CalendarContract.Events.CALENDAR_ID + " = ? AND " + CalendarContract.Events.DTSTART + " >= ? AND " + CalendarContract.Events.DTEND + " <= ?"
                         val selectionArgs = arrayOf(calendarId, startDate.toString(), endDate.toString())
 
-                        val cursor = contentResolver.query(contentUri, projection, selection, selectionArgs, null)
+                        val cursor = contentResolver.query(eventContentUri, projection, selection, selectionArgs, null)
                         val events = mutableListOf<Event>()
 
                         cursor?.use {
@@ -263,7 +264,7 @@ class CalendarImplem(
                         val selection = CalendarContract.Events._ID + " = ? AND " + CalendarContract.Events.CALENDAR_ID + " = ?"
                         val selectionArgs = arrayOf(eventId, calendarId)
 
-                        val deleted = contentResolver.delete(contentUri, selection, selectionArgs)
+                        val deleted = contentResolver.delete(eventContentUri, selection, selectionArgs)
                         if (deleted > 0) {
                             callback(Result.success(Unit))
                         } else {
