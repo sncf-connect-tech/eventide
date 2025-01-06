@@ -106,7 +106,6 @@ struct Event {
   var calendarId: String
   var description: String? = nil
   var url: String? = nil
-  var alarms: [Alarm]? = nil
 
 
   // swift-format-ignore: AlwaysUseLowerCamelCase
@@ -119,7 +118,6 @@ struct Event {
     let calendarId = pigeonVar_list[5] as! String
     let description: String? = nilOrValue(pigeonVar_list[6])
     let url: String? = nilOrValue(pigeonVar_list[7])
-    let alarms: [Alarm]? = nilOrValue(pigeonVar_list[8])
 
     return Event(
       id: id,
@@ -129,8 +127,7 @@ struct Event {
       timeZone: timeZone,
       calendarId: calendarId,
       description: description,
-      url: url,
-      alarms: alarms
+      url: url
     )
   }
   func toList() -> [Any?] {
@@ -143,27 +140,6 @@ struct Event {
       calendarId,
       description,
       url,
-      alarms,
-    ]
-  }
-}
-
-/// Generated class from Pigeon that represents data sent in messages.
-struct Alarm {
-  var minutes: Int64
-
-
-  // swift-format-ignore: AlwaysUseLowerCamelCase
-  static func fromList(_ pigeonVar_list: [Any?]) -> Alarm? {
-    let minutes = pigeonVar_list[0] as! Int64
-
-    return Alarm(
-      minutes: minutes
-    )
-  }
-  func toList() -> [Any?] {
-    return [
-      minutes
     ]
   }
 }
@@ -175,8 +151,6 @@ private class CalendarApiPigeonCodecReader: FlutterStandardReader {
       return Calendar.fromList(self.readValue() as! [Any?])
     case 130:
       return Event.fromList(self.readValue() as! [Any?])
-    case 131:
-      return Alarm.fromList(self.readValue() as! [Any?])
     default:
       return super.readValue(ofType: type)
     }
@@ -190,9 +164,6 @@ private class CalendarApiPigeonCodecWriter: FlutterStandardWriter {
       super.writeValue(value.toList())
     } else if let value = value as? Event {
       super.writeByte(130)
-      super.writeValue(value.toList())
-    } else if let value = value as? Alarm {
-      super.writeByte(131)
       super.writeValue(value.toList())
     } else {
       super.writeValue(value)
@@ -221,7 +192,7 @@ protocol CalendarApi {
   func createCalendar(title: String, color: Int64, completion: @escaping (Result<Calendar, Error>) -> Void)
   func retrieveCalendars(onlyWritableCalendars: Bool, completion: @escaping (Result<[Calendar], Error>) -> Void)
   func deleteCalendar(_ calendarId: String, completion: @escaping (Result<Void, Error>) -> Void)
-  func createEvent(title: String, startDate: Int64, endDate: Int64, calendarId: String, timeZone: String, description: String?, url: String?, alarms: [Alarm]?, completion: @escaping (Result<Event, Error>) -> Void)
+  func createEvent(title: String, startDate: Int64, endDate: Int64, calendarId: String, timeZone: String, description: String?, url: String?, completion: @escaping (Result<Event, Error>) -> Void)
   func retrieveEvents(calendarId: String, startDate: Int64, endDate: Int64, completion: @escaping (Result<[Event], Error>) -> Void)
   func deleteEvent(withId eventId: String, _ calendarId: String, completion: @escaping (Result<Void, Error>) -> Void)
 }
@@ -310,8 +281,7 @@ class CalendarApiSetup {
         let timeZoneArg = args[4] as! String
         let descriptionArg: String? = nilOrValue(args[5])
         let urlArg: String? = nilOrValue(args[6])
-        let alarmsArg: [Alarm]? = nilOrValue(args[7])
-        api.createEvent(title: titleArg, startDate: startDateArg, endDate: endDateArg, calendarId: calendarIdArg, timeZone: timeZoneArg, description: descriptionArg, url: urlArg, alarms: alarmsArg) { result in
+        api.createEvent(title: titleArg, startDate: startDateArg, endDate: endDateArg, calendarId: calendarIdArg, timeZone: timeZoneArg, description: descriptionArg, url: urlArg) { result in
           switch result {
           case .success(let res):
             reply(wrapResult(res))

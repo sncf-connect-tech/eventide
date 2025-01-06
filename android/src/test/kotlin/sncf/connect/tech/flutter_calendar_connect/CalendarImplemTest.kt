@@ -324,8 +324,7 @@ class CalendarImplemTest {
             timeZone = "UTC",
             calendarId = "1",
             description = "Description",
-            url = null,
-            alarms = emptyList()
+            url = null
         ) {
             result = it
             lock.unlock()
@@ -343,8 +342,7 @@ class CalendarImplemTest {
             endDate = endMilli,
             timeZone = "UTC",
             calendarId = "1",
-            description = "Description",
-            alarms = emptyList()
+            description = "Description"
         ), result!!.getOrNull()!!)
     }
 
@@ -362,8 +360,7 @@ class CalendarImplemTest {
             timeZone = "UTC",
             calendarId = "1",
             description = "Description",
-            url = null,
-            alarms = emptyList()
+            url = null
         ) {
             result = it
         }
@@ -387,8 +384,7 @@ class CalendarImplemTest {
             timeZone = "UTC",
             calendarId = "1",
             description = "Description",
-            url = null,
-            alarms = emptyList()
+            url = null
         ) {
             result = it
             lock.unlock()

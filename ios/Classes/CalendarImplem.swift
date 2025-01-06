@@ -167,7 +167,6 @@ class CalendarImplem: CalendarApi {
         timeZone: String,
         description: String?,
         url: String?,
-        alarms: [Alarm]?,
         completion: @escaping (Result<Event, Error>
     ) -> Void) {
         permissionHandler.checkCalendarAccessThenExecute {
@@ -202,16 +201,6 @@ class CalendarImplem: CalendarApi {
                 ekEvent.url = URL(string: url!)
             }
             
-            var ekAlarms = [EKAlarm]()
-            if (alarms != nil) {
-                for alarm in alarms!.compactMap({ $0 }) {
-                    let timeInterval = TimeInterval(-alarm.minutes)
-                    ekAlarms.append(EKAlarm(relativeOffset: timeInterval))
-                }
-                
-                ekEvent.alarms = ekAlarms
-            }
-            
             do {
                 try self.eventStore.save(ekEvent, span: EKSpan.thisEvent, commit: true)
                 completion(.success(
@@ -221,8 +210,7 @@ class CalendarImplem: CalendarApi {
                         startDate: startDate,
                         endDate: endDate,
                         timeZone: timeZone,
-                        calendarId: calendarId,
-                        alarms: alarms
+                        calendarId: calendarId
                     )
                 ))
                 
@@ -276,10 +264,7 @@ class CalendarImplem: CalendarApi {
                     startDate: ekEvent.startDate.millisecondsSince1970,
                     endDate: ekEvent.endDate.millisecondsSince1970,
                     timeZone: ekEvent.timeZone?.identifier ?? "",
-                    calendarId: ekEvent.calendar.calendarIdentifier,
-                    alarms: ekEvent.alarms?.map({ ekAlarm in
-                        return Alarm(minutes: Int64(ekAlarm.relativeOffset/60))
-                    }) ?? []
+                    calendarId: ekEvent.calendar.calendarIdentifier
                 )
             }))
         } noAccess: {

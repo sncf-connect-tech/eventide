@@ -40,7 +40,6 @@ class FlutterCalendarConnect extends FlutterCalendarConnectPlatform {
     String timeZone = 'UTC',
     String? description,
     String? url,
-    List<Alarm>? alarms,
   }) async {
     return await _calendarApi.createEvent(
       title: title,
@@ -49,8 +48,7 @@ class FlutterCalendarConnect extends FlutterCalendarConnectPlatform {
       calendarId: calendarId,
       timeZone: timeZone, 
       description: description, 
-      url: url, 
-      alarms: alarms,
+      url: url,
     );
   }
 

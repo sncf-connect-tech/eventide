@@ -17,7 +17,6 @@ void main() {
     endDate: DateTime.now().add(const Duration(hours: 1)).millisecondsSinceEpoch,
     timeZone: 'UTC',
     calendarId: '1',
-    alarms: [],
   );
 
   setUpAll(() {
@@ -51,7 +50,6 @@ void main() {
       endDate: DateTime.now().add(const Duration(hours: 1)).millisecondsSinceEpoch,
       timeZone: 'UTC',
       calendarId: '1',
-      alarms: [],
     );
 
     when(() => mockCalendarApi.createEvent(
@@ -62,8 +60,7 @@ void main() {
       timeZone: any(named: 'timeZone'),
       description: any(named: 'description'),
       url: any(named: 'url'),
-      alarms: any(named: 'alarms'))
-    ).thenAnswer((_) async => event);
+    )).thenAnswer((_) async => event);
 
     // When
     final result = await flutterCalendarConnect.createEvent(
@@ -83,7 +80,6 @@ void main() {
       timeZone: any(named: 'timeZone'),
       description: any(named: 'description'),
       url: any(named: 'url'),
-      alarms: any(named: 'alarms'),
     )).called(1);
   });
 
@@ -125,8 +121,7 @@ void main() {
       timeZone: any(named: 'timeZone'),
       description: any(named: 'description'),
       url: any(named: 'url'),
-      alarms: any(named: 'alarms'))
-    ).thenThrow(Exception('API Error'));
+    )).thenThrow(Exception('API Error'));
 
     // When
     Future<Event> call() => flutterCalendarConnect.createEvent(
@@ -146,7 +141,6 @@ void main() {
       timeZone: any(named: 'timeZone'),
       description: any(named: 'description'),
       url: any(named: 'url'),
-      alarms: any(named: 'alarms'),
     )).called(1);
   });
 }

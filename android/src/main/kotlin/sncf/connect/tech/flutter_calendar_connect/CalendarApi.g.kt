@@ -82,8 +82,7 @@ data class Event (
   val timeZone: String,
   val calendarId: String,
   val description: String? = null,
-  val url: String? = null,
-  val alarms: List<Alarm>? = null
+  val url: String? = null
 )
  {
   companion object {
@@ -96,8 +95,7 @@ data class Event (
       val calendarId = pigeonVar_list[5] as String
       val description = pigeonVar_list[6] as String?
       val url = pigeonVar_list[7] as String?
-      val alarms = pigeonVar_list[8] as List<Alarm>?
-      return Event(id, title, startDate, endDate, timeZone, calendarId, description, url, alarms)
+      return Event(id, title, startDate, endDate, timeZone, calendarId, description, url)
     }
   }
   fun toList(): List<Any?> {
@@ -110,25 +108,6 @@ data class Event (
       calendarId,
       description,
       url,
-      alarms,
-    )
-  }
-}
-
-/** Generated class from Pigeon that represents data sent in messages. */
-data class Alarm (
-  val minutes: Long
-)
- {
-  companion object {
-    fun fromList(pigeonVar_list: List<Any?>): Alarm {
-      val minutes = pigeonVar_list[0] as Long
-      return Alarm(minutes)
-    }
-  }
-  fun toList(): List<Any?> {
-    return listOf(
-      minutes,
     )
   }
 }
@@ -145,11 +124,6 @@ private open class CalendarApiPigeonCodec : StandardMessageCodec() {
           Event.fromList(it)
         }
       }
-      131.toByte() -> {
-        return (readValue(buffer) as? List<Any?>)?.let {
-          Alarm.fromList(it)
-        }
-      }
       else -> super.readValueOfType(type, buffer)
     }
   }
@@ -161,10 +135,6 @@ private open class CalendarApiPigeonCodec : StandardMessageCodec() {
       }
       is Event -> {
         stream.write(130)
-        writeValue(stream, value.toList())
-      }
-      is Alarm -> {
-        stream.write(131)
         writeValue(stream, value.toList())
       }
       else -> super.writeValue(stream, value)
@@ -179,7 +149,7 @@ interface CalendarApi {
   fun createCalendar(title: String, color: Long, callback: (Result<Calendar>) -> Unit)
   fun retrieveCalendars(onlyWritableCalendars: Boolean, callback: (Result<List<Calendar>>) -> Unit)
   fun deleteCalendar(calendarId: String, callback: (Result<Unit>) -> Unit)
-  fun createEvent(title: String, startDate: Long, endDate: Long, calendarId: String, timeZone: String, description: String?, url: String?, alarms: List<Alarm>?, callback: (Result<Event>) -> Unit)
+  fun createEvent(title: String, startDate: Long, endDate: Long, calendarId: String, timeZone: String, description: String?, url: String?, callback: (Result<Event>) -> Unit)
   fun retrieveEvents(calendarId: String, startDate: Long, endDate: Long, callback: (Result<List<Event>>) -> Unit)
   fun deleteEvent(eventId: String, calendarId: String, callback: (Result<Unit>) -> Unit)
 
@@ -282,8 +252,7 @@ interface CalendarApi {
             val timeZoneArg = args[4] as String
             val descriptionArg = args[5] as String?
             val urlArg = args[6] as String?
-            val alarmsArg = args[7] as List<Alarm>?
-            api.createEvent(titleArg, startDateArg, endDateArg, calendarIdArg, timeZoneArg, descriptionArg, urlArg, alarmsArg) { result: Result<Event> ->
+            api.createEvent(titleArg, startDateArg, endDateArg, calendarIdArg, timeZoneArg, descriptionArg, urlArg) { result: Result<Event> ->
               val error = result.exceptionOrNull()
               if (error != null) {
                 reply.reply(wrapError(error))

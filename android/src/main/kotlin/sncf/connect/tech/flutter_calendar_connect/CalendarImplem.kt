@@ -148,7 +148,6 @@ class CalendarImplem(
         timeZone: String,
         description: String?,
         url: String?,
-        alarms: List<Alarm>?,
         callback: (Result<Event>) -> Unit
     ) {
         permissionHandler.requestWritePermission { granted ->
@@ -179,8 +178,7 @@ class CalendarImplem(
                                     endDate = endDate,
                                     timeZone = timeZone,
                                     calendarId = calendarId,
-                                    description = description,
-                                    alarms = alarms
+                                    description = description
                                 )
                                 callback(Result.success(event))
                             } else {
@@ -240,7 +238,6 @@ class CalendarImplem(
                                     timeZone = timeZone,
                                     calendarId = calendarId,
                                     description = description,
-                                    alarms = emptyList()
                                 ))
                             }
                         }

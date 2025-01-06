@@ -61,7 +61,6 @@ class Event {
     required this.calendarId,
     this.description,
     this.url,
-    this.alarms,
   });
 
   String id;
@@ -80,8 +79,6 @@ class Event {
 
   String? url;
 
-  List<Alarm>? alarms;
-
   Object encode() {
     return <Object?>[
       id,
@@ -92,7 +89,6 @@ class Event {
       calendarId,
       description,
       url,
-      alarms,
     ];
   }
 
@@ -107,28 +103,6 @@ class Event {
       calendarId: result[5]! as String,
       description: result[6] as String?,
       url: result[7] as String?,
-      alarms: (result[8] as List<Object?>?)?.cast<Alarm>(),
-    );
-  }
-}
-
-class Alarm {
-  Alarm({
-    required this.minutes,
-  });
-
-  int minutes;
-
-  Object encode() {
-    return <Object?>[
-      minutes,
-    ];
-  }
-
-  static Alarm decode(Object result) {
-    result as List<Object?>;
-    return Alarm(
-      minutes: result[0]! as int,
     );
   }
 }
@@ -147,9 +121,6 @@ class _PigeonCodec extends StandardMessageCodec {
     }    else if (value is Event) {
       buffer.putUint8(130);
       writeValue(buffer, value.encode());
-    }    else if (value is Alarm) {
-      buffer.putUint8(131);
-      writeValue(buffer, value.encode());
     } else {
       super.writeValue(buffer, value);
     }
@@ -162,8 +133,6 @@ class _PigeonCodec extends StandardMessageCodec {
         return Calendar.decode(readValue(buffer)!);
       case 130: 
         return Event.decode(readValue(buffer)!);
-      case 131: 
-        return Alarm.decode(readValue(buffer)!);
       default:
         return super.readValueOfType(type, buffer);
     }
@@ -286,7 +255,7 @@ class CalendarApi {
     }
   }
 
-  Future<Event> createEvent({required String title, required int startDate, required int endDate, required String calendarId, required String timeZone, required String? description, required String? url, required List<Alarm>? alarms, }) async {
+  Future<Event> createEvent({required String title, required int startDate, required int endDate, required String calendarId, required String timeZone, required String? description, required String? url, }) async {
     final String pigeonVar_channelName = 'dev.flutter.pigeon.flutter_calendar_connect.CalendarApi.createEvent$pigeonVar_messageChannelSuffix';
     final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
       pigeonVar_channelName,
@@ -294,7 +263,7 @@ class CalendarApi {
       binaryMessenger: pigeonVar_binaryMessenger,
     );
     final List<Object?>? pigeonVar_replyList =
-        await pigeonVar_channel.send(<Object?>[title, startDate, endDate, calendarId, timeZone, description, url, alarms]) as List<Object?>?;
+        await pigeonVar_channel.send(<Object?>[title, startDate, endDate, calendarId, timeZone, description, url]) as List<Object?>?;
     if (pigeonVar_replyList == null) {
       throw _createConnectionError(pigeonVar_channelName);
     } else if (pigeonVar_replyList.length > 1) {

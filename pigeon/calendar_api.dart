@@ -34,7 +34,6 @@ abstract class CalendarApi {
     required String timeZone,
     required String? description,
     required String? url,
-    required List<Alarm>? alarms,
   });
 
   @async
@@ -68,7 +67,6 @@ class Event {
   final String calendarId;
   final String? description;
   final String? url;
-  final List<Alarm>? alarms;
 
   const Event({
     required this.id,
@@ -79,14 +77,5 @@ class Event {
     required this.calendarId,
     required this.description,
     required this.url,
-    required this.alarms,
-  });
-}
-
-class Alarm {
-  final int minutes;
-
-  const Alarm({
-    required this.minutes,
   });
 }

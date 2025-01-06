@@ -41,7 +41,6 @@ abstract class FlutterCalendarConnectPlatform extends PlatformInterface {
     String timeZone = 'UTC',
     String? description,
     String? url,
-    List<Alarm>? alarms,
   });
   
   Future<List<Event>> retrieveEvents({
