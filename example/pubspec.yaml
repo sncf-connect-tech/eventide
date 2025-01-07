@@ -19,7 +19,6 @@ dependencies:
       url: https://github.com/zemanux/value_state.git
       ref: refacto
       path: packages/value_state
-  timezone: ^0.10.0
 
 dev_dependencies:
   integration_test:
