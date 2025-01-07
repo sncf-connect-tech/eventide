@@ -4,8 +4,11 @@ import 'package:flutter_calendar_connect/flutter_calendar_connect.dart';
 import 'package:flutter_calendar_connect_example/logic/calendar_cubit.dart';
 import 'package:flutter_calendar_connect_example/calendar_screen.dart';
 import 'package:flutter_calendar_connect_example/logic/event_cubit.dart';
+import 'package:timezone/data/latest.dart' as tz;
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+  tz.initializeTimeZones();
   runApp(MyApp());
 }
 

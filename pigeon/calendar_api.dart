@@ -31,7 +31,6 @@ abstract class CalendarApi {
     required int startDate,
     required int endDate,
     required String calendarId,
-    required String timeZone,
     required String? description,
     required String? url,
   });
@@ -75,7 +74,6 @@ class Event{
   final String title;
   final int startDate;    // millisecondsSinceEpoch
   final int endDate;      // millisecondsSinceEpoch
-  final String timeZone;  // String identifier
   final String calendarId;
   final String? description;
   final String? url;
@@ -86,7 +84,6 @@ class Event{
     required this.title,
     required this.startDate,
     required this.endDate,
-    required this.timeZone,
     required this.calendarId,
     required this.description,
     this.url,

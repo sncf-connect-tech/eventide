@@ -162,7 +162,6 @@ class CalendarImplem: CalendarApi {
         startDate: Int64,
         endDate: Int64,
         calendarId: String,
-        timeZone: String,
         description: String?,
         url: String?,
         completion: @escaping (Result<Event, Error>
@@ -192,7 +191,7 @@ class CalendarImplem: CalendarApi {
             ekEvent.notes = description
             ekEvent.startDate = Date(from: startDate)
             ekEvent.endDate = Date(from: endDate)
-            ekEvent.timeZone = TimeZone(identifier: timeZone)
+            ekEvent.timeZone = TimeZone(identifier: "UTC")
             // TODO: location
             
             if url != nil {
@@ -207,7 +206,6 @@ class CalendarImplem: CalendarApi {
                         title: title,
                         startDate: startDate,
                         endDate: endDate,
-                        timeZone: timeZone,
                         calendarId: calendarId
                     )
                 ))
@@ -259,7 +257,6 @@ class CalendarImplem: CalendarApi {
                     title: ekEvent.title,
                     startDate: ekEvent.startDate.millisecondsSince1970,
                     endDate: ekEvent.endDate.millisecondsSince1970,
-                    timeZone: ekEvent.timeZone?.identifier ?? "",
                     calendarId: ekEvent.calendar.calendarIdentifier
                 )
             }))

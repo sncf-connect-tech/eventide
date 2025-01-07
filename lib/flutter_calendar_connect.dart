@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_calendar_connect/flutter_calendar_connect_platform_interface.dart';
 import 'package:flutter_calendar_connect/calendar_api.g.dart';
+import 'package:timezone/timezone.dart';
 
 class FlutterCalendarConnect extends FlutterCalendarConnectPlatform {
   final CalendarApi _calendarApi;
@@ -34,20 +35,18 @@ class FlutterCalendarConnect extends FlutterCalendarConnectPlatform {
   @override
   Future<Event> createEvent({
     required String title,
-    required DateTime startDate,
-    required DateTime endDate,
+    required TZDateTime startDate,
+    required TZDateTime endDate,
     required String calendarId,
-    String timeZone = 'UTC',
     String? description,
     String? url,
     List<int>? reminders,
   }) async {
     final event = await _calendarApi.createEvent(
       title: title,
-      startDate: startDate.millisecondsSinceEpoch,
-      endDate: endDate.millisecondsSinceEpoch,
+      startDate: startDate.toUtc().millisecondsSinceEpoch,
+      endDate: endDate.toUtc().millisecondsSinceEpoch,
       calendarId: calendarId,
-      timeZone: timeZone, 
       description: description, 
       url: url,
     );

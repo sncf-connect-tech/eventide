@@ -12,7 +12,14 @@ class CalendarDetails extends StatelessWidget {
   
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<EventCubit, EventState>(
+    return BlocConsumer<EventCubit, EventState>(
+      listener: (context, state) {
+        if (state case Value(:final error?)) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text(error.toString()),
+          ));
+        }
+      },
       builder: (context, state) {
         return Scaffold(
           body: SafeArea(

@@ -180,7 +180,6 @@ class CalendarImplem(
         startDate: Long,
         endDate: Long,
         calendarId: String,
-        timeZone: String,
         description: String?,
         url: String?,
         callback: (Result<Event>) -> Unit
@@ -195,10 +194,9 @@ class CalendarImplem(
                             put(CalendarContract.Events.DESCRIPTION, description)
                             put(CalendarContract.Events.DTSTART, startDate)
                             put(CalendarContract.Events.DTEND, endDate)
-                            put(CalendarContract.Events.EVENT_TIMEZONE, timeZone)
+                            put(CalendarContract.Events.EVENT_TIMEZONE, "UTC")
 
                             // TODO: location
-                            // TODO: alarms
                             // TODO: url
                         }
 
@@ -211,7 +209,6 @@ class CalendarImplem(
                                     title = title,
                                     startDate = startDate,
                                     endDate = endDate,
-                                    timeZone = timeZone,
                                     calendarId = calendarId,
                                     description = description
                                 )
@@ -275,14 +272,12 @@ class CalendarImplem(
                                 val description = it.getString(it.getColumnIndexOrThrow(CalendarContract.Events.DESCRIPTION))
                                 val start = it.getLong(it.getColumnIndexOrThrow(CalendarContract.Events.DTSTART))
                                 val end = it.getLong(it.getColumnIndexOrThrow(CalendarContract.Events.DTEND))
-                                val timeZone = it.getString(it.getColumnIndexOrThrow(CalendarContract.Events.EVENT_TIMEZONE))
 
                                 events.add(Event(
                                     id = id,
                                     title = title,
                                     startDate = start,
                                     endDate = end,
-                                    timeZone = timeZone,
                                     calendarId = calendarId,
                                     description = description,
                                 ))

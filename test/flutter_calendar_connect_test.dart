@@ -3,21 +3,25 @@ import 'package:flutter_calendar_connect/flutter_calendar_connect.dart';
 import 'package:flutter_calendar_connect/calendar_api.g.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:flutter/material.dart';
+import 'package:timezone/timezone.dart';
+import 'package:timezone/data/latest.dart' as tz;
 
 class _MockCalendarApi extends Mock implements CalendarApi {}
 
 void main() {
+  tz.initializeTimeZones();
+  
   late _MockCalendarApi mockCalendarApi;
   late FlutterCalendarConnect flutterCalendarConnect;
   
-  final startDate = DateTime.now();
+  final location = getLocation('UTC');
+  final startDate = TZDateTime.now(location);
   final endDate = startDate.add(const Duration(hours: 1));
   final event = Event(
     id: '1', 
     title: 'Test Event',
     startDate: startDate.millisecondsSinceEpoch,
     endDate: endDate.add(const Duration(hours: 1)).millisecondsSinceEpoch,
-    timeZone: 'UTC',
     calendarId: '1',
     description: null,
     url: null,
@@ -46,14 +50,13 @@ void main() {
     verify(() => mockCalendarApi.createCalendar('Test Calendar', Colors.blue.value)).called(1);
   });
 
-  test('createOrUpdateEvent returns true', () async {
+  test('createEvent returns true', () async {
     // Given
     final event = Event(
       id: '1', 
       title: 'Test Event',
       startDate: startDate.millisecondsSinceEpoch,
       endDate: endDate.add(const Duration(hours: 1)).millisecondsSinceEpoch,
-      timeZone: 'UTC',
       calendarId: '1',
     );
 
@@ -62,7 +65,6 @@ void main() {
       startDate: any(named: 'startDate'),
       endDate: any(named: 'endDate'),
       calendarId: any(named: 'calendarId'),
-      timeZone: any(named: 'timeZone'),
       description: any(named: 'description'),
       url: any(named: 'url'),
     )).thenAnswer((_) async => event);
@@ -82,7 +84,6 @@ void main() {
       startDate: any(named: 'startDate'),
       endDate: any(named: 'endDate'),
       calendarId: any(named: 'calendarId'),
-      timeZone: any(named: 'timeZone'),
       description: any(named: 'description'),
       url: any(named: 'url'),
     )).called(1);
@@ -116,14 +117,13 @@ void main() {
     verify(() => mockCalendarApi.createCalendar('Test Calendar', Colors.blue.value)).called(1);
   });
 
-  test('createOrUpdateEvent throws an exception when API fails', () async {
+  test('createEvent throws an exception when API fails', () async {
     // Given
     when(() => mockCalendarApi.createEvent(
       title: any(named: 'title'),
       startDate: any(named: 'startDate'),
       endDate: any(named: 'endDate'),
       calendarId: any(named: 'calendarId'),
-      timeZone: any(named: 'timeZone'),
       description: any(named: 'description'),
       url: any(named: 'url'),
     )).thenThrow(Exception('API Error'));
@@ -143,7 +143,6 @@ void main() {
       startDate: any(named: 'startDate'),
       endDate: any(named: 'endDate'),
       calendarId: any(named: 'calendarId'),
-      timeZone: any(named: 'timeZone'),
       description: any(named: 'description'),
       url: any(named: 'url'),
     )).called(1);
@@ -156,7 +155,6 @@ void main() {
       startDate: any(named: 'startDate'),
       endDate: any(named: 'endDate'),
       calendarId: any(named: 'calendarId'),
-      timeZone: any(named: 'timeZone'),
       description: any(named: 'description'),
       url: any(named: 'url'),
     )).thenAnswer((_) async => event);
@@ -178,7 +176,6 @@ void main() {
       startDate: any(named: 'startDate'),
       endDate: any(named: 'endDate'),
       calendarId: any(named: 'calendarId'),
-      timeZone: any(named: 'timeZone'),
       description: any(named: 'description'),
       url: any(named: 'url'),
     )).called(1);
@@ -199,5 +196,45 @@ void main() {
     expect(result.first.reminders, equals([10, 20]));
     verify(() => mockCalendarApi.retrieveEvents('1', any(), any())).called(1);
     verify(() => mockCalendarApi.retrieveReminders(event.id)).called(1);
+  });
+
+  test('create Event timezone management test: Paris - Montréal flight', () async {
+    final parisDeparture = TZDateTime(getLocation('Europe/Paris'), 2025, 9, 8, 13, 30);
+    final montrealArrival = TZDateTime(getLocation('America/Montreal'), 2025, 9, 8, 15, 00);
+    final utcParisDeparture = parisDeparture.toUtc();
+    final utcMontrealArrival = montrealArrival.toUtc();
+
+    final mockEvent = Event(
+      id: '1', 
+      title: 'Paris - Montréal',
+      startDate: utcParisDeparture.millisecondsSinceEpoch,
+      endDate: utcMontrealArrival.millisecondsSinceEpoch,
+      calendarId: '1',
+    );
+
+    when(() => mockCalendarApi.createEvent(
+      title: any(named: 'title'),
+      startDate: any(named: 'startDate'),
+      endDate: any(named: 'endDate'),
+      calendarId: any(named: 'calendarId'),
+      description: any(named: 'description'),
+      url: any(named: 'url'),
+    )).thenAnswer((_) async => mockEvent);
+
+    await flutterCalendarConnect.createEvent(
+      title: 'Paris - Montréal', 
+      startDate: parisDeparture,
+      endDate: montrealArrival,
+      calendarId: '1',
+    );
+
+    verify(() => mockCalendarApi.createEvent(
+      title: 'Paris - Montréal',
+      startDate: utcParisDeparture.millisecondsSinceEpoch,
+      endDate: utcMontrealArrival.millisecondsSinceEpoch,
+      calendarId: '1',
+      description: null,
+      url: null,
+    )).called(1);
   });
 }

@@ -57,7 +57,6 @@ class Event {
     required this.title,
     required this.startDate,
     required this.endDate,
-    required this.timeZone,
     required this.calendarId,
     this.description,
     this.url,
@@ -71,8 +70,6 @@ class Event {
   int startDate;
 
   int endDate;
-
-  String timeZone;
 
   String calendarId;
 
@@ -88,7 +85,6 @@ class Event {
       title,
       startDate,
       endDate,
-      timeZone,
       calendarId,
       description,
       url,
@@ -103,11 +99,10 @@ class Event {
       title: result[1]! as String,
       startDate: result[2]! as int,
       endDate: result[3]! as int,
-      timeZone: result[4]! as String,
-      calendarId: result[5]! as String,
-      description: result[6] as String?,
-      url: result[7] as String?,
-      reminders: (result[8] as List<Object?>?)?.cast<int>(),
+      calendarId: result[4]! as String,
+      description: result[5] as String?,
+      url: result[6] as String?,
+      reminders: (result[7] as List<Object?>?)?.cast<int>(),
     );
   }
 }
@@ -260,7 +255,7 @@ class CalendarApi {
     }
   }
 
-  Future<Event> createEvent({required String title, required int startDate, required int endDate, required String calendarId, required String timeZone, required String? description, required String? url, }) async {
+  Future<Event> createEvent({required String title, required int startDate, required int endDate, required String calendarId, required String? description, required String? url, }) async {
     final String pigeonVar_channelName = 'dev.flutter.pigeon.flutter_calendar_connect.CalendarApi.createEvent$pigeonVar_messageChannelSuffix';
     final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
       pigeonVar_channelName,
@@ -268,7 +263,7 @@ class CalendarApi {
       binaryMessenger: pigeonVar_binaryMessenger,
     );
     final List<Object?>? pigeonVar_replyList =
-        await pigeonVar_channel.send(<Object?>[title, startDate, endDate, calendarId, timeZone, description, url]) as List<Object?>?;
+        await pigeonVar_channel.send(<Object?>[title, startDate, endDate, calendarId, description, url]) as List<Object?>?;
     if (pigeonVar_replyList == null) {
       throw _createConnectionError(pigeonVar_channelName);
     } else if (pigeonVar_replyList.length > 1) {

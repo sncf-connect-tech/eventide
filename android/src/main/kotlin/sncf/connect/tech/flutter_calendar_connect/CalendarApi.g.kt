@@ -79,7 +79,6 @@ data class Event (
   val title: String,
   val startDate: Long,
   val endDate: Long,
-  val timeZone: String,
   val calendarId: String,
   val description: String? = null,
   val url: String? = null,
@@ -92,12 +91,11 @@ data class Event (
       val title = pigeonVar_list[1] as String
       val startDate = pigeonVar_list[2] as Long
       val endDate = pigeonVar_list[3] as Long
-      val timeZone = pigeonVar_list[4] as String
-      val calendarId = pigeonVar_list[5] as String
-      val description = pigeonVar_list[6] as String?
-      val url = pigeonVar_list[7] as String?
-      val reminders = pigeonVar_list[8] as List<Long>?
-      return Event(id, title, startDate, endDate, timeZone, calendarId, description, url, reminders)
+      val calendarId = pigeonVar_list[4] as String
+      val description = pigeonVar_list[5] as String?
+      val url = pigeonVar_list[6] as String?
+      val reminders = pigeonVar_list[7] as List<Long>?
+      return Event(id, title, startDate, endDate, calendarId, description, url, reminders)
     }
   }
   fun toList(): List<Any?> {
@@ -106,7 +104,6 @@ data class Event (
       title,
       startDate,
       endDate,
-      timeZone,
       calendarId,
       description,
       url,
@@ -152,7 +149,7 @@ interface CalendarApi {
   fun createCalendar(title: String, color: Long, callback: (Result<Calendar>) -> Unit)
   fun retrieveCalendars(onlyWritableCalendars: Boolean, callback: (Result<List<Calendar>>) -> Unit)
   fun deleteCalendar(calendarId: String, callback: (Result<Unit>) -> Unit)
-  fun createEvent(title: String, startDate: Long, endDate: Long, calendarId: String, timeZone: String, description: String?, url: String?, callback: (Result<Event>) -> Unit)
+  fun createEvent(title: String, startDate: Long, endDate: Long, calendarId: String, description: String?, url: String?, callback: (Result<Event>) -> Unit)
   fun retrieveEvents(calendarId: String, startDate: Long, endDate: Long, callback: (Result<List<Event>>) -> Unit)
   fun deleteEvent(eventId: String, calendarId: String, callback: (Result<Unit>) -> Unit)
   fun createReminder(minutes: Long, eventId: String, callback: (Result<Unit>) -> Unit)
@@ -255,10 +252,9 @@ interface CalendarApi {
             val startDateArg = args[1] as Long
             val endDateArg = args[2] as Long
             val calendarIdArg = args[3] as String
-            val timeZoneArg = args[4] as String
-            val descriptionArg = args[5] as String?
-            val urlArg = args[6] as String?
-            api.createEvent(titleArg, startDateArg, endDateArg, calendarIdArg, timeZoneArg, descriptionArg, urlArg) { result: Result<Event> ->
+            val descriptionArg = args[4] as String?
+            val urlArg = args[5] as String?
+            api.createEvent(titleArg, startDateArg, endDateArg, calendarIdArg, descriptionArg, urlArg) { result: Result<Event> ->
               val error = result.exceptionOrNull()
               if (error != null) {
                 reply.reply(wrapError(error))
