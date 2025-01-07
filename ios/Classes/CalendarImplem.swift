@@ -34,7 +34,7 @@ class CalendarImplem: CalendarApi {
         permissionHandler.checkCalendarAccessThenExecute {
             guard let source = self.getSource() else {
                 completion(.failure(PigeonError(
-                    code: "404",
+                    code: "NOT_FOUND",
                     message: "Calendar source was not found",
                     details: "No source has been found between local, iCloud nor default sources"
                 )))
@@ -43,7 +43,7 @@ class CalendarImplem: CalendarApi {
             
             guard let uiColor = UIColor(int64: color) else {
                 completion(.failure(PigeonError(
-                    code: "400",
+                    code: "GENERIC_ERROR",
                     message: "Unable to parse cgColor from hex",
                     details: "hexadecimal number needs to start with # and to be 8 or 6 char long"
                 )))
@@ -69,7 +69,7 @@ class CalendarImplem: CalendarApi {
             } catch {
                 self.eventStore.reset()
                 completion(.failure(PigeonError(
-                    code: "500",
+                    code: "GENERIC_ERROR",
                     message: "Error while saving calendar",
                     details: nil
                 )))
@@ -77,7 +77,7 @@ class CalendarImplem: CalendarApi {
             
         } noAccess: {
             completion(.failure(PigeonError(
-                code: "403",
+                code: "ACCESS_REFUSED",
                 message: "Calendar access has been refused or has not been given yet",
                 details: nil
             )))
@@ -107,7 +107,7 @@ class CalendarImplem: CalendarApi {
             
         } noAccess: {
             completion(.failure(PigeonError(
-                code: "403",
+                code: "ACCESS_REFUSED",
                 message: "Calendar access has been refused or has not been given yet",
                 details: nil
             )))
@@ -118,7 +118,7 @@ class CalendarImplem: CalendarApi {
         permissionHandler.checkCalendarAccessThenExecute {
             guard let calendar = self.eventStore.calendar(withIdentifier: calendarId) else {
                 completion(.failure(PigeonError(
-                    code: "404",
+                    code: "NOT_FOUND",
                     message: "Calendar not found",
                     details: "The provided calendar.id is certainly incorrect"
                 )))
@@ -127,7 +127,7 @@ class CalendarImplem: CalendarApi {
             
             guard calendar.allowsContentModifications else {
                 completion(.failure(PigeonError(
-                    code: "403",
+                    code: "ACCESS_REFUSED",
                     message: "Calendar not editable",
                     details: "Calendar does not allow content modifications"
                 )))
@@ -141,15 +141,15 @@ class CalendarImplem: CalendarApi {
             } catch {
                 self.eventStore.reset()
                 completion(.failure(PigeonError(
-                    code: "500",
-                    message: "Unknown error",
+                    code: "GENERIC_ERROR",
+                    message: "An error occurred",
                     details: error.localizedDescription
                 )))
             }
             
         } noAccess: {
             completion(.failure(PigeonError(
-                code: "403",
+                code: "ACCESS_REFUSED",
                 message: "Calendar access has been refused or has not been given yet",
                 details: nil
             )))
@@ -179,7 +179,7 @@ class CalendarImplem: CalendarApi {
                          
             guard let ekEvent else {
                 completion(.failure(PigeonError(
-                    code: "404",
+                    code: "NOT_FOUND",
                     message: "Event not found",
                     details: "The provided event.id is certainly incorrect"
                 )))
@@ -215,14 +215,14 @@ class CalendarImplem: CalendarApi {
             } catch {
                 self.eventStore.reset()
                 completion(.failure(PigeonError(
-                    code: "500",
+                    code: "GENERIC_ERROR",
                     message: "Event not created",
                     details: nil
                 )))
             }
         } noAccess: {
             completion(.failure(PigeonError(
-                code: "403",
+                code: "ACCESS_REFUSED",
                 message: "Calendar access has been refused or has not been given yet",
                 details: nil
             )))
@@ -238,7 +238,7 @@ class CalendarImplem: CalendarApi {
         permissionHandler.checkCalendarAccessThenExecute {
             guard let calendar = self.eventStore.calendar(withIdentifier: calendarId) else {
                 completion(.failure(PigeonError(
-                    code: "404",
+                    code: "NOT_FOUND",
                     message: "Calendar not found",
                     details: "The provided calendar.id is certainly incorrect"
                 )))
@@ -265,7 +265,7 @@ class CalendarImplem: CalendarApi {
             }))
         } noAccess: {
             completion(.failure(PigeonError(
-                code: "403",
+                code: "ACCESS_REFUSED",
                 message: "Calendar access has been refused or has not been given yet",
                 details: nil
             )))
@@ -278,7 +278,7 @@ class CalendarImplem: CalendarApi {
             
             guard let calendar = calendar else {
                 completion(.failure(PigeonError(
-                    code: "404",
+                    code: "NOT_FOUND",
                     message: "Calendar not found",
                     details: "The provided calendar.id is certainly incorrect"
                 )))
@@ -287,7 +287,7 @@ class CalendarImplem: CalendarApi {
             
             guard calendar.allowsContentModifications else {
                 completion(.failure(PigeonError(
-                    code: "403",
+                    code: "NOT_EDITABLE",
                     message: "Calendar not editable",
                     details: "Calendar does not allow content modifications"
                 )))
@@ -296,7 +296,7 @@ class CalendarImplem: CalendarApi {
             
             guard let event = self.eventStore.event(withIdentifier: eventId) else {
                 completion(.failure(PigeonError(
-                    code: "404",
+                    code: "NOT_FOUND",
                     message: "Event not found",
                     details: "The provided event.id is certainly incorrect"
                 )))
@@ -311,15 +311,15 @@ class CalendarImplem: CalendarApi {
             } catch {
                 self.eventStore.reset()
                 completion(.failure(PigeonError(
-                    code: "500",
-                    message: "Unknown error",
+                    code: "GENERIC_ERROR",
+                    message: "An error occurred",
                     details: error.localizedDescription
                 )))
             }
             
         } noAccess: {
             completion(.failure(PigeonError(
-                code: "403",
+                code: "ACCESS_REFUSED",
                 message: "Calendar access has been refused or has not been given yet",
                 details: nil
             )))
@@ -330,7 +330,7 @@ class CalendarImplem: CalendarApi {
         permissionHandler.checkCalendarAccessThenExecute {
             guard let event = self.eventStore.event(withIdentifier: eventId) else {
                 completion(.failure(PigeonError(
-                    code: "404",
+                    code: "NOT_FOUND",
                     message: "Event not found",
                     details: "The provided event.id is certainly incorrect"
                 )))
@@ -351,15 +351,15 @@ class CalendarImplem: CalendarApi {
             } catch {
                 self.eventStore.reset()
                 completion(.failure(PigeonError(
-                    code: "500",
-                    message: "Unknown error",
+                    code: "GENERIC_ERROR",
+                    message: "An error occurred",
                     details: error.localizedDescription
                 )))
             }
             
         } noAccess: {
             completion(.failure(PigeonError(
-                code: "403",
+                code: "ACCESS_REFUSED",
                 message: "Calendar access has been refused or has not been given yet",
                 details: nil
             )))
@@ -371,7 +371,7 @@ class CalendarImplem: CalendarApi {
         permissionHandler.checkCalendarAccessThenExecute {
             guard let ekEvent = self.eventStore.event(withIdentifier: eventId) else {
                 completion(.failure(PigeonError(
-                    code: "404",
+                    code: "NOT_FOUND",
                     message: "Event not found",
                     details: "The provided event.id is certainly incorrect"
                 )))
@@ -382,7 +382,7 @@ class CalendarImplem: CalendarApi {
             
         } noAccess: {
             completion(.failure(PigeonError(
-                code: "403",
+                code: "ACCESS_REFUSED",
                 message: "Calendar access has been refused or has not been given yet",
                 details: nil
             )))
@@ -394,7 +394,7 @@ class CalendarImplem: CalendarApi {
         permissionHandler.checkCalendarAccessThenExecute {
             guard let ekEvent = self.eventStore.event(withIdentifier: eventId) else {
                 completion(.failure(PigeonError(
-                    code: "404",
+                    code: "NOT_FOUND",
                     message: "Event not found",
                     details: "The provided event.id is certainly incorrect"
                 )))
@@ -410,14 +410,14 @@ class CalendarImplem: CalendarApi {
             } catch {
                 self.eventStore.reset()
                 completion(.failure(PigeonError(
-                    code: "500",
-                    message: "Unknown error",
+                    code: "GENERIC_ERROR",
+                    message: "An error occurred",
                     details: error.localizedDescription
                 )))
             }
         } noAccess: {
             completion(.failure(PigeonError(
-                code: "403",
+                code: "ACCESS_REFUSED",
                 message: "Calendar access has been refused or has not been given yet",
                 details: nil
             )))

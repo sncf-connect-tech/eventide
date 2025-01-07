@@ -61,12 +61,23 @@ class CalendarImplem(
                         } else {
                             callback(Result.failure(Exception("Failed to create calendar")))
                         }
-                    } catch (e: Exception) {
-                        callback(Result.failure(e))
+                    } catch (e: Exception) { 
+                        callback(Result.failure(
+                            FlutterError(
+                                code = "GENERIC_ERROR",
+                                message = "An error occurred",
+                                details = e.message
+                            )
+                        ))
                     }
                 }
             } else {
-                callback(Result.failure(Exception("Calendar permissions not granted")))
+                callback(Result.failure(
+                    FlutterError(
+                        code = "403",
+                        message = "Calendar access has been refused or has not been given yet",
+                    ))
+                )
             }
         }
     }
@@ -108,12 +119,23 @@ class CalendarImplem(
 
                         callback(Result.success(calendars))
                     } catch (e: Exception) {
-                        callback(Result.failure(e))
+                        callback(Result.failure(
+                            FlutterError(
+                                code = "GENERIC_ERROR",
+                                message = "An error occurred",
+                                details = e.message
+                            )
+                        ))
                     }
                 }
 
             } else {
-                callback(Result.failure(Exception("Calendar permissions not granted")))
+                callback(Result.failure(
+                    FlutterError(
+                        code = "403",
+                        message = "Calendar access has been refused or has not been given yet",
+                    ))
+                )
             }
         }
     }
@@ -133,11 +155,22 @@ class CalendarImplem(
                             callback(Result.failure(Exception("Failed to delete calendar")))
                         }
                     } catch (e: Exception) {
-                        callback(Result.failure(e))
+                        callback(Result.failure(
+                            FlutterError(
+                                code = "GENERIC_ERROR",
+                                message = "An error occurred",
+                                details = e.message
+                            )
+                        ))
                     }
                 }
             } else {
-                callback(Result.failure(Exception("Calendar permissions not granted")))
+                callback(Result.failure(
+                    FlutterError(
+                        code = "403",
+                        message = "Calendar access has been refused or has not been given yet",
+                    ))
+                )
             }
         }
     }
@@ -190,11 +223,23 @@ class CalendarImplem(
                             callback(Result.failure(Exception("Failed to create event")))
                         }
                     } catch (e: Exception) {
-                        callback(Result.failure(e))
+                        callback(Result.failure(
+                            FlutterError(
+                                code = "GENERIC_ERROR",
+                                message = "An error occurred",
+                                details = e.message
+                            )
+                        ))
                     }
                 }
             } else {
-                callback(Result.failure(Exception("Calendar permissions not granted")))
+                callback(Result.failure(
+
+                    FlutterError(
+                        code = "403",
+                        message = "Calendar access has been refused or has not been given yet",
+                    ))
+                )
             }
         }
     }
@@ -247,12 +292,23 @@ class CalendarImplem(
                         callback(Result.success(events))
 
                     } catch (e: Exception) {
-                        callback(Result.failure(e))
+                        callback(Result.failure(
+                            FlutterError(
+                                code = "GENERIC_ERROR",
+                                message = "An error occurred",
+                                details = e.message
+                            )
+                        ))
                     }
                 }
 
             } else {
-                callback(Result.failure(Exception("Calendar permissions not granted")))
+                callback(Result.failure(
+                    FlutterError(
+                        code = "403",
+                        message = "Calendar access has been refused or has not been given yet",
+                    ))
+                )
             }
         }
     }
@@ -272,11 +328,22 @@ class CalendarImplem(
                             callback(Result.failure(Exception("Failed to delete event")))
                         }
                     } catch (e: Exception) {
-                        callback(Result.failure(e))
+                        callback(Result.failure(
+                            FlutterError(
+                                code = "GENERIC_ERROR",
+                                message = "An error occurred",
+                                details = e.message
+                            )
+                        ))
                     }
                 }
             } else {
-                callback(Result.failure(Exception("Calendar permissions not granted")))
+                callback(Result.failure(
+                    FlutterError(
+                        code = "403",
+                        message = "Calendar access has been refused or has not been given yet",
+                    ))
+                )
             }
         }
     }
@@ -296,11 +363,22 @@ class CalendarImplem(
                         callback(Result.success(Unit))
 
                     } catch (e: Exception) {
-                        callback(Result.failure(e))
+                        callback(Result.failure(
+                            FlutterError(
+                                code = "GENERIC_ERROR",
+                                message = "An error occurred",
+                                details = e.message
+                            )
+                        ))
                     }
                 }
             } else {
-                callback(Result.failure(Exception("Calendar permissions not granted")))
+                callback(Result.failure(
+                    FlutterError(
+                        code = "403",
+                        message = "Calendar access has been refused or has not been given yet",
+                    )
+                ))
             }
         }
     }
@@ -330,11 +408,22 @@ class CalendarImplem(
                         callback(Result.success(reminders))
 
                     } catch (e: Exception) {
-                        callback(Result.failure(e))
+                        callback(Result.failure(
+                            FlutterError(
+                                code = "GENERIC_ERROR",
+                                message = "An error occurred",
+                                details = e.message
+                            )
+                        ))
                     }
                 }
             } else {
-                callback(Result.failure(Exception("Calendar permissions not granted")))
+                callback(Result.failure(
+                    FlutterError(
+                        code = "403",
+                        message = "Calendar access has been refused or has not been given yet",
+                    )
+                ))
             }
         }
     }
@@ -354,11 +443,22 @@ class CalendarImplem(
                             callback(Result.failure(Exception("Failed to delete reminder")))
                         }
                     } catch (e: Exception) {
-                        callback(Result.failure(e))
+                        callback(Result.failure(
+                            FlutterError(
+                                code = "GENERIC_ERROR",
+                                message = "An error occurred",
+                                details = e.message
+                            )
+                        ))
                     }
                 }
             } else {
-                callback(Result.failure(Exception("Calendar permissions not granted")))
+                callback(Result.failure(
+                    FlutterError(
+                        code = "403",
+                        message = "Calendar access has been refused or has not been given yet",
+                    )
+                ))
             }
         }
     }
