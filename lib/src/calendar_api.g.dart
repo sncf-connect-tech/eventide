@@ -21,6 +21,7 @@ class Calendar {
     required this.title,
     required this.color,
     required this.isWritable,
+    required this.sourceName,
   });
 
   String id;
@@ -31,12 +32,15 @@ class Calendar {
 
   bool isWritable;
 
+  String sourceName;
+
   Object encode() {
     return <Object?>[
       id,
       title,
       color,
       isWritable,
+      sourceName,
     ];
   }
 
@@ -47,6 +51,7 @@ class Calendar {
       title: result[1]! as String,
       color: result[2]! as int,
       isWritable: result[3]! as bool,
+      sourceName: result[4]! as String,
     );
   }
 }

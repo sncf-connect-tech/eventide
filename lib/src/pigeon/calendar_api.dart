@@ -1,7 +1,7 @@
 import 'package:pigeon/pigeon.dart';
 
 @ConfigurePigeon(PigeonOptions(
-  dartOut: 'lib/calendar_api.g.dart',
+  dartOut: 'lib/src/calendar_api.g.dart',
   dartOptions: DartOptions(),
   kotlinOut: 'android/src/main/kotlin/sncf/connect/tech/flutter_calendar_connect/CalendarApi.g.kt',
   kotlinOptions: KotlinOptions(package: 'sncf.connect.tech.flutter_calendar_connect'),

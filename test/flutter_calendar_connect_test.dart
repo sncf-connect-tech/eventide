@@ -39,7 +39,7 @@ void main() {
 
   test('createCalendar returns a Calendar', () async {
     // Given
-    final calendar = Calendar(id: '1', title: 'Test Calendar', color: Colors.blue.value, isWritable: true);
+    final calendar = Calendar(id: '1', title: 'Test Calendar', color: Colors.blue.value, isWritable: true, sourceName: 'local');
     when(() => mockCalendarApi.createCalendar(any(), any())).thenAnswer((_) async => calendar);
 
     // When
@@ -92,8 +92,8 @@ void main() {
   test('retrieveCalendars returns a list of Calendars', () async {
     // Given
     final calendars = [
-      Calendar(id: '1', title: 'Test Calendar 1', color: Colors.blue.value, isWritable: true),
-      Calendar(id: '2', title: 'Test Calendar 2', color: Colors.red.value, isWritable: true),
+      Calendar(id: '1', title: 'Test Calendar 1', color: Colors.blue.value, isWritable: true, sourceName: 'local'),
+      Calendar(id: '2', title: 'Test Calendar 2', color: Colors.red.value, isWritable: true, sourceName: 'local'),
     ];
     when(() => mockCalendarApi.retrieveCalendars(any())).thenAnswer((_) async => calendars);
 
