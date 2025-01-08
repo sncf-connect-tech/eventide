@@ -54,7 +54,11 @@ extension UIColor {
 }
 
 extension EKSource {
-    var isRemote: Bool {
-        return sourceType == .calDAV && sourceIdentifier == "iCloud"
+    var sourceName: String? {
+        guard sourceType != .local else {
+            return nil
+        }
+        
+        return title
     }
 }

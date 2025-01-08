@@ -29,11 +29,10 @@ class CalendarImplem: CalendarApi {
     func createCalendar(
         title: String,
         color: Int64,
-        saveOnCloud: Bool,
         completion: @escaping (Result<Calendar, Error>) -> Void
     ) {
         permissionHandler.checkCalendarAccessThenExecute {
-            guard let source = self.getSource(saveOnCloud) else {
+            guard let source = self.getSource() else {
                 completion(.failure(PigeonError(
                     code: "NOT_FOUND",
                     message: "Calendar source was not found",
@@ -63,8 +62,7 @@ class CalendarImplem: CalendarApi {
                     id: ekCalendar.calendarIdentifier,
                     title: title,
                     color: uiColor.toInt64(),
-                    isWritable: true,
-                    isRemote: source.isRemote
+                    isWritable: true
                 )
                 completion(.success(calendar))
                 
@@ -91,7 +89,9 @@ class CalendarImplem: CalendarApi {
         permissionHandler.checkCalendarAccessThenExecute {
             let calendars = self.eventStore.calendars(for: .event)
                 .filter({ calendar in
-                    guard onlyWritableCalendars else { return true }
+                    guard onlyWritableCalendars else {
+                        return true
+                    }
                     return calendar.allowsContentModifications
                 })
                 .map {
@@ -99,8 +99,7 @@ class CalendarImplem: CalendarApi {
                         id: $0.calendarIdentifier,
                         title: $0.title,
                         color: UIColor(cgColor: $0.cgColor).toInt64(),
-                        isWritable: $0.allowsContentModifications,
-                        isRemote: $0.source.isRemote
+                        isWritable: $0.allowsContentModifications
                     )
                 }
             
@@ -422,20 +421,20 @@ class CalendarImplem: CalendarApi {
         }
     }
     
-    private func getSource(_ saveOnCloud: Bool) -> EKSource? {
+    private func getSource() -> EKSource? {
         guard let defaultSource = eventStore.defaultCalendarForNewEvents?.source else {
             // if eventStore.defaultCalendarForNewEvents?.source is nil then eventStore.sources is empty
             return nil
         }
         
-        if saveOnCloud {
-            let iCloudSources = eventStore.sources.filter { $0.sourceType == .calDAV && $0.sourceIdentifier == "iCloud" }
-            if (!iCloudSources.isEmpty) {
-                return iCloudSources.first
-            }
-        }
+        let iCloudSources = eventStore.sources.filter { $0.sourceType == .calDAV && $0.sourceIdentifier == "iCloud" }
 
+        if (!iCloudSources.isEmpty) {
+            return iCloudSources.first
+        }
+        
         let localSources = eventStore.sources.filter { $0.sourceType == .local }
+
         if (!localSources.isEmpty) {
             return localSources.first
         }

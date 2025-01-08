@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:flutter_calendar_connect/src/flutter_calendar_connect.dart';
 import 'package:flutter_calendar_connect/src/calendar_api.g.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
+import 'package:timezone/timezone.dart';
 
 abstract class FlutterCalendarConnectPlatform extends PlatformInterface {
   FlutterCalendarConnectPlatform() : super(token: _token);
@@ -23,7 +24,6 @@ abstract class FlutterCalendarConnectPlatform extends PlatformInterface {
   Future<Calendar> createCalendar({
     required String title,
     required Color color,
-    bool saveOnCloud = true,
   });
   
   Future<List<Calendar>> retrieveCalendars({
@@ -36,8 +36,8 @@ abstract class FlutterCalendarConnectPlatform extends PlatformInterface {
   
   Future<Event> createEvent({
     required String title,
-    required DateTime startDate,
-    required DateTime endDate,
+    required TZDateTime startDate,
+    required TZDateTime endDate,
     required String calendarId,
     String? description,
     String? url,

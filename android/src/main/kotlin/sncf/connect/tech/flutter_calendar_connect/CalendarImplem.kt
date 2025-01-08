@@ -24,7 +24,6 @@ class CalendarImplem(
     override fun createCalendar(
         title: String,
         color: Long,
-        saveOnCloud: Boolean,
         callback: (Result<Calendar>) -> Unit
     ) {
         permissionHandler.requestWritePermission { granted ->
@@ -40,7 +39,7 @@ class CalendarImplem(
                             put(CalendarContract.Calendars.CALENDAR_ACCESS_LEVEL, CalendarContract.Calendars.CAL_ACCESS_OWNER)
                             put(CalendarContract.Calendars.OWNER_ACCOUNT, "owner_account")
                             put(CalendarContract.Calendars.VISIBLE, 1)
-                            put(CalendarContract.Calendars.SYNC_EVENTS, saveOnCloud)
+                            put(CalendarContract.Calendars.SYNC_EVENTS, 1)
                         }
 
                         val uri = calendarContentUri
@@ -54,13 +53,7 @@ class CalendarImplem(
                         if (calendarUri != null) {
                             val calendarId = calendarUri.lastPathSegment?.toLong()
                             if (calendarId != null) {
-                                val calendar = Calendar(
-                                    calendarId.toString(),
-                                    title,
-                                    color,
-                                    isWritable = true,
-                                    saveOnCloud
-                                )
+                                val calendar = Calendar(calendarId.toString(), title, color, isWritable = true)
                                 callback(Result.success(calendar))
                             } else {
                                 callback(Result.failure(
@@ -108,8 +101,7 @@ class CalendarImplem(
                             CalendarContract.Calendars._ID,
                             CalendarContract.Calendars.CALENDAR_DISPLAY_NAME,
                             CalendarContract.Calendars.CALENDAR_COLOR,
-                            CalendarContract.Calendars.CALENDAR_ACCESS_LEVEL,
-                            CalendarContract.Calendars.SYNC_EVENTS
+                            CalendarContract.Calendars.CALENDAR_ACCESS_LEVEL
                         )
                         val selection = if (onlyWritableCalendars) ("(" + CalendarContract.Calendars.CALENDAR_ACCESS_LEVEL + " >=  ?)") else null
                         val selectionArgs = if (onlyWritableCalendars) arrayOf(CalendarContract.Calendars.CAL_ACCESS_CONTRIBUTOR.toString()) else null
@@ -123,14 +115,12 @@ class CalendarImplem(
                                 val displayName = it.getString(it.getColumnIndexOrThrow(CalendarContract.Calendars.CALENDAR_DISPLAY_NAME))
                                 val color = it.getLong(it.getColumnIndexOrThrow(CalendarContract.Calendars.CALENDAR_COLOR))
                                 val accessLevel = it.getInt(it.getColumnIndexOrThrow(CalendarContract.Calendars.CALENDAR_ACCESS_LEVEL))
-                                val isRemote = it.getInt(it.getColumnIndexOrThrow(CalendarContract.Calendars.SYNC_EVENTS)) == 1
 
                                 val calendar = Calendar(
                                     id,
                                     displayName,
                                     color,
-                                    isWritable = accessLevel >= CalendarContract.Calendars.CAL_ACCESS_CONTRIBUTOR,
-                                    isRemote
+                                    isWritable = accessLevel >= CalendarContract.Calendars.CAL_ACCESS_CONTRIBUTOR
                                 )
 
                                 calendars.add(calendar)

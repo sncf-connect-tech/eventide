@@ -39,15 +39,15 @@ void main() {
 
   test('createCalendar returns a Calendar', () async {
     // Given
-    final calendar = Calendar(id: '1', title: 'Test Calendar', color: Colors.blue.value, isWritable: true, isRemote: false);
-    when(() => mockCalendarApi.createCalendar(any(), any(), any())).thenAnswer((_) async => calendar);
+    final calendar = Calendar(id: '1', title: 'Test Calendar', color: Colors.blue.value, isWritable: true);
+    when(() => mockCalendarApi.createCalendar(any(), any())).thenAnswer((_) async => calendar);
 
     // When
     final result = await flutterCalendarConnect.createCalendar(title: 'Test Calendar', color: Colors.blue);
 
     // Then
     expect(result, equals(calendar));
-    verify(() => mockCalendarApi.createCalendar('Test Calendar', Colors.blue.value, true)).called(1);
+    verify(() => mockCalendarApi.createCalendar('Test Calendar', Colors.blue.value)).called(1);
   });
 
   test('createEvent returns true', () async {
@@ -92,8 +92,8 @@ void main() {
   test('retrieveCalendars returns a list of Calendars', () async {
     // Given
     final calendars = [
-      Calendar(id: '1', title: 'Test Calendar 1', color: Colors.blue.value, isWritable: true, isRemote: true),
-      Calendar(id: '2', title: 'Test Calendar 2', color: Colors.red.value, isWritable: true, isRemote: true),
+      Calendar(id: '1', title: 'Test Calendar 1', color: Colors.blue.value, isWritable: true),
+      Calendar(id: '2', title: 'Test Calendar 2', color: Colors.red.value, isWritable: true),
     ];
     when(() => mockCalendarApi.retrieveCalendars(any())).thenAnswer((_) async => calendars);
 
@@ -107,14 +107,14 @@ void main() {
 
   test('createCalendar throws an exception when API fails', () async {
     // Given
-    when(() => mockCalendarApi.createCalendar(any(), any(), any())).thenThrow(Exception('API Error'));
+    when(() => mockCalendarApi.createCalendar(any(), any())).thenThrow(Exception('API Error'));
 
     // When
     Future<Calendar> call() => flutterCalendarConnect.createCalendar(title: 'Test Calendar', color: Colors.blue);
 
     // Then
     expect(call, throwsException);
-    verify(() => mockCalendarApi.createCalendar('Test Calendar', Colors.blue.value, true)).called(1);
+    verify(() => mockCalendarApi.createCalendar('Test Calendar', Colors.blue.value)).called(1);
   });
 
   test('createEvent throws an exception when API fails', () async {

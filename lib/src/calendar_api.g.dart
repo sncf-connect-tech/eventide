@@ -21,7 +21,6 @@ class Calendar {
     required this.title,
     required this.color,
     required this.isWritable,
-    required this.isRemote,
   });
 
   String id;
@@ -32,15 +31,12 @@ class Calendar {
 
   bool isWritable;
 
-  bool isRemote;
-
   Object encode() {
     return <Object?>[
       id,
       title,
       color,
       isWritable,
-      isRemote,
     ];
   }
 
@@ -51,7 +47,6 @@ class Calendar {
       title: result[1]! as String,
       color: result[2]! as int,
       isWritable: result[3]! as bool,
-      isRemote: result[4]! as bool,
     );
   }
 }
@@ -184,7 +179,7 @@ class CalendarApi {
     }
   }
 
-  Future<Calendar> createCalendar(String title, int color, bool saveOnCloud) async {
+  Future<Calendar> createCalendar(String title, int color) async {
     final String pigeonVar_channelName = 'dev.flutter.pigeon.flutter_calendar_connect.CalendarApi.createCalendar$pigeonVar_messageChannelSuffix';
     final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
       pigeonVar_channelName,
@@ -192,7 +187,7 @@ class CalendarApi {
       binaryMessenger: pigeonVar_binaryMessenger,
     );
     final List<Object?>? pigeonVar_replyList =
-        await pigeonVar_channel.send(<Object?>[title, color, saveOnCloud]) as List<Object?>?;
+        await pigeonVar_channel.send(<Object?>[title, color]) as List<Object?>?;
     if (pigeonVar_replyList == null) {
       throw _createConnectionError(pigeonVar_channelName);
     } else if (pigeonVar_replyList.length > 1) {
