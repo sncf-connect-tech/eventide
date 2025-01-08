@@ -51,7 +51,8 @@ data class Calendar (
   val id: String,
   val title: String,
   val color: Long,
-  val isWritable: Boolean
+  val isWritable: Boolean,
+  val sourceName: String
 )
  {
   companion object {
@@ -60,7 +61,8 @@ data class Calendar (
       val title = pigeonVar_list[1] as String
       val color = pigeonVar_list[2] as Long
       val isWritable = pigeonVar_list[3] as Boolean
-      return Calendar(id, title, color, isWritable)
+      val sourceName = pigeonVar_list[4] as String
+      return Calendar(id, title, color, isWritable, sourceName)
     }
   }
   fun toList(): List<Any?> {
@@ -69,6 +71,7 @@ data class Calendar (
       title,
       color,
       isWritable,
+      sourceName,
     )
   }
 }

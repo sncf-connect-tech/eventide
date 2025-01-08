@@ -53,7 +53,7 @@ class CalendarImplem(
                         if (calendarUri != null) {
                             val calendarId = calendarUri.lastPathSegment?.toLong()
                             if (calendarId != null) {
-                                val calendar = Calendar(calendarId.toString(), title, color, isWritable = true)
+                                val calendar = Calendar(calendarId.toString(), title, color, isWritable = true, CalendarContract.ACCOUNT_TYPE_LOCAL)
                                 callback(Result.success(calendar))
                             } else {
                                 callback(Result.failure(
@@ -101,7 +101,8 @@ class CalendarImplem(
                             CalendarContract.Calendars._ID,
                             CalendarContract.Calendars.CALENDAR_DISPLAY_NAME,
                             CalendarContract.Calendars.CALENDAR_COLOR,
-                            CalendarContract.Calendars.CALENDAR_ACCESS_LEVEL
+                            CalendarContract.Calendars.CALENDAR_ACCESS_LEVEL,
+                            CalendarContract.Calendars.ACCOUNT_NAME
                         )
                         val selection = if (onlyWritableCalendars) ("(" + CalendarContract.Calendars.CALENDAR_ACCESS_LEVEL + " >=  ?)") else null
                         val selectionArgs = if (onlyWritableCalendars) arrayOf(CalendarContract.Calendars.CAL_ACCESS_CONTRIBUTOR.toString()) else null
@@ -115,12 +116,14 @@ class CalendarImplem(
                                 val displayName = it.getString(it.getColumnIndexOrThrow(CalendarContract.Calendars.CALENDAR_DISPLAY_NAME))
                                 val color = it.getLong(it.getColumnIndexOrThrow(CalendarContract.Calendars.CALENDAR_COLOR))
                                 val accessLevel = it.getInt(it.getColumnIndexOrThrow(CalendarContract.Calendars.CALENDAR_ACCESS_LEVEL))
+                                val sourceName = it.getString(it.getColumnIndexOrThrow(CalendarContract.Calendars.ACCOUNT_NAME))
 
                                 val calendar = Calendar(
-                                    id,
-                                    displayName,
-                                    color,
-                                    isWritable = accessLevel >= CalendarContract.Calendars.CAL_ACCESS_CONTRIBUTOR
+                                    id = id,
+                                    title = displayName,
+                                    color = color,
+                                    isWritable = accessLevel >= CalendarContract.Calendars.CAL_ACCESS_CONTRIBUTOR,
+                                    sourceName = sourceName
                                 )
 
                                 calendars.add(calendar)

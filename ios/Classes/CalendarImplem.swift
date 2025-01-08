@@ -62,7 +62,8 @@ class CalendarImplem: CalendarApi {
                     id: ekCalendar.calendarIdentifier,
                     title: title,
                     color: uiColor.toInt64(),
-                    isWritable: true
+                    isWritable: true,
+                    sourceName: source.sourceIdentifier
                 )
                 completion(.success(calendar))
                 
@@ -99,7 +100,8 @@ class CalendarImplem: CalendarApi {
                         id: $0.calendarIdentifier,
                         title: $0.title,
                         color: UIColor(cgColor: $0.cgColor).toInt64(),
-                        isWritable: $0.allowsContentModifications
+                        isWritable: $0.allowsContentModifications,
+                        sourceName: $0.source.sourceIdentifier
                     )
                 }
             

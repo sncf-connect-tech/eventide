@@ -323,7 +323,6 @@ class CalendarImplemTest {
             title = "Test Event",
             startDate = startMilli,
             endDate = endMilli,
-            timeZone = "UTC",
             calendarId = "1",
             description = "Description",
             url = null
@@ -342,7 +341,6 @@ class CalendarImplemTest {
             title = "Test Event",
             startDate = startMilli,
             endDate = endMilli,
-            timeZone = "UTC",
             calendarId = "1",
             description = "Description"
         ), result!!.getOrNull()!!)
@@ -359,7 +357,6 @@ class CalendarImplemTest {
             title = "Test Event",
             startDate = Instant.now().toEpochMilli(),
             endDate = Instant.now().toEpochMilli(),
-            timeZone = "UTC",
             calendarId = "1",
             description = "Description",
             url = null
@@ -383,7 +380,6 @@ class CalendarImplemTest {
             title = "Test Event",
             startDate = Instant.now().toEpochMilli(),
             endDate = Instant.now().toEpochMilli(),
-            timeZone = "UTC",
             calendarId = "1",
             description = "Description",
             url = null

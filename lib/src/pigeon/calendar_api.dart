@@ -60,12 +60,14 @@ class Calendar {
   final String title;
   final int color;
   final bool isWritable;
+  final String sourceName;
 
   const Calendar({
     required this.id,
     required this.title,
     required this.color,
     required this.isWritable,
+    required this.sourceName,
   });
 }
 

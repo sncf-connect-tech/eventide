@@ -70,6 +70,7 @@ struct Calendar {
   var title: String
   var color: Int64
   var isWritable: Bool
+  var sourceName: String
 
 
   // swift-format-ignore: AlwaysUseLowerCamelCase
@@ -78,12 +79,14 @@ struct Calendar {
     let title = pigeonVar_list[1] as! String
     let color = pigeonVar_list[2] as! Int64
     let isWritable = pigeonVar_list[3] as! Bool
+    let sourceName = pigeonVar_list[4] as! String
 
     return Calendar(
       id: id,
       title: title,
       color: color,
-      isWritable: isWritable
+      isWritable: isWritable,
+      sourceName: sourceName
     )
   }
   func toList() -> [Any?] {
@@ -92,6 +95,7 @@ struct Calendar {
       title,
       color,
       isWritable,
+      sourceName,
     ]
   }
 }
