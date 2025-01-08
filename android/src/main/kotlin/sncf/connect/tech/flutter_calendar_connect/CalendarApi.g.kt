@@ -51,7 +51,8 @@ data class Calendar (
   val id: String,
   val title: String,
   val color: Long,
-  val isWritable: Boolean
+  val isWritable: Boolean,
+  val isRemote: Boolean
 )
  {
   companion object {
@@ -60,7 +61,8 @@ data class Calendar (
       val title = pigeonVar_list[1] as String
       val color = pigeonVar_list[2] as Long
       val isWritable = pigeonVar_list[3] as Boolean
-      return Calendar(id, title, color, isWritable)
+      val isRemote = pigeonVar_list[4] as Boolean
+      return Calendar(id, title, color, isWritable, isRemote)
     }
   }
   fun toList(): List<Any?> {
@@ -69,6 +71,7 @@ data class Calendar (
       title,
       color,
       isWritable,
+      isRemote,
     )
   }
 }
@@ -146,7 +149,7 @@ private open class CalendarApiPigeonCodec : StandardMessageCodec() {
 /** Generated interface from Pigeon that represents a handler of messages from Flutter. */
 interface CalendarApi {
   fun requestCalendarPermission(callback: (Result<Boolean>) -> Unit)
-  fun createCalendar(title: String, color: Long, callback: (Result<Calendar>) -> Unit)
+  fun createCalendar(title: String, color: Long, saveOnCloud: Boolean, callback: (Result<Calendar>) -> Unit)
   fun retrieveCalendars(onlyWritableCalendars: Boolean, callback: (Result<List<Calendar>>) -> Unit)
   fun deleteCalendar(calendarId: String, callback: (Result<Unit>) -> Unit)
   fun createEvent(title: String, startDate: Long, endDate: Long, calendarId: String, description: String?, url: String?, callback: (Result<Event>) -> Unit)
@@ -190,7 +193,8 @@ interface CalendarApi {
             val args = message as List<Any?>
             val titleArg = args[0] as String
             val colorArg = args[1] as Long
-            api.createCalendar(titleArg, colorArg) { result: Result<Calendar> ->
+            val saveOnCloudArg = args[2] as Boolean
+            api.createCalendar(titleArg, colorArg, saveOnCloudArg) { result: Result<Calendar> ->
               val error = result.exceptionOrNull()
               if (error != null) {
                 reply.reply(wrapError(error))

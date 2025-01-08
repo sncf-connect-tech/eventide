@@ -27,6 +27,7 @@ class FlutterCalendarConnect extends FlutterCalendarConnectPlatform {
   }
 
   /// Creates a new calendar with the given [title] and [color].
+  /// Optionally, you can provide a [saveOnCloud] parameter to choose whether to save the calendar on the cloud or only locally.
   /// 
   /// Returns the created [Calendar].
   /// 
@@ -39,9 +40,13 @@ class FlutterCalendarConnect extends FlutterCalendarConnectPlatform {
   /// Throws a [FCCGenericException] if any other error occurs during calendar creation.
 
   @override
-  Future<Calendar> createCalendar({required String title, required Color color}) async {
+  Future<Calendar> createCalendar({
+    required String title,
+    required Color color,
+    bool saveOnCloud = true,
+  }) async {
     try {
-      return await _calendarApi.createCalendar(title, color.value);
+      return await _calendarApi.createCalendar(title, color.value, saveOnCloud);
     } on PlatformException catch (e) {
       throw e.toFlutterCalendarConnectException();
     }

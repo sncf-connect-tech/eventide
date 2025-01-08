@@ -70,6 +70,7 @@ struct Calendar {
   var title: String
   var color: Int64
   var isWritable: Bool
+  var isRemote: Bool
 
 
   // swift-format-ignore: AlwaysUseLowerCamelCase
@@ -78,12 +79,14 @@ struct Calendar {
     let title = pigeonVar_list[1] as! String
     let color = pigeonVar_list[2] as! Int64
     let isWritable = pigeonVar_list[3] as! Bool
+    let isRemote = pigeonVar_list[4] as! Bool
 
     return Calendar(
       id: id,
       title: title,
       color: color,
-      isWritable: isWritable
+      isWritable: isWritable,
+      isRemote: isRemote
     )
   }
   func toList() -> [Any?] {
@@ -92,6 +95,7 @@ struct Calendar {
       title,
       color,
       isWritable,
+      isRemote,
     ]
   }
 }
@@ -189,7 +193,7 @@ class CalendarApiPigeonCodec: FlutterStandardMessageCodec, @unchecked Sendable {
 /// Generated protocol from Pigeon that represents a handler of messages from Flutter.
 protocol CalendarApi {
   func requestCalendarPermission(completion: @escaping (Result<Bool, Error>) -> Void)
-  func createCalendar(title: String, color: Int64, completion: @escaping (Result<Calendar, Error>) -> Void)
+  func createCalendar(title: String, color: Int64, saveOnCloud: Bool, completion: @escaping (Result<Calendar, Error>) -> Void)
   func retrieveCalendars(onlyWritableCalendars: Bool, completion: @escaping (Result<[Calendar], Error>) -> Void)
   func deleteCalendar(_ calendarId: String, completion: @escaping (Result<Void, Error>) -> Void)
   func createEvent(title: String, startDate: Int64, endDate: Int64, calendarId: String, description: String?, url: String?, completion: @escaping (Result<Event, Error>) -> Void)
@@ -227,7 +231,8 @@ class CalendarApiSetup {
         let args = message as! [Any?]
         let titleArg = args[0] as! String
         let colorArg = args[1] as! Int64
-        api.createCalendar(title: titleArg, color: colorArg) { result in
+        let saveOnCloudArg = args[2] as! Bool
+        api.createCalendar(title: titleArg, color: colorArg, saveOnCloud: saveOnCloudArg) { result in
           switch result {
           case .success(let res):
             reply(wrapResult(res))

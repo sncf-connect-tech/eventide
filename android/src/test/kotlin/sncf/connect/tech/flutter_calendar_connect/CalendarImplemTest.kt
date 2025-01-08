@@ -92,7 +92,7 @@ class CalendarImplemTest {
 
         var result: Result<Calendar>? = null
         val lock = Lock()
-        calendarImplem.createCalendar("Test Calendar", 0xFF0000) {
+        calendarImplem.createCalendar("Test Calendar", 0xFF0000, true) {
             result = it
             lock.unlock()
         }
@@ -112,7 +112,7 @@ class CalendarImplemTest {
         }
 
         var result: Result<Calendar>? = null
-        calendarImplem.createCalendar("Test Calendar", 0xFF0000) {
+        calendarImplem.createCalendar("Test Calendar", 0xFF0000, true) {
             result = it
         }
 
@@ -128,7 +128,7 @@ class CalendarImplemTest {
 
         var result: Result<Calendar>? = null
         val lock = Lock()
-        calendarImplem.createCalendar("Test Calendar", 0xFF0000) {
+        calendarImplem.createCalendar("Test Calendar", 0xFF0000, true) {
             result = it
             lock.unlock()
         }
@@ -151,7 +151,7 @@ class CalendarImplemTest {
 
         var result: Result<Calendar>? = null
         val lock = Lock()
-        calendarImplem.createCalendar("Test Calendar", 0xFF0000) {
+        calendarImplem.createCalendar("Test Calendar", 0xFF0000, true) {
             result = it
             lock.unlock()
         }
@@ -323,7 +323,6 @@ class CalendarImplemTest {
             title = "Test Event",
             startDate = startMilli,
             endDate = endMilli,
-            timeZone = "UTC",
             calendarId = "1",
             description = "Description",
             url = null
@@ -342,7 +341,6 @@ class CalendarImplemTest {
             title = "Test Event",
             startDate = startMilli,
             endDate = endMilli,
-            timeZone = "UTC",
             calendarId = "1",
             description = "Description"
         ), result!!.getOrNull()!!)
@@ -359,7 +357,6 @@ class CalendarImplemTest {
             title = "Test Event",
             startDate = Instant.now().toEpochMilli(),
             endDate = Instant.now().toEpochMilli(),
-            timeZone = "UTC",
             calendarId = "1",
             description = "Description",
             url = null
@@ -383,7 +380,6 @@ class CalendarImplemTest {
             title = "Test Event",
             startDate = Instant.now().toEpochMilli(),
             endDate = Instant.now().toEpochMilli(),
-            timeZone = "UTC",
             calendarId = "1",
             description = "Description",
             url = null
