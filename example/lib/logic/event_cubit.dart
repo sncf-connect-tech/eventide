@@ -1,7 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_calendar_connect/calendar_api.g.dart';
-import 'package:flutter_calendar_connect/flutter_calendar_connect.dart';
 import 'package:flutter_calendar_connect_example/logic/event_state.dart';
+import 'package:flutter_calendar_connect/flutter_calendar_connect.dart';
 import 'package:timezone/timezone.dart';
 import 'package:value_state/value_state.dart';
 

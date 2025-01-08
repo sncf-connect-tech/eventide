@@ -1,5 +1,5 @@
 import 'package:equatable/equatable.dart';
-import 'package:flutter_calendar_connect/calendar_api.g.dart';
+import 'package:flutter_calendar_connect/flutter_calendar_connect.dart';
 import 'package:value_state/value_state.dart';
 
 typedef EventState = Value<EventValue>;

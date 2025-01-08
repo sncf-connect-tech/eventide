@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_calendar_connect/flutter_calendar_connect.dart';
-import 'package:flutter_calendar_connect/calendar_api.g.dart';
+import 'package:flutter_calendar_connect/src/flutter_calendar_connect.dart';
+import 'package:flutter_calendar_connect/src/calendar_api.g.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:flutter/material.dart';
 import 'package:timezone/timezone.dart';

@@ -1,7 +1,7 @@
 import 'dart:ui';
 
-import 'package:flutter_calendar_connect/flutter_calendar_connect.dart';
-import 'package:flutter_calendar_connect/calendar_api.g.dart';
+import 'package:flutter_calendar_connect/src/flutter_calendar_connect.dart';
+import 'package:flutter_calendar_connect/src/calendar_api.g.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 import 'package:timezone/timezone.dart';
 
