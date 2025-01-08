@@ -1,57 +1,63 @@
 import 'package:flutter/services.dart';
 
-abstract class FlutterCalendarConnectException extends PlatformException {
-  FlutterCalendarConnectException({
+/// An exception thrown by the Flutter Calendar Connect plugin.
+abstract class FCCException extends PlatformException {
+  FCCException({
     required super.code,
     required super.message,
     super.details,
   });
 }
 
-class CalendarPermissionException extends FlutterCalendarConnectException {
-  CalendarPermissionException({
+/// An exception thrown when the user refuses to grant calendar permissions.
+class FCCPermissionException extends FCCException {
+  FCCPermissionException({
     required super.message,
     super.details,
   }) : super(code: 'ACCESS_REFUSED');
 }
 
-class CalendarNotFoundException extends FlutterCalendarConnectException {
-  CalendarNotFoundException({
+/// An exception thrown when a calendar/event/reminder is not found.
+class FCCNotFoundException extends FCCException {
+  FCCNotFoundException({
     required super.message,
     super.details,
   }) : super(code: 'NOT_FOUND');
 }
 
-class CalendarNotEditableException extends FlutterCalendarConnectException {
-  CalendarNotEditableException({
+/// An exception thrown when the calendar is not editable.
+class FCCNotEditableException extends FCCException {
+  FCCNotEditableException({
     required super.message,
     super.details,
   }) : super(code: 'NOT_EDITABLE');
 }
 
-class CalendarConnectGenericException extends FlutterCalendarConnectException {
-  CalendarConnectGenericException({
+/// An exception thrown when an unknown plugin error occurs.
+class FCCGenericException extends FCCException {
+  FCCGenericException({
     required super.message,
     super.details,
   }) : super(code: 'GENERIC_ERROR');
 }
 
 extension PlatformExceptionToFlutterCalendarConnectException on PlatformException {
-  FlutterCalendarConnectException toFlutterCalendarConnectException() {
+  /// Converts a [PlatformException] to a [FCCException].
+  FCCException toFlutterCalendarConnectException() {
     return switch (code) {
-      'ACCESS_REFUSED' => CalendarPermissionException(
+      'ACCESS_REFUSED' => FCCPermissionException(
         message: message,
         details: details,
       ),
-      'NOT_FOUND' => CalendarNotFoundException(
+      'NOT_FOUND' => FCCNotFoundException(
         message: message,
         details: details,
       ),
-      'NOT_EDITABLE' => CalendarNotEditableException(
+      'NOT_EDITABLE' => FCCNotEditableException(
         message: message,
         details: details,
       ),
-      _ => CalendarConnectGenericException(
+      _ => FCCGenericException(
         message: message,
         details: details,
       )
