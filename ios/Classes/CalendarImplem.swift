@@ -127,7 +127,7 @@ class CalendarImplem: CalendarApi {
             
             guard calendar.allowsContentModifications else {
                 completion(.failure(PigeonError(
-                    code: "ACCESS_REFUSED",
+                    code: "NOT_EDITABLE",
                     message: "Calendar not editable",
                     details: "Calendar does not allow content modifications"
                 )))

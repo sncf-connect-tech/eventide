@@ -56,10 +56,20 @@ class CalendarImplem(
                                 val calendar = Calendar(calendarId.toString(), title, color, isWritable = true)
                                 callback(Result.success(calendar))
                             } else {
-                                callback(Result.failure(Exception("Failed to retrieve calendar ID")))
+                                callback(Result.failure(
+                                    FlutterError(
+                                        code = "NOT_FOUND",
+                                        message = "Failed to retrieve calendar ID"
+                                    )
+                                ))
                             }
                         } else {
-                            callback(Result.failure(Exception("Failed to create calendar")))
+                            callback(Result.failure(
+                                FlutterError(
+                                    code = "GENERIC_ERROR",
+                                    message = "Failed to create calendar"
+                                )
+                            ))
                         }
                     } catch (e: Exception) { 
                         callback(Result.failure(
@@ -74,7 +84,7 @@ class CalendarImplem(
             } else {
                 callback(Result.failure(
                     FlutterError(
-                        code = "403",
+                        code = "ACCESS_REFUSED",
                         message = "Calendar access has been refused or has not been given yet",
                     ))
                 )
@@ -132,7 +142,7 @@ class CalendarImplem(
             } else {
                 callback(Result.failure(
                     FlutterError(
-                        code = "403",
+                        code = "ACCESS_REFUSED",
                         message = "Calendar access has been refused or has not been given yet",
                     ))
                 )
@@ -152,7 +162,12 @@ class CalendarImplem(
                         if (deleted > 0) {
                             callback(Result.success(Unit))
                         } else {
-                            callback(Result.failure(Exception("Failed to delete calendar")))
+                            callback(Result.failure(
+                                FlutterError(
+                                    code = "NOT_FOUND",
+                                    message = "Failed to delete calendar"
+                                )
+                            ))
                         }
                     } catch (e: Exception) {
                         callback(Result.failure(
@@ -167,7 +182,7 @@ class CalendarImplem(
             } else {
                 callback(Result.failure(
                     FlutterError(
-                        code = "403",
+                        code = "ACCESS_REFUSED",
                         message = "Calendar access has been refused or has not been given yet",
                     ))
                 )
@@ -214,10 +229,20 @@ class CalendarImplem(
                                 )
                                 callback(Result.success(event))
                             } else {
-                                callback(Result.failure(Exception("Failed to retrieve event ID")))
+                                callback(Result.failure(
+                                    FlutterError(
+                                        code = "NOT_FOUND",
+                                        message = "Failed to retrieve event ID"
+                                    )
+                                ))
                             }
                         } else {
-                            callback(Result.failure(Exception("Failed to create event")))
+                            callback(Result.failure(
+                                FlutterError(
+                                    code = "GENERIC_ERROR",
+                                    message = "Failed to create event"
+                                )
+                            ))
                         }
                     } catch (e: Exception) {
                         callback(Result.failure(
@@ -231,9 +256,8 @@ class CalendarImplem(
                 }
             } else {
                 callback(Result.failure(
-
                     FlutterError(
-                        code = "403",
+                        code = "ACCESS_REFUSED",
                         message = "Calendar access has been refused or has not been given yet",
                     ))
                 )
@@ -300,7 +324,7 @@ class CalendarImplem(
             } else {
                 callback(Result.failure(
                     FlutterError(
-                        code = "403",
+                        code = "ACCESS_REFUSED",
                         message = "Calendar access has been refused or has not been given yet",
                     ))
                 )
@@ -320,7 +344,12 @@ class CalendarImplem(
                         if (deleted > 0) {
                             callback(Result.success(Unit))
                         } else {
-                            callback(Result.failure(Exception("Failed to delete event")))
+                            callback(Result.failure(
+                                FlutterError(
+                                    code = "NOT_FOUND",
+                                    message = "Failed to delete event"
+                                )
+                            ))
                         }
                     } catch (e: Exception) {
                         callback(Result.failure(
@@ -335,7 +364,7 @@ class CalendarImplem(
             } else {
                 callback(Result.failure(
                     FlutterError(
-                        code = "403",
+                        code = "ACCESS_REFUSED",
                         message = "Calendar access has been refused or has not been given yet",
                     ))
                 )
@@ -370,7 +399,7 @@ class CalendarImplem(
             } else {
                 callback(Result.failure(
                     FlutterError(
-                        code = "403",
+                        code = "ACCESS_REFUSED",
                         message = "Calendar access has been refused or has not been given yet",
                     )
                 ))
@@ -415,7 +444,7 @@ class CalendarImplem(
             } else {
                 callback(Result.failure(
                     FlutterError(
-                        code = "403",
+                        code = "ACCESS_REFUSED",
                         message = "Calendar access has been refused or has not been given yet",
                     )
                 ))
@@ -435,7 +464,12 @@ class CalendarImplem(
                         if (deleted > 0) {
                             callback(Result.success(Unit))
                         } else {
-                            callback(Result.failure(Exception("Failed to delete reminder")))
+                            callback(Result.failure(
+                                FlutterError(
+                                    code = "NOT_FOUND",
+                                    message = "Failed to delete reminder"
+                                )
+                            ))
                         }
                     } catch (e: Exception) {
                         callback(Result.failure(
@@ -450,7 +484,7 @@ class CalendarImplem(
             } else {
                 callback(Result.failure(
                     FlutterError(
-                        code = "403",
+                        code = "ACCESS_REFUSED",
                         message = "Calendar access has been refused or has not been given yet",
                     )
                 ))
