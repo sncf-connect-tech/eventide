@@ -56,7 +56,7 @@ class FlutterCalendarConnect extends FlutterCalendarConnectPlatform {
   /// 
   /// Throws a [FCCGenericException] if any other error occurs during calendars retrieval.
   @override
-  Future<List<Calendar>> retrieveCalendars({required bool onlyWritableCalendars}) async {
+  Future<List<Calendar>> retrieveCalendars({bool onlyWritableCalendars = true}) async {
     try {
       return await _calendarApi.retrieveCalendars(onlyWritableCalendars);
     } on PlatformException catch (e) {

@@ -27,7 +27,7 @@ abstract class FlutterCalendarConnectPlatform extends PlatformInterface {
   });
   
   Future<List<Calendar>> retrieveCalendars({
-    required bool onlyWritableCalendars,
+    bool onlyWritableCalendars = true,
   });
   
   Future<void> deleteCalendar({
