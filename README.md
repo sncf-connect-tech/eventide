@@ -21,20 +21,6 @@ To read/write calendar data, your app must include the following permissions in 
 <string>We need access to your calendar to add information about your trip.</string>
 ```
 
-### Android
-
-To read/write calendar data, your app must include the READ_CALENDAR permission in its manifest file. It must include the WRITE_CALENDAR permission to delete, insert or update calendar data:
-
-```xml
-<?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"...>
-    <uses-sdk android:minSdkVersion="14" />
-    <uses-permission android:name="android.permission.READ_CALENDAR" />
-    <uses-permission android:name="android.permission.WRITE_CALENDAR" />
-    ...
-</manifest>
-```
-
 ## Contribute
 
 ### Build with pigeon
