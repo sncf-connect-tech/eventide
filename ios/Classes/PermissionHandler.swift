@@ -1,6 +1,6 @@
 //
 //  PermissionHandler.swift
-//  flutter_calendar_connect
+//  easy_calendar
 //
 //  Created by CHOUPAULT Alexis on 02/01/2025.
 //

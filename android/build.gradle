@@ -1,4 +1,4 @@
-group 'sncf.connect.tech.flutter_calendar_connect'
+group 'sncf.connect.tech.easy_calendar'
 version '1.0-SNAPSHOT'
 
 buildscript {
@@ -26,14 +26,14 @@ apply plugin: 'kotlin-android'
 
 android {
     if (project.android.hasProperty("namespace")) {
-        namespace 'sncf.connect.tech.flutter_calendar_connect'
+        namespace 'sncf.connect.tech.easy_calendar'
     }
 
-    compileSdk 34
+    compileSdk flutter.compileSdkVersion
 
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
     }
 
     kotlinOptions {
@@ -46,7 +46,7 @@ android {
     }
 
     defaultConfig {
-        minSdkVersion 19
+        minSdkVersion flutter.minSdkVersion
     }
 
     dependencies {

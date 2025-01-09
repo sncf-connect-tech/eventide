@@ -1,13 +1,13 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_calendar_connect/src/flutter_calendar_connect_exception.dart';
-import 'package:flutter_calendar_connect/src/flutter_calendar_connect_platform_interface.dart';
-import 'package:flutter_calendar_connect/src/calendar_api.g.dart';
+import 'package:easy_calendar/src/easy_calendar_exception.dart';
+import 'package:easy_calendar/src/easy_calendar_platform_interface.dart';
+import 'package:easy_calendar/src/calendar_api.g.dart';
 
-class FlutterCalendarConnect extends FlutterCalendarConnectPlatform {
+class EasyCalendar extends EasyCalendarPlatform {
   final CalendarApi _calendarApi;
 
-  FlutterCalendarConnect({
+  EasyCalendar({
     @visibleForTesting CalendarApi? calendarApi,
   }) : _calendarApi = calendarApi ?? CalendarApi();
 
@@ -22,7 +22,7 @@ class FlutterCalendarConnect extends FlutterCalendarConnectPlatform {
     try {
       return await _calendarApi.requestCalendarPermission();
     } on PlatformException catch (e) {
-      throw e.toFlutterCalendarConnectException();
+      throw e.toEasyCalendarException();
     }
   }
 
@@ -43,7 +43,7 @@ class FlutterCalendarConnect extends FlutterCalendarConnectPlatform {
     try {
       return await _calendarApi.createCalendar(title, color.value);
     } on PlatformException catch (e) {
-      throw e.toFlutterCalendarConnectException();
+      throw e.toEasyCalendarException();
     }
   }
 
@@ -60,7 +60,7 @@ class FlutterCalendarConnect extends FlutterCalendarConnectPlatform {
     try {
       return await _calendarApi.retrieveCalendars(onlyWritableCalendars);
     } on PlatformException catch (e) {
-      throw e.toFlutterCalendarConnectException();
+      throw e.toEasyCalendarException();
     }
   }
 
@@ -78,7 +78,7 @@ class FlutterCalendarConnect extends FlutterCalendarConnectPlatform {
     try {
       await _calendarApi.deleteCalendar(calendarId);
     } on PlatformException catch (e) {
-      throw e.toFlutterCalendarConnectException();
+      throw e.toEasyCalendarException();
     }
   }
 
@@ -119,7 +119,7 @@ class FlutterCalendarConnect extends FlutterCalendarConnectPlatform {
       return event.copyWith(reminders: reminders);
       
     } on PlatformException catch (e) {
-      throw e.toFlutterCalendarConnectException();
+      throw e.toEasyCalendarException();
     }
   }
 
@@ -149,7 +149,7 @@ class FlutterCalendarConnect extends FlutterCalendarConnectPlatform {
       }
       return fcEvents;
     } on PlatformException catch (e) {
-      throw e.toFlutterCalendarConnectException();
+      throw e.toEasyCalendarException();
     }
   }
 
@@ -167,7 +167,7 @@ class FlutterCalendarConnect extends FlutterCalendarConnectPlatform {
     try {
       await _calendarApi.deleteEvent(eventId, calendarId);
     } on PlatformException catch (e) {
-      throw e.toFlutterCalendarConnectException();
+      throw e.toEasyCalendarException();
     }
   }
 
@@ -183,7 +183,7 @@ class FlutterCalendarConnect extends FlutterCalendarConnectPlatform {
     try {
       await _calendarApi.createReminder(minutes, eventId);
     } on PlatformException catch (e) {
-      throw e.toFlutterCalendarConnectException();
+      throw e.toEasyCalendarException();
     }
   }
 
@@ -201,7 +201,7 @@ class FlutterCalendarConnect extends FlutterCalendarConnectPlatform {
     try {
       return await _calendarApi.retrieveReminders(eventId);
     } on PlatformException catch (e) {
-      throw e.toFlutterCalendarConnectException();
+      throw e.toEasyCalendarException();
     }
   }
 
@@ -217,7 +217,7 @@ class FlutterCalendarConnect extends FlutterCalendarConnectPlatform {
     try {
       await _calendarApi.deleteReminder(minutes, eventId);
     } on PlatformException catch (e) {
-      throw e.toFlutterCalendarConnectException();
+      throw e.toEasyCalendarException();
     }
   }
 }

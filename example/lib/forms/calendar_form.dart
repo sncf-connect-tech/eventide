@@ -74,6 +74,8 @@ class _CalendarFormState extends State<CalendarForm> {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(content: Text('Creating calendar...')),
             );
+
+            Navigator.of(context).pop();
           },
           child: const Text('Create calendar'),
         ),

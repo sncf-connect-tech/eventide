@@ -1,8 +1,7 @@
 import Flutter
 import UIKit
-import EventKit
 
-public class CalendarPlugin: NSObject, FlutterPlugin {
+public class EasyCalendarPlugin: NSObject, FlutterPlugin {
     
     public static func register(with registrar: FlutterPluginRegistrar) {
         CalendarApiSetup.setUp(

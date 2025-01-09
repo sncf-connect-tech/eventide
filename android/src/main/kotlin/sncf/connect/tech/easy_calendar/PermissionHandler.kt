@@ -1,4 +1,4 @@
-package sncf.connect.tech.flutter_calendar_connect
+package sncf.connect.tech.easy_calendar
 
 import android.Manifest.permission.READ_CALENDAR
 import android.Manifest.permission.WRITE_CALENDAR

@@ -1,5 +1,5 @@
-name: flutter_calendar_connect_example
-description: "Demonstrates how to use the flutter_calendar_connect plugin."
+name: easy_calendar_example
+description: "Demonstrates how to use the easy_calendar plugin."
 publish_to: 'none'
 
 environment:
@@ -9,7 +9,7 @@ dependencies:
   flutter:
     sdk: flutter
 
-  flutter_calendar_connect:
+  easy_calendar:
     path: ../
   cupertino_icons: ^1.0.6
   flutter_bloc: ^8.1.6

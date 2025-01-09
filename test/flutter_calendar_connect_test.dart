@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_calendar_connect/src/flutter_calendar_connect.dart';
-import 'package:flutter_calendar_connect/src/calendar_api.g.dart';
+import 'package:easy_calendar/src/easy_calendar.dart';
+import 'package:easy_calendar/src/calendar_api.g.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:flutter/material.dart';
 import 'package:timezone/timezone.dart';
@@ -12,7 +12,7 @@ void main() {
   tz.initializeTimeZones();
   
   late _MockCalendarApi mockCalendarApi;
-  late FlutterCalendarConnect flutterCalendarConnect;
+  late EasyCalendar easyCalendar;
   
   final location = getLocation('UTC');
   final startDate = TZDateTime.now(location);
@@ -34,7 +34,7 @@ void main() {
 
   setUp(() {
     mockCalendarApi = _MockCalendarApi();
-    flutterCalendarConnect = FlutterCalendarConnect(calendarApi: mockCalendarApi);
+    easyCalendar = EasyCalendar(calendarApi: mockCalendarApi);
   });
 
   test('createCalendar returns a Calendar', () async {
@@ -43,7 +43,7 @@ void main() {
     when(() => mockCalendarApi.createCalendar(any(), any())).thenAnswer((_) async => calendar);
 
     // When
-    final result = await flutterCalendarConnect.createCalendar(title: 'Test Calendar', color: Colors.blue);
+    final result = await easyCalendar.createCalendar(title: 'Test Calendar', color: Colors.blue);
 
     // Then
     expect(result, equals(calendar));
@@ -70,7 +70,7 @@ void main() {
     )).thenAnswer((_) async => event);
 
     // When
-    final result = await flutterCalendarConnect.createEvent(
+    final result = await easyCalendar.createEvent(
       title: 'Test Event', 
       startDate: startDate,
       endDate: endDate,
@@ -98,7 +98,7 @@ void main() {
     when(() => mockCalendarApi.retrieveCalendars(any())).thenAnswer((_) async => calendars);
 
     // When
-    final result = await flutterCalendarConnect.retrieveCalendars(onlyWritableCalendars: true);
+    final result = await easyCalendar.retrieveCalendars(onlyWritableCalendars: true);
 
     // Then
     expect(result, equals(calendars));
@@ -110,7 +110,7 @@ void main() {
     when(() => mockCalendarApi.createCalendar(any(), any())).thenThrow(Exception('API Error'));
 
     // When
-    Future<Calendar> call() => flutterCalendarConnect.createCalendar(title: 'Test Calendar', color: Colors.blue);
+    Future<Calendar> call() => easyCalendar.createCalendar(title: 'Test Calendar', color: Colors.blue);
 
     // Then
     expect(call, throwsException);
@@ -129,7 +129,7 @@ void main() {
     )).thenThrow(Exception('API Error'));
 
     // When
-    Future<Event> call() => flutterCalendarConnect.createEvent(
+    Future<Event> call() => easyCalendar.createEvent(
       title: 'Test Event', 
       startDate: startDate,
       endDate: endDate,
@@ -161,7 +161,7 @@ void main() {
     when(() => mockCalendarApi.createReminder(any(), any())).thenAnswer((_) async => {});
 
     // When
-    final result = await flutterCalendarConnect.createEvent(
+    final result = await easyCalendar.createEvent(
       title: 'Test Event', 
       startDate: startDate,
       endDate: endDate,
@@ -190,7 +190,7 @@ void main() {
     when(() => mockCalendarApi.retrieveReminders(any())).thenAnswer((_) async => [10, 20]);
 
     // When
-    final result = await flutterCalendarConnect.retrieveEvents(calendarId: '1');
+    final result = await easyCalendar.retrieveEvents(calendarId: '1');
 
     // Then
     expect(result.first.reminders, equals([10, 20]));
@@ -221,7 +221,7 @@ void main() {
       url: any(named: 'url'),
     )).thenAnswer((_) async => mockEvent);
 
-    await flutterCalendarConnect.createEvent(
+    await easyCalendar.createEvent(
       title: 'Paris - Montréal', 
       startDate: parisDeparture,
       endDate: montrealArrival,

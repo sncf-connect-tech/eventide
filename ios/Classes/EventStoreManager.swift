@@ -1,6 +1,6 @@
 //
 //  EventStoreManager.swift
-//  flutter_calendar_connect
+//  easy_calendar
 //
 //  Created by CHOUPAULT Alexis on 31/12/2024.
 //

@@ -1,14 +1,14 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_calendar_connect_example/logic/event_state.dart';
-import 'package:flutter_calendar_connect/flutter_calendar_connect.dart';
+import 'package:easy_calendar_example/logic/event_state.dart';
+import 'package:easy_calendar/easy_calendar.dart';
 import 'package:timezone/timezone.dart';
 import 'package:value_state/value_state.dart';
 
 class EventCubit extends Cubit<EventState> {
-  final FlutterCalendarConnect _calendarPlugin;
+  final EasyCalendar _calendarPlugin;
   
   EventCubit({
-    required FlutterCalendarConnect calendarPlugin,
+    required EasyCalendar calendarPlugin,
   }) :  _calendarPlugin = calendarPlugin,
         super(const EventState.initial());
 

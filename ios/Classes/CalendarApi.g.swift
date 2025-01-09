@@ -210,7 +210,7 @@ class CalendarApiSetup {
   /// Sets up an instance of `CalendarApi` to handle messages through the `binaryMessenger`.
   static func setUp(binaryMessenger: FlutterBinaryMessenger, api: CalendarApi?, messageChannelSuffix: String = "") {
     let channelSuffix = messageChannelSuffix.count > 0 ? ".\(messageChannelSuffix)" : ""
-    let requestCalendarPermissionChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.flutter_calendar_connect.CalendarApi.requestCalendarPermission\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
+    let requestCalendarPermissionChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.easy_calendar.CalendarApi.requestCalendarPermission\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
     if let api = api {
       requestCalendarPermissionChannel.setMessageHandler { _, reply in
         api.requestCalendarPermission { result in
@@ -225,7 +225,7 @@ class CalendarApiSetup {
     } else {
       requestCalendarPermissionChannel.setMessageHandler(nil)
     }
-    let createCalendarChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.flutter_calendar_connect.CalendarApi.createCalendar\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
+    let createCalendarChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.easy_calendar.CalendarApi.createCalendar\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
     if let api = api {
       createCalendarChannel.setMessageHandler { message, reply in
         let args = message as! [Any?]
@@ -243,7 +243,7 @@ class CalendarApiSetup {
     } else {
       createCalendarChannel.setMessageHandler(nil)
     }
-    let retrieveCalendarsChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.flutter_calendar_connect.CalendarApi.retrieveCalendars\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
+    let retrieveCalendarsChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.easy_calendar.CalendarApi.retrieveCalendars\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
     if let api = api {
       retrieveCalendarsChannel.setMessageHandler { message, reply in
         let args = message as! [Any?]
@@ -260,7 +260,7 @@ class CalendarApiSetup {
     } else {
       retrieveCalendarsChannel.setMessageHandler(nil)
     }
-    let deleteCalendarChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.flutter_calendar_connect.CalendarApi.deleteCalendar\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
+    let deleteCalendarChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.easy_calendar.CalendarApi.deleteCalendar\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
     if let api = api {
       deleteCalendarChannel.setMessageHandler { message, reply in
         let args = message as! [Any?]
@@ -277,7 +277,7 @@ class CalendarApiSetup {
     } else {
       deleteCalendarChannel.setMessageHandler(nil)
     }
-    let createEventChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.flutter_calendar_connect.CalendarApi.createEvent\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
+    let createEventChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.easy_calendar.CalendarApi.createEvent\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
     if let api = api {
       createEventChannel.setMessageHandler { message, reply in
         let args = message as! [Any?]
@@ -299,7 +299,7 @@ class CalendarApiSetup {
     } else {
       createEventChannel.setMessageHandler(nil)
     }
-    let retrieveEventsChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.flutter_calendar_connect.CalendarApi.retrieveEvents\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
+    let retrieveEventsChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.easy_calendar.CalendarApi.retrieveEvents\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
     if let api = api {
       retrieveEventsChannel.setMessageHandler { message, reply in
         let args = message as! [Any?]
@@ -318,7 +318,7 @@ class CalendarApiSetup {
     } else {
       retrieveEventsChannel.setMessageHandler(nil)
     }
-    let deleteEventChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.flutter_calendar_connect.CalendarApi.deleteEvent\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
+    let deleteEventChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.easy_calendar.CalendarApi.deleteEvent\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
     if let api = api {
       deleteEventChannel.setMessageHandler { message, reply in
         let args = message as! [Any?]
@@ -336,7 +336,7 @@ class CalendarApiSetup {
     } else {
       deleteEventChannel.setMessageHandler(nil)
     }
-    let createReminderChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.flutter_calendar_connect.CalendarApi.createReminder\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
+    let createReminderChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.easy_calendar.CalendarApi.createReminder\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
     if let api = api {
       createReminderChannel.setMessageHandler { message, reply in
         let args = message as! [Any?]
@@ -354,7 +354,7 @@ class CalendarApiSetup {
     } else {
       createReminderChannel.setMessageHandler(nil)
     }
-    let retrieveRemindersChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.flutter_calendar_connect.CalendarApi.retrieveReminders\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
+    let retrieveRemindersChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.easy_calendar.CalendarApi.retrieveReminders\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
     if let api = api {
       retrieveRemindersChannel.setMessageHandler { message, reply in
         let args = message as! [Any?]
@@ -371,7 +371,7 @@ class CalendarApiSetup {
     } else {
       retrieveRemindersChannel.setMessageHandler(nil)
     }
-    let deleteReminderChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.flutter_calendar_connect.CalendarApi.deleteReminder\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
+    let deleteReminderChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.easy_calendar.CalendarApi.deleteReminder\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
     if let api = api {
       deleteReminderChannel.setMessageHandler { message, reply in
         let args = message as! [Any?]

@@ -1,4 +1,4 @@
-package sncf.connect.tech.flutter_calendar_connect
+package sncf.connect.tech.easy_calendar
 
 import android.content.ContentResolver
 import android.content.ContentValues

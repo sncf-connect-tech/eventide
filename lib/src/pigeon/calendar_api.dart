@@ -3,11 +3,11 @@ import 'package:pigeon/pigeon.dart';
 @ConfigurePigeon(PigeonOptions(
   dartOut: 'lib/src/calendar_api.g.dart',
   dartOptions: DartOptions(),
-  kotlinOut: 'android/src/main/kotlin/sncf/connect/tech/flutter_calendar_connect/CalendarApi.g.kt',
-  kotlinOptions: KotlinOptions(package: 'sncf.connect.tech.flutter_calendar_connect'),
+  kotlinOut: 'android/src/main/kotlin/sncf/connect/tech/easy_calendar/CalendarApi.g.kt',
+  kotlinOptions: KotlinOptions(package: 'sncf.connect.tech.easy_calendar'),
   swiftOut: 'ios/Classes/CalendarApi.g.swift',
   swiftOptions: SwiftOptions(),
-  dartPackageName: 'flutter_calendar_connect',
+  dartPackageName: 'easy_calendar',
 ))
 
 @HostApi()

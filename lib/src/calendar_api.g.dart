@@ -158,7 +158,7 @@ class CalendarApi {
   final String pigeonVar_messageChannelSuffix;
 
   Future<bool> requestCalendarPermission() async {
-    final String pigeonVar_channelName = 'dev.flutter.pigeon.flutter_calendar_connect.CalendarApi.requestCalendarPermission$pigeonVar_messageChannelSuffix';
+    final String pigeonVar_channelName = 'dev.flutter.pigeon.easy_calendar.CalendarApi.requestCalendarPermission$pigeonVar_messageChannelSuffix';
     final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
       pigeonVar_channelName,
       pigeonChannelCodec,
@@ -185,7 +185,7 @@ class CalendarApi {
   }
 
   Future<Calendar> createCalendar(String title, int color) async {
-    final String pigeonVar_channelName = 'dev.flutter.pigeon.flutter_calendar_connect.CalendarApi.createCalendar$pigeonVar_messageChannelSuffix';
+    final String pigeonVar_channelName = 'dev.flutter.pigeon.easy_calendar.CalendarApi.createCalendar$pigeonVar_messageChannelSuffix';
     final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
       pigeonVar_channelName,
       pigeonChannelCodec,
@@ -212,7 +212,7 @@ class CalendarApi {
   }
 
   Future<List<Calendar>> retrieveCalendars(bool onlyWritableCalendars) async {
-    final String pigeonVar_channelName = 'dev.flutter.pigeon.flutter_calendar_connect.CalendarApi.retrieveCalendars$pigeonVar_messageChannelSuffix';
+    final String pigeonVar_channelName = 'dev.flutter.pigeon.easy_calendar.CalendarApi.retrieveCalendars$pigeonVar_messageChannelSuffix';
     final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
       pigeonVar_channelName,
       pigeonChannelCodec,
@@ -239,7 +239,7 @@ class CalendarApi {
   }
 
   Future<void> deleteCalendar(String calendarId) async {
-    final String pigeonVar_channelName = 'dev.flutter.pigeon.flutter_calendar_connect.CalendarApi.deleteCalendar$pigeonVar_messageChannelSuffix';
+    final String pigeonVar_channelName = 'dev.flutter.pigeon.easy_calendar.CalendarApi.deleteCalendar$pigeonVar_messageChannelSuffix';
     final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
       pigeonVar_channelName,
       pigeonChannelCodec,
@@ -261,7 +261,7 @@ class CalendarApi {
   }
 
   Future<Event> createEvent({required String title, required int startDate, required int endDate, required String calendarId, required String? description, required String? url, }) async {
-    final String pigeonVar_channelName = 'dev.flutter.pigeon.flutter_calendar_connect.CalendarApi.createEvent$pigeonVar_messageChannelSuffix';
+    final String pigeonVar_channelName = 'dev.flutter.pigeon.easy_calendar.CalendarApi.createEvent$pigeonVar_messageChannelSuffix';
     final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
       pigeonVar_channelName,
       pigeonChannelCodec,
@@ -288,7 +288,7 @@ class CalendarApi {
   }
 
   Future<List<Event>> retrieveEvents(String calendarId, int startDate, int endDate) async {
-    final String pigeonVar_channelName = 'dev.flutter.pigeon.flutter_calendar_connect.CalendarApi.retrieveEvents$pigeonVar_messageChannelSuffix';
+    final String pigeonVar_channelName = 'dev.flutter.pigeon.easy_calendar.CalendarApi.retrieveEvents$pigeonVar_messageChannelSuffix';
     final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
       pigeonVar_channelName,
       pigeonChannelCodec,
@@ -315,7 +315,7 @@ class CalendarApi {
   }
 
   Future<void> deleteEvent(String eventId, String calendarId) async {
-    final String pigeonVar_channelName = 'dev.flutter.pigeon.flutter_calendar_connect.CalendarApi.deleteEvent$pigeonVar_messageChannelSuffix';
+    final String pigeonVar_channelName = 'dev.flutter.pigeon.easy_calendar.CalendarApi.deleteEvent$pigeonVar_messageChannelSuffix';
     final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
       pigeonVar_channelName,
       pigeonChannelCodec,
@@ -337,7 +337,7 @@ class CalendarApi {
   }
 
   Future<void> createReminder(int minutes, String eventId) async {
-    final String pigeonVar_channelName = 'dev.flutter.pigeon.flutter_calendar_connect.CalendarApi.createReminder$pigeonVar_messageChannelSuffix';
+    final String pigeonVar_channelName = 'dev.flutter.pigeon.easy_calendar.CalendarApi.createReminder$pigeonVar_messageChannelSuffix';
     final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
       pigeonVar_channelName,
       pigeonChannelCodec,
@@ -359,7 +359,7 @@ class CalendarApi {
   }
 
   Future<List<int>> retrieveReminders(String eventId) async {
-    final String pigeonVar_channelName = 'dev.flutter.pigeon.flutter_calendar_connect.CalendarApi.retrieveReminders$pigeonVar_messageChannelSuffix';
+    final String pigeonVar_channelName = 'dev.flutter.pigeon.easy_calendar.CalendarApi.retrieveReminders$pigeonVar_messageChannelSuffix';
     final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
       pigeonVar_channelName,
       pigeonChannelCodec,
@@ -386,7 +386,7 @@ class CalendarApi {
   }
 
   Future<void> deleteReminder(int minutes, String eventId) async {
-    final String pigeonVar_channelName = 'dev.flutter.pigeon.flutter_calendar_connect.CalendarApi.deleteReminder$pigeonVar_messageChannelSuffix';
+    final String pigeonVar_channelName = 'dev.flutter.pigeon.easy_calendar.CalendarApi.deleteReminder$pigeonVar_messageChannelSuffix';
     final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
       pigeonVar_channelName,
       pigeonChannelCodec,

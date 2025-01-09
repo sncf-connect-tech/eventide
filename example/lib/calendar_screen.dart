@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_calendar_connect/flutter_calendar_connect.dart';
-import 'package:flutter_calendar_connect_example/calendar_details.dart';
-import 'package:flutter_calendar_connect_example/logic/calendar_cubit.dart';
-import 'package:flutter_calendar_connect_example/forms/calendar_form.dart';
-import 'package:flutter_calendar_connect_example/logic/event_cubit.dart';
+import 'package:easy_calendar/easy_calendar.dart';
+import 'package:easy_calendar_example/calendar_details.dart';
+import 'package:easy_calendar_example/logic/calendar_cubit.dart';
+import 'package:easy_calendar_example/forms/calendar_form.dart';
+import 'package:easy_calendar_example/logic/event_cubit.dart';
 import 'package:value_state/value_state.dart';
 
 class CalendarScreen extends StatelessWidget {

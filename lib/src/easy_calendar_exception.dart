@@ -41,9 +41,9 @@ class FCCGenericException extends FCCException {
   }) : super(code: 'GENERIC_ERROR');
 }
 
-extension PlatformExceptionToFlutterCalendarConnectException on PlatformException {
+extension PlatformExceptionToEasyCalendarException on PlatformException {
   /// Converts a [PlatformException] to a [FCCException].
-  FCCException toFlutterCalendarConnectException() {
+  FCCException toEasyCalendarException() {
     return switch (code) {
       'ACCESS_REFUSED' => FCCPermissionException(
         message: message,

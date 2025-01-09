@@ -1,19 +1,19 @@
 import 'dart:ui';
 
-import 'package:flutter_calendar_connect/src/flutter_calendar_connect.dart';
-import 'package:flutter_calendar_connect/src/calendar_api.g.dart';
+import 'package:easy_calendar/src/easy_calendar.dart';
+import 'package:easy_calendar/src/calendar_api.g.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 
-abstract class FlutterCalendarConnectPlatform extends PlatformInterface {
-  FlutterCalendarConnectPlatform() : super(token: _token);
+abstract class EasyCalendarPlatform extends PlatformInterface {
+  EasyCalendarPlatform() : super(token: _token);
 
   static final Object _token = Object();
 
-  static FlutterCalendarConnectPlatform _instance = FlutterCalendarConnect();
+  static EasyCalendarPlatform _instance = EasyCalendar();
 
-  static FlutterCalendarConnectPlatform get instance => _instance;
+  static EasyCalendarPlatform get instance => _instance;
 
-  static set instance(FlutterCalendarConnectPlatform instance) {
+  static set instance(EasyCalendarPlatform instance) {
     PlatformInterface.verify(instance, _token);
     _instance = instance;
   }

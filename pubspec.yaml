@@ -1,7 +1,7 @@
-name: flutter_calendar_connect
-description: "A plugin to edit users calendars"
+name: easy_calendar
+description: "A new Flutter plugin project."
 version: 0.0.1
-homepage: https://github.com/sncf-connect-tech/flutter_calendar_connect/tree/main
+homepage:
 
 environment:
   sdk: '>=3.3.1 <4.0.0'
@@ -24,7 +24,7 @@ flutter:
   plugin:
     platforms:
       android:
-        package: sncf.connect.tech.flutter_calendar_connect
-        pluginClass: CalendarPlugin
+        package: sncf.connect.tech.easy_calendar
+        pluginClass: EasyCalendarPlugin
       ios:
-        pluginClass: CalendarPlugin
+        pluginClass: EasyCalendarPlugin

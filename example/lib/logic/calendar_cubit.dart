@@ -1,14 +1,14 @@
 import 'dart:ui';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_calendar_connect/flutter_calendar_connect.dart';
+import 'package:easy_calendar/easy_calendar.dart';
 import 'package:value_state/value_state.dart';
 
 class CalendarCubit extends Cubit<Value<List<Calendar>>> {
-  final FlutterCalendarConnect _calendarPlugin;
+  final EasyCalendar _calendarPlugin;
 
   CalendarCubit({
-    required FlutterCalendarConnect calendarPlugin,
+    required EasyCalendar calendarPlugin,
   }) : _calendarPlugin = calendarPlugin,
         super(const Value.initial());
 

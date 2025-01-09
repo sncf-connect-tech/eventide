@@ -1,4 +1,4 @@
-# Flutter Calendar Connect ⚠️ work in progress ⚠️
+# Easy Calendar ⚠️ work in progress ⚠️
 
 A Flutter plugin to access & modify native calendars on user's device (iOS & Android).
 
