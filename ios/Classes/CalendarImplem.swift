@@ -273,9 +273,7 @@ class CalendarImplem: CalendarApi {
     
     func deleteEvent(withId eventId: String, _ calendarId: String, completion: @escaping (Result<Void, any Error>) -> Void) {
         permissionHandler.checkCalendarAccessThenExecute {
-            let calendar = self.eventStore.calendar(withIdentifier: calendarId)
-            
-            guard let calendar = calendar else {
+            guard let calendar = self.eventStore.calendar(withIdentifier: calendarId) else {
                 completion(.failure(PigeonError(
                     code: "NOT_FOUND",
                     message: "Calendar not found",
