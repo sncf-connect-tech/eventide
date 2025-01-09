@@ -4,6 +4,8 @@ A Flutter plugin to access & modify native calendars on user's device (iOS & And
 
 This plugin allows you to create, read and delete calendars, events and reminders. It handles timezones as UTC.
 
+You can ask for permissions manually if you want to request the user early at runtime. However permissions are handled automatically by the plugin at each method call.
+
 ## Getting Started
 
 ### iOS
