@@ -2,6 +2,8 @@
 
 A Flutter plugin to access & modify native calendars on user's device (iOS & Android).
 
+This plugin allows you to create, read and delete calendars, events and reminders. It handles timezones as UTC.
+
 ## Getting Started
 
 ### iOS
@@ -31,16 +33,18 @@ To read/write calendar data, your app must include the READ_CALENDAR permission 
 </manifest>
 ```
 
-## Build with pigeon
+## Contribute
+
+### Build with pigeon
 
 We use [pigeon](https://pub.dev/packages/pigeon) to make communication between Flutter and host platforms easier.
 
-Run the following command to build boilerplate code with pigeon:
+Run the following command from project root to build boilerplate code with pigeon:
 
 ```sh
-fvm dart pub run pigeon --input pigeon/schema.dart
+fvm dart pub run pigeon --input ./lib/src/pigeon/calendar_api.dart
 ```
 
 ## License
 
-Copyright © 2024 SNCF Connect & Tech. This project is licensed under the MIT License - see the LICENSE file for details.
+Copyright © 2025 SNCF Connect & Tech. This project is licensed under the MIT License - see the LICENSE file for details.

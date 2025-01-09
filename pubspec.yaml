@@ -1,7 +1,7 @@
 name: flutter_calendar_connect
-description: "A new Flutter plugin project."
+description: "A plugin to edit users calendars"
 version: 0.0.1
-homepage:
+homepage: https://github.com/sncf-connect-tech/flutter_calendar_connect/tree/main
 
 environment:
   sdk: '>=3.3.1 <4.0.0'
