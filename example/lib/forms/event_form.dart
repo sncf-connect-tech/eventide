@@ -156,7 +156,7 @@ class _EventFormState extends State<EventForm> {
         ElevatedButton(
           onPressed: () {
             widget.onSubmit(
-              _titleController.text,
+              'Paris - Montreal',
               _descriptionController.text,
               TZDateTime(getLocation('Europe/Paris'), 2025, 9, 8, 13, 30),
               TZDateTime(getLocation('America/Montreal'), 2025, 9, 8, 15, 00),

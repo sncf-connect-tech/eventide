@@ -189,9 +189,8 @@ interface CalendarApi {
   fun createEvent(title: String, startDate: Long, endDate: Long, calendarId: String, description: String?, url: String?, callback: (Result<Event>) -> Unit)
   fun retrieveEvents(calendarId: String, startDate: Long, endDate: Long, callback: (Result<List<Event>>) -> Unit)
   fun deleteEvent(eventId: String, calendarId: String, callback: (Result<Unit>) -> Unit)
-  fun createReminder(minutes: Long, eventId: String, callback: (Result<Unit>) -> Unit)
-  fun retrieveReminders(eventId: String, callback: (Result<List<Long>>) -> Unit)
-  fun deleteReminder(minutes: Long, eventId: String, callback: (Result<Unit>) -> Unit)
+  fun createReminder(reminder: Long, eventId: String, callback: (Result<Event>) -> Unit)
+  fun deleteReminder(reminder: Long, eventId: String, callback: (Result<Event>) -> Unit)
 
   companion object {
     /** The codec used by CalendarApi. */
@@ -352,28 +351,9 @@ interface CalendarApi {
         if (api != null) {
           channel.setMessageHandler { message, reply ->
             val args = message as List<Any?>
-            val minutesArg = args[0] as Long
+            val reminderArg = args[0] as Long
             val eventIdArg = args[1] as String
-            api.createReminder(minutesArg, eventIdArg) { result: Result<Unit> ->
-              val error = result.exceptionOrNull()
-              if (error != null) {
-                reply.reply(wrapError(error))
-              } else {
-                reply.reply(wrapResult(null))
-              }
-            }
-          }
-        } else {
-          channel.setMessageHandler(null)
-        }
-      }
-      run {
-        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.easy_calendar.CalendarApi.retrieveReminders$separatedMessageChannelSuffix", codec)
-        if (api != null) {
-          channel.setMessageHandler { message, reply ->
-            val args = message as List<Any?>
-            val eventIdArg = args[0] as String
-            api.retrieveReminders(eventIdArg) { result: Result<List<Long>> ->
+            api.createReminder(reminderArg, eventIdArg) { result: Result<Event> ->
               val error = result.exceptionOrNull()
               if (error != null) {
                 reply.reply(wrapError(error))
@@ -392,14 +372,15 @@ interface CalendarApi {
         if (api != null) {
           channel.setMessageHandler { message, reply ->
             val args = message as List<Any?>
-            val minutesArg = args[0] as Long
+            val reminderArg = args[0] as Long
             val eventIdArg = args[1] as String
-            api.deleteReminder(minutesArg, eventIdArg) { result: Result<Unit> ->
+            api.deleteReminder(reminderArg, eventIdArg) { result: Result<Event> ->
               val error = result.exceptionOrNull()
               if (error != null) {
                 reply.reply(wrapError(error))
               } else {
-                reply.reply(wrapResult(null))
+                val data = result.getOrNull()
+                reply.reply(wrapResult(data))
               }
             }
           }

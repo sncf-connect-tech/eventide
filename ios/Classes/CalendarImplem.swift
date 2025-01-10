@@ -259,7 +259,8 @@ class CalendarImplem: CalendarApi {
                     title: ekEvent.title,
                     startDate: ekEvent.startDate.millisecondsSince1970,
                     endDate: ekEvent.endDate.millisecondsSince1970,
-                    calendarId: ekEvent.calendar.calendarIdentifier
+                    calendarId: ekEvent.calendar.calendarIdentifier,
+                    reminders: ekEvent.alarms?.map { Int64($0.relativeOffset) }
                 )
             }))
         } noAccess: {
@@ -323,9 +324,9 @@ class CalendarImplem: CalendarApi {
         }
     }
     
-    func createReminder(_ minutes: Int64, forEventId eventId: String, completion: @escaping (Result<Void, any Error>) -> Void) {
+    func createReminder(_ reminder: Int64, forEventId eventId: String, completion: @escaping (Result<Event, any Error>) -> Void) {
         permissionHandler.checkCalendarAccessThenExecute {
-            guard let event = self.eventStore.event(withIdentifier: eventId) else {
+            guard let ekEvent = self.eventStore.event(withIdentifier: eventId) else {
                 completion(.failure(PigeonError(
                     code: "NOT_FOUND",
                     message: "Event not found",
@@ -334,16 +335,25 @@ class CalendarImplem: CalendarApi {
                 return
             }
             
-            let ekAlarm = EKAlarm(relativeOffset: TimeInterval(-minutes))
-            if (event.alarms == nil) {
-                event.alarms = [ekAlarm]
+            let ekAlarm = EKAlarm(relativeOffset: TimeInterval(-reminder))
+            if (ekEvent.alarms == nil) {
+                ekEvent.alarms = [ekAlarm]
             } else {
-                event.alarms!.append(ekAlarm)
+                ekEvent.alarms!.append(ekAlarm)
             }
 
             do {
-                try self.eventStore.save(event, span: EKSpan.thisEvent, commit: true)
-                completion(.success(()))
+                try self.eventStore.save(ekEvent, span: EKSpan.thisEvent, commit: true)
+                completion(.success(
+                    Event(
+                        id: ekEvent.eventIdentifier,
+                        title: ekEvent.title,
+                        startDate: ekEvent.startDate.millisecondsSince1970,
+                        endDate: ekEvent.endDate.millisecondsSince1970,
+                        calendarId: ekEvent.calendar.calendarIdentifier,
+                        reminders: ekEvent.alarms?.map { Int64($0.relativeOffset) }
+                    )
+                ))
                 
             } catch {
                 self.eventStore.reset()
@@ -364,7 +374,7 @@ class CalendarImplem: CalendarApi {
 
     }
     
-    func retrieveReminders(withEventId eventId: String, completion: @escaping (Result<[Int64], any Error>) -> Void) {
+    func deleteReminder(_ reminder: Int64, withEventId eventId: String, completion: @escaping (Result<Event, any Error>) -> Void) {
         permissionHandler.checkCalendarAccessThenExecute {
             guard let ekEvent = self.eventStore.event(withIdentifier: eventId) else {
                 completion(.failure(PigeonError(
@@ -375,34 +385,32 @@ class CalendarImplem: CalendarApi {
                 return
             }
             
-            completion(.success(ekEvent.alarms?.map { Int64($0.relativeOffset/60) } ?? []))
+            let alarmsToDelete = ekEvent.alarms?.filter({ $0.relativeOffset == -TimeInterval(reminder) })
             
-        } noAccess: {
-            completion(.failure(PigeonError(
-                code: "ACCESS_REFUSED",
-                message: "Calendar access has been refused or has not been given yet",
-                details: nil
-            )))
-        }
-
-    }
-    
-    func deleteReminder(_ minute: Int64, withEventId eventId: String, completion: @escaping (Result<Void, any Error>) -> Void) {
-        permissionHandler.checkCalendarAccessThenExecute {
-            guard let ekEvent = self.eventStore.event(withIdentifier: eventId) else {
+            guard let alarmsToDelete = alarmsToDelete, !alarmsToDelete.isEmpty else {
                 completion(.failure(PigeonError(
                     code: "NOT_FOUND",
-                    message: "Event not found",
-                    details: "The provided event.id is certainly incorrect"
+                    message: "Reminder not found",
+                    details: "The provided reminder is certainly incorrect"
                 )))
                 return
             }
+            
+            alarmsToDelete.forEach { ekEvent.removeAlarm($0) }
             
             do {
-                ekEvent.alarms?.removeAll(where: { $0.relativeOffset == -Double(minute) })
                 try self.eventStore.save(ekEvent, span: EKSpan.thisEvent, commit: true)
                 
-                completion(.success(()))
+                completion(.success(
+                    Event(
+                        id: ekEvent.eventIdentifier,
+                        title: ekEvent.title,
+                        startDate: ekEvent.startDate.millisecondsSince1970,
+                        endDate: ekEvent.endDate.millisecondsSince1970,
+                        calendarId: ekEvent.calendar.calendarIdentifier,
+                        reminders: ekEvent.alarms?.map { Int64($0.relativeOffset) }
+                    )
+                ))
                 
             } catch {
                 self.eventStore.reset()

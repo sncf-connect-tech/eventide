@@ -7,6 +7,7 @@ import android.provider.CalendarContract
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import java.util.concurrent.CountDownLatch
 
 class CalendarImplem(
     private var contentResolver: ContentResolver,
@@ -290,7 +291,7 @@ class CalendarImplem(
                         val selectionArgs = arrayOf(calendarId, startDate.toString(), endDate.toString())
 
                         val cursor = contentResolver.query(eventContentUri, projection, selection, selectionArgs, null)
-                        val events = mutableListOf<Event>()
+                        val tmp = mutableListOf<Event>()
 
                         cursor?.use {
                             while (it.moveToNext()) {
@@ -300,7 +301,7 @@ class CalendarImplem(
                                 val start = it.getLong(it.getColumnIndexOrThrow(CalendarContract.Events.DTSTART))
                                 val end = it.getLong(it.getColumnIndexOrThrow(CalendarContract.Events.DTEND))
 
-                                events.add(Event(
+                                tmp.add(Event(
                                     id = id,
                                     title = title,
                                     startDate = start,
@@ -310,6 +311,32 @@ class CalendarImplem(
                                 ))
                             }
                         }
+
+                        val events = mutableListOf<Event>()
+
+                        val latch = CountDownLatch(tmp.size)
+                        for (event in tmp) {
+                            retrieveReminders(event.id) { result ->
+                                result.onSuccess { reminders ->
+                                    events.add(
+                                        Event(
+                                            id = event.id,
+                                            title = event.title,
+                                            startDate = event.startDate,
+                                            endDate = event.endDate,
+                                            calendarId = event.calendarId,
+                                            description = event.description,
+                                            reminders = reminders
+                                        )
+                                    )
+                                }
+                                result.onFailure { error ->
+                                    callback(Result.failure(error))
+                                }
+                                latch.countDown()
+                            }
+                        }
+                        latch.await()
 
                         callback(Result.success(events))
 
@@ -375,19 +402,19 @@ class CalendarImplem(
         }
     }
 
-    override fun createReminder(minutes: Long, eventId: String, callback: (Result<Unit>) -> Unit) {
+    override fun createReminder(reminder: Long, eventId: String, callback: (Result<Event>) -> Unit) {
         permissionHandler.requestWritePermission { granted ->
             if (granted) {
                 CoroutineScope(Dispatchers.IO).launch {
                     try {
                         val values = ContentValues().apply {
                             put(CalendarContract.Reminders.EVENT_ID, eventId)
-                            put(CalendarContract.Reminders.MINUTES, minutes)
+                            put(CalendarContract.Reminders.MINUTES, reminder)
                             put(CalendarContract.Reminders.METHOD, CalendarContract.Reminders.METHOD_ALERT)
                         }
                         contentResolver.insert(remindersContentUri, values)
 
-                        callback(Result.success(Unit))
+                        retrieveEvent(eventId, callback)
 
                     } catch (e: Exception) {
                         callback(Result.failure(
@@ -410,62 +437,17 @@ class CalendarImplem(
         }
     }
 
-    override fun retrieveReminders(eventId: String, callback: (Result<List<Long>>) -> Unit) {
-        permissionHandler.requestWritePermission { granted ->
-            if (granted) {
-                CoroutineScope(Dispatchers.IO).launch {
-                    try {
-                        val reminders = mutableListOf<Long>()
-                        val projection = arrayOf(
-                            CalendarContract.Reminders._ID,
-                            CalendarContract.Reminders.MINUTES,
-                            CalendarContract.Reminders.METHOD
-                        )
-                        val selection = CalendarContract.Reminders.EVENT_ID + " = ?"
-                        val selectionArgs = arrayOf(eventId)
-
-                        val cursor = contentResolver.query(remindersContentUri, projection, selection, selectionArgs, null)
-                        cursor?.use {
-                            while (it.moveToNext()) {
-                                val minutes = it.getLong(it.getColumnIndexOrThrow(CalendarContract.Reminders.MINUTES))
-                                reminders.add(minutes)
-                            }
-                        }
-
-                        callback(Result.success(reminders))
-
-                    } catch (e: Exception) {
-                        callback(Result.failure(
-                            FlutterError(
-                                code = "GENERIC_ERROR",
-                                message = "An error occurred",
-                                details = e.message
-                            )
-                        ))
-                    }
-                }
-            } else {
-                callback(Result.failure(
-                    FlutterError(
-                        code = "ACCESS_REFUSED",
-                        message = "Calendar access has been refused or has not been given yet",
-                    )
-                ))
-            }
-        }
-    }
-
-    override fun deleteReminder(minutes: Long, eventId: String, callback: (Result<Unit>) -> Unit) {
+    override fun deleteReminder(reminder: Long, eventId: String, callback: (Result<Event>) -> Unit) {
         permissionHandler.requestWritePermission { granted ->
             if (granted) {
                 CoroutineScope(Dispatchers.IO).launch {
                     try {
                         val selection = CalendarContract.Reminders.EVENT_ID + " = ?" + " AND " + CalendarContract.Reminders.MINUTES + " = ?"
-                        val selectionArgs = arrayOf(eventId, minutes.toString())
+                        val selectionArgs = arrayOf(eventId, reminder.toString())
 
                         val deleted = contentResolver.delete(remindersContentUri, selection, selectionArgs)
                         if (deleted > 0) {
-                            callback(Result.success(Unit))
+                            retrieveEvent(eventId, callback)
                         } else {
                             callback(Result.failure(
                                 FlutterError(
@@ -492,6 +474,110 @@ class CalendarImplem(
                     )
                 ))
             }
+        }
+    }
+
+    private fun retrieveEvent(
+        eventId: String,
+        callback: (Result<Event>) -> Unit
+    ) {
+        try {
+            val projection = arrayOf(
+                CalendarContract.Events._ID,
+                CalendarContract.Events.TITLE,
+                CalendarContract.Events.DESCRIPTION,
+                CalendarContract.Events.DTSTART,
+                CalendarContract.Events.DTEND,
+                CalendarContract.Events.EVENT_TIMEZONE,
+                CalendarContract.Events.CALENDAR_ID,
+            )
+            val selection = CalendarContract.Events._ID + " = ?"
+            val selectionArgs = arrayOf(eventId)
+
+            val cursor = contentResolver.query(eventContentUri, projection, selection, selectionArgs, null)
+            var event: Event? = null
+            val latch = CountDownLatch(1)
+
+            cursor?.use {
+                if (it.moveToNext()) {
+                    retrieveReminders(eventId) { result ->
+                        result.onSuccess { reminders ->
+                            event = Event(
+                                id = it.getLong(it.getColumnIndexOrThrow(CalendarContract.Events._ID)).toString(),
+                                title = it.getString(it.getColumnIndexOrThrow(CalendarContract.Events.TITLE)),
+                                description = it.getString(it.getColumnIndexOrThrow(CalendarContract.Events.DESCRIPTION)),
+                                startDate = it.getLong(it.getColumnIndexOrThrow(CalendarContract.Events.DTSTART)),
+                                endDate = it.getLong(it.getColumnIndexOrThrow(CalendarContract.Events.DTEND)),
+                                calendarId = it.getLong(it.getColumnIndexOrThrow(CalendarContract.Events.CALENDAR_ID))
+                                    .toString(),
+                                reminders = reminders
+                            )
+                        }
+                        result.onFailure { error ->
+                            callback(Result.failure(error))
+                        }
+                    }
+                    latch.countDown()
+                }
+            }
+
+            if (event == null) {
+                callback(
+                    Result.failure(
+                        FlutterError(
+                            code = "NOT_FOUND",
+                            message = "Failed to retrieve event"
+                        )
+                    )
+                )
+            } else {
+                latch.await()
+                callback(Result.success(event!!))
+            }
+
+
+        } catch (e: Exception) {
+            callback(
+                Result.failure(
+                    FlutterError(
+                        code = "GENERIC_ERROR",
+                        message = "An error occurred",
+                        details = e.message
+                    )
+                )
+            )
+        }
+    }
+
+    private fun retrieveReminders(eventId: String, callback: (Result<List<Long>>) -> Unit) {
+        try {
+            val reminders = mutableListOf<Long>()
+            val projection = arrayOf(
+                CalendarContract.Reminders._ID,
+                CalendarContract.Reminders.MINUTES,
+                CalendarContract.Reminders.METHOD
+            )
+            val selection = CalendarContract.Reminders.EVENT_ID + " = ?"
+            val selectionArgs = arrayOf(eventId)
+
+            val cursor = contentResolver.query(remindersContentUri, projection, selection, selectionArgs, null)
+            cursor?.use {
+                while (it.moveToNext()) {
+                    val minutes = it.getLong(it.getColumnIndexOrThrow(CalendarContract.Reminders.MINUTES))
+                    reminders.add(minutes)
+                }
+            }
+
+            callback(Result.success(reminders))
+
+        } catch (e: Exception) {
+            callback(Result.failure(
+                FlutterError(
+                    code = "GENERIC_ERROR",
+                    message = "An error occurred",
+                    details = e.message
+                )
+            ))
         }
     }
 }

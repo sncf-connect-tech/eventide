@@ -1,5 +1,6 @@
 import 'package:easy_calendar/src/easy_calendar_extensions.dart';
 import 'package:easy_calendar/src/easy_calendar_platform_interface.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:easy_calendar/src/easy_calendar.dart';
 import 'package:easy_calendar/src/calendar_api.g.dart';
@@ -15,24 +16,6 @@ void main() {
   
   late _MockCalendarApi mockCalendarApi;
   late EasyCalendar easyCalendar;
-  
-  final location = getLocation('UTC');
-  final startDate = TZDateTime.now(location);
-  final endDate = startDate.add(const Duration(hours: 1));
-  final event = Event(
-    id: '1', 
-    title: 'Test Event',
-    startDate: startDate.millisecondsSinceEpoch,
-    endDate: endDate.add(const Duration(hours: 1)).millisecondsSinceEpoch,
-    calendarId: '1',
-    description: null,
-    url: null,
-    reminders: [],
-  );
-
-  setUpAll(() {
-    registerFallbackValue(event);
-  });
 
   setUp(() {
     mockCalendarApi = _MockCalendarApi();
@@ -125,6 +108,24 @@ void main() {
   });
 
   group('Event tests', () {
+    final location = getLocation('UTC');
+    final startDate = TZDateTime.now(location);
+    final endDate = startDate.add(const Duration(hours: 1));
+    final event = Event(
+      id: '1', 
+      title: 'Test Event',
+      startDate: startDate.millisecondsSinceEpoch,
+      endDate: endDate.add(const Duration(hours: 1)).millisecondsSinceEpoch,
+      calendarId: '1',
+      description: null,
+      url: null,
+      reminders: [],
+    );
+
+    setUpAll(() {
+      registerFallbackValue(event);
+    });
+
     test('createEvent returns an ECEvent', () async {
       // Given
       final event = Event(
@@ -197,52 +198,110 @@ void main() {
       )).called(1);
     });
 
-    test('createEvent with reminders returns an ECEvent with reminders', () async {
-      // Given
-      when(() => mockCalendarApi.createEvent(
-        title: any(named: 'title'),
-        startDate: any(named: 'startDate'),
-        endDate: any(named: 'endDate'),
-        calendarId: any(named: 'calendarId'),
-        description: any(named: 'description'),
-        url: any(named: 'url'),
-      )).thenAnswer((_) async => event);
-      when(() => mockCalendarApi.createReminder(any(), any())).thenAnswer((_) async => {});
+    group('iOS tests', () {
+      setUpAll(() {
+        debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+      });
 
-      // When
-      final result = await easyCalendar.createEvent(
-        title: 'Test Event', 
-        startDate: startDate,
-        endDate: endDate,
-        calendarId: '1',
-        reminders: [10, 20],
-      );
+      tearDownAll(() {
+        debugDefaultTargetPlatformOverride = null;
+      });
 
-      // Then
-      expect(result.reminders, equals([10, 20]));
-      verify(() => mockCalendarApi.createEvent(
-        title: any(named: 'title'),
-        startDate: any(named: 'startDate'),
-        endDate: any(named: 'endDate'),
-        calendarId: any(named: 'calendarId'),
-        description: any(named: 'description'),
-        url: any(named: 'url'),
-      )).called(1);
-      verify(() => mockCalendarApi.createReminder(10, event.id)).called(1);
-      verify(() => mockCalendarApi.createReminder(20, event.id)).called(1);
+      test('createEvent with reminders returns an ECEvent with reminders', () async {
+        // Given
+        const reminders = [Duration(minutes: 10), Duration(minutes: 20)];
+        when(() => mockCalendarApi.createEvent(
+          title: any(named: 'title'),
+          startDate: any(named: 'startDate'),
+          endDate: any(named: 'endDate'),
+          calendarId: any(named: 'calendarId'),
+          description: any(named: 'description'),
+          url: any(named: 'url'),
+        )).thenAnswer((_) async => event);
+        when(() => mockCalendarApi.createReminder(any(), any())).thenAnswer((_) async => event.copyWithReminders(reminders.toNativeList()));
+
+        // When
+        final result = await easyCalendar.createEvent(
+          title: 'Test Event', 
+          startDate: startDate,
+          endDate: endDate,
+          calendarId: '1',
+          reminders: reminders,
+        );
+
+        // Then
+        expect(result.reminders, equals(reminders));
+        verify(() => mockCalendarApi.createEvent(
+          title: any(named: 'title'),
+          startDate: any(named: 'startDate'),
+          endDate: any(named: 'endDate'),
+          calendarId: any(named: 'calendarId'),
+          description: any(named: 'description'),
+          url: any(named: 'url'),
+        )).called(1);
+        verify(() => mockCalendarApi.createReminder(10*60, event.id)).called(1);
+        verify(() => mockCalendarApi.createReminder(20*60, event.id)).called(1);
+      });
+    });
+
+    group('Android tests', () {
+      setUpAll(() {
+        debugDefaultTargetPlatformOverride = TargetPlatform.android;
+      });
+
+      tearDownAll(() {
+        debugDefaultTargetPlatformOverride = null;
+      });
+
+      test('createEvent with reminders returns an ECEvent with reminders', () async {
+        // Given
+        const reminders = [Duration(minutes: 10), Duration(minutes: 20)];
+        when(() => mockCalendarApi.createEvent(
+          title: any(named: 'title'),
+          startDate: any(named: 'startDate'),
+          endDate: any(named: 'endDate'),
+          calendarId: any(named: 'calendarId'),
+          description: any(named: 'description'),
+          url: any(named: 'url'),
+        )).thenAnswer((_) async => event);
+        when(() => mockCalendarApi.createReminder(any(), any())).thenAnswer((_) async => event.copyWithReminders(reminders.toNativeList()));
+
+        // When
+        final result = await easyCalendar.createEvent(
+          title: 'Test Event', 
+          startDate: startDate,
+          endDate: endDate,
+          calendarId: '1',
+          reminders: reminders,
+        );
+
+        // Then
+        expect(result.reminders, equals(reminders));
+        verify(() => mockCalendarApi.createEvent(
+          title: any(named: 'title'),
+          startDate: any(named: 'startDate'),
+          endDate: any(named: 'endDate'),
+          calendarId: any(named: 'calendarId'),
+          description: any(named: 'description'),
+          url: any(named: 'url'),
+        )).called(1);
+        verify(() => mockCalendarApi.createReminder(10, event.id)).called(1);
+        verify(() => mockCalendarApi.createReminder(20, event.id)).called(1);
+      });
     });
 
     test('retrieveEvents returns a list of ECEvents with reminders', () async {
       // Given
       final events = [event];
+      const reminders = [Duration(minutes: 10), Duration(minutes: 20)];
       when(() => mockCalendarApi.retrieveEvents(any(), any(), any())).thenAnswer((_) async => events);
-      when(() => mockCalendarApi.retrieveReminders(any())).thenAnswer((_) async => [10, 20]);
+      when(() => mockCalendarApi.retrieveReminders(any())).thenAnswer((_) async => reminders.toNativeList());
 
       // When
       final result = await easyCalendar.retrieveEvents(calendarId: '1');
 
       // Then
-      expect(result.first.reminders, equals([10, 20]));
+      expect(result.first.reminders, equals(reminders));
       verify(() => mockCalendarApi.retrieveEvents('1', any(), any())).called(1);
       verify(() => mockCalendarApi.retrieveReminders(event.id)).called(1);
     });
@@ -287,4 +346,199 @@ void main() {
       )).called(1);
     });
   });
+
+  group('Reminder tests', () {
+    final location = getLocation('UTC');
+    final startDate = TZDateTime.now(location);
+    final endDate = startDate.add(const Duration(hours: 1));
+
+    group('iOS', () {
+      setUpAll(() {
+        debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+      });
+
+      tearDownAll(() {
+        debugDefaultTargetPlatformOverride = null;
+      });
+
+      test('createReminder returns an ECEvent', () async {
+        // Given
+        final targetEvent = Event(
+          id: '1',
+          title: 'Test Event',
+          startDate: startDate.millisecondsSinceEpoch,
+          endDate: endDate.millisecondsSinceEpoch,
+          calendarId: '1',
+          reminders: [10*60],
+        );
+
+        when(() => mockCalendarApi.createReminder(any(), any())).thenAnswer((_) async => targetEvent);
+
+        // When
+        final result = await easyCalendar.createReminder(
+          durationBeforeEvent: const Duration(minutes: 10),
+          eventId: '1',
+        );
+
+        // Then
+        expect(result, targetEvent.toECEvent());
+        verify(() => mockCalendarApi.createReminder(10*60, '1')).called(1);
+      });
+
+      test('createReminder throws an exception when API fails', () async {
+        // Given
+        when(() => mockCalendarApi.createReminder(any(), any())).thenThrow(Exception('API Error'));
+
+        // When
+        Future<ECEvent> call() => easyCalendar.createReminder(
+          durationBeforeEvent: const Duration(minutes: 10),
+          eventId: '1',
+        );
+
+        // Then
+        expect(call, throwsException);
+        verify(() => mockCalendarApi.createReminder(10*60, '1')).called(1);
+      });
+
+      test('deleteReminder returns an ECEvent', () async {
+        // Given
+        final targetEvent = Event(
+          id: '1',
+          title: 'Test Event',
+          startDate: startDate.millisecondsSinceEpoch,
+          endDate: endDate.millisecondsSinceEpoch,
+          calendarId: '1',
+        );
+
+        when(() => mockCalendarApi.deleteReminder(any(), any())).thenAnswer((_) async => targetEvent);
+
+        // When
+        final result = await easyCalendar.deleteReminder(
+          durationBeforeEvent: const Duration(minutes: 10),
+          eventId: '1',
+        );
+
+        // Then
+        expect(result, targetEvent.toECEvent());
+        verify(() => mockCalendarApi.deleteReminder(10*60, '1')).called(1);
+      });
+
+      test('deleteReminder throws an exception when API fails', () async {
+        // Given
+        when(() => mockCalendarApi.deleteReminder(any(), any())).thenThrow(Exception('API Error'));
+
+        // When
+        Future<ECEvent> call() => easyCalendar.deleteReminder(
+          durationBeforeEvent: const Duration(minutes: 10),
+          eventId: '1',
+        );
+
+        // Then
+        expect(call, throwsException);
+        verify(() => mockCalendarApi.deleteReminder(10*60, '1')).called(1);
+      });
+    });
+
+    group('Android', () {
+      setUpAll(() {
+        debugDefaultTargetPlatformOverride = TargetPlatform.android;
+      });
+
+      tearDownAll(() {
+        debugDefaultTargetPlatformOverride = null;
+      });
+
+      test('createReminder returns an ECEvent', () async {
+        // Given
+        final targetEvent = Event(
+          id: '1',
+          title: 'Test Event',
+          startDate: startDate.millisecondsSinceEpoch,
+          endDate: endDate.millisecondsSinceEpoch,
+          calendarId: '1',
+          reminders: [10*60],
+        );
+
+        when(() => mockCalendarApi.createReminder(any(), any())).thenAnswer((_) async => targetEvent);
+
+        // When
+        final result = await easyCalendar.createReminder(
+          durationBeforeEvent: const Duration(minutes: 10),
+          eventId: '1',
+        );
+
+        // Then
+        expect(result, targetEvent.toECEvent());
+        verify(() => mockCalendarApi.createReminder(10, '1')).called(1);
+      });
+
+      test('createReminder throws an exception when API fails', () async {
+        // Given
+        when(() => mockCalendarApi.createReminder(any(), any())).thenThrow(Exception('API Error'));
+
+        // When
+        Future<ECEvent> call() => easyCalendar.createReminder(
+          durationBeforeEvent: const Duration(minutes: 10),
+          eventId: '1',
+        );
+
+        // Then
+        expect(call, throwsException);
+        verify(() => mockCalendarApi.createReminder(10, '1')).called(1);
+      });
+
+      test('deleteReminder returns an ECEvent', () async {
+        // Given
+        final targetEvent = Event(
+          id: '1',
+          title: 'Test Event',
+          startDate: startDate.millisecondsSinceEpoch,
+          endDate: endDate.millisecondsSinceEpoch,
+          calendarId: '1',
+        );
+
+        when(() => mockCalendarApi.deleteReminder(any(), any())).thenAnswer((_) async => targetEvent);
+
+        // When
+        final result = await easyCalendar.deleteReminder(
+          durationBeforeEvent: const Duration(minutes: 10),
+          eventId: '1',
+        );
+
+        // Then
+        expect(result, targetEvent.toECEvent());
+        verify(() => mockCalendarApi.deleteReminder(10, '1')).called(1);
+      });
+
+      test('deleteReminder throws an exception when API fails', () async {
+        // Given
+        when(() => mockCalendarApi.deleteReminder(any(), any())).thenThrow(Exception('API Error'));
+
+        // When
+        Future<ECEvent> call() => easyCalendar.deleteReminder(
+          durationBeforeEvent: const Duration(minutes: 10),
+          eventId: '1',
+        );
+
+        // Then
+        expect(call, throwsException);
+        verify(() => mockCalendarApi.deleteReminder(10, '1')).called(1);
+      });
+    });
+  });
+}
+
+extension on Event {
+  Event copyWithReminders(List<int> reminders) {
+    return Event(
+      id: id,
+      title: title,
+      startDate: startDate,
+      endDate: endDate,
+      calendarId: calendarId,
+      description: description,
+      url: url,
+      reminders: reminders,
+    );
+  }
 }

@@ -40,6 +40,7 @@ abstract class EasyCalendarPlatform extends PlatformInterface {
     required String calendarId,
     String? description,
     String? url,
+    List<Duration>? reminders,
   });
   
   Future<List<ECEvent>> retrieveEvents({
@@ -53,17 +54,13 @@ abstract class EasyCalendarPlatform extends PlatformInterface {
     required String calendarId,
   });
 
-  Future<void> createReminder({
-    required int minutes,
+  Future<ECEvent> createReminder({
+    required Duration durationBeforeEvent,
     required String eventId,
   });
 
-  Future<List<int>> retrieveReminders({
-    required String eventId,
-  });
-
-  Future<void> deleteReminder({
-    required int minutes,
+  Future<ECEvent> deleteReminder({
+    required Duration durationBeforeEvent,
     required String eventId,
   });
 }
@@ -114,7 +111,7 @@ final class ECCalendar extends Equatable {
 /// 
 /// [url] is the url of the event.  
 /// 
-/// [reminders] is a list of minutes before the event to remind the user.
+/// [reminders] is a list of [Duration] before the event.
 final class ECEvent extends Equatable {
   final String id;
   final String title;
@@ -123,7 +120,7 @@ final class ECEvent extends Equatable {
   final String calendarId;
   final String? description;
   final String? url;
-  final List<int>? reminders;
+  final List<Duration>? reminders;
 
   @override
   List<Object?> get props => [id, title, startDate, endDate, calendarId, description, url, reminders];

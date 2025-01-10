@@ -12,7 +12,7 @@ class CalendarScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<CalendarCubit, Value<List<Calendar>>>(
+    return BlocBuilder<CalendarCubit, Value<List<ECCalendar>>>(
       builder: (_, state) {
         return SafeArea(
           child: Stack(

@@ -44,15 +44,11 @@ abstract class CalendarApi {
 
   @async
   @SwiftFunction('createReminder(_:forEventId:)')
-  void createReminder(int minutes, String eventId);
-
-  @async
-  @SwiftFunction('retrieveReminders(withEventId:)')
-  List<int> retrieveReminders(String eventId);
+  Event createReminder(int reminder, String eventId);
 
   @async
   @SwiftFunction('deleteReminder(_:withEventId:)')
-  void deleteReminder(int minutes, String eventId);
+  Event deleteReminder(int reminder, String eventId);
 }
 
 /// Native data struct to represent a calendar.

@@ -10,32 +10,30 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.time.Instant
-
-private class Lock {
-    private var locked = true
-
-    fun unlock() {
-        locked = false
-    }
-
-    fun isLocked() = locked
-}
+import java.util.concurrent.CountDownLatch
 
 class CalendarImplemTest {
     private lateinit var contentResolver: ContentResolver
     private lateinit var permissionHandler: PermissionHandler
     private lateinit var calendarImplem: CalendarImplem
+    private lateinit var calendarContentUri: Uri
+    private lateinit var eventContentUri: Uri
+    private lateinit var remindersContentUri: Uri
 
     @BeforeEach
     fun setup() {
+        calendarContentUri = mockk(relaxed = true)
+        eventContentUri = mockk(relaxed = true)
+        remindersContentUri = mockk(relaxed = true)
+
         contentResolver = mockk(relaxed = true)
         permissionHandler = mockk(relaxed = true)
         calendarImplem = CalendarImplem(
-            contentResolver,
-            permissionHandler,
-            mockk(relaxed = true),
-            mockk(relaxed = true),
-            mockk(relaxed = true),
+            contentResolver = contentResolver,
+            permissionHandler = permissionHandler,
+            calendarContentUri = calendarContentUri,
+            eventContentUri = eventContentUri,
+            remindersContentUri = remindersContentUri,
         )
     }
 
@@ -46,15 +44,13 @@ class CalendarImplemTest {
         }
 
         var result: Result<Boolean>? = null
-        val lock = Lock()
+        val latch = CountDownLatch(1)
         calendarImplem.requestCalendarPermission {
             result = it
-            lock.unlock()
+            latch.countDown()
         }
 
-        while (lock.isLocked()) {
-            delay(100)
-        }
+        latch.await()
 
         assertTrue(result!!.isSuccess)
         assertTrue(result!!.getOrNull()!!)
@@ -67,15 +63,13 @@ class CalendarImplemTest {
         }
 
         var result: Result<Boolean>? = null
-        val lock = Lock()
+        val latch = CountDownLatch(1)
         calendarImplem.requestCalendarPermission {
             result = it
-            lock.unlock()
+            latch.countDown()
         }
 
-        while (lock.isLocked()) {
-            delay(100)
-        }
+        latch.await()
 
         assertTrue(result!!.isSuccess)
         assertFalse(result!!.getOrNull()!!)
@@ -91,15 +85,13 @@ class CalendarImplemTest {
         every { uri.lastPathSegment } returns "1"
 
         var result: Result<Calendar>? = null
-        val lock = Lock()
+        val latch = CountDownLatch(1)
         calendarImplem.createCalendar("Test Calendar", 0xFF0000) {
             result = it
-            lock.unlock()
+            latch.countDown()
         }
 
-        while(lock.isLocked()) {
-            delay(100)
-        }
+        latch.await()
 
         assertTrue(result!!.isSuccess)
         assertEquals("1", result!!.getOrNull()?.id)
@@ -127,15 +119,13 @@ class CalendarImplemTest {
         every { contentResolver.insert(any(), any()) } returns null
 
         var result: Result<Calendar>? = null
-        val lock = Lock()
+        val latch = CountDownLatch(1)
         calendarImplem.createCalendar("Test Calendar", 0xFF0000) {
             result = it
-            lock.unlock()
+            latch.countDown()
         }
 
-        while (lock.isLocked()) {
-            delay(100)
-        }
+        latch.await()
 
         assertTrue(result!!.isFailure)
     }
@@ -150,15 +140,13 @@ class CalendarImplemTest {
         every { uri.lastPathSegment } returns null
 
         var result: Result<Calendar>? = null
-        val lock = Lock()
+        val latch = CountDownLatch(1)
         calendarImplem.createCalendar("Test Calendar", 0xFF0000) {
             result = it
-            lock.unlock()
+            latch.countDown()
         }
 
-        while(lock.isLocked()) {
-            delay(100)
-        }
+        latch.await()
 
         assertTrue(result!!.isFailure)
     }
@@ -176,15 +164,13 @@ class CalendarImplemTest {
         every { cursor.getLong(any()) } returns 0xFF0000
 
         var result: Result<List<Calendar>>? = null
-        val lock = Lock()
+        val latch = CountDownLatch(1)
         calendarImplem.retrieveCalendars(false) {
             result = it
-            lock.unlock()
+            latch.countDown()
         }
 
-        while (lock.isLocked()) {
-            delay(100)
-        }
+        latch.await()
 
         assertTrue(result!!.isSuccess)
         assertEquals(1, result!!.getOrNull()?.size)
@@ -214,15 +200,13 @@ class CalendarImplemTest {
         every { cursor.moveToNext() } returns false
 
         var result: Result<List<Calendar>>? = null
-        val lock = Lock()
+        val latch = CountDownLatch(1)
         calendarImplem.retrieveCalendars(false) {
             result = it
-            lock.unlock()
+            latch.countDown()
         }
 
-        while(lock.isLocked()) {
-            delay(100)
-        }
+        latch.await()
 
         assertTrue(result!!.isSuccess)
         assertTrue(result!!.getOrNull()?.isEmpty()!!)
@@ -236,15 +220,13 @@ class CalendarImplemTest {
         every { contentResolver.delete(any(), any(), any()) } returns 1
 
         var result: Result<Unit>? = null
-        val lock = Lock()
+        val latch = CountDownLatch(1)
         calendarImplem.deleteCalendar("1") {
             result = it
-            lock.unlock()
+            latch.countDown()
         }
 
-        while (lock.isLocked()) {
-            delay(100)
-        }
+        latch.await()
 
         assertTrue(result!!.isSuccess)
     }
@@ -271,15 +253,13 @@ class CalendarImplemTest {
         every { contentResolver.delete(any(), any(), any()) } throws Exception("Delete failed")
 
         var result: Result<Unit>? = null
-        val lock = Lock()
+        val latch = CountDownLatch(1)
         calendarImplem.deleteCalendar("1") {
             result = it
-            lock.unlock()
+            latch.countDown()
         }
 
-        while (lock.isLocked()) {
-            delay(100)
-        }
+        latch.await()
 
         assertTrue(result!!.isFailure)
     }
@@ -292,15 +272,13 @@ class CalendarImplemTest {
         every { contentResolver.delete(any(), any(), any()) } returns 0
 
         var result: Result<Unit>? = null
-        val lock = Lock()
+        val latch = CountDownLatch(1)
         calendarImplem.deleteCalendar("1") {
             result = it
-            lock.unlock()
+            latch.countDown()
         }
 
-        while (lock.isLocked()) {
-            delay(100)
-        }
+        latch.await()
 
         assertTrue(result!!.isFailure)
     }
@@ -318,7 +296,7 @@ class CalendarImplemTest {
         val endMilli = Instant.now().toEpochMilli()
 
         var result: Result<Event>? = null
-        val lock = Lock()
+        val latch = CountDownLatch(1)
         calendarImplem.createEvent(
             title = "Test Event",
             startDate = startMilli,
@@ -328,12 +306,10 @@ class CalendarImplemTest {
             url = null
         ) {
             result = it
-            lock.unlock()
+            latch.countDown()
         }
 
-        while(lock.isLocked()) {
-            delay(100)
-        }
+        latch.await()
 
         assertTrue(result!!.isSuccess)
         assertEquals(Event(
@@ -375,7 +351,7 @@ class CalendarImplemTest {
         every { contentResolver.insert(any(), any()) } returns null
 
         var result: Result<Event>? = null
-        val lock = Lock()
+        val latch = CountDownLatch(1)
         calendarImplem.createEvent(
             title = "Test Event",
             startDate = Instant.now().toEpochMilli(),
@@ -385,12 +361,10 @@ class CalendarImplemTest {
             url = null
         ) {
             result = it
-            lock.unlock()
+            latch.countDown()
         }
 
-        while(lock.isLocked()) {
-            delay(100)
-        }
+        latch.await()
 
         assertTrue(result!!.isFailure)
     }
@@ -408,15 +382,13 @@ class CalendarImplemTest {
         every { cursor.getLong(any()) } returns 0L
 
         var result: Result<List<Event>>? = null
-        val lock = Lock()
+        val latch = CountDownLatch(1)
         calendarImplem.retrieveEvents("1", 0L, 0L) {
             result = it
-            lock.unlock()
+            latch.countDown()
         }
 
-        while (lock.isLocked()) {
-            delay(100)
-        }
+        latch.await()
 
         assertTrue(result!!.isSuccess)
         assertEquals(1, result!!.getOrNull()?.size)
@@ -447,15 +419,13 @@ class CalendarImplemTest {
         every { cursor.moveToNext() } returns false
 
         var result: Result<List<Event>>? = null
-        val lock = Lock()
+        val latch = CountDownLatch(1)
         calendarImplem.retrieveEvents("1", 0L, 0L) {
             result = it
-            lock.unlock()
+            latch.countDown()
         }
 
-        while (lock.isLocked()) {
-            delay(100)
-        }
+        latch.await()
 
         assertTrue(result!!.isSuccess)
         assertTrue(result!!.getOrNull()?.isEmpty()!!)
@@ -469,15 +439,13 @@ class CalendarImplemTest {
         every { contentResolver.query(any(), any(), any(), any(), any()) } throws Exception("Query failed")
 
         var result: Result<List<Event>>? = null
-        val lock = Lock()
+        val latch = CountDownLatch(1)
         calendarImplem.retrieveEvents("1", 0L, 0L) {
             result = it
-            lock.unlock()
+            latch.countDown()
         }
 
-        while (lock.isLocked()) {
-            delay(100)
-        }
+        latch.await()
 
         assertTrue(result!!.isFailure)
     }
@@ -490,15 +458,13 @@ class CalendarImplemTest {
         every { contentResolver.delete(any(), any(), any()) } returns 1
 
         var result: Result<Unit>? = null
-        val lock = Lock()
+        val latch = CountDownLatch(1)
         calendarImplem.deleteEvent("1", "1") {
             result = it
-            lock.unlock()
+            latch.countDown()
         }
 
-        while (lock.isLocked()) {
-            delay(100)
-        }
+        latch.await()
 
         assertTrue(result!!.isSuccess)
     }
@@ -525,15 +491,13 @@ class CalendarImplemTest {
         every { contentResolver.delete(any(), any(), any()) } throws Exception("Delete failed")
 
         var result: Result<Unit>? = null
-        val lock = Lock()
+        val latch = CountDownLatch(1)
         calendarImplem.deleteEvent("1", "1") {
             result = it
-            lock.unlock()
+            latch.countDown()
         }
 
-        while (lock.isLocked()) {
-            delay(100)
-        }
+        latch.await()
 
         assertTrue(result!!.isFailure)
     }
@@ -546,15 +510,13 @@ class CalendarImplemTest {
         every { contentResolver.delete(any(), any(), any()) } returns 0
 
         var result: Result<Unit>? = null
-        val lock = Lock()
+        val latch = CountDownLatch(1)
         calendarImplem.deleteEvent("1", "1") {
             result = it
-            lock.unlock()
+            latch.countDown()
         }
 
-        while (lock.isLocked()) {
-            delay(100)
-        }
+        latch.await()
 
         assertTrue(result!!.isFailure)
     }
@@ -566,18 +528,28 @@ class CalendarImplemTest {
         }
         val eventId = "1"
         val minutes = 10L
-        every { contentResolver.insert(any(), any()) } returns mockk<Uri>(relaxed = true)
+        every { contentResolver.insert(remindersContentUri, any()) } returns mockk<Uri>(relaxed = true)
 
-        var result: Result<Unit>? = null
-        val lock = Lock()
+        val eventCursor = mockk<Cursor>(relaxed = true)
+        every { contentResolver.query(eventContentUri, any(), any(), any(), any()) } returns eventCursor
+        every { eventCursor.moveToNext() } returnsMany listOf(true, false)
+        every { eventCursor.getLong(any()) } returns 1L
+        every { eventCursor.getString(any()) } returns "Test Event"
+        every { eventCursor.getLong(any()) } returns 0L
+
+        val remindersCursor = mockk<Cursor>(relaxed = true)
+        every { contentResolver.query(remindersContentUri, any(), any(), any(), any()) } returns remindersCursor
+        every { remindersCursor.moveToNext() } returnsMany listOf(true, false)
+        every { remindersCursor.getLong(any()) } returns 10L
+
+        var result: Result<Event>? = null
+        val latch = CountDownLatch(1)
         calendarImplem.createReminder(minutes, eventId) {
             result = it
-            lock.unlock()
+            latch.countDown()
         }
 
-        while (lock.isLocked()) {
-            delay(100)
-        }
+        latch.await()
 
         assertTrue(result!!.isSuccess)
     }
@@ -590,7 +562,7 @@ class CalendarImplemTest {
         val eventId = "1"
         val minutes = 10L
 
-        var result: Result<Unit>? = null
+        var result: Result<Event>? = null
         calendarImplem.createReminder(minutes, eventId) {
             result = it
         }
@@ -605,110 +577,16 @@ class CalendarImplemTest {
         }
         val eventId = "1"
         val minutes = 10L
-        every { contentResolver.insert(any(), any()) } throws Exception("Insert failed")
+        every { contentResolver.insert(remindersContentUri, any()) } throws Exception("Insert failed")
 
-        var result: Result<Unit>? = null
-        val lock = Lock()
+        var result: Result<Event>? = null
+        val latch = CountDownLatch(1)
         calendarImplem.createReminder(minutes, eventId) {
             result = it
-            lock.unlock()
+            latch.countDown()
         }
 
-        while (lock.isLocked()) {
-            delay(100)
-        }
-
-        assertTrue(result!!.isFailure)
-    }
-
-    @Test
-    fun retrieveReminders_withGrantedPermission_returnsReminders() = runTest {
-        every { permissionHandler.requestWritePermission(any()) } answers {
-            firstArg<(Boolean) -> Unit>().invoke(true)
-        }
-
-        val eventId = "1"
-        val cursor = mockk<Cursor>(relaxed = true)
-        every { contentResolver.query(any(), any(), any(), any(), any()) } returns cursor
-        every { cursor.moveToNext() } returnsMany listOf(true, false)
-        every { cursor.getLong(any()) } returns 10L
-
-        var result: Result<List<Long>>? = null
-        val lock = Lock()
-        calendarImplem.retrieveReminders(eventId) {
-            result = it
-            lock.unlock()
-        }
-
-        while (lock.isLocked()) {
-            delay(100)
-        }
-
-        assertTrue(result!!.isSuccess)
-        assertEquals(1, result!!.getOrNull()?.size)
-        assertEquals(10L, result!!.getOrNull()?.get(0))
-    }
-
-    @Test
-    fun retrieveReminders_withDeniedPermission_failsToRetrieveReminders() = runTest {
-        val eventId = "1"
-        every { permissionHandler.requestWritePermission(any()) } answers {
-            firstArg<(Boolean) -> Unit>().invoke(false)
-        }
-
-        var result: Result<List<Long>>? = null
-        calendarImplem.retrieveReminders(eventId) {
-            result = it
-        }
-
-        assertTrue(result!!.isFailure)
-    }
-
-    @Test
-    fun retrieveReminders_withEmptyCursor_returnsEmptyList() = runTest {
-        every { permissionHandler.requestWritePermission(any()) } answers {
-            firstArg<(Boolean) -> Unit>().invoke(true)
-        }
-
-        val eventId = "1"
-        val cursor = mockk<Cursor>(relaxed = true)
-        every { contentResolver.query(any(), any(), any(), any(), any()) } returns cursor
-        every { cursor.moveToNext() } returns false
-
-        var result: Result<List<Long>>? = null
-        val lock = Lock()
-        calendarImplem.retrieveReminders(eventId) {
-            result = it
-            lock.unlock()
-        }
-
-        while (lock.isLocked()) {
-            delay(100)
-        }
-
-        assertTrue(result!!.isSuccess)
-        assertTrue(result!!.getOrNull()?.isEmpty()!!)
-    }
-
-    @Test
-    fun retrieveReminders_withException_failsToRetrieveReminders() = runTest {
-        every { permissionHandler.requestWritePermission(any()) } answers {
-            firstArg<(Boolean) -> Unit>().invoke(true)
-        }
-
-        val eventId = "1"
-        every { contentResolver.query(any(), any(), any(), any(), any()) } throws Exception("Query failed")
-
-        var result: Result<List<Long>>? = null
-        val lock = Lock()
-        calendarImplem.retrieveReminders(eventId) {
-            result = it
-            lock.unlock()
-        }
-
-        while (lock.isLocked()) {
-            delay(100)
-        }
+        latch.await()
 
         assertTrue(result!!.isFailure)
     }
@@ -720,18 +598,28 @@ class CalendarImplemTest {
         every { permissionHandler.requestWritePermission(any()) } answers {
             firstArg<(Boolean) -> Unit>().invoke(true)
         }
-        every { contentResolver.delete(any(), any(), any()) } returns 1
+        every { contentResolver.delete(remindersContentUri, any(), any()) } returns 1
 
-        var result: Result<Unit>? = null
-        val lock = Lock()
+        val eventCursor = mockk<Cursor>(relaxed = true)
+        every { contentResolver.query(eventContentUri, any(), any(), any(), any()) } returns eventCursor
+        every { eventCursor.moveToNext() } returnsMany listOf(true, false)
+        every { eventCursor.getLong(any()) } returns 1L
+        every { eventCursor.getString(any()) } returns "Test Event"
+        every { eventCursor.getLong(any()) } returns 0L
+
+
+        val remindersCursor = mockk<Cursor>(relaxed = true)
+        every { contentResolver.query(remindersContentUri, any(), any(), any(), any()) } returns remindersCursor
+        every { remindersCursor.moveToNext() } returnsMany listOf(false, false)
+
+        var result: Result<Event>? = null
+        val latch = CountDownLatch(1)
         calendarImplem.deleteReminder(minutes, eventId) {
             result = it
-            lock.unlock()
+            latch.countDown()
         }
 
-        while (lock.isLocked()) {
-            delay(100)
-        }
+        latch.await()
 
         assertTrue(result!!.isSuccess)
     }
@@ -744,7 +632,7 @@ class CalendarImplemTest {
             firstArg<(Boolean) -> Unit>().invoke(false)
         }
 
-        var result: Result<Unit>? = null
+        var result: Result<Event>? = null
         calendarImplem.deleteReminder(minutes, eventId) {
             result = it
         }
@@ -761,16 +649,14 @@ class CalendarImplemTest {
         }
         every { contentResolver.delete(any(), any(), any()) } throws Exception("Delete failed")
 
-        var result: Result<Unit>? = null
-        val lock = Lock()
+        var result: Result<Event>? = null
+        val latch = CountDownLatch(1)
         calendarImplem.deleteReminder(minutes, eventId) {
             result = it
-            lock.unlock()
+            latch.countDown()
         }
 
-        while (lock.isLocked()) {
-            delay(100)
-        }
+        latch.await()
 
         assertTrue(result!!.isFailure)
     }
@@ -784,16 +670,14 @@ class CalendarImplemTest {
         }
         every { contentResolver.delete(any(), any(), any()) } returns 0
 
-        var result: Result<Unit>? = null
-        val lock = Lock()
+        var result: Result<Event>? = null
+        val latch = CountDownLatch(1)
         calendarImplem.deleteReminder(minutes, eventId) {
             result = it
-            lock.unlock()
+            latch.countDown()
         }
 
-        while (lock.isLocked()) {
-            delay(100)
-        }
+        latch.await()
 
         assertTrue(result!!.isFailure)
     }

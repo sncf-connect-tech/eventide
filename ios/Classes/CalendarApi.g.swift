@@ -229,9 +229,8 @@ protocol CalendarApi {
   func createEvent(title: String, startDate: Int64, endDate: Int64, calendarId: String, description: String?, url: String?, completion: @escaping (Result<Event, Error>) -> Void)
   func retrieveEvents(calendarId: String, startDate: Int64, endDate: Int64, completion: @escaping (Result<[Event], Error>) -> Void)
   func deleteEvent(withId eventId: String, _ calendarId: String, completion: @escaping (Result<Void, Error>) -> Void)
-  func createReminder(_ minutes: Int64, forEventId eventId: String, completion: @escaping (Result<Void, Error>) -> Void)
-  func retrieveReminders(withEventId eventId: String, completion: @escaping (Result<[Int64], Error>) -> Void)
-  func deleteReminder(_ minutes: Int64, withEventId eventId: String, completion: @escaping (Result<Void, Error>) -> Void)
+  func createReminder(_ reminder: Int64, forEventId eventId: String, completion: @escaping (Result<Event, Error>) -> Void)
+  func deleteReminder(_ reminder: Int64, withEventId eventId: String, completion: @escaping (Result<Event, Error>) -> Void)
 }
 
 /// Generated setup class from Pigeon to handle messages through the `binaryMessenger`.
@@ -370,26 +369,9 @@ class CalendarApiSetup {
     if let api = api {
       createReminderChannel.setMessageHandler { message, reply in
         let args = message as! [Any?]
-        let minutesArg = args[0] as! Int64
+        let reminderArg = args[0] as! Int64
         let eventIdArg = args[1] as! String
-        api.createReminder(minutesArg, forEventId: eventIdArg) { result in
-          switch result {
-          case .success:
-            reply(wrapResult(nil))
-          case .failure(let error):
-            reply(wrapError(error))
-          }
-        }
-      }
-    } else {
-      createReminderChannel.setMessageHandler(nil)
-    }
-    let retrieveRemindersChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.easy_calendar.CalendarApi.retrieveReminders\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
-    if let api = api {
-      retrieveRemindersChannel.setMessageHandler { message, reply in
-        let args = message as! [Any?]
-        let eventIdArg = args[0] as! String
-        api.retrieveReminders(withEventId: eventIdArg) { result in
+        api.createReminder(reminderArg, forEventId: eventIdArg) { result in
           switch result {
           case .success(let res):
             reply(wrapResult(res))
@@ -399,18 +381,18 @@ class CalendarApiSetup {
         }
       }
     } else {
-      retrieveRemindersChannel.setMessageHandler(nil)
+      createReminderChannel.setMessageHandler(nil)
     }
     let deleteReminderChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.easy_calendar.CalendarApi.deleteReminder\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
     if let api = api {
       deleteReminderChannel.setMessageHandler { message, reply in
         let args = message as! [Any?]
-        let minutesArg = args[0] as! Int64
+        let reminderArg = args[0] as! Int64
         let eventIdArg = args[1] as! String
-        api.deleteReminder(minutesArg, withEventId: eventIdArg) { result in
+        api.deleteReminder(reminderArg, withEventId: eventIdArg) { result in
           switch result {
-          case .success:
-            reply(wrapResult(nil))
+          case .success(let res):
+            reply(wrapResult(res))
           case .failure(let error):
             reply(wrapError(error))
           }

@@ -62,7 +62,7 @@ class EasyCalendar extends EasyCalendarPlatform {
   Future<List<ECCalendar>> retrieveCalendars({bool onlyWritableCalendars = true}) async {
     try {
       final calendars = await _calendarApi.retrieveCalendars(onlyWritableCalendars);
-      return calendars.map((calendar) => calendar.toECCalendar()).toList();
+      return calendars.toECCalendarList();
 
     } on PlatformException catch (e) {
       throw e.toEasyCalendarException();
@@ -89,7 +89,9 @@ class EasyCalendar extends EasyCalendarPlatform {
   }
 
   /// Creates a new event with the given [title], [startDate], [endDate], and [calendarId].
-  /// Optionally, you can provide a [description], [url], and a list of [reminders] in minutes.
+  /// Optionally, you can provide a [description], [url], and a list of [reminders] duration.
+  /// 
+  /// /!\ Note that a [Duration] in seconds will not be supported by Android for API limitations.
   /// 
   /// Returns the created [Event].
   /// 
@@ -106,7 +108,7 @@ class EasyCalendar extends EasyCalendarPlatform {
     required String calendarId,
     String? description,
     String? url,
-    List<int>? reminders,
+    List<Duration>? reminders,
   }) async {
     try {
       final event = await _calendarApi.createEvent(
@@ -118,11 +120,11 @@ class EasyCalendar extends EasyCalendarPlatform {
         url: url,
       );
 
-      for (final minutes in reminders ?? []) {
-        await _calendarApi.createReminder(minutes, event.id);
+      for (final durationBeforeEvent in reminders ?? <Duration>[]) {
+        await _calendarApi.createReminder(durationBeforeEvent.toNativeDuration(), event.id);
       }
 
-      return event.toECEvent().copyWith(reminders: reminders);
+      return event.toECEvent().copyWithReminders(reminders);
       
     } on PlatformException catch (e) {
       throw e.toEasyCalendarException();
@@ -145,16 +147,7 @@ class EasyCalendar extends EasyCalendarPlatform {
       final start = startDate ?? DateTime.now();
       final end = endDate ?? DateTime.now().add(const Duration(days: 7));
       final events = await _calendarApi.retrieveEvents(calendarId, start.millisecondsSinceEpoch, end.microsecondsSinceEpoch);
-
-      final ecEvents = <ECEvent>[];
-
-      for (final ecEvent in events.map((e) => e.toECEvent())) {
-        ecEvents.add(ecEvent.copyWith(
-          reminders: await _calendarApi.retrieveReminders(ecEvent.id),
-        ));
-      }
-
-      return ecEvents;
+      return events.toECEventList();
 
     } on PlatformException catch (e) {
       throw e.toEasyCalendarException();
@@ -179,7 +172,9 @@ class EasyCalendar extends EasyCalendarPlatform {
     }
   }
 
-  /// Creates a new reminder with the given [minutes] for the event with the given [eventId].
+  /// Creates a new reminder with the given [durationBeforeEvent] for the event with the given [eventId].
+  /// 
+  /// /!\ Note that a [Duration] in seconds will not be supported by Android for API limitations.
   /// 
   /// Throws a [FCCPermissionException] if the user refuses to grant calendar permissions.
   /// 
@@ -187,33 +182,20 @@ class EasyCalendar extends EasyCalendarPlatform {
   /// 
   /// Throws a [FCCGenericException] if any other error occurs during reminder creation.
   @override
-  Future<void> createReminder({required int minutes, required String eventId}) async {
+  Future<ECEvent> createReminder({
+    required Duration durationBeforeEvent,
+    required String eventId,
+  }) async {
     try {
-      await _calendarApi.createReminder(minutes, eventId);
+      final updatedEvent = await _calendarApi.createReminder(durationBeforeEvent.toNativeDuration(), eventId);
+      return updatedEvent.toECEvent();
+
     } on PlatformException catch (e) {
       throw e.toEasyCalendarException();
     }
   }
 
-  /// Retrieves a list of reminders for the event with the given [eventId].
-  /// 
-  /// Returns a list of [int]s representing the minutes of each reminder.
-  /// 
-  /// Throws a [FCCPermissionException] if the user refuses to grant calendar permissions.
-  /// 
-  /// Throws a [FCCNotFoundException] if the event with the given [eventId] is not found.
-  /// 
-  /// Throws a [FCCGenericException] if any other error occurs during reminders retrieval.
-  @override
-  Future<List<int>> retrieveReminders({required String eventId}) async {
-    try {
-      return await _calendarApi.retrieveReminders(eventId);
-    } on PlatformException catch (e) {
-      throw e.toEasyCalendarException();
-    }
-  }
-
-  /// Deletes the reminder with the given [minutes] for the event with the given [eventId].
+  /// Deletes the reminder with the given [durationBeforeEvent] for the event with the given [eventId].
   /// 
   /// Throws a [FCCPermissionException] if the user refuses to grant calendar permissions.
   /// 
@@ -221,9 +203,14 @@ class EasyCalendar extends EasyCalendarPlatform {
   /// 
   /// Throws a [FCCGenericException] if any other error occurs during reminder deletion.
   @override
-  Future<void> deleteReminder({required int minutes, required String eventId}) async {
+  Future<ECEvent> deleteReminder({
+    required Duration durationBeforeEvent,
+    required String eventId,
+  }) async {
     try {
-      await _calendarApi.deleteReminder(minutes, eventId);
+      final updatedEvent = await _calendarApi.deleteReminder(durationBeforeEvent.toNativeDuration(), eventId);
+      return updatedEvent.toECEvent();
+      
     } on PlatformException catch (e) {
       throw e.toEasyCalendarException();
     }

@@ -57,20 +57,32 @@ class EventCubit extends Cubit<EventState> {
     }
   }
 
-  Future<void> createReminder(int minutes, String eventId) async {
+  Future<void> createReminder(Duration durationBeforeEvent, String eventId) async {
     if (state case Value(:final data?)) {
       await state.fetchFrom(() async {
-        await _calendarPlugin.createReminder(minutes: minutes, eventId: eventId);
-        return data;
+        final event = await _calendarPlugin.createReminder(durationBeforeEvent: durationBeforeEvent, eventId: eventId);
+        return EventValue(
+          calendar: data.calendar,
+          events: [
+            ...data.events.where((e) => e.id != eventId),
+            event,
+          ],
+        );
       }).forEach(emit);
     }
   }
 
-  Future<void> deleteReminder(int minutes, String eventId) async {
+  Future<void> deleteReminder(Duration durationBeforeEvent, String eventId) async {
     if (state case Value(:final data?)) {
       await state.fetchFrom(() async {
-        await _calendarPlugin.deleteReminder(minutes: minutes, eventId: eventId);
-        return data;
+        final event = await _calendarPlugin.deleteReminder(durationBeforeEvent: durationBeforeEvent, eventId: eventId);
+        return EventValue(
+          calendar: data.calendar,
+          events: [
+            ...data.events.where((e) => e.id != eventId),
+            event,
+          ],
+        );
       }).forEach(emit);
     }
   }
