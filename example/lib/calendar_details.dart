@@ -88,8 +88,8 @@ class CalendarDetails extends StatelessWidget {
                                 Expanded(
                                   child: Column(
                                     children: [
-                                      Text(DateTime.fromMillisecondsSinceEpoch(event.startDate).toFormattedString()),
-                                      Text(DateTime.fromMillisecondsSinceEpoch(event.endDate).toFormattedString()),
+                                      Text(event.startDate.toFormattedString()),
+                                      Text(event.endDate.toFormattedString()),
                                     ],
                                   ),
                                 ),
@@ -100,7 +100,6 @@ class CalendarDetails extends StatelessWidget {
                                     icon: const Icon(Icons.add),
                                     onPressed: () {
                                       BlocProvider.of<EventCubit>(context).createReminder(Random().nextInt(30), event.id);
-                                      BlocProvider.of<EventCubit>(context).getNumberOfReminders(event.id);
                                     },
                                   ),
                                 if (state.data?.calendar.isWritable ?? false)

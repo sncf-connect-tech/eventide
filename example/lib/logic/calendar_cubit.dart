@@ -4,7 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:easy_calendar/easy_calendar.dart';
 import 'package:value_state/value_state.dart';
 
-class CalendarCubit extends Cubit<Value<List<Calendar>>> {
+class CalendarCubit extends Cubit<Value<List<ECCalendar>>> {
   final EasyCalendar _calendarPlugin;
 
   CalendarCubit({

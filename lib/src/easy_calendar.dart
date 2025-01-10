@@ -1,3 +1,4 @@
+import 'package:easy_calendar/src/easy_calendar_extensions.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:easy_calendar/src/easy_calendar_exception.dart';
@@ -28,7 +29,7 @@ class EasyCalendar extends EasyCalendarPlatform {
 
   /// Creates a new calendar with the given [title] and [color].
   /// 
-  /// Returns the created [Calendar].
+  /// Returns the created [ECCalendar].
   /// 
   /// Throws a [FCCPermissionException] if the user refuses to grant calendar permissions.
   /// 
@@ -39,9 +40,11 @@ class EasyCalendar extends EasyCalendarPlatform {
   /// Throws a [FCCGenericException] if any other error occurs during calendar creation.
 
   @override
-  Future<Calendar> createCalendar({required String title, required Color color}) async {
+  Future<ECCalendar> createCalendar({required String title, required Color color}) async {
     try {
-      return await _calendarApi.createCalendar(title, color.value);
+      final calendar = await _calendarApi.createCalendar(title, color.value);
+      return calendar.toECCalendar();
+
     } on PlatformException catch (e) {
       throw e.toEasyCalendarException();
     }
@@ -50,15 +53,17 @@ class EasyCalendar extends EasyCalendarPlatform {
   /// Retrieves a list of calendars.
   /// If [onlyWritableCalendars] is `true`, only writable calendars are returned.
   /// 
-  /// Returns a list of [Calendar]s.
+  /// Returns a list of [ECCalendar]s.
   /// 
   /// Throws a [FCCPermissionException] if the user refuses to grant calendar permissions.
   /// 
   /// Throws a [FCCGenericException] if any other error occurs during calendars retrieval.
   @override
-  Future<List<Calendar>> retrieveCalendars({bool onlyWritableCalendars = true}) async {
+  Future<List<ECCalendar>> retrieveCalendars({bool onlyWritableCalendars = true}) async {
     try {
-      return await _calendarApi.retrieveCalendars(onlyWritableCalendars);
+      final calendars = await _calendarApi.retrieveCalendars(onlyWritableCalendars);
+      return calendars.map((calendar) => calendar.toECCalendar()).toList();
+
     } on PlatformException catch (e) {
       throw e.toEasyCalendarException();
     }
@@ -77,6 +82,7 @@ class EasyCalendar extends EasyCalendarPlatform {
   Future<void> deleteCalendar({required String calendarId}) async {
     try {
       await _calendarApi.deleteCalendar(calendarId);
+
     } on PlatformException catch (e) {
       throw e.toEasyCalendarException();
     }
@@ -93,7 +99,7 @@ class EasyCalendar extends EasyCalendarPlatform {
   /// 
   /// Throws a [FCCGenericException] if any other error occurs during event creation.
   @override
-  Future<Event> createEvent({
+  Future<ECEvent> createEvent({
     required String title,
     required DateTime startDate,
     required DateTime endDate,
@@ -116,7 +122,7 @@ class EasyCalendar extends EasyCalendarPlatform {
         await _calendarApi.createReminder(minutes, event.id);
       }
 
-      return event.copyWith(reminders: reminders);
+      return event.toECEvent().copyWith(reminders: reminders);
       
     } on PlatformException catch (e) {
       throw e.toEasyCalendarException();
@@ -134,20 +140,22 @@ class EasyCalendar extends EasyCalendarPlatform {
   /// 
   /// Throws a [FCCGenericException] if any other error occurs during events retrieval.
   @override
-  Future<List<Event>> retrieveEvents({required String calendarId, DateTime? startDate, DateTime? endDate}) async {
+  Future<List<ECEvent>> retrieveEvents({required String calendarId, DateTime? startDate, DateTime? endDate}) async {
     try {
       final start = startDate ?? DateTime.now();
       final end = endDate ?? DateTime.now().add(const Duration(days: 7));
-      
       final events = await _calendarApi.retrieveEvents(calendarId, start.millisecondsSinceEpoch, end.microsecondsSinceEpoch);
 
-      final fcEvents = <Event>[];
-      for (final event in events) {
-        fcEvents.add(event.copyWith(
-          reminders: await _calendarApi.retrieveReminders(event.id),
+      final ecEvents = <ECEvent>[];
+
+      for (final ecEvent in events.map((e) => e.toECEvent())) {
+        ecEvents.add(ecEvent.copyWith(
+          reminders: await _calendarApi.retrieveReminders(ecEvent.id),
         ));
       }
-      return fcEvents;
+
+      return ecEvents;
+
     } on PlatformException catch (e) {
       throw e.toEasyCalendarException();
     }

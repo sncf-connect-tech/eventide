@@ -36,7 +36,7 @@ class EventCubit extends Cubit<EventState> {
     }
   }
 
-  Future<void> selectCalendar(Calendar calendar) async {
+  Future<void> selectCalendar(ECCalendar calendar) async {
     await state.fetchFrom(() async {
       return EventValue(
         calendar: calendar,
@@ -58,11 +58,20 @@ class EventCubit extends Cubit<EventState> {
   }
 
   Future<void> createReminder(int minutes, String eventId) async {
-    await _calendarPlugin.createReminder(minutes: minutes, eventId: eventId);
+    if (state case Value(:final data?)) {
+      await state.fetchFrom(() async {
+        await _calendarPlugin.createReminder(minutes: minutes, eventId: eventId);
+        return data;
+      }).forEach(emit);
+    }
   }
 
-  Future<int> getNumberOfReminders(String eventId) async {
-    final reminders = await _calendarPlugin.retrieveReminders(eventId: eventId);
-    return reminders.length;
+  Future<void> deleteReminder(int minutes, String eventId) async {
+    if (state case Value(:final data?)) {
+      await state.fetchFrom(() async {
+        await _calendarPlugin.deleteReminder(minutes: minutes, eventId: eventId);
+        return data;
+      }).forEach(emit);
+    }
   }
 }

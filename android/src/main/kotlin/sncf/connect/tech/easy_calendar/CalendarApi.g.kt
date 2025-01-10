@@ -46,7 +46,21 @@ class FlutterError (
   val details: Any? = null
 ) : Throwable()
 
-/** Generated class from Pigeon that represents data sent in messages. */
+/**
+ * Native data struct to represent a calendar.
+ * 
+ * [id] is a unique identifier for the calendar.
+ * 
+ * [title] is the title of the calendar.
+ * 
+ * [color] is the color of the calendar.
+ * 
+ * [isWritable] is a boolean to indicate if the calendar is writable.
+ * 
+ * [sourceName] is the name of the source of the calendar.
+ *
+ * Generated class from Pigeon that represents data sent in messages.
+ */
 data class Calendar (
   val id: String,
   val title: String,
@@ -76,7 +90,27 @@ data class Calendar (
   }
 }
 
-/** Generated class from Pigeon that represents data sent in messages. */
+/**
+ * Native data struct to represent an event.
+ * 
+ * [id] is a unique identifier for the event.
+ * 
+ * [title] is the title of the event.
+ * 
+ * [startDate] is the start date of the event in milliseconds since epoch.
+ * 
+ * [endDate] is the end date of the event in milliseconds since epoch.
+ * 
+ * [calendarId] is the id of the calendar that the event belongs to.
+ * 
+ * [description] is the description of the event.
+ * 
+ * [url] is the url of the event.  
+ * 
+ * [reminders] is a list of minutes before the event to remind the user.
+ *
+ * Generated class from Pigeon that represents data sent in messages.
+ */
 data class Event (
   val id: String,
   val title: String,

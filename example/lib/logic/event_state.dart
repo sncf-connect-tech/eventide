@@ -5,8 +5,8 @@ import 'package:value_state/value_state.dart';
 typedef EventState = Value<EventValue>;
 
 class EventValue extends Equatable {
-  final Calendar calendar;
-  final List<Event> events;
+  final ECCalendar calendar;
+  final List<ECEvent> events;
 
   @override
   List<Object?> get props => [calendar, events];
