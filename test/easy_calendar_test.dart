@@ -28,7 +28,7 @@ void main() {
       final calendar = Calendar(
         id: '1',
         title: 'Test Calendar', 
-        color: Colors.blue.value,
+        color: Colors.blue.toValue(),
         isWritable: true,
         sourceName: 'local',
       );
@@ -40,7 +40,7 @@ void main() {
 
       // Then
       expect(result, equals(calendar.toECCalendar()));
-      verify(() => mockCalendarApi.createCalendar('Test Calendar', Colors.blue.value)).called(1);
+      verify(() => mockCalendarApi.createCalendar('Test Calendar', Colors.blue.toValue())).called(1);
     });
 
     test('createCalendar throws an exception when API fails', () async {
@@ -52,14 +52,14 @@ void main() {
 
       // Then
       expect(call, throwsException);
-      verify(() => mockCalendarApi.createCalendar('Test Calendar', Colors.blue.value)).called(1);
+      verify(() => mockCalendarApi.createCalendar('Test Calendar', Colors.blue.toValue())).called(1);
     });
 
     test('retrieveCalendars returns a list of ECCalendars', () async {
       // Given
       final calendars = [
-        Calendar(id: '1', title: 'Test Calendar 1', color: Colors.blue.value, isWritable: true, sourceName: 'local'),
-        Calendar(id: '2', title: 'Test Calendar 2', color: Colors.red.value, isWritable: true, sourceName: 'local'),
+        Calendar(id: '1', title: 'Test Calendar 1', color: Colors.blue.toValue(), isWritable: true, sourceName: 'local'),
+        Calendar(id: '2', title: 'Test Calendar 2', color: Colors.red.toValue(), isWritable: true, sourceName: 'local'),
       ];
       when(() => mockCalendarApi.retrieveCalendars(any())).thenAnswer((_) async => calendars);
 

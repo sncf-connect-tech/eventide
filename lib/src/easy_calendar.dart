@@ -42,7 +42,7 @@ class EasyCalendar extends EasyCalendarPlatform {
   @override
   Future<ECCalendar> createCalendar({required String title, required Color color}) async {
     try {
-      final calendar = await _calendarApi.createCalendar(title, color.value);
+      final calendar = await _calendarApi.createCalendar(title, color.toValue());
       return calendar.toECCalendar();
 
     } on PlatformException catch (e) {
