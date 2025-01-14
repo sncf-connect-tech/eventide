@@ -292,10 +292,8 @@ void main() {
 
     test('retrieveEvents returns a list of ECEvents with reminders', () async {
       // Given
-      final events = [event];
       const reminders = [Duration(minutes: 10), Duration(minutes: 20)];
-      when(() => mockCalendarApi.retrieveEvents(any(), any(), any())).thenAnswer((_) async => events);
-      when(() => mockCalendarApi.retrieveReminders(any())).thenAnswer((_) async => reminders.toNativeList());
+      when(() => mockCalendarApi.retrieveEvents(any(), any(), any())).thenAnswer((_) async => [event.copyWithReminders(reminders.toNativeList())]);
 
       // When
       final result = await easyCalendar.retrieveEvents(calendarId: '1');
@@ -303,7 +301,6 @@ void main() {
       // Then
       expect(result.first.reminders, equals(reminders));
       verify(() => mockCalendarApi.retrieveEvents('1', any(), any())).called(1);
-      verify(() => mockCalendarApi.retrieveReminders(event.id)).called(1);
     });
 
     test('create Event timezone management test: Paris - Montréal flight', () async {

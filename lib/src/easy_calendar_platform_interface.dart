@@ -79,7 +79,7 @@ abstract class EasyCalendarPlatform extends PlatformInterface {
 final class ECCalendar extends Equatable {
   final String id;
   final String title;
-  final int color;
+  final Color color;
   final bool isWritable;
   final String sourceName;
 

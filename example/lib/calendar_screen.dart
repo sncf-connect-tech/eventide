@@ -68,7 +68,7 @@ class CalendarScreen extends StatelessWidget {
                             child: Row(
                               children: [
                                 Container(
-                                  color: Color(calendar.color),
+                                  color: calendar.color,
                                   width: 16,
                                   height: 16,
                                 ),

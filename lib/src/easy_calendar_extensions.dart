@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/foundation.dart';
 import 'package:easy_calendar/src/calendar_api.g.dart';
 import 'package:easy_calendar/src/easy_calendar_platform_interface.dart';
@@ -7,7 +9,7 @@ extension CalendarToECCalendar on Calendar {
     return ECCalendar(
       id: id,
       title: title,
-      color: color,
+      color: Color(color),
       isWritable: isWritable,
       sourceName: sourceName,
     );
