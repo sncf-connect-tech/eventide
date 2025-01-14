@@ -1,0 +1,45 @@
+name: Android Tests
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  android-tests:
+    runs-on: macos-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'corretto'
+          java-version: '17'
+          cache: 'gradle'
+
+      - name: Verify JDK Installation
+        run: java -version
+
+      - name: Setup Flutter SDK
+        uses: flutter-actions/setup-flutter@v4
+        with:
+          channel: stable
+          version: 3.27.0
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Verify Flutter Installation
+        run: flutter doctor -v
+
+      - name: Set up local.properties
+        run: |
+          echo "sdk.dir=${{ vars.ANDROID_SDK_PATH }}" > ./example/android/local.properties
+          echo "flutter.sdk=${{ vars.FLUTTER_SDK_PATH }}" >> ./example/android/local.properties
+          echo "flutter.buildMode=${{ vars.BUILD_MODE }}" >> ./example/android/local.properties
+
+      - name: Build and test
+        run: |
+          ./example/android/gradlew testDebug -p ./example/android/

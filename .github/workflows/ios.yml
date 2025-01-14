@@ -1,0 +1,42 @@
+name: iOS Tests
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  ios-tests:
+    runs-on: macos-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Flutter SDK
+        uses: flutter-actions/setup-flutter@v4
+        with:
+          channel: stable
+          version: 3.27.0
+
+      - name: Install dependencies
+        run: |
+          flutter pub get
+          cd example/ios
+          pod install
+          cd ../..
+
+      - name: Verify Flutter Installation
+        run: flutter doctor -v
+
+      - name: Run tests
+        run: |
+          xcodebuild test -workspace ./example/ios/Runner.xcworkspace \
+            -scheme EasyCalendarTests \
+            -destination 'platform=iOS Simulator,name=iPhone 16,OS=18.1' \
+            -resultBundlePath build/reports/EasyCalendarTests.xcresult
+
+      - uses: kishikawakatsumi/xcresulttool@v1
+        with:
+          path: build/reports/EasyCalendarTests.xcresult
+        if: success() || failure()

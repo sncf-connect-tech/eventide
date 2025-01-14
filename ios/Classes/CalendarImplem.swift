@@ -55,7 +55,7 @@ class CalendarImplem: CalendarApi {
                 return
             }
             
-            let ekCalendar = EKCalendar.init(for: .event, eventStore: self.eventStore)
+            let ekCalendar = EKCalendar(for: .event, eventStore: self.eventStore)
             
             ekCalendar.title = title
             ekCalendar.cgColor = uiColor.cgColor

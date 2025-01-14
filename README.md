@@ -1,4 +1,8 @@
-# Easy Calendar ⚠️ work in progress ⚠️
+# Easy Calendar
+
+[![Flutter Tests](https://github.com/sncf-connect-tech/easy_calendar/actions/workflows/flutter.yml/badge.svg)](https://github.com/sncf-connect-tech/easy_calendar/actions/workflows/flutter.yml)
+[![Android Tests](https://github.com/sncf-connect-tech/easy_calendar/actions/workflows/android.yml/badge.svg)](https://github.com/sncf-connect-tech/easy_calendar/actions/workflows/android.yml)
+[![iOS Tests](https://github.com/sncf-connect-tech/easy_calendar/actions/workflows/ios.yml/badge.svg)](https://github.com/sncf-connect-tech/easy_calendar/actions/workflows/ios.yml)
 
 A Flutter plugin to access & modify native calendars on user's device (iOS & Android).
 
