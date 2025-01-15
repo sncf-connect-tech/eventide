@@ -8,49 +8,46 @@
 import Foundation
 import EventKit
 
-final class PermissionHandler {
-    private let eventStore: EKEventStore
+class PermissionHandler {
+    internal let eventStore: EKEventStore
     
-    init() {
-        self.eventStore = EventStoreManager.shared.eventStore
+    init(_ eventStore: EKEventStore = EventStoreManager.shared.eventStore) {
+        self.eventStore = eventStore
     }
     
     public func checkCalendarAccessThenExecute(
         _ permissionsGrantedCallback: @escaping () -> Void,
-        noAccess permissionsRefusedCallback: @escaping () -> Void
+        noAccess permissionsRefusedCallback: @escaping () -> Void,
+        error errorCallback: @escaping (any Error) -> Void
     ) {
-        if hasCalendarAccess() {
-            permissionsGrantedCallback()
-        } else {
-            requestCalendarAccess { granted in
+        requestCalendarAccess { result in
+            switch (result) {
+            case .success(let granted):
                 if (granted) {
                     permissionsGrantedCallback()
                 } else {
                     permissionsRefusedCallback()
                 }
+            case .failure(let error):
+                errorCallback(error)
             }
         }
     }
     
-    private func hasCalendarAccess() -> Bool {
-        let status = EKEventStore.authorizationStatus(for: .event)
-        
-        if #available(iOS 17, *) {
-            return status == EKAuthorizationStatus.fullAccess
-        } else {
-            return status == EKAuthorizationStatus.authorized
-        }
-    }
-    
-    private func requestCalendarAccess(completion: @escaping (_ isGranted: Bool) -> Void) {
+    private func requestCalendarAccess(completion: @escaping (Result<Bool, any Error>) -> Void) {
         let handler: EKEventStoreRequestAccessCompletionHandler = { isGranted, error in
             guard error == nil else {
-                let pigeonError = PigeonError(code: error!.localizedDescription, message: nil, details: nil)
-                completion(isGranted)
+                completion(.failure(
+                    PigeonError(
+                        code: "GENERIC_ERROR",
+                        message: "An error occurred during calendar access request.",
+                        details: error!.localizedDescription
+                    )
+                ))
                 return
             }
             
-            completion(isGranted)
+            completion(.success(isGranted))
         }
         
         if #available(iOS 17, *) {

@@ -12,9 +12,12 @@ class CalendarImplem: CalendarApi {
     let eventStore: EKEventStore
     let permissionHandler: PermissionHandler
     
-    init() {
-        self.eventStore = EventStoreManager.shared.eventStore
-        self.permissionHandler = PermissionHandler()
+    init(
+        _ eventStore: EKEventStore = EventStoreManager.shared.eventStore,
+        _ permissionHandler: PermissionHandler = PermissionHandler()
+    ) {
+        self.eventStore = eventStore
+        self.permissionHandler = permissionHandler
     }
     
     func requestCalendarPermission(completion: @escaping (Result<Bool, any Error>) -> Void) {
@@ -22,6 +25,8 @@ class CalendarImplem: CalendarApi {
             completion(.success(true))
         } noAccess: {
             completion(.success(false))
+        } error: { error in
+            completion(.failure(error))
         }
 
     }
@@ -82,6 +87,8 @@ class CalendarImplem: CalendarApi {
                 message: "Calendar access has been refused or has not been given yet",
                 details: nil
             )))
+        } error: { error in
+            completion(.failure(error))
         }
 
     }
@@ -113,6 +120,8 @@ class CalendarImplem: CalendarApi {
                 message: "Calendar access has been refused or has not been given yet",
                 details: nil
             )))
+        } error: { error in
+            completion(.failure(error))
         }
     }
     
@@ -155,6 +164,8 @@ class CalendarImplem: CalendarApi {
                 message: "Calendar access has been refused or has not been given yet",
                 details: nil
             )))
+        } error: { error in
+            completion(.failure(error))
         }
 
     }
@@ -187,8 +198,17 @@ class CalendarImplem: CalendarApi {
                 return
             }
              */
+            
+            guard let ekCalendar = self.eventStore.calendar(withIdentifier: calendarId) else {
+                completion(.failure(PigeonError(
+                    code: "NOT_FOUND",
+                    message: "Calendar not found",
+                    details: "The provided calendar.id is certainly incorrect"
+                )))
+                return
+            }
 
-            ekEvent.calendar = self.eventStore.calendar(withIdentifier: calendarId)
+            ekEvent.calendar = ekCalendar
             ekEvent.title = title
             ekEvent.notes = description
             ekEvent.startDate = Date(from: startDate)
@@ -226,6 +246,8 @@ class CalendarImplem: CalendarApi {
                 message: "Calendar access has been refused or has not been given yet",
                 details: nil
             )))
+        } error: { error in
+            completion(.failure(error))
         }
     }
     
@@ -269,6 +291,8 @@ class CalendarImplem: CalendarApi {
                 message: "Calendar access has been refused or has not been given yet",
                 details: nil
             )))
+        } error: { error in
+            completion(.failure(error))
         }
     }
     
@@ -321,6 +345,8 @@ class CalendarImplem: CalendarApi {
                 message: "Calendar access has been refused or has not been given yet",
                 details: nil
             )))
+        } error: { error in
+            completion(.failure(error))
         }
     }
     
@@ -370,6 +396,8 @@ class CalendarImplem: CalendarApi {
                 message: "Calendar access has been refused or has not been given yet",
                 details: nil
             )))
+        } error: { error in
+            completion(.failure(error))
         }
 
     }
@@ -426,6 +454,8 @@ class CalendarImplem: CalendarApi {
                 message: "Calendar access has been refused or has not been given yet",
                 details: nil
             )))
+        } error: { error in
+            completion(.failure(error))
         }
     }
     

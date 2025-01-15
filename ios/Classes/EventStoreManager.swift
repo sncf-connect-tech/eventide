@@ -8,7 +8,7 @@
 import Foundation
 import EventKit
 
-class EventStoreManager: ObservableObject {
+final class EventStoreManager: ObservableObject {
     static let shared = EventStoreManager()
     
     let eventStore: EKEventStore
