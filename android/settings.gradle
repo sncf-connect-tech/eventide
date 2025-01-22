@@ -1,3 +1,1 @@
-include ':android'
-
 rootProject.name = 'easy_calendar'

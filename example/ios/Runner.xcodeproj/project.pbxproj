@@ -17,7 +17,6 @@
 		97C146FE1CF9000F007C117D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FD1CF9000F007C117D /* Assets.xcassets */; };
 		97C147011CF9000F007C117D /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FF1CF9000F007C117D /* LaunchScreen.storyboard */; };
 		9873351E882DAA813BDAD660 /* Pods_Runner.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5FE5BE4032BAB13E0BCB2303 /* Pods_Runner.framework */; };
-		EA5B299E2D37F39E005E7771 /* CalendarImplemTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA5B29992D37F39E005E7771 /* CalendarImplemTests.swift */; };
 		EA5B29A02D37F39E005E7771 /* MockEventStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA5B299B2D37F39E005E7771 /* MockEventStore.swift */; };
 		EA5B29A12D37F39E005E7771 /* PermissionHandlerTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA5B299C2D37F39E005E7771 /* PermissionHandlerTest.swift */; };
 		EA5B29A42D3908C3005E7771 /* MockPermissionHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA5B29A32D3908C3005E7771 /* MockPermissionHandler.swift */; };
@@ -83,7 +82,6 @@
 		D36B427C2F9F7C2702B4913F /* Pods-EasyCalendarTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-EasyCalendarTests.release.xcconfig"; path = "Target Support Files/Pods-EasyCalendarTests/Pods-EasyCalendarTests.release.xcconfig"; sourceTree = "<group>"; };
 		EA5B29852D37F382005E7771 /* EasyCalendarTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = EasyCalendarTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		EA5B29952D37F398005E7771 /* Pods_RunnerTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = Pods_RunnerTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		EA5B29992D37F39E005E7771 /* CalendarImplemTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarImplemTests.swift; sourceTree = "<group>"; };
 		EA5B299B2D37F39E005E7771 /* MockEventStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockEventStore.swift; sourceTree = "<group>"; };
 		EA5B299C2D37F39E005E7771 /* PermissionHandlerTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PermissionHandlerTest.swift; sourceTree = "<group>"; };
 		EA5B29A32D3908C3005E7771 /* MockPermissionHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockPermissionHandler.swift; sourceTree = "<group>"; };
@@ -208,7 +206,6 @@
 		EA5B299D2D37F39E005E7771 /* EasyCalendarTests */ = {
 			isa = PBXGroup;
 			children = (
-				EA5B29992D37F39E005E7771 /* CalendarImplemTests.swift */,
 				EA5B299C2D37F39E005E7771 /* PermissionHandlerTest.swift */,
 				EA5B29A22D38030E005E7771 /* Mocks */,
 				EAECB9432D395CA3000FAA80 /* UtilsTests.swift */,
@@ -500,7 +497,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				EA5B299E2D37F39E005E7771 /* CalendarImplemTests.swift in Sources */,
 				EA5B29A42D3908C3005E7771 /* MockPermissionHandler.swift in Sources */,
 				EA5B29A02D37F39E005E7771 /* MockEventStore.swift in Sources */,
 				EAECB9442D395CA3000FAA80 /* UtilsTests.swift in Sources */,
@@ -837,13 +833,14 @@
 				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
 				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = F8TYED8P8C;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GENERATE_INFOPLIST_FILE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MARKETING_VERSION = 1.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
@@ -870,13 +867,14 @@
 				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
 				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = F8TYED8P8C;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GENERATE_INFOPLIST_FILE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MARKETING_VERSION = 1.0;
 				MTL_FAST_MATH = YES;
@@ -900,13 +898,14 @@
 				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
 				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = F8TYED8P8C;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GENERATE_INFOPLIST_FILE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MARKETING_VERSION = 1.0;
 				MTL_FAST_MATH = YES;
