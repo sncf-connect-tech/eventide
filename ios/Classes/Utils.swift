@@ -52,13 +52,3 @@ extension UIColor {
         )
     }
 }
-
-extension EKSource {
-    var sourceName: String? {
-        guard sourceType != .local else {
-            return nil
-        }
-        
-        return title
-    }
-}

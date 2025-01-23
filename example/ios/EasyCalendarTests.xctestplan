@@ -1,0 +1,25 @@
+{
+  "configurations" : [
+    {
+      "id" : "02B537C4-B3D6-4395-A695-12C396384EA8",
+      "name" : "Test Scheme Action",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+
+  },
+  "testTargets" : [
+    {
+      "parallelizable" : true,
+      "target" : {
+        "containerPath" : "container:Runner.xcodeproj",
+        "identifier" : "EA5B29842D37F382005E7771",
+        "name" : "EasyCalendarTests"
+      }
+    }
+  ],
+  "version" : 1
+}
