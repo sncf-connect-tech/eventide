@@ -8,14 +8,14 @@
 import Foundation
 import EventKit
 
-class PermissionHandler {
-    internal let eventStore: EKEventStore
+class PermissionHandler: PermissionHandlerProtocol {
+    private let eventStore: EKEventStore
     
-    init(_ eventStore: EKEventStore = EventStoreManager.shared.eventStore) {
+    init(eventStore: EKEventStore) {
         self.eventStore = eventStore
     }
     
-    public func checkCalendarAccessThenExecute(
+    func checkCalendarAccessThenExecute(
         _ permissionsGrantedCallback: @escaping () -> Void,
         noAccess permissionsRefusedCallback: @escaping () -> Void,
         error errorCallback: @escaping (any Error) -> Void

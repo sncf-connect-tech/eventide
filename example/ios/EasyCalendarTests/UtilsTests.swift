@@ -6,7 +6,6 @@
 //
 
 import XCTest
-import EventKit
 @testable import easy_calendar
 
 class UtilsTests: XCTestCase {
@@ -39,16 +38,5 @@ class UtilsTests: XCTestCase {
         XCTAssertEqual(color?.cgColor.components?[0], 1.0)
         XCTAssertEqual(color?.cgColor.components?[1], 0.0)
         XCTAssertEqual(color?.cgColor.components?[2], 0.0)
-    }
-
-    func testEKSourceSourceName() {
-        let localSource = EKSource()
-        localSource.setValue(EKSourceType.local.rawValue, forKey: "sourceType")
-        XCTAssertNil(localSource.sourceName)
-
-        let exchangeSource = EKSource()
-        exchangeSource.setValue(EKSourceType.exchange.rawValue, forKey: "sourceType")
-        exchangeSource.setValue("Exchange", forKey: "title")
-        XCTAssertEqual(exchangeSource.sourceName, "Exchange")
     }
 }

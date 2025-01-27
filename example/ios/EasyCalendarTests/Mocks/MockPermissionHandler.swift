@@ -5,23 +5,36 @@
 //  Created by CHOUPAULT Alexis on 16/01/2025.
 //
 
-import EventKit
 @testable import easy_calendar
 
-final class MockPermissionHandler: PermissionHandler {
-    override init(_ eventStore: EKEventStore) {
-        super.init(eventStore)
-    }
-    
-    override func checkCalendarAccessThenExecute(
+final class PermissionGranted: PermissionHandlerProtocol {
+    func checkCalendarAccessThenExecute(
         _ permissionsGrantedCallback: @escaping () -> Void,
         noAccess permissionsRefusedCallback: @escaping () -> Void,
         error errorCallback: @escaping (any Error) -> Void
     ) {
-        if (self.eventStore as! MockEventStore).mockRequestAccessResult {
-            permissionsGrantedCallback()
-        } else {
-            permissionsRefusedCallback()
-        }
+        permissionsGrantedCallback()
+    }
+}
+
+final class PermissionRefused: PermissionHandlerProtocol {
+    func checkCalendarAccessThenExecute(
+        _ permissionsGrantedCallback: @escaping () -> Void,
+        noAccess permissionsRefusedCallback: @escaping () -> Void,
+        error errorCallback: @escaping (any Error) -> Void
+    ) {
+        permissionsRefusedCallback()
+    }
+}
+
+final class PermissionError: PermissionHandlerProtocol {
+    class PermErr: Error {}
+    
+    func checkCalendarAccessThenExecute(
+        _ permissionsGrantedCallback: @escaping () -> Void,
+        noAccess permissionsRefusedCallback: @escaping () -> Void,
+        error errorCallback: @escaping (any Error) -> Void
+    ) {
+        errorCallback(PermErr())
     }
 }

@@ -17,8 +17,8 @@
 		97C146FE1CF9000F007C117D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FD1CF9000F007C117D /* Assets.xcassets */; };
 		97C147011CF9000F007C117D /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FF1CF9000F007C117D /* LaunchScreen.storyboard */; };
 		9873351E882DAA813BDAD660 /* Pods_Runner.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5FE5BE4032BAB13E0BCB2303 /* Pods_Runner.framework */; };
-		EA5B29A02D37F39E005E7771 /* MockEventStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA5B299B2D37F39E005E7771 /* MockEventStore.swift */; };
-		EA5B29A12D37F39E005E7771 /* PermissionHandlerTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA5B299C2D37F39E005E7771 /* PermissionHandlerTest.swift */; };
+		EA1485B12D43D49600CBE94D /* CalendarImplemTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA1485B02D43D49600CBE94D /* CalendarImplemTests.swift */; };
+		EA3C14962D42D3C80038A047 /* MockEasyEventStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA3C14952D42D3C80038A047 /* MockEasyEventStore.swift */; };
 		EA5B29A42D3908C3005E7771 /* MockPermissionHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA5B29A32D3908C3005E7771 /* MockPermissionHandler.swift */; };
 		EAECB9442D395CA3000FAA80 /* UtilsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAECB9432D395CA3000FAA80 /* UtilsTests.swift */; };
 		EAF64E8CCF3C640A3C45C76A /* Pods_RunnerTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EA5B29952D37F398005E7771 /* Pods_RunnerTests.framework */; };
@@ -80,10 +80,10 @@
 		97C147001CF9000F007C117D /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		97C147021CF9000F007C117D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		D36B427C2F9F7C2702B4913F /* Pods-EasyCalendarTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-EasyCalendarTests.release.xcconfig"; path = "Target Support Files/Pods-EasyCalendarTests/Pods-EasyCalendarTests.release.xcconfig"; sourceTree = "<group>"; };
+		EA1485B02D43D49600CBE94D /* CalendarImplemTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarImplemTests.swift; sourceTree = "<group>"; };
+		EA3C14952D42D3C80038A047 /* MockEasyEventStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockEasyEventStore.swift; sourceTree = "<group>"; };
 		EA5B29852D37F382005E7771 /* EasyCalendarTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = EasyCalendarTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		EA5B29952D37F398005E7771 /* Pods_RunnerTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = Pods_RunnerTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		EA5B299B2D37F39E005E7771 /* MockEventStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockEventStore.swift; sourceTree = "<group>"; };
-		EA5B299C2D37F39E005E7771 /* PermissionHandlerTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PermissionHandlerTest.swift; sourceTree = "<group>"; };
 		EA5B29A32D3908C3005E7771 /* MockPermissionHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockPermissionHandler.swift; sourceTree = "<group>"; };
 		EAECB9432D395CA3000FAA80 /* UtilsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UtilsTests.swift; sourceTree = "<group>"; };
 		F2956899125814EFC17EEC2A /* Pods_EasyCalendarTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_EasyCalendarTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -206,7 +206,7 @@
 		EA5B299D2D37F39E005E7771 /* EasyCalendarTests */ = {
 			isa = PBXGroup;
 			children = (
-				EA5B299C2D37F39E005E7771 /* PermissionHandlerTest.swift */,
+				EA1485B02D43D49600CBE94D /* CalendarImplemTests.swift */,
 				EA5B29A22D38030E005E7771 /* Mocks */,
 				EAECB9432D395CA3000FAA80 /* UtilsTests.swift */,
 			);
@@ -216,8 +216,8 @@
 		EA5B29A22D38030E005E7771 /* Mocks */ = {
 			isa = PBXGroup;
 			children = (
-				EA5B299B2D37F39E005E7771 /* MockEventStore.swift */,
 				EA5B29A32D3908C3005E7771 /* MockPermissionHandler.swift */,
+				EA3C14952D42D3C80038A047 /* MockEasyEventStore.swift */,
 			);
 			path = Mocks;
 			sourceTree = "<group>";
@@ -498,9 +498,9 @@
 			buildActionMask = 2147483647;
 			files = (
 				EA5B29A42D3908C3005E7771 /* MockPermissionHandler.swift in Sources */,
-				EA5B29A02D37F39E005E7771 /* MockEventStore.swift in Sources */,
+				EA1485B12D43D49600CBE94D /* CalendarImplemTests.swift in Sources */,
 				EAECB9442D395CA3000FAA80 /* UtilsTests.swift in Sources */,
-				EA5B29A12D37F39E005E7771 /* PermissionHandlerTest.swift in Sources */,
+				EA3C14962D42D3C80038A047 /* MockEasyEventStore.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
