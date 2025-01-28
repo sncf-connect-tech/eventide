@@ -114,6 +114,7 @@ void main() {
     final event = Event(
       id: '1', 
       title: 'Test Event',
+      isAllDay: false,
       startDate: startDate.millisecondsSinceEpoch,
       endDate: endDate.add(const Duration(hours: 1)).millisecondsSinceEpoch,
       calendarId: '1',
@@ -131,6 +132,7 @@ void main() {
       final event = Event(
         id: '1', 
         title: 'Test Event',
+        isAllDay: true,
         startDate: startDate.millisecondsSinceEpoch,
         endDate: endDate.add(const Duration(hours: 1)).millisecondsSinceEpoch,
         calendarId: '1',
@@ -138,6 +140,7 @@ void main() {
 
       when(() => mockCalendarApi.createEvent(
         title: any(named: 'title'),
+        isAllDay: any(named: 'isAllDay'),
         startDate: any(named: 'startDate'),
         endDate: any(named: 'endDate'),
         calendarId: any(named: 'calendarId'),
@@ -147,7 +150,8 @@ void main() {
 
       // When
       final result = await easyCalendar.createEvent(
-        title: 'Test Event', 
+        title: 'Test Event',
+        isAllDay: true,
         startDate: startDate,
         endDate: endDate,
         calendarId: '',
@@ -157,6 +161,7 @@ void main() {
       expect(result, event.toECEvent());
       verify(() => mockCalendarApi.createEvent(
         title: any(named: 'title'),
+        isAllDay: any(named: 'isAllDay'),
         startDate: any(named: 'startDate'),
         endDate: any(named: 'endDate'),
         calendarId: any(named: 'calendarId'),
@@ -165,12 +170,11 @@ void main() {
       )).called(1);
     });
 
-    
-
     test('createEvent throws an exception when API fails', () async {
       // Given
       when(() => mockCalendarApi.createEvent(
         title: any(named: 'title'),
+        isAllDay: any(named: 'isAllDay'),
         startDate: any(named: 'startDate'),
         endDate: any(named: 'endDate'),
         calendarId: any(named: 'calendarId'),
@@ -190,6 +194,7 @@ void main() {
       expect(call, throwsException);
       verify(() => mockCalendarApi.createEvent(
         title: any(named: 'title'),
+        isAllDay: any(named: 'isAllDay'),
         startDate: any(named: 'startDate'),
         endDate: any(named: 'endDate'),
         calendarId: any(named: 'calendarId'),
@@ -212,6 +217,7 @@ void main() {
         const reminders = [Duration(minutes: 10), Duration(minutes: 20)];
         when(() => mockCalendarApi.createEvent(
           title: any(named: 'title'),
+          isAllDay: any(named: 'isAllDay'),
           startDate: any(named: 'startDate'),
           endDate: any(named: 'endDate'),
           calendarId: any(named: 'calendarId'),
@@ -233,6 +239,7 @@ void main() {
         expect(result.reminders, equals(reminders));
         verify(() => mockCalendarApi.createEvent(
           title: any(named: 'title'),
+          isAllDay: any(named: 'isAllDay'),
           startDate: any(named: 'startDate'),
           endDate: any(named: 'endDate'),
           calendarId: any(named: 'calendarId'),
@@ -258,6 +265,7 @@ void main() {
         const reminders = [Duration(minutes: 10), Duration(minutes: 20)];
         when(() => mockCalendarApi.createEvent(
           title: any(named: 'title'),
+          isAllDay: any(named: 'isAllDay'),
           startDate: any(named: 'startDate'),
           endDate: any(named: 'endDate'),
           calendarId: any(named: 'calendarId'),
@@ -279,6 +287,7 @@ void main() {
         expect(result.reminders, equals(reminders));
         verify(() => mockCalendarApi.createEvent(
           title: any(named: 'title'),
+          isAllDay: any(named: 'isAllDay'),
           startDate: any(named: 'startDate'),
           endDate: any(named: 'endDate'),
           calendarId: any(named: 'calendarId'),
@@ -312,6 +321,7 @@ void main() {
       final mockEvent = Event(
         id: '1', 
         title: 'Paris - Montréal',
+        isAllDay: false,
         startDate: utcParisDeparture.millisecondsSinceEpoch,
         endDate: utcMontrealArrival.millisecondsSinceEpoch,
         calendarId: '1',
@@ -319,6 +329,7 @@ void main() {
 
       when(() => mockCalendarApi.createEvent(
         title: any(named: 'title'),
+        isAllDay: any(named: 'isAllDay'),
         startDate: any(named: 'startDate'),
         endDate: any(named: 'endDate'),
         calendarId: any(named: 'calendarId'),
@@ -335,6 +346,7 @@ void main() {
 
       verify(() => mockCalendarApi.createEvent(
         title: 'Paris - Montréal',
+        isAllDay: false,
         startDate: utcParisDeparture.millisecondsSinceEpoch,
         endDate: utcMontrealArrival.millisecondsSinceEpoch,
         calendarId: '1',
@@ -363,6 +375,7 @@ void main() {
         final targetEvent = Event(
           id: '1',
           title: 'Test Event',
+          isAllDay: false,
           startDate: startDate.millisecondsSinceEpoch,
           endDate: endDate.millisecondsSinceEpoch,
           calendarId: '1',
@@ -402,6 +415,7 @@ void main() {
         final targetEvent = Event(
           id: '1',
           title: 'Test Event',
+          isAllDay: false,
           startDate: startDate.millisecondsSinceEpoch,
           endDate: endDate.millisecondsSinceEpoch,
           calendarId: '1',
@@ -450,6 +464,7 @@ void main() {
         final targetEvent = Event(
           id: '1',
           title: 'Test Event',
+          isAllDay: false,
           startDate: startDate.millisecondsSinceEpoch,
           endDate: endDate.millisecondsSinceEpoch,
           calendarId: '1',
@@ -489,6 +504,7 @@ void main() {
         final targetEvent = Event(
           id: '1',
           title: 'Test Event',
+          isAllDay: false,
           startDate: startDate.millisecondsSinceEpoch,
           endDate: endDate.millisecondsSinceEpoch,
           calendarId: '1',
@@ -530,6 +546,7 @@ extension on Event {
     return Event(
       id: id,
       title: title,
+      isAllDay: isAllDay,
       startDate: startDate,
       endDate: endDate,
       calendarId: calendarId,

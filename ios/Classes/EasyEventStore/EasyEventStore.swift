@@ -79,7 +79,7 @@ final class EasyEventStore: EasyEventStoreProtocol {
         }
     }
     
-    func createEvent(title: String, startDate: Date, endDate: Date, calendarId: String, description: String?, url: String?) throws -> Event {
+    func createEvent(title: String, startDate: Date, endDate: Date, calendarId: String, isAllDay: Bool, description: String?, url: String?) throws -> Event {
         let ekEvent = EKEvent(eventStore: eventStore)
         
         guard let ekCalendar = eventStore.calendar(withIdentifier: calendarId) else {
@@ -96,7 +96,7 @@ final class EasyEventStore: EasyEventStoreProtocol {
         ekEvent.startDate = startDate
         ekEvent.endDate = endDate
         ekEvent.timeZone = TimeZone(identifier: "UTC")
-        // TODO: location
+        ekEvent.isAllDay = isAllDay
         
         if url != nil {
             ekEvent.url = URL(string: url!)
@@ -268,6 +268,7 @@ fileprivate extension EKEvent {
         Event(
             id: eventIdentifier,
             title: title,
+            isAllDay: isAllDay,
             startDate: startDate.millisecondsSince1970,
             endDate: endDate.millisecondsSince1970,
             calendarId: calendar.calendarIdentifier,

@@ -41,10 +41,11 @@ class CalendarDetails extends StatelessWidget {
                                 content: Padding(
                                   padding: const EdgeInsets.symmetric(horizontal: 16.0),
                                   child: EventForm(
-                                    onSubmit: (title, description, startDate, endDate) {
+                                    onSubmit: (title, description, isAllDay, startDate, endDate) {
                                       BlocProvider.of<EventCubit>(context).createEvent(
                                         title: title,
                                         description: description,
+                                        isAllDay: isAllDay,
                                         startDate: startDate,
                                         endDate: endDate,
                                       );

@@ -97,6 +97,8 @@ data class Calendar (
  * 
  * [title] is the title of the event.
  * 
+ * [isAllDay] is whether or not the event is an all day.
+ * 
  * [startDate] is the start date of the event in milliseconds since epoch.
  * 
  * [endDate] is the end date of the event in milliseconds since epoch.
@@ -114,6 +116,7 @@ data class Calendar (
 data class Event (
   val id: String,
   val title: String,
+  val isAllDay: Boolean,
   val startDate: Long,
   val endDate: Long,
   val calendarId: String,
@@ -126,19 +129,21 @@ data class Event (
     fun fromList(pigeonVar_list: List<Any?>): Event {
       val id = pigeonVar_list[0] as String
       val title = pigeonVar_list[1] as String
-      val startDate = pigeonVar_list[2] as Long
-      val endDate = pigeonVar_list[3] as Long
-      val calendarId = pigeonVar_list[4] as String
-      val description = pigeonVar_list[5] as String?
-      val url = pigeonVar_list[6] as String?
-      val reminders = pigeonVar_list[7] as List<Long>?
-      return Event(id, title, startDate, endDate, calendarId, description, url, reminders)
+      val isAllDay = pigeonVar_list[2] as Boolean
+      val startDate = pigeonVar_list[3] as Long
+      val endDate = pigeonVar_list[4] as Long
+      val calendarId = pigeonVar_list[5] as String
+      val description = pigeonVar_list[6] as String?
+      val url = pigeonVar_list[7] as String?
+      val reminders = pigeonVar_list[8] as List<Long>?
+      return Event(id, title, isAllDay, startDate, endDate, calendarId, description, url, reminders)
     }
   }
   fun toList(): List<Any?> {
     return listOf(
       id,
       title,
+      isAllDay,
       startDate,
       endDate,
       calendarId,
@@ -186,7 +191,7 @@ interface CalendarApi {
   fun createCalendar(title: String, color: Long, callback: (Result<Calendar>) -> Unit)
   fun retrieveCalendars(onlyWritableCalendars: Boolean, callback: (Result<List<Calendar>>) -> Unit)
   fun deleteCalendar(calendarId: String, callback: (Result<Unit>) -> Unit)
-  fun createEvent(title: String, startDate: Long, endDate: Long, calendarId: String, description: String?, url: String?, callback: (Result<Event>) -> Unit)
+  fun createEvent(title: String, startDate: Long, endDate: Long, calendarId: String, isAllDay: Boolean, description: String?, url: String?, callback: (Result<Event>) -> Unit)
   fun retrieveEvents(calendarId: String, startDate: Long, endDate: Long, callback: (Result<List<Event>>) -> Unit)
   fun deleteEvent(eventId: String, calendarId: String, callback: (Result<Unit>) -> Unit)
   fun createReminder(reminder: Long, eventId: String, callback: (Result<Event>) -> Unit)
@@ -288,9 +293,10 @@ interface CalendarApi {
             val startDateArg = args[1] as Long
             val endDateArg = args[2] as Long
             val calendarIdArg = args[3] as String
-            val descriptionArg = args[4] as String?
-            val urlArg = args[5] as String?
-            api.createEvent(titleArg, startDateArg, endDateArg, calendarIdArg, descriptionArg, urlArg) { result: Result<Event> ->
+            val isAllDayArg = args[4] as Boolean
+            val descriptionArg = args[5] as String?
+            val urlArg = args[6] as String?
+            api.createEvent(titleArg, startDateArg, endDateArg, calendarIdArg, isAllDayArg, descriptionArg, urlArg) { result: Result<Event> ->
               val error = result.exceptionOrNull()
               if (error != null) {
                 reply.reply(wrapError(error))

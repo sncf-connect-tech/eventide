@@ -27,6 +27,7 @@ extension EventToECEvent on Event {
     return ECEvent(
       id: id,
       title: title,
+      isAllDay: isAllDay,
       startDate: DateTime.fromMillisecondsSinceEpoch(startDate),
       endDate: DateTime.fromMillisecondsSinceEpoch(endDate),
       calendarId: calendarId,
@@ -57,6 +58,7 @@ extension ECEventCopy on ECEvent {
     return ECEvent(
       id: id,
       title: title,
+      isAllDay: isAllDay,
       startDate: startDate,
       endDate: endDate,
       calendarId: calendarId,

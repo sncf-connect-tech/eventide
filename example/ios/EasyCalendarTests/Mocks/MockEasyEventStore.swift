@@ -57,7 +57,7 @@ class MockEasyEventStore: EasyEventStoreProtocol {
         calendars.remove(at: index)
     }
     
-    func createEvent(title: String, startDate: Date, endDate: Date, calendarId: String, description: String?, url: String?) throws -> easy_calendar.Event {
+    func createEvent(title: String, startDate: Date, endDate: Date, calendarId: String, isAllDay: Bool, description: String?, url: String?) throws -> easy_calendar.Event {
         guard let mockCalendar = calendars.first(where: { $0.id == calendarId }) else {
             throw PigeonError(
                 code: "NOT_FOUND",
@@ -72,6 +72,7 @@ class MockEasyEventStore: EasyEventStoreProtocol {
             startDate: startDate,
             endDate: endDate,
             calendarId: mockCalendar.id,
+            isAllDay: isAllDay,
             description: description,
             url: url
         )
@@ -201,16 +202,18 @@ class MockEvent {
     let startDate: Date
     let endDate: Date
     let calendarId: String
+    let isAllDay: Bool
     let description: String?
     let url: String?
     var reminders: [EKAlarm]?
     
-    init(id: String, title: String, startDate: Date, endDate: Date, calendarId: String, description: String?, url: String?, reminders: [TimeInterval]? = nil) {
+    init(id: String, title: String, startDate: Date, endDate: Date, calendarId: String, isAllDay: Bool, description: String?, url: String?, reminders: [TimeInterval]? = nil) {
         self.id = id
         self.title = title
         self.startDate = startDate
         self.endDate = endDate
         self.calendarId = calendarId
+        self.isAllDay = isAllDay
         self.description = description
         self.url = url
         self.reminders = reminders?.map({ EKAlarm(relativeOffset: $0) })
@@ -220,6 +223,7 @@ class MockEvent {
         Event(
             id: id,
             title: title,
+            isAllDay: isAllDay,
             startDate: startDate.millisecondsSince1970,
             endDate: endDate.millisecondsSince1970,
             calendarId: calendarId,

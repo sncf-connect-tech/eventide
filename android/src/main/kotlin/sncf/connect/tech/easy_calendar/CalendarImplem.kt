@@ -199,6 +199,7 @@ class CalendarImplem(
         startDate: Long,
         endDate: Long,
         calendarId: String,
+        isAllDay: Boolean,
         description: String?,
         url: String?,
         callback: (Result<Event>) -> Unit
@@ -214,9 +215,7 @@ class CalendarImplem(
                             put(CalendarContract.Events.DTSTART, startDate)
                             put(CalendarContract.Events.DTEND, endDate)
                             put(CalendarContract.Events.EVENT_TIMEZONE, "UTC")
-
-                            // TODO: location
-                            // TODO: url
+                            put(CalendarContract.Events.ALL_DAY, isAllDay)
                         }
 
                         val eventUri = contentResolver.insert(eventContentUri, eventValues)
@@ -229,7 +228,8 @@ class CalendarImplem(
                                     startDate = startDate,
                                     endDate = endDate,
                                     calendarId = calendarId,
-                                    description = description
+                                    description = description,
+                                    isAllDay = isAllDay
                                 )
                                 callback(Result.success(event))
                             } else {
@@ -286,6 +286,7 @@ class CalendarImplem(
                             CalendarContract.Events.DTSTART,
                             CalendarContract.Events.DTEND,
                             CalendarContract.Events.EVENT_TIMEZONE,
+                            CalendarContract.Events.ALL_DAY,
                         )
                         val selection = CalendarContract.Events.CALENDAR_ID + " = ? AND " + CalendarContract.Events.DTSTART + " >= ? AND " + CalendarContract.Events.DTEND + " <= ?"
                         val selectionArgs = arrayOf(calendarId, startDate.toString(), endDate.toString())
@@ -300,6 +301,7 @@ class CalendarImplem(
                                 val description = it.getString(it.getColumnIndexOrThrow(CalendarContract.Events.DESCRIPTION))
                                 val start = it.getLong(it.getColumnIndexOrThrow(CalendarContract.Events.DTSTART))
                                 val end = it.getLong(it.getColumnIndexOrThrow(CalendarContract.Events.DTEND))
+                                val isAllDay = it.getInt(it.getColumnIndexOrThrow(CalendarContract.Events.ALL_DAY)) == 1
 
                                 tmp.add(Event(
                                     id = id,
@@ -308,6 +310,7 @@ class CalendarImplem(
                                     endDate = end,
                                     calendarId = calendarId,
                                     description = description,
+                                    isAllDay = isAllDay
                                 ))
                             }
                         }
@@ -326,7 +329,8 @@ class CalendarImplem(
                                             endDate = event.endDate,
                                             calendarId = event.calendarId,
                                             description = event.description,
-                                            reminders = reminders
+                                            reminders = reminders,
+                                            isAllDay = event.isAllDay
                                         )
                                     )
                                 }
@@ -490,6 +494,7 @@ class CalendarImplem(
                 CalendarContract.Events.DTEND,
                 CalendarContract.Events.EVENT_TIMEZONE,
                 CalendarContract.Events.CALENDAR_ID,
+                CalendarContract.Events.ALL_DAY,
             )
             val selection = CalendarContract.Events._ID + " = ?"
             val selectionArgs = arrayOf(eventId)
@@ -510,7 +515,8 @@ class CalendarImplem(
                                 endDate = it.getLong(it.getColumnIndexOrThrow(CalendarContract.Events.DTEND)),
                                 calendarId = it.getLong(it.getColumnIndexOrThrow(CalendarContract.Events.CALENDAR_ID))
                                     .toString(),
-                                reminders = reminders
+                                reminders = reminders,
+                                isAllDay = it.getInt(it.getColumnIndexOrThrow(CalendarContract.Events.ALL_DAY)) == 1
                             )
                         }
                         result.onFailure { error ->

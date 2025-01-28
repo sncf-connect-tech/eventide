@@ -115,6 +115,7 @@ final class ECCalendar extends Equatable {
 final class ECEvent extends Equatable {
   final String id;
   final String title;
+  final bool isAllDay;
   final DateTime startDate;
   final DateTime endDate;
   final String calendarId;
@@ -123,11 +124,12 @@ final class ECEvent extends Equatable {
   final List<Duration>? reminders;
 
   @override
-  List<Object?> get props => [id, title, startDate, endDate, calendarId, description, url, reminders];
+  List<Object?> get props => [id, title, isAllDay, startDate, endDate, calendarId, description, url, reminders];
 
   const ECEvent({
     required this.id,
     required this.title,
+    required this.isAllDay,
     required this.startDate,
     required this.endDate,
     required this.calendarId,

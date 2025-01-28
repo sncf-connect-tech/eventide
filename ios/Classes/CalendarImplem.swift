@@ -104,6 +104,7 @@ class CalendarImplem: CalendarApi {
         startDate: Int64,
         endDate: Int64,
         calendarId: String,
+        isAllDay: Bool,
         description: String?,
         url: String?,
         completion: @escaping (Result<Event, Error>
@@ -115,6 +116,7 @@ class CalendarImplem: CalendarApi {
                     startDate: Date(from: startDate),
                     endDate: Date(from: endDate),
                     calendarId: calendarId,
+                    isAllDay: isAllDay,
                     description: description,
                     url: url
                 )

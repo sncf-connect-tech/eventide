@@ -118,6 +118,8 @@ struct Calendar {
 /// 
 /// [title] is the title of the event.
 /// 
+/// [isAllDay] is whether or not the event is an all day.
+/// 
 /// [startDate] is the start date of the event in milliseconds since epoch.
 /// 
 /// [endDate] is the end date of the event in milliseconds since epoch.
@@ -134,6 +136,7 @@ struct Calendar {
 struct Event {
   var id: String
   var title: String
+  var isAllDay: Bool
   var startDate: Int64
   var endDate: Int64
   var calendarId: String
@@ -146,16 +149,18 @@ struct Event {
   static func fromList(_ pigeonVar_list: [Any?]) -> Event? {
     let id = pigeonVar_list[0] as! String
     let title = pigeonVar_list[1] as! String
-    let startDate = pigeonVar_list[2] as! Int64
-    let endDate = pigeonVar_list[3] as! Int64
-    let calendarId = pigeonVar_list[4] as! String
-    let description: String? = nilOrValue(pigeonVar_list[5])
-    let url: String? = nilOrValue(pigeonVar_list[6])
-    let reminders: [Int64]? = nilOrValue(pigeonVar_list[7])
+    let isAllDay = pigeonVar_list[2] as! Bool
+    let startDate = pigeonVar_list[3] as! Int64
+    let endDate = pigeonVar_list[4] as! Int64
+    let calendarId = pigeonVar_list[5] as! String
+    let description: String? = nilOrValue(pigeonVar_list[6])
+    let url: String? = nilOrValue(pigeonVar_list[7])
+    let reminders: [Int64]? = nilOrValue(pigeonVar_list[8])
 
     return Event(
       id: id,
       title: title,
+      isAllDay: isAllDay,
       startDate: startDate,
       endDate: endDate,
       calendarId: calendarId,
@@ -168,6 +173,7 @@ struct Event {
     return [
       id,
       title,
+      isAllDay,
       startDate,
       endDate,
       calendarId,
@@ -226,7 +232,7 @@ protocol CalendarApi {
   func createCalendar(title: String, color: Int64, completion: @escaping (Result<Calendar, Error>) -> Void)
   func retrieveCalendars(onlyWritableCalendars: Bool, completion: @escaping (Result<[Calendar], Error>) -> Void)
   func deleteCalendar(_ calendarId: String, completion: @escaping (Result<Void, Error>) -> Void)
-  func createEvent(title: String, startDate: Int64, endDate: Int64, calendarId: String, description: String?, url: String?, completion: @escaping (Result<Event, Error>) -> Void)
+  func createEvent(title: String, startDate: Int64, endDate: Int64, calendarId: String, isAllDay: Bool, description: String?, url: String?, completion: @escaping (Result<Event, Error>) -> Void)
   func retrieveEvents(calendarId: String, startDate: Int64, endDate: Int64, completion: @escaping (Result<[Event], Error>) -> Void)
   func deleteEvent(withId eventId: String, _ calendarId: String, completion: @escaping (Result<Void, Error>) -> Void)
   func createReminder(_ reminder: Int64, forEventId eventId: String, completion: @escaping (Result<Event, Error>) -> Void)
@@ -314,9 +320,10 @@ class CalendarApiSetup {
         let startDateArg = args[1] as! Int64
         let endDateArg = args[2] as! Int64
         let calendarIdArg = args[3] as! String
-        let descriptionArg: String? = nilOrValue(args[4])
-        let urlArg: String? = nilOrValue(args[5])
-        api.createEvent(title: titleArg, startDate: startDateArg, endDate: endDateArg, calendarId: calendarIdArg, description: descriptionArg, url: urlArg) { result in
+        let isAllDayArg = args[4] as! Bool
+        let descriptionArg: String? = nilOrValue(args[5])
+        let urlArg: String? = nilOrValue(args[6])
+        api.createEvent(title: titleArg, startDate: startDateArg, endDate: endDateArg, calendarId: calendarIdArg, isAllDay: isAllDayArg, description: descriptionArg, url: urlArg) { result in
           switch result {
           case .success(let res):
             reply(wrapResult(res))
