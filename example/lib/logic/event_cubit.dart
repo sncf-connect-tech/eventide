@@ -16,6 +16,7 @@ class EventCubit extends Cubit<EventState> {
   Future<void> createEvent({
     required String title,
     required String description,
+    required bool isAllDay,
     required TZDateTime startDate,
     required TZDateTime endDate,
   }) async {
@@ -24,6 +25,7 @@ class EventCubit extends Cubit<EventState> {
         final event = await _calendarPlugin.createEvent(
           title: title,
           description: description,
+          isAllDay: isAllDay,
           startDate: startDate,
           endDate: endDate,
           calendarId: data.calendar.id,

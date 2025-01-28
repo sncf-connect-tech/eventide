@@ -73,6 +73,8 @@ class Calendar {
 /// 
 /// [title] is the title of the event.
 /// 
+/// [isAllDay] is whether or not the event is an all day.
+/// 
 /// [startDate] is the start date of the event in milliseconds since epoch.
 /// 
 /// [endDate] is the end date of the event in milliseconds since epoch.
@@ -88,6 +90,7 @@ class Event {
   Event({
     required this.id,
     required this.title,
+    required this.isAllDay,
     required this.startDate,
     required this.endDate,
     required this.calendarId,
@@ -99,6 +102,8 @@ class Event {
   String id;
 
   String title;
+
+  bool isAllDay;
 
   int startDate;
 
@@ -116,6 +121,7 @@ class Event {
     return <Object?>[
       id,
       title,
+      isAllDay,
       startDate,
       endDate,
       calendarId,
@@ -130,12 +136,13 @@ class Event {
     return Event(
       id: result[0]! as String,
       title: result[1]! as String,
-      startDate: result[2]! as int,
-      endDate: result[3]! as int,
-      calendarId: result[4]! as String,
-      description: result[5] as String?,
-      url: result[6] as String?,
-      reminders: (result[7] as List<Object?>?)?.cast<int>(),
+      isAllDay: result[2]! as bool,
+      startDate: result[3]! as int,
+      endDate: result[4]! as int,
+      calendarId: result[5]! as String,
+      description: result[6] as String?,
+      url: result[7] as String?,
+      reminders: (result[8] as List<Object?>?)?.cast<int>(),
     );
   }
 }
@@ -288,7 +295,7 @@ class CalendarApi {
     }
   }
 
-  Future<Event> createEvent({required String title, required int startDate, required int endDate, required String calendarId, required String? description, required String? url, }) async {
+  Future<Event> createEvent({required String title, required int startDate, required int endDate, required String calendarId, required bool isAllDay, required String? description, required String? url, }) async {
     final String pigeonVar_channelName = 'dev.flutter.pigeon.easy_calendar.CalendarApi.createEvent$pigeonVar_messageChannelSuffix';
     final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
       pigeonVar_channelName,
@@ -296,7 +303,7 @@ class CalendarApi {
       binaryMessenger: pigeonVar_binaryMessenger,
     );
     final List<Object?>? pigeonVar_replyList =
-        await pigeonVar_channel.send(<Object?>[title, startDate, endDate, calendarId, description, url]) as List<Object?>?;
+        await pigeonVar_channel.send(<Object?>[title, startDate, endDate, calendarId, isAllDay, description, url]) as List<Object?>?;
     if (pigeonVar_replyList == null) {
       throw _createConnectionError(pigeonVar_channelName);
     } else if (pigeonVar_replyList.length > 1) {

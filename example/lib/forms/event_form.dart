@@ -4,6 +4,7 @@ import 'package:timezone/timezone.dart';
 typedef OnEventFormSubmit = void Function(
   String title,
   String description,
+  bool isAllDay,
   TZDateTime startDate,
   TZDateTime endDate,
 );
@@ -25,6 +26,7 @@ class _EventFormState extends State<EventForm> {
   late final TextEditingController _descriptionController;
   DateTime _selectedStartDate = DateTime.now();
   DateTime _selectedEndDate = DateTime.now().add(const Duration(hours: 1));
+  bool isAllDay = false;
 
   @override
   void initState() {
@@ -58,7 +60,21 @@ class _EventFormState extends State<EventForm> {
           ),
         ),
         const SizedBox(height: 16),
-        Text('Start date: ${_selectedStartDate.toIso8601String()}'),
+        Row(
+          children: [
+            const Expanded(child: Text('isAllDay')),
+            Expanded(
+              child: Switch(
+                value: isAllDay,
+                onChanged: (value) => setState(() {
+                  isAllDay = value;
+                }),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        Text('Start date: ${_selectedStartDate.toLocal()}'),
         Row(
           children: [
             Expanded(
@@ -85,28 +101,30 @@ class _EventFormState extends State<EventForm> {
                 child: const Icon(Icons.calendar_month),
               ),
             ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: ElevatedButton(
-                onPressed: () async {
-                  final timeOfDay = await showTimePicker(
-                    context: context,
-                    initialTime: TimeOfDay.fromDateTime(_selectedStartDate),
-                  );
-              
-                  if (timeOfDay != null) {
-                    setState(() {
-                      _selectedStartDate = (_selectedStartDate).copyWith(time: timeOfDay);
-                    });
-                  }
-                },
-                child: const Icon(Icons.access_time),
+            if (!isAllDay) ...[
+              const SizedBox(width: 16),
+              Expanded(
+                child: ElevatedButton(
+                  onPressed: () async {
+                    final timeOfDay = await showTimePicker(
+                      context: context,
+                      initialTime: TimeOfDay.fromDateTime(_selectedStartDate),
+                    );
+                
+                    if (timeOfDay != null) {
+                      setState(() {
+                        _selectedStartDate = (_selectedStartDate).copyWith(time: timeOfDay);
+                      });
+                    }
+                  },
+                  child: const Icon(Icons.access_time),
+                ),
               ),
-            ),
+            ],
           ],
         ),
         const SizedBox(height: 16),
-        Text('End date: ${_selectedEndDate.toIso8601String()}'),
+        Text('End date: ${_selectedEndDate.toLocal()}'),
         Row(
           children: [
             Expanded(
@@ -132,46 +150,52 @@ class _EventFormState extends State<EventForm> {
                 child: const Icon(Icons.calendar_month),
               ),
             ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: ElevatedButton(
-                onPressed: () async {
-                  final timeOfDay = await showTimePicker(
-                    context: context,
-                    initialTime: TimeOfDay.fromDateTime(_selectedEndDate),
-                  );
-              
-                  if (timeOfDay != null) {
-                    setState(() {
-                      _selectedEndDate = (_selectedEndDate).copyWith(time: timeOfDay);
-                    });
-                  }
-                },
-                child: const Icon(Icons.access_time),
+            if (!isAllDay) ...[
+              const SizedBox(width: 16),
+              Expanded(
+                child: ElevatedButton(
+                  onPressed: () async {
+                    final timeOfDay = await showTimePicker(
+                      context: context,
+                      initialTime: TimeOfDay.fromDateTime(_selectedEndDate),
+                    );
+                
+                    if (timeOfDay != null) {
+                      setState(() {
+                        _selectedEndDate = (_selectedEndDate).copyWith(time: timeOfDay);
+                      });
+                    }
+                  },
+                  child: const Icon(Icons.access_time),
+                ),
               ),
-            ),
+            ],
           ],
         ),
-        const SizedBox(height: 16),
-        ElevatedButton(
-          onPressed: () {
-            widget.onSubmit(
-              'Paris - Montreal',
-              _descriptionController.text,
-              TZDateTime(getLocation('Europe/Paris'), 2025, 9, 8, 13, 30),
-              TZDateTime(getLocation('America/Montreal'), 2025, 9, 8, 15, 00),
-            );
+        if (!isAllDay) ...[
+          const SizedBox(height: 16),
+          ElevatedButton(
+            onPressed: () {
+              widget.onSubmit(
+                'Paris - Montreal',
+                _descriptionController.text,
+                false,
+                TZDateTime(getLocation('Europe/Paris'), 2025, 9, 8, 13, 30),
+                TZDateTime(getLocation('America/Montreal'), 2025, 9, 8, 15, 00),
+              );
 
-            Navigator.of(context).pop();
-          },
-          child: const Text('Create event in different timezones'),
-        ),
+              Navigator.of(context).pop();
+            },
+            child: const Text('Create event in different timezones'),
+          ),
+        ],
         const SizedBox(height: 16),
         ElevatedButton(
           onPressed: () {
             widget.onSubmit(
               _titleController.text,
               _descriptionController.text,
+              isAllDay,
               TZDateTime.from(_selectedStartDate, getLocation('Europe/Paris')),
               TZDateTime.from(_selectedEndDate, getLocation('Europe/Paris')),
             );

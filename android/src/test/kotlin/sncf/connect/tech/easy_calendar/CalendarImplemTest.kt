@@ -303,6 +303,7 @@ class CalendarImplemTest {
             endDate = endMilli,
             calendarId = "1",
             description = "Description",
+            isAllDay = false,
             url = null
         ) {
             result = it
@@ -318,7 +319,8 @@ class CalendarImplemTest {
             startDate = startMilli,
             endDate = endMilli,
             calendarId = "1",
-            description = "Description"
+            description = "Description",
+            isAllDay = false,
         ), result!!.getOrNull()!!)
     }
 
@@ -335,6 +337,7 @@ class CalendarImplemTest {
             endDate = Instant.now().toEpochMilli(),
             calendarId = "1",
             description = "Description",
+            isAllDay = false,
             url = null
         ) {
             result = it
@@ -358,6 +361,7 @@ class CalendarImplemTest {
             endDate = Instant.now().toEpochMilli(),
             calendarId = "1",
             description = "Description",
+            isAllDay = false,
             url = null
         ) {
             result = it

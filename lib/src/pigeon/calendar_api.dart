@@ -32,6 +32,7 @@ abstract class CalendarApi {
     required int startDate,
     required int endDate,
     required String calendarId,
+    required bool isAllDay,
     required String? description,
     required String? url,
   });
@@ -85,6 +86,8 @@ final class Calendar {
 /// 
 /// [title] is the title of the event.
 /// 
+/// [isAllDay] is whether or not the event is an all day.
+/// 
 /// [startDate] is the start date of the event in milliseconds since epoch.
 /// 
 /// [endDate] is the end date of the event in milliseconds since epoch.
@@ -99,6 +102,7 @@ final class Calendar {
 final class Event {
   final String id;
   final String title;
+  final bool isAllDay;
   final int startDate;
   final int endDate;
   final String calendarId;
@@ -109,6 +113,7 @@ final class Event {
   const Event({
     required this.id,
     required this.title,
+    required this.isAllDay,
     required this.startDate,
     required this.endDate,
     required this.calendarId,

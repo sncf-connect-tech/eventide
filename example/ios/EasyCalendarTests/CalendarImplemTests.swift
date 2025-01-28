@@ -334,6 +334,7 @@ final class CalendarImplemTests: XCTestCase {
             startDate: startDate,
             endDate: endDate,
             calendarId: "1",
+            isAllDay: false,
             description: "description",
             url: "url"
         ) { createEventResult in
@@ -345,6 +346,7 @@ final class CalendarImplemTests: XCTestCase {
                 XCTAssert(event.calendarId == "1")
                 XCTAssert(event.description == "description")
                 XCTAssert(event.url == "url")
+                XCTAssert(event.isAllDay == false)
                 expectation.fulfill()
             case .failure:
                 XCTFail("Event should have been created")
@@ -380,6 +382,7 @@ final class CalendarImplemTests: XCTestCase {
             startDate: Date().millisecondsSince1970,
             endDate: Date().addingTimeInterval(TimeInterval(10)).millisecondsSince1970,
             calendarId: "1",
+            isAllDay: false,
             description: "description",
             url: "url"
         ) { createEventResult in
@@ -420,6 +423,7 @@ final class CalendarImplemTests: XCTestCase {
                             startDate: startDate,
                             endDate: endDate,
                             calendarId: "1",
+                            isAllDay: false,
                             description: "description",
                             url: "url"
                         ),
@@ -429,6 +433,7 @@ final class CalendarImplemTests: XCTestCase {
                             startDate: startDate.addingTimeInterval(TimeInterval(50)),
                             endDate: endDate.addingTimeInterval(TimeInterval(50)),
                             calendarId: "1",
+                            isAllDay: false,
                             description: "description",
                             url: "url"
                         )
@@ -482,6 +487,7 @@ final class CalendarImplemTests: XCTestCase {
                             startDate: startDate,
                             endDate: endDate,
                             calendarId: "2",
+                            isAllDay: false,
                             description: "description",
                             url: "url"
                         )
@@ -534,6 +540,7 @@ final class CalendarImplemTests: XCTestCase {
                             startDate: Date(),
                             endDate: Date().addingTimeInterval(TimeInterval(10)),
                             calendarId: "1",
+                            isAllDay: false,
                             description: "description",
                             url: "url"
                         )
@@ -578,6 +585,7 @@ final class CalendarImplemTests: XCTestCase {
                             startDate: Date(),
                             endDate: Date().addingTimeInterval(TimeInterval(10)),
                             calendarId: "1",
+                            isAllDay: false,
                             description: "description",
                             url: "url"
                         )
@@ -627,6 +635,7 @@ final class CalendarImplemTests: XCTestCase {
                             startDate: Date(),
                             endDate: Date().addingTimeInterval(TimeInterval(10)),
                             calendarId: "1",
+                            isAllDay: false,
                             description: "description",
                             url: "url"
                         )
@@ -678,6 +687,7 @@ final class CalendarImplemTests: XCTestCase {
                             startDate: Date(),
                             endDate: Date().addingTimeInterval(TimeInterval(10)),
                             calendarId: "1",
+                            isAllDay: false,
                             description: "description",
                             url: "url"
                         )
@@ -726,6 +736,7 @@ final class CalendarImplemTests: XCTestCase {
                             startDate: Date(),
                             endDate: Date().addingTimeInterval(TimeInterval(10)),
                             calendarId: "1",
+                            isAllDay: false,
                             description: "description",
                             url: "url"
                         )
@@ -775,6 +786,7 @@ final class CalendarImplemTests: XCTestCase {
                             startDate: Date(),
                             endDate: Date().addingTimeInterval(TimeInterval(10)),
                             calendarId: "1",
+                            isAllDay: false,
                             description: "description",
                             url: "url",
                             reminders: [3600]
@@ -821,6 +833,7 @@ final class CalendarImplemTests: XCTestCase {
                             startDate: Date(),
                             endDate: Date().addingTimeInterval(TimeInterval(10)),
                             calendarId: "1",
+                            isAllDay: false,
                             description: "description",
                             url: "url",
                             reminders: [3600]
@@ -871,6 +884,7 @@ final class CalendarImplemTests: XCTestCase {
                             startDate: Date(),
                             endDate: Date().addingTimeInterval(TimeInterval(10)),
                             calendarId: "1",
+                            isAllDay: false,
                             description: "description",
                             url: "url",
                             reminders: [3600]
@@ -1024,6 +1038,7 @@ final class CalendarImplemTests: XCTestCase {
             startDate: Date().millisecondsSince1970,
             endDate: Date().addingTimeInterval(TimeInterval(10)).millisecondsSince1970,
             calendarId: "1",
+            isAllDay: false,
             description: "description",
             url: "url"
         ) { createEventResult in
@@ -1105,6 +1120,7 @@ final class CalendarImplemTests: XCTestCase {
                             startDate: Date(),
                             endDate: Date().addingTimeInterval(TimeInterval(10)),
                             calendarId: "1",
+                            isAllDay: false,
                             description: "description",
                             url: "url"
                         )
@@ -1156,6 +1172,7 @@ final class CalendarImplemTests: XCTestCase {
                             startDate: Date(),
                             endDate: Date().addingTimeInterval(TimeInterval(10)),
                             calendarId: "1",
+                            isAllDay: false,
                             description: "description",
                             url: "url"
                         )
@@ -1205,6 +1222,7 @@ final class CalendarImplemTests: XCTestCase {
                             startDate: Date(),
                             endDate: Date().addingTimeInterval(TimeInterval(10)),
                             calendarId: "1",
+                            isAllDay: false,
                             description: "description",
                             url: "url",
                             reminders: [3600]
