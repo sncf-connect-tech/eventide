@@ -100,10 +100,10 @@ class CalendarImplem: CalendarApi {
     }
     
     func createEvent(
+        calendarId: String,
         title: String,
         startDate: Int64,
         endDate: Int64,
-        calendarId: String,
         isAllDay: Bool,
         description: String?,
         url: String?,
@@ -112,10 +112,10 @@ class CalendarImplem: CalendarApi {
         permissionHandler.checkCalendarAccessThenExecute { [self] in
             do {
                 let createdEvent = try easyEventStore.createEvent(
+                    calendarId: calendarId,
                     title: title,
                     startDate: Date(from: startDate),
                     endDate: Date(from: endDate),
-                    calendarId: calendarId,
                     isAllDay: isAllDay,
                     description: description,
                     url: url
@@ -167,7 +167,7 @@ class CalendarImplem: CalendarApi {
         }
     }
     
-    func deleteEvent(withId eventId: String, _ calendarId: String, completion: @escaping (Result<Void, any Error>) -> Void) {
+    func deleteEvent(withId eventId: String, completion: @escaping (Result<Void, any Error>) -> Void) {
         permissionHandler.checkCalendarAccessThenExecute { [self] in
             do {
                 try easyEventStore.deleteEvent(eventId: eventId)

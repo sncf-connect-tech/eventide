@@ -57,7 +57,7 @@ class MockEasyEventStore: EasyEventStoreProtocol {
         calendars.remove(at: index)
     }
     
-    func createEvent(title: String, startDate: Date, endDate: Date, calendarId: String, isAllDay: Bool, description: String?, url: String?) throws -> easy_calendar.Event {
+    func createEvent(calendarId: String, title: String, startDate: Date, endDate: Date, isAllDay: Bool, description: String?, url: String?) throws -> easy_calendar.Event {
         guard let mockCalendar = calendars.first(where: { $0.id == calendarId }) else {
             throw PigeonError(
                 code: "NOT_FOUND",

@@ -34,13 +34,12 @@ abstract class EasyCalendarPlatform extends PlatformInterface {
   });
   
   Future<ECEvent> createEvent({
+    required String calendarId,
     required String title,
     required DateTime startDate,
     required DateTime endDate,
-    required String calendarId,
     String? description,
     String? url,
-    List<Duration>? reminders,
   });
   
   Future<List<ECEvent>> retrieveEvents({
@@ -51,7 +50,6 @@ abstract class EasyCalendarPlatform extends PlatformInterface {
   
   Future<void> deleteEvent({
     required String eventId,
-    required String calendarId,
   });
 
   Future<ECEvent> createReminder({

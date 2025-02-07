@@ -50,7 +50,7 @@ class EventCubit extends Cubit<EventState> {
   Future<void> deleteEvent(String eventId) async {
     if (state case Value(:final data?)) {
       await state.fetchFrom(() async {
-        await _calendarPlugin.deleteEvent(eventId: eventId, calendarId: data.calendar.id);
+        await _calendarPlugin.deleteEvent(eventId: eventId);
         return EventValue(
           calendar: data.calendar,
           events: [...state.data?.events.where((event) => event.id != eventId) ?? []],

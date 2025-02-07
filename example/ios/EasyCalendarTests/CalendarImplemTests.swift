@@ -330,10 +330,10 @@ final class CalendarImplemTests: XCTestCase {
         )
         
         calendarImplem.createEvent(
+            calendarId: "1",
             title: "title",
             startDate: startDate,
             endDate: endDate,
-            calendarId: "1",
             isAllDay: false,
             description: "description",
             url: "url"
@@ -378,10 +378,10 @@ final class CalendarImplemTests: XCTestCase {
         )
         
         calendarImplem.createEvent(
+            calendarId: "1",
             title: "title",
             startDate: Date().millisecondsSince1970,
             endDate: Date().addingTimeInterval(TimeInterval(10)).millisecondsSince1970,
-            calendarId: "1",
             isAllDay: false,
             description: "description",
             url: "url"
@@ -554,7 +554,7 @@ final class CalendarImplemTests: XCTestCase {
             permissionHandler: PermissionGranted()
         )
         
-        calendarImplem.deleteEvent(withId: "1", "1") { deleteEventResult in
+        calendarImplem.deleteEvent(withId: "1") { deleteEventResult in
             switch (deleteEventResult) {
             case .success:
                 XCTAssert(mockEasyEventStore.calendars.first!.events.isEmpty)
@@ -599,7 +599,7 @@ final class CalendarImplemTests: XCTestCase {
             permissionHandler: PermissionGranted()
         )
         
-        calendarImplem.deleteEvent(withId: "1", "1") { deleteEventResult in
+        calendarImplem.deleteEvent(withId: "1") { deleteEventResult in
             switch (deleteEventResult) {
             case .success:
                 XCTFail("Event should not have been deleted")
@@ -649,7 +649,7 @@ final class CalendarImplemTests: XCTestCase {
             permissionHandler: PermissionGranted()
         )
         
-        calendarImplem.deleteEvent(withId: "2", "1") { deleteEventResult in
+        calendarImplem.deleteEvent(withId: "2") { deleteEventResult in
             switch (deleteEventResult) {
             case .success:
                 XCTFail("Event should not have been deleted")
@@ -1034,10 +1034,10 @@ final class CalendarImplemTests: XCTestCase {
         )
         
         calendarImplem.createEvent(
+            calendarId: "1",
             title: "title",
             startDate: Date().millisecondsSince1970,
             endDate: Date().addingTimeInterval(TimeInterval(10)).millisecondsSince1970,
-            calendarId: "1",
             isAllDay: false,
             description: "description",
             url: "url"
@@ -1134,7 +1134,7 @@ final class CalendarImplemTests: XCTestCase {
             permissionHandler: PermissionRefused()
         )
         
-        calendarImplem.deleteEvent(withId: "1", "1") { deleteEventResult in
+        calendarImplem.deleteEvent(withId: "1") { deleteEventResult in
             switch (deleteEventResult) {
             case .success:
                 XCTFail("Event should not have been deleted")

@@ -191,9 +191,9 @@ interface CalendarApi {
   fun createCalendar(title: String, color: Long, callback: (Result<Calendar>) -> Unit)
   fun retrieveCalendars(onlyWritableCalendars: Boolean, callback: (Result<List<Calendar>>) -> Unit)
   fun deleteCalendar(calendarId: String, callback: (Result<Unit>) -> Unit)
-  fun createEvent(title: String, startDate: Long, endDate: Long, calendarId: String, isAllDay: Boolean, description: String?, url: String?, callback: (Result<Event>) -> Unit)
+  fun createEvent(calendarId: String, title: String, startDate: Long, endDate: Long, isAllDay: Boolean, description: String?, url: String?, callback: (Result<Event>) -> Unit)
   fun retrieveEvents(calendarId: String, startDate: Long, endDate: Long, callback: (Result<List<Event>>) -> Unit)
-  fun deleteEvent(eventId: String, calendarId: String, callback: (Result<Unit>) -> Unit)
+  fun deleteEvent(eventId: String, callback: (Result<Unit>) -> Unit)
   fun createReminder(reminder: Long, eventId: String, callback: (Result<Event>) -> Unit)
   fun deleteReminder(reminder: Long, eventId: String, callback: (Result<Event>) -> Unit)
 
@@ -289,14 +289,14 @@ interface CalendarApi {
         if (api != null) {
           channel.setMessageHandler { message, reply ->
             val args = message as List<Any?>
-            val titleArg = args[0] as String
-            val startDateArg = args[1] as Long
-            val endDateArg = args[2] as Long
-            val calendarIdArg = args[3] as String
+            val calendarIdArg = args[0] as String
+            val titleArg = args[1] as String
+            val startDateArg = args[2] as Long
+            val endDateArg = args[3] as Long
             val isAllDayArg = args[4] as Boolean
             val descriptionArg = args[5] as String?
             val urlArg = args[6] as String?
-            api.createEvent(titleArg, startDateArg, endDateArg, calendarIdArg, isAllDayArg, descriptionArg, urlArg) { result: Result<Event> ->
+            api.createEvent(calendarIdArg, titleArg, startDateArg, endDateArg, isAllDayArg, descriptionArg, urlArg) { result: Result<Event> ->
               val error = result.exceptionOrNull()
               if (error != null) {
                 reply.reply(wrapError(error))
@@ -338,8 +338,7 @@ interface CalendarApi {
           channel.setMessageHandler { message, reply ->
             val args = message as List<Any?>
             val eventIdArg = args[0] as String
-            val calendarIdArg = args[1] as String
-            api.deleteEvent(eventIdArg, calendarIdArg) { result: Result<Unit> ->
+            api.deleteEvent(eventIdArg) { result: Result<Unit> ->
               val error = result.exceptionOrNull()
               if (error != null) {
                 reply.reply(wrapError(error))

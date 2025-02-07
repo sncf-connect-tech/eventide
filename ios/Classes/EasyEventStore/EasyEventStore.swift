@@ -79,7 +79,7 @@ final class EasyEventStore: EasyEventStoreProtocol {
         }
     }
     
-    func createEvent(title: String, startDate: Date, endDate: Date, calendarId: String, isAllDay: Bool, description: String?, url: String?) throws -> Event {
+    func createEvent(calendarId: String, title: String, startDate: Date, endDate: Date, isAllDay: Bool, description: String?, url: String?) throws -> Event {
         let ekEvent = EKEvent(eventStore: eventStore)
         
         guard let ekCalendar = eventStore.calendar(withIdentifier: calendarId) else {

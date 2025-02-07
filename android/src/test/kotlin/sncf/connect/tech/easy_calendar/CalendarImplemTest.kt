@@ -463,7 +463,7 @@ class CalendarImplemTest {
 
         var result: Result<Unit>? = null
         val latch = CountDownLatch(1)
-        calendarImplem.deleteEvent("1", "1") {
+        calendarImplem.deleteEvent("1") {
             result = it
             latch.countDown()
         }
@@ -480,7 +480,7 @@ class CalendarImplemTest {
         }
 
         var result: Result<Unit>? = null
-        calendarImplem.deleteEvent("1", "1") {
+        calendarImplem.deleteEvent("1") {
             result = it
         }
 
@@ -496,7 +496,7 @@ class CalendarImplemTest {
 
         var result: Result<Unit>? = null
         val latch = CountDownLatch(1)
-        calendarImplem.deleteEvent("1", "1") {
+        calendarImplem.deleteEvent("1") {
             result = it
             latch.countDown()
         }
@@ -515,7 +515,7 @@ class CalendarImplemTest {
 
         var result: Result<Unit>? = null
         val latch = CountDownLatch(1)
-        calendarImplem.deleteEvent("1", "1") {
+        calendarImplem.deleteEvent("1") {
             result = it
             latch.countDown()
         }

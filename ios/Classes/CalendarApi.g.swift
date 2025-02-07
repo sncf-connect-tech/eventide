@@ -232,9 +232,9 @@ protocol CalendarApi {
   func createCalendar(title: String, color: Int64, completion: @escaping (Result<Calendar, Error>) -> Void)
   func retrieveCalendars(onlyWritableCalendars: Bool, completion: @escaping (Result<[Calendar], Error>) -> Void)
   func deleteCalendar(_ calendarId: String, completion: @escaping (Result<Void, Error>) -> Void)
-  func createEvent(title: String, startDate: Int64, endDate: Int64, calendarId: String, isAllDay: Bool, description: String?, url: String?, completion: @escaping (Result<Event, Error>) -> Void)
+  func createEvent(calendarId: String, title: String, startDate: Int64, endDate: Int64, isAllDay: Bool, description: String?, url: String?, completion: @escaping (Result<Event, Error>) -> Void)
   func retrieveEvents(calendarId: String, startDate: Int64, endDate: Int64, completion: @escaping (Result<[Event], Error>) -> Void)
-  func deleteEvent(withId eventId: String, _ calendarId: String, completion: @escaping (Result<Void, Error>) -> Void)
+  func deleteEvent(withId eventId: String, completion: @escaping (Result<Void, Error>) -> Void)
   func createReminder(_ reminder: Int64, forEventId eventId: String, completion: @escaping (Result<Event, Error>) -> Void)
   func deleteReminder(_ reminder: Int64, withEventId eventId: String, completion: @escaping (Result<Event, Error>) -> Void)
 }
@@ -316,14 +316,14 @@ class CalendarApiSetup {
     if let api = api {
       createEventChannel.setMessageHandler { message, reply in
         let args = message as! [Any?]
-        let titleArg = args[0] as! String
-        let startDateArg = args[1] as! Int64
-        let endDateArg = args[2] as! Int64
-        let calendarIdArg = args[3] as! String
+        let calendarIdArg = args[0] as! String
+        let titleArg = args[1] as! String
+        let startDateArg = args[2] as! Int64
+        let endDateArg = args[3] as! Int64
         let isAllDayArg = args[4] as! Bool
         let descriptionArg: String? = nilOrValue(args[5])
         let urlArg: String? = nilOrValue(args[6])
-        api.createEvent(title: titleArg, startDate: startDateArg, endDate: endDateArg, calendarId: calendarIdArg, isAllDay: isAllDayArg, description: descriptionArg, url: urlArg) { result in
+        api.createEvent(calendarId: calendarIdArg, title: titleArg, startDate: startDateArg, endDate: endDateArg, isAllDay: isAllDayArg, description: descriptionArg, url: urlArg) { result in
           switch result {
           case .success(let res):
             reply(wrapResult(res))
@@ -359,8 +359,7 @@ class CalendarApiSetup {
       deleteEventChannel.setMessageHandler { message, reply in
         let args = message as! [Any?]
         let eventIdArg = args[0] as! String
-        let calendarIdArg = args[1] as! String
-        api.deleteEvent(withId: eventIdArg, calendarIdArg) { result in
+        api.deleteEvent(withId: eventIdArg) { result in
           switch result {
           case .success:
             reply(wrapResult(nil))

@@ -195,10 +195,10 @@ class CalendarImplem(
     }
 
     override fun createEvent(
+        calendarId: String,
         title: String,
         startDate: Long,
         endDate: Long,
-        calendarId: String,
         isAllDay: Boolean,
         description: String?,
         url: String?,
@@ -366,13 +366,13 @@ class CalendarImplem(
         }
     }
 
-    override fun deleteEvent(eventId: String, calendarId: String, callback: (Result<Unit>) -> Unit) {
+    override fun deleteEvent(eventId: String, callback: (Result<Unit>) -> Unit) {
         permissionHandler.requestWritePermission { granted ->
             if (granted) {
                 CoroutineScope(Dispatchers.IO).launch {
                     try {
-                        val selection = CalendarContract.Events._ID + " = ? AND " + CalendarContract.Events.CALENDAR_ID + " = ?"
-                        val selectionArgs = arrayOf(eventId, calendarId)
+                        val selection = CalendarContract.Events._ID + " = ?"
+                        val selectionArgs = arrayOf(eventId)
 
                         val deleted = contentResolver.delete(eventContentUri, selection, selectionArgs)
                         if (deleted > 0) {

@@ -42,7 +42,7 @@ class EasyCalendar extends EasyCalendarPlatform {
   @override
   Future<ECCalendar> createCalendar({required String title, required Color color}) async {
     try {
-      final calendar = await _calendarApi.createCalendar(title, color.toValue());
+      final calendar = await _calendarApi.createCalendar(title: title, color: color.toValue());
       return calendar.toECCalendar();
 
     } on PlatformException catch (e) {
@@ -61,7 +61,7 @@ class EasyCalendar extends EasyCalendarPlatform {
   @override
   Future<List<ECCalendar>> retrieveCalendars({bool onlyWritableCalendars = true}) async {
     try {
-      final calendars = await _calendarApi.retrieveCalendars(onlyWritableCalendars);
+      final calendars = await _calendarApi.retrieveCalendars(onlyWritableCalendars: onlyWritableCalendars);
       return calendars.toECCalendarList();
 
     } on PlatformException catch (e) {
@@ -81,7 +81,7 @@ class EasyCalendar extends EasyCalendarPlatform {
   @override
   Future<void> deleteCalendar({required String calendarId}) async {
     try {
-      await _calendarApi.deleteCalendar(calendarId);
+      await _calendarApi.deleteCalendar(calendarId: calendarId);
 
     } on PlatformException catch (e) {
       throw e.toEasyCalendarException();
@@ -102,14 +102,13 @@ class EasyCalendar extends EasyCalendarPlatform {
   /// Throws a [FCCGenericException] if any other error occurs during event creation.
   @override
   Future<ECEvent> createEvent({
+    required String calendarId,
     required String title,
     required DateTime startDate,
     required DateTime endDate,
-    required String calendarId,
     bool isAllDay = false,
     String? description,
     String? url,
-    List<Duration>? reminders,
   }) async {
     try {
       final event = await _calendarApi.createEvent(
@@ -122,11 +121,7 @@ class EasyCalendar extends EasyCalendarPlatform {
         url: url,
       );
 
-      for (final durationBeforeEvent in reminders ?? <Duration>[]) {
-        await _calendarApi.createReminder(durationBeforeEvent.toNativeDuration(), event.id);
-      }
-
-      return event.toECEvent().copyWithReminders(reminders);
+      return event.toECEvent();
       
     } on PlatformException catch (e) {
       throw e.toEasyCalendarException();
@@ -148,7 +143,7 @@ class EasyCalendar extends EasyCalendarPlatform {
     try {
       final start = startDate ?? DateTime.now();
       final end = endDate ?? DateTime.now().add(const Duration(days: 7));
-      final events = await _calendarApi.retrieveEvents(calendarId, start.millisecondsSinceEpoch, end.microsecondsSinceEpoch);
+      final events = await _calendarApi.retrieveEvents(calendarId: calendarId, startDate: start.millisecondsSinceEpoch, endDate: end.microsecondsSinceEpoch,);
       return events.toECEventList();
 
     } on PlatformException catch (e) {
@@ -166,9 +161,9 @@ class EasyCalendar extends EasyCalendarPlatform {
   /// 
   /// Throws a [FCCGenericException] if any other error occurs during event deletion.
   @override
-  Future<void> deleteEvent({required String eventId, required String calendarId}) async {
+  Future<void> deleteEvent({required String eventId}) async {
     try {
-      await _calendarApi.deleteEvent(eventId, calendarId);
+      await _calendarApi.deleteEvent(eventId: eventId);
     } on PlatformException catch (e) {
       throw e.toEasyCalendarException();
     }
@@ -189,7 +184,7 @@ class EasyCalendar extends EasyCalendarPlatform {
     required String eventId,
   }) async {
     try {
-      final updatedEvent = await _calendarApi.createReminder(durationBeforeEvent.toNativeDuration(), eventId);
+      final updatedEvent = await _calendarApi.createReminder(reminder: durationBeforeEvent.toNativeDuration(), eventId: eventId);
       return updatedEvent.toECEvent();
 
     } on PlatformException catch (e) {
@@ -210,7 +205,7 @@ class EasyCalendar extends EasyCalendarPlatform {
     required String eventId,
   }) async {
     try {
-      final updatedEvent = await _calendarApi.deleteReminder(durationBeforeEvent.toNativeDuration(), eventId);
+      final updatedEvent = await _calendarApi.deleteReminder(reminder: durationBeforeEvent.toNativeDuration(), eventId: eventId);
       return updatedEvent.toECEvent();
       
     } on PlatformException catch (e) {

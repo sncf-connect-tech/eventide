@@ -17,40 +17,59 @@ abstract class CalendarApi {
   bool requestCalendarPermission();
 
   @async
-  Calendar createCalendar(String title, int color);
+  Calendar createCalendar({
+    required String title, 
+    required int color,
+  });
 
   @async
-  List<Calendar> retrieveCalendars(bool onlyWritableCalendars);
+  List<Calendar> retrieveCalendars({
+    required bool onlyWritableCalendars,
+  });
 
   @async
   @SwiftFunction('deleteCalendar(_:)')
-  void deleteCalendar(String calendarId);
+  void deleteCalendar({
+    required String calendarId,
+  });
 
   @async
   Event createEvent({
+    required String calendarId,
     required String title,
     required int startDate,
     required int endDate,
-    required String calendarId,
     required bool isAllDay,
     required String? description,
     required String? url,
   });
 
   @async
-  List<Event> retrieveEvents(String calendarId, int startDate, int endDate);
+  List<Event> retrieveEvents({
+    required String calendarId,
+    required int startDate,
+    required int endDate,
+    });
 
   @async
-  @SwiftFunction('deleteEvent(withId:_:)')
-  void deleteEvent(String eventId, String calendarId);
+  @SwiftFunction('deleteEvent(withId:)')
+  void deleteEvent({
+    required String eventId,
+    });
 
   @async
   @SwiftFunction('createReminder(_:forEventId:)')
-  Event createReminder(int reminder, String eventId);
+  Event createReminder({
+    required int reminder,
+    required String eventId,
+    });
 
   @async
   @SwiftFunction('deleteReminder(_:withEventId:)')
-  Event deleteReminder(int reminder, String eventId);
+  Event deleteReminder({
+    required int reminder,
+    required String eventId,
+    });
 }
 
 /// Native data struct to represent a calendar.
@@ -118,7 +137,7 @@ final class Event {
     required this.endDate,
     required this.calendarId,
     required this.description,
-    this.url,
-    this.reminders,
+    required this.url,
+    required this.reminders,
   });
 }

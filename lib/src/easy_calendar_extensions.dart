@@ -53,22 +53,6 @@ extension EventListToECEvent on List<Event> {
   }
 }
 
-extension ECEventCopy on ECEvent {
-  ECEvent copyWithReminders(List<Duration>? reminders) {
-    return ECEvent(
-      id: id,
-      title: title,
-      isAllDay: isAllDay,
-      startDate: startDate,
-      endDate: endDate,
-      calendarId: calendarId,
-      description: description,
-      url: url,
-      reminders: reminders ?? this.reminders,
-    );
-  }
-}
-
 extension NativeToDuration on int {
   Duration toDuration() {
     switch (defaultTargetPlatform) {
