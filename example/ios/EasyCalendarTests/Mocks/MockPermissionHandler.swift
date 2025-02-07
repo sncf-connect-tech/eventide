@@ -10,8 +10,8 @@
 final class PermissionGranted: PermissionHandlerProtocol {
     func checkCalendarAccessThenExecute(
         _ permissionsGrantedCallback: @escaping () -> Void,
-        noAccess permissionsRefusedCallback: @escaping () -> Void,
-        error errorCallback: @escaping (any Error) -> Void
+        onPermissionRefused permissionsRefusedCallback: @escaping () -> Void,
+        onPermissionError errorCallback: @escaping (any Error) -> Void
     ) {
         permissionsGrantedCallback()
     }
@@ -20,8 +20,8 @@ final class PermissionGranted: PermissionHandlerProtocol {
 final class PermissionRefused: PermissionHandlerProtocol {
     func checkCalendarAccessThenExecute(
         _ permissionsGrantedCallback: @escaping () -> Void,
-        noAccess permissionsRefusedCallback: @escaping () -> Void,
-        error errorCallback: @escaping (any Error) -> Void
+        onPermissionRefused permissionsRefusedCallback: @escaping () -> Void,
+        onPermissionError errorCallback: @escaping (any Error) -> Void
     ) {
         permissionsRefusedCallback()
     }
@@ -32,8 +32,8 @@ final class PermissionError: PermissionHandlerProtocol {
     
     func checkCalendarAccessThenExecute(
         _ permissionsGrantedCallback: @escaping () -> Void,
-        noAccess permissionsRefusedCallback: @escaping () -> Void,
-        error errorCallback: @escaping (any Error) -> Void
+        onPermissionRefused permissionsRefusedCallback: @escaping () -> Void,
+        onPermissionError errorCallback: @escaping (any Error) -> Void
     ) {
         errorCallback(PermErr())
     }

@@ -17,8 +17,8 @@ class PermissionHandler: PermissionHandlerProtocol {
     
     func checkCalendarAccessThenExecute(
         _ permissionsGrantedCallback: @escaping () -> Void,
-        noAccess permissionsRefusedCallback: @escaping () -> Void,
-        error errorCallback: @escaping (any Error) -> Void
+        onPermissionRefused permissionsRefusedCallback: @escaping () -> Void,
+        onPermissionError errorCallback: @escaping (any Error) -> Void
     ) {
         requestCalendarAccess { result in
             switch (result) {

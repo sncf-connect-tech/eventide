@@ -19,9 +19,9 @@ class CalendarImplem: CalendarApi {
     func requestCalendarPermission(completion: @escaping (Result<Bool, any Error>) -> Void) {
         permissionHandler.checkCalendarAccessThenExecute {
             completion(.success(true))
-        } noAccess: {
+        } onPermissionRefused: {
             completion(.success(false))
-        } error: { error in
+        } onPermissionError: { error in
             completion(.failure(error))
         }
 
@@ -50,13 +50,13 @@ class CalendarImplem: CalendarApi {
                 completion(.failure(error))
             }
             
-        } noAccess: {
+        } onPermissionRefused: {
             completion(.failure(PigeonError(
                 code: "ACCESS_REFUSED",
                 message: "Calendar access has been refused or has not been given yet",
                 details: nil
             )))
-        } error: { error in
+        } onPermissionError: { error in
             completion(.failure(error))
         }
 
@@ -67,13 +67,13 @@ class CalendarImplem: CalendarApi {
             let calendars = easyEventStore.retrieveCalendars(onlyWritable: onlyWritableCalendars)
             completion(.success(calendars))
             
-        } noAccess: {
+        } onPermissionRefused: {
             completion(.failure(PigeonError(
                 code: "ACCESS_REFUSED",
                 message: "Calendar access has been refused or has not been given yet",
                 details: nil
             )))
-        } error: { error in
+        } onPermissionError: { error in
             completion(.failure(error))
         }
     }
@@ -87,13 +87,13 @@ class CalendarImplem: CalendarApi {
                 completion(.failure(error))
             }
             
-        } noAccess: {
+        } onPermissionRefused: {
             completion(.failure(PigeonError(
                 code: "ACCESS_REFUSED",
                 message: "Calendar access has been refused or has not been given yet",
                 details: nil
             )))
-        } error: { error in
+        } onPermissionError: { error in
             completion(.failure(error))
         }
 
@@ -126,13 +126,13 @@ class CalendarImplem: CalendarApi {
                 completion(.failure(error))
             }
             
-        } noAccess: {
+        } onPermissionRefused: {
             completion(.failure(PigeonError(
                 code: "ACCESS_REFUSED",
                 message: "Calendar access has been refused or has not been given yet",
                 details: nil
             )))
-        } error: { error in
+        } onPermissionError: { error in
             completion(.failure(error))
         }
     }
@@ -156,13 +156,13 @@ class CalendarImplem: CalendarApi {
                 completion(.failure(error))
             }
             
-        } noAccess: {
+        } onPermissionRefused: {
             completion(.failure(PigeonError(
                 code: "ACCESS_REFUSED",
                 message: "Calendar access has been refused or has not been given yet",
                 details: nil
             )))
-        } error: { error in
+        } onPermissionError: { error in
             completion(.failure(error))
         }
     }
@@ -177,13 +177,13 @@ class CalendarImplem: CalendarApi {
                 completion(.failure(error))
             }
             
-        } noAccess: {
+        } onPermissionRefused: {
             completion(.failure(PigeonError(
                 code: "ACCESS_REFUSED",
                 message: "Calendar access has been refused or has not been given yet",
                 details: nil
             )))
-        } error: { error in
+        } onPermissionError: { error in
             completion(.failure(error))
         }
     }
@@ -198,13 +198,13 @@ class CalendarImplem: CalendarApi {
                 completion(.failure(error))
             }
             
-        } noAccess: {
+        } onPermissionRefused: {
             completion(.failure(PigeonError(
                 code: "ACCESS_REFUSED",
                 message: "Calendar access has been refused or has not been given yet",
                 details: nil
             )))
-        } error: { error in
+        } onPermissionError: { error in
             completion(.failure(error))
         }
 
@@ -220,13 +220,13 @@ class CalendarImplem: CalendarApi {
                 completion(.failure(error))
             }
             
-        } noAccess: {
+        } onPermissionRefused: {
             completion(.failure(PigeonError(
                 code: "ACCESS_REFUSED",
                 message: "Calendar access has been refused or has not been given yet",
                 details: nil
             )))
-        } error: { error in
+        } onPermissionError: { error in
             completion(.failure(error))
         }
     }
