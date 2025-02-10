@@ -35,8 +35,3 @@ jobs:
             -scheme EasyCalendarTests \
             -destination 'platform=iOS Simulator,name=iPhone 16,OS=18.1' \
             -resultBundlePath build/reports/EasyCalendarTests.xcresult
-
-      - uses: kishikawakatsumi/xcresulttool@v1
-        with:
-          path: build/reports/EasyCalendarTests.xcresult
-        if: success() || failure()
