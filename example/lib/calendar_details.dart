@@ -2,9 +2,9 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:easy_calendar_example/forms/event_form.dart';
-import 'package:easy_calendar_example/logic/event_cubit.dart';
-import 'package:easy_calendar_example/logic/event_state.dart';
+import 'package:eventide_example/forms/event_form.dart';
+import 'package:eventide_example/logic/event_cubit.dart';
+import 'package:eventide_example/logic/event_state.dart';
 import 'package:value_state/value_state.dart';
 
 class CalendarDetails extends StatelessWidget {

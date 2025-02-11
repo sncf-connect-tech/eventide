@@ -12,14 +12,7 @@
 
   },
   "testTargets" : [
-    {
-      "parallelizable" : true,
-      "target" : {
-        "containerPath" : "container:Runner.xcodeproj",
-        "identifier" : "EA5B29842D37F382005E7771",
-        "name" : "EasyCalendarTests"
-      }
-    }
+
   ],
   "version" : 1
 }

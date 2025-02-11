@@ -1,4 +1,4 @@
-package sncf.connect.tech.easy_calendar.easy_calendar_example
+package sncf.connect.tech.eventide.eventide_example
 
 import io.flutter.embedding.android.FlutterActivity
 

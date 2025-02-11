@@ -32,6 +32,6 @@ jobs:
       - name: Run tests
         run: |
           xcodebuild test -workspace ./example/ios/Runner.xcworkspace \
-            -scheme EasyCalendarTests \
+            -scheme EventideTests \
             -destination 'platform=iOS Simulator,name=iPhone 16,OS=18.1' \
-            -resultBundlePath build/reports/EasyCalendarTests.xcresult
+            -resultBundlePath build/reports/EventideTests.xcresult

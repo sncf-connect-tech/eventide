@@ -1,14 +1,14 @@
-import 'package:easy_calendar/src/easy_calendar_extensions.dart';
+import 'package:eventide/src/eventide_extensions.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
-import 'package:easy_calendar/src/easy_calendar_exception.dart';
-import 'package:easy_calendar/src/easy_calendar_platform_interface.dart';
-import 'package:easy_calendar/src/calendar_api.g.dart';
+import 'package:eventide/src/eventide_exception.dart';
+import 'package:eventide/src/eventide_platform_interface.dart';
+import 'package:eventide/src/calendar_api.g.dart';
 
-class EasyCalendar extends EasyCalendarPlatform {
+class Eventide extends EventidePlatform {
   final CalendarApi _calendarApi;
 
-  EasyCalendar({
+  Eventide({
     @visibleForTesting CalendarApi? calendarApi,
   }) : _calendarApi = calendarApi ?? CalendarApi();
 
@@ -23,68 +23,68 @@ class EasyCalendar extends EasyCalendarPlatform {
     try {
       return await _calendarApi.requestCalendarPermission();
     } on PlatformException catch (e) {
-      throw e.toEasyCalendarException();
+      throw e.toETException();
     }
   }
 
   /// Creates a new calendar with the given [title] and [color].
   /// 
-  /// Returns the created [ECCalendar].
+  /// Returns the created [ETCalendar].
   /// 
-  /// Throws a [FCCPermissionException] if the user refuses to grant calendar permissions.
+  /// Throws a [ETPermissionException] if the user refuses to grant calendar permissions.
   /// 
-  /// Throws a [FCCNotFoundException] on iOS if not one callendar source has been found or if the created calendar id is not found.
+  /// Throws a [ETNotFoundException] on iOS if not one callendar source has been found or if the created calendar id is not found.
   /// 
-  /// Throws a [FCCGenericException] on iOS if the color hex cannot be converted to a UIColor.
+  /// Throws a [ETGenericException] on iOS if the color hex cannot be converted to a UIColor.
   /// 
-  /// Throws a [FCCGenericException] if any other error occurs during calendar creation.
+  /// Throws a [ETGenericException] if any other error occurs during calendar creation.
 
   @override
-  Future<ECCalendar> createCalendar({required String title, required Color color}) async {
+  Future<ETCalendar> createCalendar({required String title, required Color color}) async {
     try {
       final calendar = await _calendarApi.createCalendar(title: title, color: color.toValue());
-      return calendar.toECCalendar();
+      return calendar.toETCalendar();
 
     } on PlatformException catch (e) {
-      throw e.toEasyCalendarException();
+      throw e.toETException();
     }
   }
 
   /// Retrieves a list of calendars.
   /// If [onlyWritableCalendars] is `true`, only writable calendars are returned.
   /// 
-  /// Returns a list of [ECCalendar]s.
+  /// Returns a list of [ETCalendar]s.
   /// 
-  /// Throws a [FCCPermissionException] if the user refuses to grant calendar permissions.
+  /// Throws a [ETPermissionException] if the user refuses to grant calendar permissions.
   /// 
-  /// Throws a [FCCGenericException] if any other error occurs during calendars retrieval.
+  /// Throws a [ETGenericException] if any other error occurs during calendars retrieval.
   @override
-  Future<List<ECCalendar>> retrieveCalendars({bool onlyWritableCalendars = true}) async {
+  Future<List<ETCalendar>> retrieveCalendars({bool onlyWritableCalendars = true}) async {
     try {
       final calendars = await _calendarApi.retrieveCalendars(onlyWritableCalendars: onlyWritableCalendars);
-      return calendars.toECCalendarList();
+      return calendars.toETCalendarList();
 
     } on PlatformException catch (e) {
-      throw e.toEasyCalendarException();
+      throw e.toETException();
     }
   }
 
   /// Deletes the calendar with the given [calendarId].
   /// 
-  /// Throws a [FCCPermissionException] if the user refuses to grant calendar permissions.
+  /// Throws a [ETPermissionException] if the user refuses to grant calendar permissions.
   /// 
-  /// Throws a [FCCNotFoundException] if the calendar with the given [calendarId] is not found.
+  /// Throws a [ETNotFoundException] if the calendar with the given [calendarId] is not found.
   /// 
-  /// Throws a [FCCNotEditableException] if the calendar is not editable.
+  /// Throws a [ETNotEditableException] if the calendar is not editable.
   /// 
-  /// Throws a [FCCGenericException] if any other error occurs during calendar deletion.
+  /// Throws a [ETGenericException] if any other error occurs during calendar deletion.
   @override
   Future<void> deleteCalendar({required String calendarId}) async {
     try {
       await _calendarApi.deleteCalendar(calendarId: calendarId);
 
     } on PlatformException catch (e) {
-      throw e.toEasyCalendarException();
+      throw e.toETException();
     }
   }
 
@@ -95,13 +95,13 @@ class EasyCalendar extends EasyCalendarPlatform {
   /// 
   /// Returns the created [Event].
   /// 
-  /// Throws a [FCCPermissionException] if the user refuses to grant calendar permissions.
+  /// Throws a [ETPermissionException] if the user refuses to grant calendar permissions.
   /// 
-  /// Throws a [FCCNotFoundException] if the calendar with the given [calendarId] is not found or if the created event id is not found.
+  /// Throws a [ETNotFoundException] if the calendar with the given [calendarId] is not found or if the created event id is not found.
   /// 
-  /// Throws a [FCCGenericException] if any other error occurs during event creation.
+  /// Throws a [ETGenericException] if any other error occurs during event creation.
   @override
-  Future<ECEvent> createEvent({
+  Future<ETEvent> createEvent({
     required String calendarId,
     required String title,
     required DateTime startDate,
@@ -121,10 +121,10 @@ class EasyCalendar extends EasyCalendarPlatform {
         url: url,
       );
 
-      return event.toECEvent();
+      return event.toETEvent();
       
     } on PlatformException catch (e) {
-      throw e.toEasyCalendarException();
+      throw e.toETException();
     }
   }
 
@@ -133,39 +133,39 @@ class EasyCalendar extends EasyCalendarPlatform {
   /// 
   /// Returns a list of [Event]s.
   /// 
-  /// Throws a [FCCPermissionException] if the user refuses to grant calendar permissions.
+  /// Throws a [ETPermissionException] if the user refuses to grant calendar permissions.
   /// 
-  /// Throws a [FCCNotFoundException] if the calendar with the given [calendarId] is not found.
+  /// Throws a [ETNotFoundException] if the calendar with the given [calendarId] is not found.
   /// 
-  /// Throws a [FCCGenericException] if any other error occurs during events retrieval.
+  /// Throws a [ETGenericException] if any other error occurs during events retrieval.
   @override
-  Future<List<ECEvent>> retrieveEvents({required String calendarId, DateTime? startDate, DateTime? endDate}) async {
+  Future<List<ETEvent>> retrieveEvents({required String calendarId, DateTime? startDate, DateTime? endDate}) async {
     try {
       final start = startDate ?? DateTime.now();
       final end = endDate ?? DateTime.now().add(const Duration(days: 7));
       final events = await _calendarApi.retrieveEvents(calendarId: calendarId, startDate: start.millisecondsSinceEpoch, endDate: end.microsecondsSinceEpoch,);
-      return events.toECEventList();
+      return events.toETEventList();
 
     } on PlatformException catch (e) {
-      throw e.toEasyCalendarException();
+      throw e.toETException();
     }
   }
 
   /// Deletes the event with the given [eventId] from the calendar with the given [calendarId].
   /// 
-  /// Throws a [FCCPermissionException] if the user refuses to grant calendar permissions.
+  /// Throws a [ETPermissionException] if the user refuses to grant calendar permissions.
   /// 
-  /// Throws a [FCCNotFoundException] if the event with the given [eventId] is not found.
+  /// Throws a [ETNotFoundException] if the event with the given [eventId] is not found.
   /// 
-  /// Throws a [FCCNotEditableException] if the calendar is not editable.
+  /// Throws a [ETNotEditableException] if the calendar is not editable.
   /// 
-  /// Throws a [FCCGenericException] if any other error occurs during event deletion.
+  /// Throws a [ETGenericException] if any other error occurs during event deletion.
   @override
   Future<void> deleteEvent({required String eventId}) async {
     try {
       await _calendarApi.deleteEvent(eventId: eventId);
     } on PlatformException catch (e) {
-      throw e.toEasyCalendarException();
+      throw e.toETException();
     }
   }
 
@@ -173,43 +173,43 @@ class EasyCalendar extends EasyCalendarPlatform {
   /// 
   /// /!\ Note that a [Duration] in seconds will not be supported by Android for API limitations.
   /// 
-  /// Throws a [FCCPermissionException] if the user refuses to grant calendar permissions.
+  /// Throws a [ETPermissionException] if the user refuses to grant calendar permissions.
   /// 
-  /// Throws a [FCCNotFoundException] if the event with the given [eventId] is not found.
+  /// Throws a [ETNotFoundException] if the event with the given [eventId] is not found.
   /// 
-  /// Throws a [FCCGenericException] if any other error occurs during reminder creation.
+  /// Throws a [ETGenericException] if any other error occurs during reminder creation.
   @override
-  Future<ECEvent> createReminder({
+  Future<ETEvent> createReminder({
     required Duration durationBeforeEvent,
     required String eventId,
   }) async {
     try {
       final updatedEvent = await _calendarApi.createReminder(reminder: durationBeforeEvent.toNativeDuration(), eventId: eventId);
-      return updatedEvent.toECEvent();
+      return updatedEvent.toETEvent();
 
     } on PlatformException catch (e) {
-      throw e.toEasyCalendarException();
+      throw e.toETException();
     }
   }
 
   /// Deletes the reminder with the given [durationBeforeEvent] for the event with the given [eventId].
   /// 
-  /// Throws a [FCCPermissionException] if the user refuses to grant calendar permissions.
+  /// Throws a [ETPermissionException] if the user refuses to grant calendar permissions.
   /// 
-  /// Throws a [FCCNotFoundException] if the event with the given [eventId] is not found.
+  /// Throws a [ETNotFoundException] if the event with the given [eventId] is not found.
   /// 
-  /// Throws a [FCCGenericException] if any other error occurs during reminder deletion.
+  /// Throws a [ETGenericException] if any other error occurs during reminder deletion.
   @override
-  Future<ECEvent> deleteReminder({
+  Future<ETEvent> deleteReminder({
     required Duration durationBeforeEvent,
     required String eventId,
   }) async {
     try {
       final updatedEvent = await _calendarApi.deleteReminder(reminder: durationBeforeEvent.toNativeDuration(), eventId: eventId);
-      return updatedEvent.toECEvent();
+      return updatedEvent.toETEvent();
       
     } on PlatformException catch (e) {
-      throw e.toEasyCalendarException();
+      throw e.toETException();
     }
   }
 }

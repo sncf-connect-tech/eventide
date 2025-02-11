@@ -1,4 +1,4 @@
-package sncf.connect.tech.easy_calendar
+package sncf.connect.tech.eventide
 
 import android.Manifest.permission.READ_CALENDAR
 import android.Manifest.permission.WRITE_CALENDAR

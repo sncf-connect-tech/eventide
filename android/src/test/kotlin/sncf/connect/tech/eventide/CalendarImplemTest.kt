@@ -1,4 +1,4 @@
-package sncf.connect.tech.easy_calendar
+package sncf.connect.tech.eventide
 
 import android.content.ContentResolver
 import android.database.Cursor

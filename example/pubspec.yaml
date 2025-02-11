@@ -1,5 +1,5 @@
-name: easy_calendar_example
-description: "Demonstrates how to use the easy_calendar plugin."
+name: eventide_example
+description: "Demonstrates how to use the eventide plugin."
 publish_to: 'none'
 
 environment:
@@ -9,7 +9,7 @@ dependencies:
   flutter:
     sdk: flutter
 
-  easy_calendar:
+  eventide:
     path: ../
   cupertino_icons: ^1.0.6
   flutter_bloc: ^8.1.6

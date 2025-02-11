@@ -1,16 +1,28 @@
-# Easy Calendar
+# Eventide
 
-[![Flutter Tests](https://github.com/sncf-connect-tech/easy_calendar/actions/workflows/flutter.yml/badge.svg)](https://github.com/sncf-connect-tech/easy_calendar/actions/workflows/flutter.yml)
-[![Android Tests](https://github.com/sncf-connect-tech/easy_calendar/actions/workflows/android.yml/badge.svg)](https://github.com/sncf-connect-tech/easy_calendar/actions/workflows/android.yml)
-[![iOS Tests](https://github.com/sncf-connect-tech/easy_calendar/actions/workflows/ios.yml/badge.svg)](https://github.com/sncf-connect-tech/easy_calendar/actions/workflows/ios.yml)
+[![Flutter Tests](https://github.com/sncf-connect-tech/eventide/actions/workflows/flutter.yml/badge.svg)](https://github.com/sncf-connect-tech/eventide/actions/workflows/flutter.yml)
+[![Android Tests](https://github.com/sncf-connect-tech/eventide/actions/workflows/android.yml/badge.svg)](https://github.com/sncf-connect-tech/eventide/actions/workflows/android.yml)
+[![iOS Tests](https://github.com/sncf-connect-tech/eventide/actions/workflows/ios.yml/badge.svg)](https://github.com/sncf-connect-tech/eventide/actions/workflows/ios.yml)
 
-A Flutter plugin to access & modify native calendars on user's device (iOS & Android).
+Eventide provides a easy-to-use flutter interface to access & modify native device calendars (iOS & Android).
 
-This plugin allows you to create, read and delete calendars, events and reminders. It handles timezones as UTC.
+## Features
+* Automatic permission handling (you can still ask for permissions manually if you want to request early at runtime)
+* Add/retrieve/delete calendars
+* Add/retrieve/delete events
+    NOTE: Eventide handles timezones as UTC. It's up to the developer to make sure he sends the right data with a [timezone aware DateTime class](https://pub.dev/packages/timezone).
+* Add/delete reminders
+* Custom exceptions
 
-You can ask for permissions manually if you want to request the user early at runtime. However permissions are handled automatically by the plugin at first method call.
+## Work in progress
+* Recurring events
+* Attendees
 
 ## Getting Started
+
+### Android
+
+Nothing to add on your side. All is already declared in eventide's AndroidManifest.xml
 
 ### iOS
 
@@ -25,16 +37,26 @@ To read/write calendar data, your app must include the following permissions in 
 <string>We need access to your calendar to add information about your trip.</string>
 ```
 
-## Contribute
+## Usage Example
 
-### Build with pigeon
+```dart
+import 'package:eventide/eventide.dart';
 
-We use [pigeon](https://pub.dev/packages/pigeon) to make communication between Flutter and host platforms easier.
+final eventide = Eventide();
 
-Run the following command from project root to build boilerplate code with pigeon:
+final calendar = await eventide.createCalendar('Work', Colors.red);
 
-```bash
-fvm dart pub run pigeon --input ./lib/src/pigeon/calendar_api.dart
+final event = await eventide.createEvent(
+    calendarId: calendar.id,
+    title: 'Meeting',
+    startDate: DateTime.now(),
+    endDate: DateTime.now().add(Duration(hours: 1)),
+);
+
+final updatedEvent = await eventide.addReminder(
+    durationBeforeEvent: Duration(minutes: 15),
+    eventId: event.id,
+);
 ```
 
 ## License

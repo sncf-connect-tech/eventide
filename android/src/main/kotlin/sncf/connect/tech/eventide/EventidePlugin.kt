@@ -1,11 +1,11 @@
-package sncf.connect.tech.easy_calendar
+package sncf.connect.tech.eventide
 
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.embedding.engine.plugins.activity.ActivityAware
 import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
 import io.flutter.plugin.common.BinaryMessenger
 
-class EasyCalendarPlugin: FlutterPlugin, ActivityAware {
+class EventidePlugin: FlutterPlugin, ActivityAware {
   private lateinit var binaryMessenger: BinaryMessenger
 
   override fun onAttachedToEngine(flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {

@@ -1,12 +1,12 @@
 //
 //  CalendarImplemTests.swift
-//  EasyCalendarTests
+//  EventideTests
 //
 //  Created by CHOUPAULT Alexis on 24/01/2025.
 //
 
 import XCTest
-@testable import easy_calendar
+@testable import eventide
 
 final class CalendarImplemTests: XCTestCase {
     private let timeout = TimeInterval(5)

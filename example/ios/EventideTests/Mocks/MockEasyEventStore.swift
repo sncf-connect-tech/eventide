@@ -1,13 +1,13 @@
 //
 //  MockEasyEventStore.swift
-//  EasyCalendarTests
+//  EventideTests
 //
 //  Created by CHOUPAULT Alexis on 23/01/2025.
 //
 
 import UIKit
 import EventKit
-@testable import easy_calendar
+@testable import eventide
 
 class MockEasyEventStore: EasyEventStoreProtocol {
     var calendars: [MockCalendar]
@@ -16,7 +16,7 @@ class MockEasyEventStore: EasyEventStoreProtocol {
         self.calendars = calendars
     }
     
-    func createCalendar(title: String, color: UIColor) throws -> easy_calendar.Calendar {
+    func createCalendar(title: String, color: UIColor) throws -> eventide.Calendar {
         let calendar = MockCalendar(
             id: "id",
             title: title,
@@ -31,7 +31,7 @@ class MockEasyEventStore: EasyEventStoreProtocol {
         return calendar.toCalendar()
     }
     
-    func retrieveCalendars(onlyWritable: Bool) -> [easy_calendar.Calendar] {
+    func retrieveCalendars(onlyWritable: Bool) -> [eventide.Calendar] {
         return calendars
             .filter { onlyWritable && $0.isWritable || !onlyWritable }
             .map { $0.toCalendar() }
@@ -57,7 +57,7 @@ class MockEasyEventStore: EasyEventStoreProtocol {
         calendars.remove(at: index)
     }
     
-    func createEvent(calendarId: String, title: String, startDate: Date, endDate: Date, isAllDay: Bool, description: String?, url: String?) throws -> easy_calendar.Event {
+    func createEvent(calendarId: String, title: String, startDate: Date, endDate: Date, isAllDay: Bool, description: String?, url: String?) throws -> eventide.Event {
         guard let mockCalendar = calendars.first(where: { $0.id == calendarId }) else {
             throw PigeonError(
                 code: "NOT_FOUND",
@@ -82,7 +82,7 @@ class MockEasyEventStore: EasyEventStoreProtocol {
         return mockEvent.toEvent()
     }
     
-    func retrieveEvents(calendarId: String, startDate: Date, endDate: Date) throws -> [easy_calendar.Event] {
+    func retrieveEvents(calendarId: String, startDate: Date, endDate: Date) throws -> [eventide.Event] {
         guard let mockCalendar = calendars.first(where: { $0.id == calendarId }) else {
             throw PigeonError(
                 code: "NOT_FOUND",
@@ -116,7 +116,7 @@ class MockEasyEventStore: EasyEventStoreProtocol {
         calendars[index].events.removeAll { $0.id == eventId }
     }
     
-    func createReminder(timeInterval: TimeInterval, eventId: String) throws -> easy_calendar.Event {
+    func createReminder(timeInterval: TimeInterval, eventId: String) throws -> eventide.Event {
         guard let mockEvent = findEvent(eventId: eventId) else {
             throw PigeonError(
                 code: "NOT_FOUND",
@@ -134,7 +134,7 @@ class MockEasyEventStore: EasyEventStoreProtocol {
         return mockEvent.toEvent()
     }
     
-    func deleteReminder(timeInterval: TimeInterval, eventId: String) throws -> easy_calendar.Event {
+    func deleteReminder(timeInterval: TimeInterval, eventId: String) throws -> eventide.Event {
         guard let mockEvent = findEvent(eventId: eventId) else {
             throw PigeonError(
                 code: "NOT_FOUND",
@@ -185,8 +185,8 @@ class MockCalendar {
         self.events = events
     }
     
-    fileprivate func toCalendar() -> easy_calendar.Calendar {
-        easy_calendar.Calendar(
+    fileprivate func toCalendar() -> eventide.Calendar {
+        eventide.Calendar(
             id: id,
             title: title,
             color: color.toInt64(),

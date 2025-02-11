@@ -1,8 +1,8 @@
 import 'dart:ui';
 
 import 'package:flutter/foundation.dart';
-import 'package:easy_calendar/src/calendar_api.g.dart';
-import 'package:easy_calendar/src/easy_calendar_platform_interface.dart';
+import 'package:eventide/src/calendar_api.g.dart';
+import 'package:eventide/src/eventide_platform_interface.dart';
 
 extension ColorToValue on Color {
   int toValue() => _floatToInt8(a) << 24 | _floatToInt8(r) << 16 | _floatToInt8(g) << 8 | _floatToInt8(b) << 0;
@@ -11,8 +11,8 @@ extension ColorToValue on Color {
 }
 
 extension CalendarToECCalendar on Calendar {
-  ECCalendar toECCalendar() {
-    return ECCalendar(
+  ETCalendar toETCalendar() {
+    return ETCalendar(
       id: id,
       title: title,
       color: Color(color),
@@ -23,8 +23,8 @@ extension CalendarToECCalendar on Calendar {
 }
 
 extension EventToECEvent on Event {
-  ECEvent toECEvent() {
-    return ECEvent(
+  ETEvent toETEvent() {
+    return ETEvent(
       id: id,
       title: title,
       isAllDay: isAllDay,
@@ -42,14 +42,14 @@ extension EventToECEvent on Event {
 }
 
 extension CalendarListToECCalendar on List<Calendar> {
-  List<ECCalendar> toECCalendarList() {
-    return map((c) => c.toECCalendar()).toList();
+  List<ETCalendar> toETCalendarList() {
+    return map((c) => c.toETCalendar()).toList();
   }
 }
 
 extension EventListToECEvent on List<Event> {
-  List<ECEvent> toECEventList() {
-    return map((e) => e.toECEvent()).toList();
+  List<ETEvent> toETEventList() {
+    return map((e) => e.toETEvent()).toList();
   }
 }
 

@@ -1,9 +1,9 @@
-import 'package:easy_calendar/src/easy_calendar_extensions.dart';
-import 'package:easy_calendar/src/easy_calendar_platform_interface.dart';
+import 'package:eventide/src/eventide_extensions.dart';
+import 'package:eventide/src/eventide_platform_interface.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:easy_calendar/src/easy_calendar.dart';
-import 'package:easy_calendar/src/calendar_api.g.dart';
+import 'package:eventide/src/eventide.dart';
+import 'package:eventide/src/calendar_api.g.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:flutter/material.dart';
 import 'package:timezone/timezone.dart';
@@ -15,15 +15,15 @@ void main() {
   tz.initializeTimeZones();
   
   late _MockCalendarApi mockCalendarApi;
-  late EasyCalendar easyCalendar;
+  late Eventide eventide;
 
   setUp(() {
     mockCalendarApi = _MockCalendarApi();
-    easyCalendar = EasyCalendar(calendarApi: mockCalendarApi);
+    eventide = Eventide(calendarApi: mockCalendarApi);
   });
 
   group('Calendar tests', () {
-    test('createCalendar returns an ECCalendar', () async {
+    test('createCalendar returns an ETCalendar', () async {
       // Given
       final calendar = Calendar(
         id: '1',
@@ -36,10 +36,10 @@ void main() {
       when(() => mockCalendarApi.createCalendar(title: any(named: 'title'), color: any(named: 'color'))).thenAnswer((_) async => calendar);
 
       // When
-      final result = await easyCalendar.createCalendar(title: 'Test Calendar', color: Colors.blue);
+      final result = await eventide.createCalendar(title: 'Test Calendar', color: Colors.blue);
 
       // Then
-      expect(result, equals(calendar.toECCalendar()));
+      expect(result, equals(calendar.toETCalendar()));
       verify(() => mockCalendarApi.createCalendar(title: 'Test Calendar', color: Colors.blue.toValue())).called(1);
     });
 
@@ -48,14 +48,14 @@ void main() {
       when(() => mockCalendarApi.createCalendar(title: any(named: 'title'), color: any(named: 'color'))).thenThrow(Exception('API Error'));
 
       // When
-      Future<ECCalendar> call() => easyCalendar.createCalendar(title: 'Test Calendar', color: Colors.blue);
+      Future<ETCalendar> call() => eventide.createCalendar(title: 'Test Calendar', color: Colors.blue);
 
       // Then
       expect(call, throwsException);
       verify(() => mockCalendarApi.createCalendar(title: 'Test Calendar', color: Colors.blue.toValue())).called(1);
     });
 
-    test('retrieveCalendars returns a list of ECCalendars', () async {
+    test('retrieveCalendars returns a list of ETCalendars', () async {
       // Given
       final calendars = [
         Calendar(id: '1', title: 'Test Calendar 1', color: Colors.blue.toValue(), isWritable: true, sourceName: 'local'),
@@ -64,10 +64,10 @@ void main() {
       when(() => mockCalendarApi.retrieveCalendars(onlyWritableCalendars: any(named: 'onlyWritableCalendars'))).thenAnswer((_) async => calendars);
 
       // When
-      final result = await easyCalendar.retrieveCalendars(onlyWritableCalendars: true);
+      final result = await eventide.retrieveCalendars(onlyWritableCalendars: true);
 
       // Then
-      expect(result, equals(calendars.map((c) => c.toECCalendar()).toList()));
+      expect(result, equals(calendars.map((c) => c.toETCalendar()).toList()));
       verify(() => mockCalendarApi.retrieveCalendars(onlyWritableCalendars: true)).called(1);
     });
 
@@ -76,7 +76,7 @@ void main() {
       when(() => mockCalendarApi.retrieveCalendars(onlyWritableCalendars: any(named: 'onlyWritableCalendars'))).thenThrow(Exception('API Error'));
 
       // When
-      Future<List<ECCalendar>> call() => easyCalendar.retrieveCalendars(onlyWritableCalendars: true);
+      Future<List<ETCalendar>> call() => eventide.retrieveCalendars(onlyWritableCalendars: true);
 
       // Then
       expect(call, throwsException);
@@ -88,7 +88,7 @@ void main() {
       when(() => mockCalendarApi.deleteCalendar(calendarId: any(named: 'calendarId'))).thenAnswer((_) async => {});
 
       // When
-      await easyCalendar.deleteCalendar(calendarId: '1');
+      await eventide.deleteCalendar(calendarId: '1');
 
       // Then
       verify(() => mockCalendarApi.deleteCalendar(calendarId: '1')).called(1);
@@ -99,7 +99,7 @@ void main() {
       when(() => mockCalendarApi.deleteCalendar(calendarId: any(named: 'calendarId'))).thenThrow(Exception('API Error'));
 
       // When
-      Future<void> call() => easyCalendar.deleteCalendar(calendarId: '1');
+      Future<void> call() => eventide.deleteCalendar(calendarId: '1');
 
       // Then
       expect(call, throwsException);
@@ -127,7 +127,7 @@ void main() {
       registerFallbackValue(event);
     });
 
-    test('createEvent returns an ECEvent', () async {
+    test('createEvent returns an ETEvent', () async {
       // Given
       final event = Event(
         id: '1', 
@@ -149,7 +149,7 @@ void main() {
       )).thenAnswer((_) async => event);
 
       // When
-      final result = await easyCalendar.createEvent(
+      final result = await eventide.createEvent(
         title: 'Test Event',
         isAllDay: true,
         startDate: startDate,
@@ -158,7 +158,7 @@ void main() {
       );
 
       // Then
-      expect(result, event.toECEvent());
+      expect(result, event.toETEvent());
       verify(() => mockCalendarApi.createEvent(
         title: any(named: 'title'),
         isAllDay: any(named: 'isAllDay'),
@@ -183,7 +183,7 @@ void main() {
       )).thenThrow(Exception('API Error'));
 
       // When
-      Future<ECEvent> call() => easyCalendar.createEvent(
+      Future<ETEvent> call() => eventide.createEvent(
         title: 'Test Event', 
         startDate: startDate,
         endDate: endDate,
@@ -203,13 +203,13 @@ void main() {
       )).called(1);
     });
 
-    test('retrieveEvents returns a list of ECEvents with reminders', () async {
+    test('retrieveEvents returns a list of ETEvents with reminders', () async {
       // Given
       const reminders = [Duration(minutes: 10), Duration(minutes: 20)];
       when(() => mockCalendarApi.retrieveEvents(calendarId: any(named: 'calendarId'), startDate: any(named: 'startDate'), endDate: any(named: 'endDate'))).thenAnswer((_) async => [event.copyWithReminders(reminders.toNativeList())]);
 
       // When
-      final result = await easyCalendar.retrieveEvents(calendarId: '1');
+      final result = await eventide.retrieveEvents(calendarId: '1');
 
       // Then
       expect(result.first.reminders, equals(reminders));
@@ -241,7 +241,7 @@ void main() {
         url: any(named: 'url'),
       )).thenAnswer((_) async => mockEvent);
 
-      await easyCalendar.createEvent(
+      await eventide.createEvent(
         title: 'Paris - Montréal', 
         startDate: parisDeparture,
         endDate: montrealArrival,
@@ -274,7 +274,7 @@ void main() {
         debugDefaultTargetPlatformOverride = null;
       });
 
-      test('createReminder returns an ECEvent', () async {
+      test('createReminder returns an ETEvent', () async {
         // Given
         final targetEvent = Event(
           id: '1',
@@ -289,13 +289,13 @@ void main() {
         when(() => mockCalendarApi.createReminder(reminder: any(named: 'reminder'), eventId: any(named: 'eventId'))).thenAnswer((_) async => targetEvent);
 
         // When
-        final result = await easyCalendar.createReminder(
+        final result = await eventide.createReminder(
           durationBeforeEvent: const Duration(minutes: 10),
           eventId: '1',
         );
 
         // Then
-        expect(result, targetEvent.toECEvent());
+        expect(result, targetEvent.toETEvent());
         verify(() => mockCalendarApi.createReminder(reminder: 10*60, eventId: '1')).called(1);
       });
 
@@ -304,7 +304,7 @@ void main() {
         when(() => mockCalendarApi.createReminder(reminder: any(named: 'reminder'), eventId: any(named: 'eventId'))).thenThrow(Exception('API Error'));
 
         // When
-        Future<ECEvent> call() => easyCalendar.createReminder(
+        Future<ETEvent> call() => eventide.createReminder(
           durationBeforeEvent: const Duration(minutes: 10),
           eventId: '1',
         );
@@ -314,7 +314,7 @@ void main() {
         verify(() => mockCalendarApi.createReminder(reminder: 10*60, eventId: '1')).called(1);
       });
 
-      test('deleteReminder returns an ECEvent', () async {
+      test('deleteReminder returns an ETEvent', () async {
         // Given
         final targetEvent = Event(
           id: '1',
@@ -328,13 +328,13 @@ void main() {
         when(() => mockCalendarApi.deleteReminder(reminder: any(named: 'reminder'), eventId: any(named: 'eventId'))).thenAnswer((_) async => targetEvent);
 
         // When
-        final result = await easyCalendar.deleteReminder(
+        final result = await eventide.deleteReminder(
           durationBeforeEvent: const Duration(minutes: 10),
           eventId: '1',
         );
 
         // Then
-        expect(result, targetEvent.toECEvent());
+        expect(result, targetEvent.toETEvent());
         verify(() => mockCalendarApi.deleteReminder(reminder: 10*60, eventId: '1')).called(1);
       });
 
@@ -343,7 +343,7 @@ void main() {
         when(() => mockCalendarApi.deleteReminder(reminder: any(named: 'reminder'), eventId: any(named: 'eventId'))).thenThrow(Exception('API Error'));
 
         // When
-        Future<ECEvent> call() => easyCalendar.deleteReminder(
+        Future<ETEvent> call() => eventide.deleteReminder(
           durationBeforeEvent: const Duration(minutes: 10),
           eventId: '1',
         );
@@ -363,7 +363,7 @@ void main() {
         debugDefaultTargetPlatformOverride = null;
       });
 
-      test('createReminder returns an ECEvent', () async {
+      test('createReminder returns an ETEvent', () async {
         // Given
         final targetEvent = Event(
           id: '1',
@@ -378,13 +378,13 @@ void main() {
         when(() => mockCalendarApi.createReminder(reminder: any(named: 'reminder'), eventId: any(named: 'eventId'))).thenAnswer((_) async => targetEvent);
 
         // When
-        final result = await easyCalendar.createReminder(
+        final result = await eventide.createReminder(
           durationBeforeEvent: const Duration(minutes: 10),
           eventId: '1',
         );
 
         // Then
-        expect(result, targetEvent.toECEvent());
+        expect(result, targetEvent.toETEvent());
         verify(() => mockCalendarApi.createReminder(reminder: 10, eventId: '1')).called(1);
       });
 
@@ -393,7 +393,7 @@ void main() {
         when(() => mockCalendarApi.createReminder(reminder: any(named: 'reminder'), eventId: any(named: 'eventId'))).thenThrow(Exception('API Error'));
 
         // When
-        Future<ECEvent> call() => easyCalendar.createReminder(
+        Future<ETEvent> call() => eventide.createReminder(
           durationBeforeEvent: const Duration(minutes: 10),
           eventId: '1',
         );
@@ -403,7 +403,7 @@ void main() {
         verify(() => mockCalendarApi.createReminder(reminder: 10, eventId: '1')).called(1);
       });
 
-      test('deleteReminder returns an ECEvent', () async {
+      test('deleteReminder returns an ETEvent', () async {
         // Given
         final targetEvent = Event(
           id: '1',
@@ -417,13 +417,13 @@ void main() {
         when(() => mockCalendarApi.deleteReminder(reminder: any(named: 'reminder'), eventId: any(named: 'eventId'))).thenAnswer((_) async => targetEvent);
 
         // When
-        final result = await easyCalendar.deleteReminder(
+        final result = await eventide.deleteReminder(
           durationBeforeEvent: const Duration(minutes: 10),
           eventId: '1',
         );
 
         // Then
-        expect(result, targetEvent.toECEvent());
+        expect(result, targetEvent.toETEvent());
         verify(() => mockCalendarApi.deleteReminder(reminder: 10, eventId: '1')).called(1);
       });
 
@@ -432,7 +432,7 @@ void main() {
         when(() => mockCalendarApi.deleteReminder(reminder: any(named: 'reminder'), eventId: any(named: 'eventId'))).thenThrow(Exception('API Error'));
 
         // When
-        Future<ECEvent> call() => easyCalendar.deleteReminder(
+        Future<ETEvent> call() => eventide.deleteReminder(
           durationBeforeEvent: const Duration(minutes: 10),
           eventId: '1',
         );

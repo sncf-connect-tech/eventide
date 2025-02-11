@@ -1,4 +1,4 @@
-package sncf.connect.tech.easy_calendar
+package sncf.connect.tech.eventide
 
 import android.Manifest.permission.READ_CALENDAR
 import android.Manifest.permission.WRITE_CALENDAR
@@ -10,8 +10,8 @@ import io.mockk.mockk
 import io.mockk.mockkStatic
 import io.mockk.verify
 import org.junit.jupiter.api.Test
-import sncf.connect.tech.easy_calendar.PermissionHandler.Companion.readRequestCode
-import sncf.connect.tech.easy_calendar.PermissionHandler.Companion.writeRequestCode
+import sncf.connect.tech.eventide.PermissionHandler.Companion.readRequestCode
+import sncf.connect.tech.eventide.PermissionHandler.Companion.writeRequestCode
 import kotlin.test.BeforeTest
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue

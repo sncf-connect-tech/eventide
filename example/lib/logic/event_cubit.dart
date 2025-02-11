@@ -1,14 +1,14 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:easy_calendar_example/logic/event_state.dart';
-import 'package:easy_calendar/easy_calendar.dart';
+import 'package:eventide_example/logic/event_state.dart';
+import 'package:eventide/eventide.dart';
 import 'package:timezone/timezone.dart';
 import 'package:value_state/value_state.dart';
 
 class EventCubit extends Cubit<EventState> {
-  final EasyCalendar _calendarPlugin;
+  final Eventide _calendarPlugin;
   
   EventCubit({
-    required EasyCalendar calendarPlugin,
+    required Eventide calendarPlugin,
   }) :  _calendarPlugin = calendarPlugin,
         super(const EventState.initial());
 
@@ -38,7 +38,7 @@ class EventCubit extends Cubit<EventState> {
     }
   }
 
-  Future<void> selectCalendar(ECCalendar calendar) async {
+  Future<void> selectCalendar(ETCalendar calendar) async {
     await state.fetchFrom(() async {
       return EventValue(
         calendar: calendar,
