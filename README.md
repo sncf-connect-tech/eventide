@@ -1,4 +1,4 @@
-# Eventide
+## 📆 Eventide
 
 [![Flutter Tests](https://github.com/sncf-connect-tech/eventide/actions/workflows/flutter.yml/badge.svg)](https://github.com/sncf-connect-tech/eventide/actions/workflows/flutter.yml)
 [![Android Tests](https://github.com/sncf-connect-tech/eventide/actions/workflows/android.yml/badge.svg)](https://github.com/sncf-connect-tech/eventide/actions/workflows/android.yml)
@@ -6,7 +6,7 @@
 
 Eventide provides a easy-to-use flutter interface to access & modify native device calendars (iOS & Android).
 
-## Features
+### 🔥 Features
 * Automatic permission handling (you can still ask for permissions manually if you want to request early at runtime)
 * Add/retrieve/delete calendars
 * Add/retrieve/delete events
@@ -14,17 +14,17 @@ Eventide provides a easy-to-use flutter interface to access & modify native devi
 * Add/delete reminders
 * Custom exceptions
 
-## Work in progress
+### 🚧 Work in progress
 * Recurring events
 * Attendees
 
-## Getting Started
+### 🔨 Getting Started
 
-### Android
+#### Android
 
 Nothing to add on your side. All is already declared in eventide's AndroidManifest.xml
 
-### iOS
+#### iOS
 
 To read/write calendar data, your app must include the following permissions in its info.plist file.
 
@@ -37,7 +37,7 @@ To read/write calendar data, your app must include the following permissions in 
 <string>We need access to your calendar to add information about your trip.</string>
 ```
 
-## Usage Example
+### 🚀 Quick start
 
 ```dart
 import 'package:eventide/eventide.dart';
@@ -59,6 +59,8 @@ final updatedEvent = await eventide.addReminder(
 );
 ```
 
-## License
+You can find more in the example app.
+
+### License
 
 Copyright © 2025 SNCF Connect & Tech. This project is licensed under the MIT License - see the LICENSE file for details.
