@@ -4,13 +4,13 @@ import 'package:pigeon/pigeon.dart';
 @ConfigurePigeon(PigeonOptions(
   dartOut: 'lib/src/calendar_api.g.dart',
   dartOptions: DartOptions(),
-  kotlinOut: 'android/src/main/kotlin/sncf/connect/tech/eventide/CalendarApi.g.kt',
+  kotlinOut:
+      'android/src/main/kotlin/sncf/connect/tech/eventide/CalendarApi.g.kt',
   kotlinOptions: KotlinOptions(package: 'sncf.connect.tech.eventide'),
   swiftOut: 'ios/Classes/CalendarApi.g.swift',
   swiftOptions: SwiftOptions(),
   dartPackageName: 'eventide',
 ))
-
 @HostApi()
 abstract class CalendarApi {
   @async
@@ -18,7 +18,7 @@ abstract class CalendarApi {
 
   @async
   Calendar createCalendar({
-    required String title, 
+    required String title,
     required int color,
   });
 
@@ -49,39 +49,39 @@ abstract class CalendarApi {
     required String calendarId,
     required int startDate,
     required int endDate,
-    });
+  });
 
   @async
   @SwiftFunction('deleteEvent(withId:)')
   void deleteEvent({
     required String eventId,
-    });
+  });
 
   @async
   @SwiftFunction('createReminder(_:forEventId:)')
   Event createReminder({
     required int reminder,
     required String eventId,
-    });
+  });
 
   @async
   @SwiftFunction('deleteReminder(_:withEventId:)')
   Event deleteReminder({
     required int reminder,
     required String eventId,
-    });
+  });
 }
 
 /// Native data struct to represent a calendar.
-/// 
+///
 /// [id] is a unique identifier for the calendar.
-/// 
+///
 /// [title] is the title of the calendar.
-/// 
+///
 /// [color] is the color of the calendar.
-/// 
+///
 /// [isWritable] is a boolean to indicate if the calendar is writable.
-/// 
+///
 /// [sourceName] is the name of the source of the calendar.
 final class Calendar {
   final String id;
@@ -100,23 +100,23 @@ final class Calendar {
 }
 
 /// Native data struct to represent an event.
-/// 
+///
 /// [id] is a unique identifier for the event.
-/// 
+///
 /// [title] is the title of the event.
-/// 
+///
 /// [isAllDay] is whether or not the event is an all day.
-/// 
+///
 /// [startDate] is the start date of the event in milliseconds since epoch.
-/// 
+///
 /// [endDate] is the end date of the event in milliseconds since epoch.
-/// 
+///
 /// [calendarId] is the id of the calendar that the event belongs to.
-/// 
+///
 /// [description] is the description of the event.
-/// 
-/// [url] is the url of the event.  
-/// 
+///
+/// [url] is the url of the event.
+///
 /// [reminders] is a list of minutes before the event to remind the user.
 final class Event {
   final String id;

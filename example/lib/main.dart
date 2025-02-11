@@ -14,15 +14,18 @@ void main() {
 
 class MyApp extends StatelessWidget {
   final Eventide _calendarPlugin;
-  
+
   MyApp({super.key}) : _calendarPlugin = Eventide();
 
   @override
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
-        BlocProvider(create: (_) => CalendarCubit(calendarPlugin: _calendarPlugin)..fetchCalendars(onlyWritable: true)),
-        BlocProvider(create: (_) => EventCubit(calendarPlugin: _calendarPlugin)),
+        BlocProvider(
+            create: (_) => CalendarCubit(calendarPlugin: _calendarPlugin)
+              ..fetchCalendars(onlyWritable: true)),
+        BlocProvider(
+            create: (_) => EventCubit(calendarPlugin: _calendarPlugin)),
       ],
       child: const MaterialApp(
         home: Scaffold(

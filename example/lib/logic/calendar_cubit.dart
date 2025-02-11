@@ -9,7 +9,7 @@ class CalendarCubit extends Cubit<Value<List<ETCalendar>>> {
 
   CalendarCubit({
     required Eventide calendarPlugin,
-  }) : _calendarPlugin = calendarPlugin,
+  })  : _calendarPlugin = calendarPlugin,
         super(const Value.initial());
 
   Future<void> createCalendar({
@@ -23,20 +23,22 @@ class CalendarCubit extends Cubit<Value<List<ETCalendar>>> {
       );
 
       return [...state.data ?? [], calendar];
-
     }).forEach(emit);
   }
 
   Future<void> fetchCalendars({required bool onlyWritable}) async {
     await state.fetchFrom(() async {
-      return await _calendarPlugin.retrieveCalendars(onlyWritableCalendars: onlyWritable);
+      return await _calendarPlugin.retrieveCalendars(
+          onlyWritableCalendars: onlyWritable);
     }).forEach(emit);
   }
 
   Future<void> deleteCalendar(String calendarId) async {
     await state.fetchFrom(() async {
       await _calendarPlugin.deleteCalendar(calendarId: calendarId);
-      return [...state.data?.where((calendar) => calendar.id != calendarId) ?? []];
+      return [
+        ...state.data?.where((calendar) => calendar.id != calendarId) ?? []
+      ];
     }).forEach(emit);
   }
 }

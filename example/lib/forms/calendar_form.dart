@@ -21,7 +21,7 @@ class _CalendarFormState extends State<CalendarForm> {
   @override
   void initState() {
     super.initState();
-    
+
     _titleController = TextEditingController();
     selectedColor = Colors.red;
   }
@@ -68,7 +68,7 @@ class _CalendarFormState extends State<CalendarForm> {
         ElevatedButton(
           onPressed: () {
             final title = _titleController.text;
-  
+
             widget.onSubmit(title, selectedColor);
 
             ScaffoldMessenger.of(context).showSnackBar(

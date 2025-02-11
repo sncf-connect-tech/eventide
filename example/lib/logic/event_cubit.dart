@@ -6,13 +6,12 @@ import 'package:value_state/value_state.dart';
 
 class EventCubit extends Cubit<EventState> {
   final Eventide _calendarPlugin;
-  
+
   EventCubit({
     required Eventide calendarPlugin,
-  }) :  _calendarPlugin = calendarPlugin,
+  })  : _calendarPlugin = calendarPlugin,
         super(const EventState.initial());
 
-  
   Future<void> createEvent({
     required String title,
     required String description,
@@ -53,16 +52,20 @@ class EventCubit extends Cubit<EventState> {
         await _calendarPlugin.deleteEvent(eventId: eventId);
         return EventValue(
           calendar: data.calendar,
-          events: [...state.data?.events.where((event) => event.id != eventId) ?? []],
+          events: [
+            ...state.data?.events.where((event) => event.id != eventId) ?? []
+          ],
         );
       }).forEach(emit);
     }
   }
 
-  Future<void> createReminder(Duration durationBeforeEvent, String eventId) async {
+  Future<void> createReminder(
+      Duration durationBeforeEvent, String eventId) async {
     if (state case Value(:final data?)) {
       await state.fetchFrom(() async {
-        final event = await _calendarPlugin.createReminder(durationBeforeEvent: durationBeforeEvent, eventId: eventId);
+        final event = await _calendarPlugin.createReminder(
+            durationBeforeEvent: durationBeforeEvent, eventId: eventId);
         return EventValue(
           calendar: data.calendar,
           events: [
@@ -74,10 +77,12 @@ class EventCubit extends Cubit<EventState> {
     }
   }
 
-  Future<void> deleteReminder(Duration durationBeforeEvent, String eventId) async {
+  Future<void> deleteReminder(
+      Duration durationBeforeEvent, String eventId) async {
     if (state case Value(:final data?)) {
       await state.fetchFrom(() async {
-        final event = await _calendarPlugin.deleteReminder(durationBeforeEvent: durationBeforeEvent, eventId: eventId);
+        final event = await _calendarPlugin.deleteReminder(
+            durationBeforeEvent: durationBeforeEvent, eventId: eventId);
         return EventValue(
           calendar: data.calendar,
           events: [

@@ -46,21 +46,21 @@ extension PlatformExceptionToETCalendarException on PlatformException {
   ETException toETException() {
     return switch (code) {
       'ACCESS_REFUSED' => ETPermissionException(
-        message: message,
-        details: details,
-      ),
+          message: message,
+          details: details,
+        ),
       'NOT_FOUND' => ETNotFoundException(
-        message: message,
-        details: details,
-      ),
+          message: message,
+          details: details,
+        ),
       'NOT_EDITABLE' => ETNotEditableException(
-        message: message,
-        details: details,
-      ),
+          message: message,
+          details: details,
+        ),
       _ => ETGenericException(
-        message: message,
-        details: details,
-      )
+          message: message,
+          details: details,
+        )
     };
   }
 }

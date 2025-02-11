@@ -13,10 +13,10 @@ class Eventide extends EventidePlatform {
   }) : _calendarApi = calendarApi ?? CalendarApi();
 
   /// Requests permission to access the calendar.
-  /// 
+  ///
   /// This method call is only necessary if you want to ask for permission early at runtime,
   /// as the plugin will automatically request permission when needed.
-  /// 
+  ///
   /// Returns `true` if permission is granted, `false` otherwise.
   @override
   Future<bool> requestCalendarPermission() async {
@@ -28,23 +28,24 @@ class Eventide extends EventidePlatform {
   }
 
   /// Creates a new calendar with the given [title] and [color].
-  /// 
+  ///
   /// Returns the created [ETCalendar].
-  /// 
+  ///
   /// Throws a [ETPermissionException] if the user refuses to grant calendar permissions.
-  /// 
+  ///
   /// Throws a [ETNotFoundException] on iOS if not one callendar source has been found or if the created calendar id is not found.
-  /// 
+  ///
   /// Throws a [ETGenericException] on iOS if the color hex cannot be converted to a UIColor.
-  /// 
+  ///
   /// Throws a [ETGenericException] if any other error occurs during calendar creation.
 
   @override
-  Future<ETCalendar> createCalendar({required String title, required Color color}) async {
+  Future<ETCalendar> createCalendar(
+      {required String title, required Color color}) async {
     try {
-      final calendar = await _calendarApi.createCalendar(title: title, color: color.toValue());
+      final calendar = await _calendarApi.createCalendar(
+          title: title, color: color.toValue());
       return calendar.toETCalendar();
-
     } on PlatformException catch (e) {
       throw e.toETException();
     }
@@ -52,37 +53,37 @@ class Eventide extends EventidePlatform {
 
   /// Retrieves a list of calendars.
   /// If [onlyWritableCalendars] is `true`, only writable calendars are returned.
-  /// 
+  ///
   /// Returns a list of [ETCalendar]s.
-  /// 
+  ///
   /// Throws a [ETPermissionException] if the user refuses to grant calendar permissions.
-  /// 
+  ///
   /// Throws a [ETGenericException] if any other error occurs during calendars retrieval.
   @override
-  Future<List<ETCalendar>> retrieveCalendars({bool onlyWritableCalendars = true}) async {
+  Future<List<ETCalendar>> retrieveCalendars(
+      {bool onlyWritableCalendars = true}) async {
     try {
-      final calendars = await _calendarApi.retrieveCalendars(onlyWritableCalendars: onlyWritableCalendars);
+      final calendars = await _calendarApi.retrieveCalendars(
+          onlyWritableCalendars: onlyWritableCalendars);
       return calendars.toETCalendarList();
-
     } on PlatformException catch (e) {
       throw e.toETException();
     }
   }
 
   /// Deletes the calendar with the given [calendarId].
-  /// 
+  ///
   /// Throws a [ETPermissionException] if the user refuses to grant calendar permissions.
-  /// 
+  ///
   /// Throws a [ETNotFoundException] if the calendar with the given [calendarId] is not found.
-  /// 
+  ///
   /// Throws a [ETNotEditableException] if the calendar is not editable.
-  /// 
+  ///
   /// Throws a [ETGenericException] if any other error occurs during calendar deletion.
   @override
   Future<void> deleteCalendar({required String calendarId}) async {
     try {
       await _calendarApi.deleteCalendar(calendarId: calendarId);
-
     } on PlatformException catch (e) {
       throw e.toETException();
     }
@@ -90,15 +91,15 @@ class Eventide extends EventidePlatform {
 
   /// Creates a new event with the given [title], [startDate], [endDate], and [calendarId].
   /// Optionally, you can provide a [description], [url], and a list of [reminders] duration.
-  /// 
+  ///
   /// /!\ Note that a [Duration] in seconds will not be supported by Android for API limitations.
-  /// 
+  ///
   /// Returns the created [Event].
-  /// 
+  ///
   /// Throws a [ETPermissionException] if the user refuses to grant calendar permissions.
-  /// 
+  ///
   /// Throws a [ETNotFoundException] if the calendar with the given [calendarId] is not found or if the created event id is not found.
-  /// 
+  ///
   /// Throws a [ETGenericException] if any other error occurs during event creation.
   @override
   Future<ETEvent> createEvent({
@@ -117,12 +118,11 @@ class Eventide extends EventidePlatform {
         endDate: endDate.millisecondsSinceEpoch,
         isAllDay: isAllDay,
         calendarId: calendarId,
-        description: description, 
+        description: description,
         url: url,
       );
 
       return event.toETEvent();
-      
     } on PlatformException catch (e) {
       throw e.toETException();
     }
@@ -130,35 +130,41 @@ class Eventide extends EventidePlatform {
 
   /// Retrieves a list of events from the calendar with the given [calendarId].
   /// Optionally, you can provide a [startDate] and [endDate] to filter the events.
-  /// 
+  ///
   /// Returns a list of [Event]s.
-  /// 
+  ///
   /// Throws a [ETPermissionException] if the user refuses to grant calendar permissions.
-  /// 
+  ///
   /// Throws a [ETNotFoundException] if the calendar with the given [calendarId] is not found.
-  /// 
+  ///
   /// Throws a [ETGenericException] if any other error occurs during events retrieval.
   @override
-  Future<List<ETEvent>> retrieveEvents({required String calendarId, DateTime? startDate, DateTime? endDate}) async {
+  Future<List<ETEvent>> retrieveEvents(
+      {required String calendarId,
+      DateTime? startDate,
+      DateTime? endDate}) async {
     try {
       final start = startDate ?? DateTime.now();
       final end = endDate ?? DateTime.now().add(const Duration(days: 7));
-      final events = await _calendarApi.retrieveEvents(calendarId: calendarId, startDate: start.millisecondsSinceEpoch, endDate: end.microsecondsSinceEpoch,);
+      final events = await _calendarApi.retrieveEvents(
+        calendarId: calendarId,
+        startDate: start.millisecondsSinceEpoch,
+        endDate: end.microsecondsSinceEpoch,
+      );
       return events.toETEventList();
-
     } on PlatformException catch (e) {
       throw e.toETException();
     }
   }
 
   /// Deletes the event with the given [eventId] from the calendar with the given [calendarId].
-  /// 
+  ///
   /// Throws a [ETPermissionException] if the user refuses to grant calendar permissions.
-  /// 
+  ///
   /// Throws a [ETNotFoundException] if the event with the given [eventId] is not found.
-  /// 
+  ///
   /// Throws a [ETNotEditableException] if the calendar is not editable.
-  /// 
+  ///
   /// Throws a [ETGenericException] if any other error occurs during event deletion.
   @override
   Future<void> deleteEvent({required String eventId}) async {
@@ -170,13 +176,13 @@ class Eventide extends EventidePlatform {
   }
 
   /// Creates a new reminder with the given [durationBeforeEvent] for the event with the given [eventId].
-  /// 
+  ///
   /// /!\ Note that a [Duration] in seconds will not be supported by Android for API limitations.
-  /// 
+  ///
   /// Throws a [ETPermissionException] if the user refuses to grant calendar permissions.
-  /// 
+  ///
   /// Throws a [ETNotFoundException] if the event with the given [eventId] is not found.
-  /// 
+  ///
   /// Throws a [ETGenericException] if any other error occurs during reminder creation.
   @override
   Future<ETEvent> createReminder({
@@ -184,20 +190,20 @@ class Eventide extends EventidePlatform {
     required String eventId,
   }) async {
     try {
-      final updatedEvent = await _calendarApi.createReminder(reminder: durationBeforeEvent.toNativeDuration(), eventId: eventId);
+      final updatedEvent = await _calendarApi.createReminder(
+          reminder: durationBeforeEvent.toNativeDuration(), eventId: eventId);
       return updatedEvent.toETEvent();
-
     } on PlatformException catch (e) {
       throw e.toETException();
     }
   }
 
   /// Deletes the reminder with the given [durationBeforeEvent] for the event with the given [eventId].
-  /// 
+  ///
   /// Throws a [ETPermissionException] if the user refuses to grant calendar permissions.
-  /// 
+  ///
   /// Throws a [ETNotFoundException] if the event with the given [eventId] is not found.
-  /// 
+  ///
   /// Throws a [ETGenericException] if any other error occurs during reminder deletion.
   @override
   Future<ETEvent> deleteReminder({
@@ -205,9 +211,9 @@ class Eventide extends EventidePlatform {
     required String eventId,
   }) async {
     try {
-      final updatedEvent = await _calendarApi.deleteReminder(reminder: durationBeforeEvent.toNativeDuration(), eventId: eventId);
+      final updatedEvent = await _calendarApi.deleteReminder(
+          reminder: durationBeforeEvent.toNativeDuration(), eventId: eventId);
       return updatedEvent.toETEvent();
-      
     } on PlatformException catch (e) {
       throw e.toETException();
     }
