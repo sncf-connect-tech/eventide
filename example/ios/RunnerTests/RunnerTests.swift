@@ -3,7 +3,7 @@ import Flutter
 import UIKit
 import XCTest
 
-@testable import easy_calendar
+@testable import eventide
 
 // This demonstrates a simple unit test of the Swift portion of this plugin's implementation.
 //

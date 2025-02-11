@@ -1,12 +1,12 @@
 //
 //  UtilsTests.swift
-//  EasyCalendarTests
+//  EventideTests
 //
 //  Created by CHOUPAULT Alexis on 15/01/2025.
 //
 
 import XCTest
-@testable import easy_calendar
+@testable import eventide
 
 class UtilsTests: XCTestCase {
 

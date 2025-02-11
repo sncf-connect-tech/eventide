@@ -1,28 +1,28 @@
 PODS:
-  - easy_calendar (0.0.1):
+  - eventide (0.1.0):
     - Flutter
   - Flutter (1.0.0)
   - integration_test (0.0.1):
     - Flutter
 
 DEPENDENCIES:
-  - easy_calendar (from `.symlinks/plugins/easy_calendar/ios`)
+  - eventide (from `.symlinks/plugins/eventide/ios`)
   - Flutter (from `Flutter`)
   - integration_test (from `.symlinks/plugins/integration_test/ios`)
 
 EXTERNAL SOURCES:
-  easy_calendar:
-    :path: ".symlinks/plugins/easy_calendar/ios"
+  eventide:
+    :path: ".symlinks/plugins/eventide/ios"
   Flutter:
     :path: Flutter
   integration_test:
     :path: ".symlinks/plugins/integration_test/ios"
 
 SPEC CHECKSUMS:
-  easy_calendar: beaedb3c984d9ee8c5dec02afcc62a0c7916f96a
+  eventide: 49d6de19a7d84b90e51cc70a058631fb2bbe9cb8
   Flutter: e0871f40cf51350855a761d2e70bf5af5b9b5de7
-  integration_test: 252f60fa39af5e17c3aa9899d35d908a0721b573
+  integration_test: 4a889634ef21a45d28d50d622cf412dc6d9f586e
 
-PODFILE CHECKSUM: 8fcb33da99f5b41483f81f04c242a3a965314b1c
+PODFILE CHECKSUM: 687a4f822c79d65793be5e7d85d1c6a0768b0a5f
 
-COCOAPODS: 1.15.2
+COCOAPODS: 1.16.2

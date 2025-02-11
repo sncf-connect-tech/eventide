@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:easy_calendar/easy_calendar.dart';
-import 'package:easy_calendar_example/calendar_details.dart';
-import 'package:easy_calendar_example/logic/calendar_cubit.dart';
-import 'package:easy_calendar_example/forms/calendar_form.dart';
-import 'package:easy_calendar_example/logic/event_cubit.dart';
+import 'package:eventide/eventide.dart';
+import 'package:eventide_example/calendar_details.dart';
+import 'package:eventide_example/logic/calendar_cubit.dart';
+import 'package:eventide_example/forms/calendar_form.dart';
+import 'package:eventide_example/logic/event_cubit.dart';
 import 'package:value_state/value_state.dart';
 
 class CalendarScreen extends StatelessWidget {
@@ -12,7 +12,7 @@ class CalendarScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<CalendarCubit, Value<List<ECCalendar>>>(
+    return BlocBuilder<CalendarCubit, Value<List<ETCalendar>>>(
       builder: (_, state) {
         return SafeArea(
           child: Stack(

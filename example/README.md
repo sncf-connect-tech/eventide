@@ -1,6 +1,6 @@
-# easy_calendar_example
+# eventide_example
 
-Demonstrates how to use the easy_calendar plugin.
+Demonstrates how to use the eventide plugin.
 
 ## Getting Started
 

@@ -1,11 +1,11 @@
 //
 //  MockPermissionHandler.swift
-//  EasyCalendarTests
+//  EventideTests
 //
 //  Created by CHOUPAULT Alexis on 16/01/2025.
 //
 
-@testable import easy_calendar
+@testable import eventide
 
 final class PermissionGranted: PermissionHandlerProtocol {
     func checkCalendarAccessThenExecute(

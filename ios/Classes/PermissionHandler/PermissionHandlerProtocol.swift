@@ -1,6 +1,6 @@
 //
 //  PermissionHandlerProtocol.swift
-//  easy_calendar
+//  eventide
 //
 //  Created by CHOUPAULT Alexis on 23/01/2025.
 //

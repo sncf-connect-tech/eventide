@@ -1,14 +1,14 @@
 import 'dart:ui';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:easy_calendar/easy_calendar.dart';
+import 'package:eventide/eventide.dart';
 import 'package:value_state/value_state.dart';
 
-class CalendarCubit extends Cubit<Value<List<ECCalendar>>> {
-  final EasyCalendar _calendarPlugin;
+class CalendarCubit extends Cubit<Value<List<ETCalendar>>> {
+  final Eventide _calendarPlugin;
 
   CalendarCubit({
-    required EasyCalendar calendarPlugin,
+    required Eventide calendarPlugin,
   }) : _calendarPlugin = calendarPlugin,
         super(const Value.initial());
 

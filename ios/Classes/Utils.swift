@@ -1,6 +1,6 @@
 //
 //  Utils.swift
-//  easy_calendar
+//  eventide
 //
 //  Created by CHOUPAULT Alexis on 31/12/2024.
 //

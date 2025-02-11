@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:easy_calendar/easy_calendar.dart';
-import 'package:easy_calendar_example/logic/calendar_cubit.dart';
-import 'package:easy_calendar_example/calendar_screen.dart';
-import 'package:easy_calendar_example/logic/event_cubit.dart';
+import 'package:eventide/eventide.dart';
+import 'package:eventide_example/logic/calendar_cubit.dart';
+import 'package:eventide_example/calendar_screen.dart';
+import 'package:eventide_example/logic/event_cubit.dart';
 import 'package:timezone/data/latest.dart' as tz;
 
 void main() {
@@ -13,9 +13,9 @@ void main() {
 }
 
 class MyApp extends StatelessWidget {
-  final EasyCalendar _calendarPlugin;
+  final Eventide _calendarPlugin;
   
-  MyApp({super.key}) : _calendarPlugin = EasyCalendar();
+  MyApp({super.key}) : _calendarPlugin = Eventide();
 
   @override
   Widget build(BuildContext context) {

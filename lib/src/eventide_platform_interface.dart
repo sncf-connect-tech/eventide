@@ -1,31 +1,31 @@
 import 'dart:ui';
 
-import 'package:easy_calendar/src/easy_calendar.dart';
+import 'package:eventide/src/eventide.dart';
 import 'package:equatable/equatable.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 
-abstract class EasyCalendarPlatform extends PlatformInterface {
-  EasyCalendarPlatform() : super(token: _token);
+abstract class EventidePlatform extends PlatformInterface {
+  EventidePlatform() : super(token: _token);
 
   static final Object _token = Object();
 
-  static EasyCalendarPlatform _instance = EasyCalendar();
+  static EventidePlatform _instance = Eventide();
 
-  static EasyCalendarPlatform get instance => _instance;
+  static EventidePlatform get instance => _instance;
 
-  static set instance(EasyCalendarPlatform instance) {
+  static set instance(EventidePlatform instance) {
     PlatformInterface.verify(instance, _token);
     _instance = instance;
   }
 
   Future<bool> requestCalendarPermission();
 
-  Future<ECCalendar> createCalendar({
+  Future<ETCalendar> createCalendar({
     required String title,
     required Color color,
   });
   
-  Future<List<ECCalendar>> retrieveCalendars({
+  Future<List<ETCalendar>> retrieveCalendars({
     bool onlyWritableCalendars = true,
   });
   
@@ -33,7 +33,7 @@ abstract class EasyCalendarPlatform extends PlatformInterface {
     required String calendarId,
   });
   
-  Future<ECEvent> createEvent({
+  Future<ETEvent> createEvent({
     required String calendarId,
     required String title,
     required DateTime startDate,
@@ -42,7 +42,7 @@ abstract class EasyCalendarPlatform extends PlatformInterface {
     String? url,
   });
   
-  Future<List<ECEvent>> retrieveEvents({
+  Future<List<ETEvent>> retrieveEvents({
     required String calendarId,
     DateTime? startDate,
     DateTime? endDate,
@@ -52,12 +52,12 @@ abstract class EasyCalendarPlatform extends PlatformInterface {
     required String eventId,
   });
 
-  Future<ECEvent> createReminder({
+  Future<ETEvent> createReminder({
     required Duration durationBeforeEvent,
     required String eventId,
   });
 
-  Future<ECEvent> deleteReminder({
+  Future<ETEvent> deleteReminder({
     required Duration durationBeforeEvent,
     required String eventId,
   });
@@ -74,7 +74,7 @@ abstract class EasyCalendarPlatform extends PlatformInterface {
 /// [isWritable] is a boolean to indicate if the calendar is writable.
 /// 
 /// [sourceName] is the name of the source of the calendar.
-final class ECCalendar extends Equatable {
+final class ETCalendar extends Equatable {
   final String id;
   final String title;
   final Color color;
@@ -84,7 +84,7 @@ final class ECCalendar extends Equatable {
   @override
   List<Object?> get props => [id, title, color, isWritable, sourceName];
 
-  const ECCalendar({
+  const ETCalendar({
     required this.id,
     required this.title,
     required this.color,
@@ -110,7 +110,7 @@ final class ECCalendar extends Equatable {
 /// [url] is the url of the event.  
 /// 
 /// [reminders] is a list of [Duration] before the event.
-final class ECEvent extends Equatable {
+final class ETEvent extends Equatable {
   final String id;
   final String title;
   final bool isAllDay;
@@ -124,7 +124,7 @@ final class ECEvent extends Equatable {
   @override
   List<Object?> get props => [id, title, isAllDay, startDate, endDate, calendarId, description, url, reminders];
 
-  const ECEvent({
+  const ETEvent({
     required this.id,
     required this.title,
     required this.isAllDay,
