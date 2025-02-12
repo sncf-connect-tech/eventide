@@ -1,0 +1,3 @@
+ignore:
+  - "pigeons/calendar_api.dart"
+  - "lib/src/calendar_api.g.dart"
