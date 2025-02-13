@@ -35,6 +35,7 @@ jobs:
 
       - name: Prepare coverage xml file
         run: |
+          brew install xcresultparser
           xcresultparser \
             --output-format cobertura \
             build/reports/EasyCalendarTests.xcresult > build/reports/ios-coverage.xml
