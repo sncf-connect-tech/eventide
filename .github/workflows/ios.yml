@@ -27,6 +27,7 @@ jobs:
 
       - name: Install dependencies
         run: |
+          brew install xcresultparser
           flutter pub get
           cd example/ios
           pod install
@@ -38,3 +39,15 @@ jobs:
             -scheme EventideTests \
             -destination 'platform=iOS Simulator,name=iPhone 16,OS=18.1' \
             -resultBundlePath build/reports/EventideTests.xcresult
+
+      - name: Prepare coverage xml file
+        run: |
+          xcresultparser \
+            --output-format cobertura \
+            build/reports/EventideTests.xcresult > build/reports/ios-coverage.xml
+
+      - name: Upload coverage report to Codecov
+        uses: codecov/codecov-action@v4.0.1
+        with:
+          files: build/reports/ios-coverage.xml
+          token: ${{ secrets.CODECOV_TOKEN }}
