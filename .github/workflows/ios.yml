@@ -27,6 +27,7 @@ jobs:
 
       - name: Install dependencies
         run: |
+          brew install xcresultparser
           flutter pub get
           cd example/ios
           pod install
@@ -41,10 +42,9 @@ jobs:
 
       - name: Prepare coverage xml file
         run: |
-          brew install xcresultparser
           xcresultparser \
             --output-format cobertura \
-            build/reports/EasyCalendarTests.xcresult > build/reports/ios-coverage.xml
+            build/reports/EventideTests.xcresult > build/reports/ios-coverage.xml
 
       - name: Upload coverage report to Codecov
         uses: codecov/codecov-action@v4.0.1
