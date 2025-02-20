@@ -17,20 +17,23 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup Flutter SDK
-        uses: flutter-actions/setup-flutter@v4
-        with:
-          channel: stable
-          version: 3.27.0
+      - uses: subosito/flutter-action@v2
 
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Verify Flutter Installation
-        run: flutter doctor -v
+      - name: Verify formatting
+        run: dart format --output=none --set-exit-if-changed .
 
+      # Consider passing '--fatal-infos' for slightly stricter analysis.
       - name: Analyze project source
-        run: dart analyze
+        run: flutter analyze --fatal-infos
+        working-directory: lib
 
       - name: Run tests
-        run: flutter test
+        run: flutter test --coverage
+
+      - name: Upload coverage report to Codecov
+        uses: codecov/codecov-action@v4.0.1
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
