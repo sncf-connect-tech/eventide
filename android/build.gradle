@@ -25,11 +25,11 @@ apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 
 android {
+    compileSdk 35
     if (project.android.hasProperty("namespace")) {
         namespace 'sncf.connect.tech.eventide'
     }
 
-    compileSdk flutter.compileSdkVersion
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
@@ -37,7 +37,7 @@ android {
     }
 
     kotlinOptions {
-        jvmTarget = '1.8'
+        jvmTarget = '17'
     }
 
     sourceSets {
@@ -68,6 +68,7 @@ android {
 
         unitTests.returnDefaultValues = true
     }
+    ndkVersion '27.0.12077973'
 }
 
 dependencies {
