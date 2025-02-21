@@ -86,7 +86,7 @@ class CalendarImplemTest {
 
         var result: Result<Calendar>? = null
         val latch = CountDownLatch(1)
-        calendarImplem.createCalendar("Test Calendar", 0xFF0000) {
+        calendarImplem.createCalendar("Test Calendar", 0xFF0000, Account("1", "Test Account")) {
             result = it
             latch.countDown()
         }
@@ -104,7 +104,7 @@ class CalendarImplemTest {
         }
 
         var result: Result<Calendar>? = null
-        calendarImplem.createCalendar("Test Calendar", 0xFF0000) {
+        calendarImplem.createCalendar("Test Calendar", 0xFF0000, null) {
             result = it
         }
 
@@ -120,7 +120,7 @@ class CalendarImplemTest {
 
         var result: Result<Calendar>? = null
         val latch = CountDownLatch(1)
-        calendarImplem.createCalendar("Test Calendar", 0xFF0000) {
+        calendarImplem.createCalendar("Test Calendar", 0xFF0000, null) {
             result = it
             latch.countDown()
         }
@@ -141,7 +141,7 @@ class CalendarImplemTest {
 
         var result: Result<Calendar>? = null
         val latch = CountDownLatch(1)
-        calendarImplem.createCalendar("Test Calendar", 0xFF0000) {
+        calendarImplem.createCalendar("Test Calendar", 0xFF0000, null) {
             result = it
             latch.countDown()
         }

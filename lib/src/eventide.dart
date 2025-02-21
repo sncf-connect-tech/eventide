@@ -27,7 +27,9 @@ class Eventide extends EventidePlatform {
     }
   }
 
-  /// Creates a new calendar with the given [title] and [color].
+  /// Creates a new calendar with the given [title], [color] and [accountName].
+  ///
+  /// Note that [accountName] is an Android feature. It will be ignored on iOS.
   ///
   /// Returns the created [ETCalendar].
   ///
@@ -40,11 +42,17 @@ class Eventide extends EventidePlatform {
   /// Throws a [ETGenericException] if any other error occurs during calendar creation.
 
   @override
-  Future<ETCalendar> createCalendar(
-      {required String title, required Color color}) async {
+  Future<ETCalendar> createCalendar({
+    required String title,
+    required Color color,
+    ETAccount? account,
+  }) async {
     try {
       final calendar = await _calendarApi.createCalendar(
-          title: title, color: color.toValue());
+        title: title,
+        color: color.toValue(),
+        account: account?.toAccount(),
+      );
       return calendar.toETCalendar();
     } on PlatformException catch (e) {
       throw e.toETException();
@@ -60,8 +68,9 @@ class Eventide extends EventidePlatform {
   ///
   /// Throws a [ETGenericException] if any other error occurs during calendars retrieval.
   @override
-  Future<List<ETCalendar>> retrieveCalendars(
-      {bool onlyWritableCalendars = true}) async {
+  Future<List<ETCalendar>> retrieveCalendars({
+    bool onlyWritableCalendars = true,
+  }) async {
     try {
       final calendars = await _calendarApi.retrieveCalendars(
           onlyWritableCalendars: onlyWritableCalendars);
@@ -81,7 +90,9 @@ class Eventide extends EventidePlatform {
   ///
   /// Throws a [ETGenericException] if any other error occurs during calendar deletion.
   @override
-  Future<void> deleteCalendar({required String calendarId}) async {
+  Future<void> deleteCalendar({
+    required String calendarId,
+  }) async {
     try {
       await _calendarApi.deleteCalendar(calendarId: calendarId);
     } on PlatformException catch (e) {
@@ -139,10 +150,11 @@ class Eventide extends EventidePlatform {
   ///
   /// Throws a [ETGenericException] if any other error occurs during events retrieval.
   @override
-  Future<List<ETEvent>> retrieveEvents(
-      {required String calendarId,
-      DateTime? startDate,
-      DateTime? endDate}) async {
+  Future<List<ETEvent>> retrieveEvents({
+    required String calendarId,
+    DateTime? startDate,
+    DateTime? endDate,
+  }) async {
     try {
       final start = startDate ?? DateTime.now();
       final end = endDate ?? DateTime.now().add(const Duration(days: 7));
@@ -167,7 +179,9 @@ class Eventide extends EventidePlatform {
   ///
   /// Throws a [ETGenericException] if any other error occurs during event deletion.
   @override
-  Future<void> deleteEvent({required String eventId}) async {
+  Future<void> deleteEvent({
+    required String eventId,
+  }) async {
     try {
       await _calendarApi.deleteEvent(eventId: eventId);
     } on PlatformException catch (e) {

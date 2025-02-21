@@ -91,7 +91,7 @@ final class CalendarImplemTests: XCTestCase {
             permissionHandler: PermissionGranted()
         )
         
-        calendarImplem.createCalendar(title: "title", color: 0xFF0000) { createCalendarResult in
+        calendarImplem.createCalendar(title: "title", color: 0xFF0000, account: Account(name: "local", type: "local")) { createCalendarResult in
             switch (createCalendarResult) {
             case .success(let calendar):
                 XCTAssert(calendar.title == "title")
@@ -116,7 +116,7 @@ final class CalendarImplemTests: XCTestCase {
                     title: "title",
                     color: UIColor.red,
                     isWritable: false,
-                    sourceName: "local",
+                    account: Account(name: "local", type: "local"),
                     events: []
                 ),
                 MockCalendar(
@@ -124,7 +124,7 @@ final class CalendarImplemTests: XCTestCase {
                     title: "title",
                     color: UIColor.blue,
                     isWritable: true,
-                    sourceName: "iCloud",
+                    account: Account(name: "iCloud", type: "calDAV"),
                     events: []
                 )
             ]
@@ -159,7 +159,7 @@ final class CalendarImplemTests: XCTestCase {
                     title: "title",
                     color: UIColor.red,
                     isWritable: false,
-                    sourceName: "local",
+                    account: Account(name: "local", type: "local"),
                     events: []
                 ),
                 MockCalendar(
@@ -167,7 +167,7 @@ final class CalendarImplemTests: XCTestCase {
                     title: "title",
                     color: UIColor.blue,
                     isWritable: true,
-                    sourceName: "iCloud",
+                    account: Account(name: "iCloud", type: "calDAV"),
                     events: []
                 )
             ]
@@ -203,7 +203,7 @@ final class CalendarImplemTests: XCTestCase {
                     title: "title",
                     color: UIColor.red,
                     isWritable: true,
-                    sourceName: "local",
+                    account: Account(name: "local", type: "local"),
                     events: []
                 )
             ]
@@ -237,7 +237,7 @@ final class CalendarImplemTests: XCTestCase {
                     title: "title",
                     color: UIColor.red,
                     isWritable: false,
-                    sourceName: "local",
+                    account: Account(name: "local", type: "local"),
                     events: []
                 )
             ]
@@ -276,7 +276,7 @@ final class CalendarImplemTests: XCTestCase {
                     title: "title",
                     color: UIColor.red,
                     isWritable: false,
-                    sourceName: "local",
+                    account: Account(name: "local", type: "local"),
                     events: []
                 )
             ]
@@ -318,7 +318,7 @@ final class CalendarImplemTests: XCTestCase {
                     title: "title",
                     color: UIColor.red,
                     isWritable: true,
-                    sourceName: "local",
+                    account: Account(name: "local", type: "local"),
                     events: []
                 )
             ]
@@ -366,7 +366,7 @@ final class CalendarImplemTests: XCTestCase {
                     title: "title",
                     color: UIColor.red,
                     isWritable: true,
-                    sourceName: "local",
+                    account: Account(name: "local", type: "local"),
                     events: []
                 )
             ]
@@ -415,7 +415,7 @@ final class CalendarImplemTests: XCTestCase {
                     title: "title",
                     color: UIColor.red,
                     isWritable: true,
-                    sourceName: "local",
+                    account: Account(name: "local", type: "local"),
                     events: [
                         MockEvent(
                             id: "1",
@@ -479,7 +479,7 @@ final class CalendarImplemTests: XCTestCase {
                     title: "title",
                     color: UIColor.red,
                     isWritable: true,
-                    sourceName: "local",
+                    account: Account(name: "local", type: "local"),
                     events: [
                         MockEvent(
                             id: "1",
@@ -532,7 +532,7 @@ final class CalendarImplemTests: XCTestCase {
                     title: "title",
                     color: UIColor.red,
                     isWritable: true,
-                    sourceName: "local",
+                    account: Account(name: "local", type: "local"),
                     events: [
                         MockEvent(
                             id: "1",
@@ -577,7 +577,7 @@ final class CalendarImplemTests: XCTestCase {
                     title: "title",
                     color: UIColor.red,
                     isWritable: true,
-                    sourceName: "local",
+                    account: Account(name: "local", type: "local"),
                     events: [
                         MockEvent(
                             id: "2",
@@ -627,7 +627,7 @@ final class CalendarImplemTests: XCTestCase {
                     title: "title",
                     color: UIColor.red,
                     isWritable: false,
-                    sourceName: "local",
+                    account: Account(name: "local", type: "local"),
                     events: [
                         MockEvent(
                             id: "2",
@@ -679,7 +679,7 @@ final class CalendarImplemTests: XCTestCase {
                     title: "title",
                     color: UIColor.red,
                     isWritable: true,
-                    sourceName: "local",
+                    account: Account(name: "local", type: "local"),
                     events: [
                         MockEvent(
                             id: "1",
@@ -728,7 +728,7 @@ final class CalendarImplemTests: XCTestCase {
                     title: "title",
                     color: UIColor.red,
                     isWritable: true,
-                    sourceName: "local",
+                    account: Account(name: "local", type: "local"),
                     events: [
                         MockEvent(
                             id: "2",
@@ -778,7 +778,7 @@ final class CalendarImplemTests: XCTestCase {
                     title: "title",
                     color: UIColor.red,
                     isWritable: true,
-                    sourceName: "local",
+                    account: Account(name: "local", type: "local"),
                     events: [
                         MockEvent(
                             id: "1",
@@ -825,7 +825,7 @@ final class CalendarImplemTests: XCTestCase {
                     title: "title",
                     color: UIColor.red,
                     isWritable: true,
-                    sourceName: "local",
+                    account: Account(name: "local", type: "local"),
                     events: [
                         MockEvent(
                             id: "2",
@@ -876,7 +876,7 @@ final class CalendarImplemTests: XCTestCase {
                     title: "title",
                     color: UIColor.red,
                     isWritable: true,
-                    sourceName: "local",
+                    account: Account(name: "local", type: "local"),
                     events: [
                         MockEvent(
                             id: "1",
@@ -927,7 +927,7 @@ final class CalendarImplemTests: XCTestCase {
             permissionHandler: PermissionRefused()
         )
         
-        calendarImplem.createCalendar(title: "title", color: 0xFF0000) { createCalendarResult in
+        calendarImplem.createCalendar(title: "title", color: 0xFF0000, account: nil) { createCalendarResult in
             switch (createCalendarResult) {
             case .success:
                 XCTFail("Calendar should not have been created")
@@ -983,7 +983,7 @@ final class CalendarImplemTests: XCTestCase {
                     title: "title",
                     color: UIColor.red,
                     isWritable: true,
-                    sourceName: "local",
+                    account: Account(name: "local", type: "local"),
                     events: []
                 )
             ]
@@ -1022,7 +1022,7 @@ final class CalendarImplemTests: XCTestCase {
                     title: "title",
                     color: UIColor.red,
                     isWritable: true,
-                    sourceName: "local",
+                    account: Account(name: "local", type: "local"),
                     events: []
                 )
             ]
@@ -1069,7 +1069,7 @@ final class CalendarImplemTests: XCTestCase {
                     title: "title",
                     color: UIColor.red,
                     isWritable: true,
-                    sourceName: "local",
+                    account: Account(name: "local", type: "local"),
                     events: []
                 )
             ]
@@ -1112,7 +1112,7 @@ final class CalendarImplemTests: XCTestCase {
                     title: "title",
                     color: UIColor.red,
                     isWritable: true,
-                    sourceName: "local",
+                    account: Account(name: "local", type: "local"),
                     events: [
                         MockEvent(
                             id: "1",
@@ -1164,7 +1164,7 @@ final class CalendarImplemTests: XCTestCase {
                     title: "title",
                     color: UIColor.red,
                     isWritable: true,
-                    sourceName: "local",
+                    account: Account(name: "local", type: "local"),
                     events: [
                         MockEvent(
                             id: "1",
@@ -1214,7 +1214,7 @@ final class CalendarImplemTests: XCTestCase {
                     title: "title",
                     color: UIColor.red,
                     isWritable: true,
-                    sourceName: "local",
+                    account: Account(name: "local", type: "local"),
                     events: [
                         MockEvent(
                             id: "1",

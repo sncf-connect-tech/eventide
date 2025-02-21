@@ -16,13 +16,13 @@ class MockEasyEventStore: EasyEventStoreProtocol {
         self.calendars = calendars
     }
     
-    func createCalendar(title: String, color: UIColor) throws -> eventide.Calendar {
+    func createCalendar(title: String, color: UIColor, account: Account?) throws -> eventide.Calendar {
         let calendar = MockCalendar(
             id: "id",
             title: title,
             color: color,
             isWritable: true,
-            sourceName: "iCloud",
+            account: account ?? Account(name: "iCloud", type: "calDAV"),
             events: []
         )
         
@@ -173,15 +173,15 @@ class MockCalendar {
     let title: String
     let color: UIColor
     let isWritable: Bool
-    let sourceName: String
+    let account: Account
     var events: [MockEvent]
     
-    init(id: String, title: String, color: UIColor, isWritable: Bool, sourceName: String, events: [MockEvent]) {
+    init(id: String, title: String, color: UIColor, isWritable: Bool, account: Account, events: [MockEvent]) {
         self.id = id
         self.title = title
         self.color = color
         self.isWritable = isWritable
-        self.sourceName = sourceName
+        self.account = account
         self.events = events
     }
     
@@ -191,7 +191,7 @@ class MockCalendar {
             title: title,
             color: color.toInt64(),
             isWritable: isWritable,
-            sourceName: sourceName
+            account: account
         )
     }
 }

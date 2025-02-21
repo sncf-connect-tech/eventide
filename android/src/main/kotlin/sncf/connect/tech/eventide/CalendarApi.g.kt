@@ -48,16 +48,17 @@ class FlutterError (
 
 /**
  * Native data struct to represent a calendar.
- * 
+ *
  * [id] is a unique identifier for the calendar.
- * 
+ *
  * [title] is the title of the calendar.
- * 
+ *
  * [color] is the color of the calendar.
- * 
+ *
  * [isWritable] is a boolean to indicate if the calendar is writable.
  * 
- * [sourceName] is the name of the source of the calendar.
+ * [account] is the account the calendar belongs to
+ * TODO: explain android/ios differences
  *
  * Generated class from Pigeon that represents data sent in messages.
  */
@@ -66,7 +67,7 @@ data class Calendar (
   val title: String,
   val color: Long,
   val isWritable: Boolean,
-  val sourceName: String
+  val account: Account
 )
  {
   companion object {
@@ -75,8 +76,8 @@ data class Calendar (
       val title = pigeonVar_list[1] as String
       val color = pigeonVar_list[2] as Long
       val isWritable = pigeonVar_list[3] as Boolean
-      val sourceName = pigeonVar_list[4] as String
-      return Calendar(id, title, color, isWritable, sourceName)
+      val account = pigeonVar_list[4] as Account
+      return Calendar(id, title, color, isWritable, account)
     }
   }
   fun toList(): List<Any?> {
@@ -85,30 +86,30 @@ data class Calendar (
       title,
       color,
       isWritable,
-      sourceName,
+      account,
     )
   }
 }
 
 /**
  * Native data struct to represent an event.
- * 
+ *
  * [id] is a unique identifier for the event.
- * 
+ *
  * [title] is the title of the event.
- * 
+ *
  * [isAllDay] is whether or not the event is an all day.
- * 
+ *
  * [startDate] is the start date of the event in milliseconds since epoch.
- * 
+ *
  * [endDate] is the end date of the event in milliseconds since epoch.
- * 
+ *
  * [calendarId] is the id of the calendar that the event belongs to.
- * 
+ *
  * [description] is the description of the event.
- * 
- * [url] is the url of the event.  
- * 
+ *
+ * [url] is the url of the event.
+ *
  * [reminders] is a list of minutes before the event to remind the user.
  *
  * Generated class from Pigeon that represents data sent in messages.
@@ -153,6 +154,27 @@ data class Event (
     )
   }
 }
+
+/** Generated class from Pigeon that represents data sent in messages. */
+data class Account (
+  val name: String,
+  val type: String
+)
+ {
+  companion object {
+    fun fromList(pigeonVar_list: List<Any?>): Account {
+      val name = pigeonVar_list[0] as String
+      val type = pigeonVar_list[1] as String
+      return Account(name, type)
+    }
+  }
+  fun toList(): List<Any?> {
+    return listOf(
+      name,
+      type,
+    )
+  }
+}
 private open class CalendarApiPigeonCodec : StandardMessageCodec() {
   override fun readValueOfType(type: Byte, buffer: ByteBuffer): Any? {
     return when (type) {
@@ -164,6 +186,11 @@ private open class CalendarApiPigeonCodec : StandardMessageCodec() {
       130.toByte() -> {
         return (readValue(buffer) as? List<Any?>)?.let {
           Event.fromList(it)
+        }
+      }
+      131.toByte() -> {
+        return (readValue(buffer) as? List<Any?>)?.let {
+          Account.fromList(it)
         }
       }
       else -> super.readValueOfType(type, buffer)
@@ -179,6 +206,10 @@ private open class CalendarApiPigeonCodec : StandardMessageCodec() {
         stream.write(130)
         writeValue(stream, value.toList())
       }
+      is Account -> {
+        stream.write(131)
+        writeValue(stream, value.toList())
+      }
       else -> super.writeValue(stream, value)
     }
   }
@@ -188,7 +219,7 @@ private open class CalendarApiPigeonCodec : StandardMessageCodec() {
 /** Generated interface from Pigeon that represents a handler of messages from Flutter. */
 interface CalendarApi {
   fun requestCalendarPermission(callback: (Result<Boolean>) -> Unit)
-  fun createCalendar(title: String, color: Long, callback: (Result<Calendar>) -> Unit)
+  fun createCalendar(title: String, color: Long, account: Account?, callback: (Result<Calendar>) -> Unit)
   fun retrieveCalendars(onlyWritableCalendars: Boolean, callback: (Result<List<Calendar>>) -> Unit)
   fun deleteCalendar(calendarId: String, callback: (Result<Unit>) -> Unit)
   fun createEvent(calendarId: String, title: String, startDate: Long, endDate: Long, isAllDay: Boolean, description: String?, url: String?, callback: (Result<Event>) -> Unit)
@@ -231,7 +262,8 @@ interface CalendarApi {
             val args = message as List<Any?>
             val titleArg = args[0] as String
             val colorArg = args[1] as Long
-            api.createCalendar(titleArg, colorArg) { result: Result<Calendar> ->
+            val accountArg = args[2] as Account?
+            api.createCalendar(titleArg, colorArg, accountArg) { result: Result<Calendar> ->
               val error = result.exceptionOrNull()
               if (error != null) {
                 reply.reply(wrapError(error))

@@ -20,6 +20,7 @@ abstract class CalendarApi {
   Calendar createCalendar({
     required String title,
     required int color,
+    required Account? account,
   });
 
   @async
@@ -82,20 +83,21 @@ abstract class CalendarApi {
 ///
 /// [isWritable] is a boolean to indicate if the calendar is writable.
 ///
-/// [sourceName] is the name of the source of the calendar.
+/// [account] is the account the calendar belongs to
+/// TODO: explain android/ios differences
 final class Calendar {
   final String id;
   final String title;
   final int color;
   final bool isWritable;
-  final String sourceName;
+  final Account account;
 
   const Calendar({
     required this.id,
     required this.title,
     required this.color,
     required this.isWritable,
-    required this.sourceName,
+    required this.account,
   });
 }
 
@@ -139,5 +141,15 @@ final class Event {
     required this.description,
     required this.url,
     required this.reminders,
+  });
+}
+
+final class Account {
+  final String name;
+  final String type;
+
+  const Account({
+    required this.name,
+    required this.type,
   });
 }

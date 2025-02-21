@@ -8,8 +8,8 @@
 import Foundation
 
 class CalendarImplem: CalendarApi {
-    let easyEventStore: EasyEventStoreProtocol
-    let permissionHandler: PermissionHandlerProtocol
+    private let easyEventStore: EasyEventStoreProtocol
+    private let permissionHandler: PermissionHandlerProtocol
     
     init(easyEventStore: EasyEventStoreProtocol, permissionHandler: PermissionHandlerProtocol) {
         self.easyEventStore = easyEventStore
@@ -24,12 +24,12 @@ class CalendarImplem: CalendarApi {
         } onPermissionError: { error in
             completion(.failure(error))
         }
-
     }
     
     func createCalendar(
         title: String,
         color: Int64,
+        account: Account?,
         completion: @escaping (Result<Calendar, Error>) -> Void
     ) {
         permissionHandler.checkCalendarAccessThenExecute { [self] in
@@ -43,7 +43,7 @@ class CalendarImplem: CalendarApi {
             }
             
             do {
-                let createdCalendar = try easyEventStore.createCalendar(title: title, color: uiColor)
+                let createdCalendar = try easyEventStore.createCalendar(title: title, color: uiColor, account: account)
                 completion(.success(createdCalendar))
                 
             } catch {
