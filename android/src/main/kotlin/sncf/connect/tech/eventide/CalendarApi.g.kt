@@ -56,7 +56,7 @@ class FlutterError (
  * [color] is the color of the calendar.
  *
  * [isWritable] is a boolean to indicate if the calendar is writable.
- * 
+ *
  * [account] is the account the calendar belongs to
  * TODO: explain android/ios differences
  *
@@ -220,7 +220,7 @@ private open class CalendarApiPigeonCodec : StandardMessageCodec() {
 interface CalendarApi {
   fun requestCalendarPermission(callback: (Result<Boolean>) -> Unit)
   fun createCalendar(title: String, color: Long, account: Account?, callback: (Result<Calendar>) -> Unit)
-  fun retrieveCalendars(onlyWritableCalendars: Boolean, callback: (Result<List<Calendar>>) -> Unit)
+  fun retrieveCalendars(onlyWritableCalendars: Boolean, from: Account?, callback: (Result<List<Calendar>>) -> Unit)
   fun deleteCalendar(calendarId: String, callback: (Result<Unit>) -> Unit)
   fun createEvent(calendarId: String, title: String, startDate: Long, endDate: Long, isAllDay: Boolean, description: String?, url: String?, callback: (Result<Event>) -> Unit)
   fun retrieveEvents(calendarId: String, startDate: Long, endDate: Long, callback: (Result<List<Event>>) -> Unit)
@@ -283,7 +283,8 @@ interface CalendarApi {
           channel.setMessageHandler { message, reply ->
             val args = message as List<Any?>
             val onlyWritableCalendarsArg = args[0] as Boolean
-            api.retrieveCalendars(onlyWritableCalendarsArg) { result: Result<List<Calendar>> ->
+            val fromArg = args[1] as Account?
+            api.retrieveCalendars(onlyWritableCalendarsArg, fromArg) { result: Result<List<Calendar>> ->
               val error = result.exceptionOrNull()
               if (error != null) {
                 reply.reply(wrapError(error))

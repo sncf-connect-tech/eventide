@@ -26,6 +26,7 @@ abstract class CalendarApi {
   @async
   List<Calendar> retrieveCalendars({
     required bool onlyWritableCalendars,
+    required Account? from,
   });
 
   @async

@@ -43,9 +43,16 @@ final class EasyEventStore: EasyEventStoreProtocol {
         }
     }
     
-    func retrieveCalendars(onlyWritable: Bool) -> [Calendar] {
+    func retrieveCalendars(
+        onlyWritable: Bool,
+        from account: Account?
+    ) -> [Calendar] {
         return eventStore.calendars(for: .event)
             .filter { onlyWritable ? $0.allowsContentModifications : true }
+            .filter { calendar in
+                guard let account = account else { return true }
+                return account.name == calendar.source.sourceIdentifier && account.type == calendar.source.sourceType.toString()
+            }
             .map { $0.toCalendar() }
     }
     

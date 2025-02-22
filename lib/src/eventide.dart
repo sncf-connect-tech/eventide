@@ -70,10 +70,13 @@ class Eventide extends EventidePlatform {
   @override
   Future<List<ETCalendar>> retrieveCalendars({
     bool onlyWritableCalendars = true,
+    ETAccount? fromAccount,
   }) async {
     try {
       final calendars = await _calendarApi.retrieveCalendars(
-          onlyWritableCalendars: onlyWritableCalendars);
+        onlyWritableCalendars: onlyWritableCalendars,
+        from: fromAccount?.toAccount(),
+      );
       return calendars.toETCalendarList();
     } on PlatformException catch (e) {
       throw e.toETException();

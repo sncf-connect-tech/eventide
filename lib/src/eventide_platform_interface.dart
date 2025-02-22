@@ -29,6 +29,7 @@ abstract class EventidePlatform extends PlatformInterface {
 
   Future<List<ETCalendar>> retrieveCalendars({
     bool onlyWritableCalendars = true,
+    ETAccount? fromAccount,
   });
 
   Future<void> deleteCalendar({

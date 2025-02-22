@@ -31,9 +31,16 @@ class MockEasyEventStore: EasyEventStoreProtocol {
         return calendar.toCalendar()
     }
     
-    func retrieveCalendars(onlyWritable: Bool) -> [eventide.Calendar] {
+    func retrieveCalendars(
+        onlyWritable: Bool,
+        from account: Account?
+    ) -> [eventide.Calendar] {
         return calendars
             .filter { onlyWritable && $0.isWritable || !onlyWritable }
+            .filter { calendar in
+                guard let account = account else { return true }
+                return calendar.account.name == account.name && calendar.account.type == account.type
+            }
             .map { $0.toCalendar() }
     }
     

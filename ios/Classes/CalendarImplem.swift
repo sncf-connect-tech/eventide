@@ -62,9 +62,13 @@ class CalendarImplem: CalendarApi {
 
     }
 
-    func retrieveCalendars(onlyWritableCalendars: Bool, completion: @escaping (Result<[Calendar], Error>) -> Void) {
+    func retrieveCalendars(
+        onlyWritableCalendars: Bool,
+        from account: Account? = nil,
+        completion: @escaping (Result<[Calendar], Error>) -> Void
+    ) {
         permissionHandler.checkCalendarAccessThenExecute { [self] in
-            let calendars = easyEventStore.retrieveCalendars(onlyWritable: onlyWritableCalendars)
+            let calendars = easyEventStore.retrieveCalendars(onlyWritable: onlyWritableCalendars, from: account)
             completion(.success(calendars))
             
         } onPermissionRefused: {

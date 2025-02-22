@@ -3,6 +3,7 @@ package sncf.connect.tech.eventide
 import android.content.ContentResolver
 import android.database.Cursor
 import android.net.Uri
+import android.provider.CalendarContract
 import io.mockk.*
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.test.runTest
@@ -165,7 +166,7 @@ class CalendarImplemTest {
 
         var result: Result<List<Calendar>>? = null
         val latch = CountDownLatch(1)
-        calendarImplem.retrieveCalendars(false) {
+        calendarImplem.retrieveCalendars(false, null) {
             result = it
             latch.countDown()
         }
@@ -177,13 +178,150 @@ class CalendarImplemTest {
     }
 
     @Test
+    fun retrieveCalendars_onlyWritableAndAccountFilter_appliesCorrectSelection() = runTest {
+        every { permissionHandler.requestReadPermission(any()) } answers {
+            firstArg<(Boolean) -> Unit>().invoke(true)
+        }
+        val cursor = mockk<Cursor>(relaxed = true)
+        every { contentResolver.query(any(), any(), any(), any(), any()) } returns cursor
+        every { cursor.moveToNext() } returns false
+
+        var result: Result<List<Calendar>>? = null
+        val latch = CountDownLatch(1)
+        calendarImplem.retrieveCalendars(true, Account("testAccount", "testType")) {
+            result = it
+            latch.countDown()
+        }
+
+        latch.await()
+
+        val expectedSelection = "${CalendarContract.Calendars.CALENDAR_ACCESS_LEVEL} >= ? AND ${CalendarContract.Calendars.ACCOUNT_NAME} = ? AND ${CalendarContract.Calendars.ACCOUNT_TYPE} = ?"
+        val expectedSelectionArgs = arrayOf(CalendarContract.Calendars.CAL_ACCESS_CONTRIBUTOR.toString(), "testAccount", "testType")
+
+        verify {
+            contentResolver.query(
+                calendarContentUri,
+                any(),
+                expectedSelection,
+                expectedSelectionArgs,
+                any()
+            )
+        }
+
+        assertTrue(result!!.isSuccess)
+        assertTrue(result!!.getOrNull()?.isEmpty()!!)
+    }
+
+    @Test
+    fun retrieveCalendars_accountFilter_appliesCorrectSelection() = runTest {
+        every { permissionHandler.requestReadPermission(any()) } answers {
+            firstArg<(Boolean) -> Unit>().invoke(true)
+        }
+        val cursor = mockk<Cursor>(relaxed = true)
+        every { contentResolver.query(any(), any(), any(), any(), any()) } returns cursor
+        every { cursor.moveToNext() } returns false
+
+        var result: Result<List<Calendar>>? = null
+        val latch = CountDownLatch(1)
+        calendarImplem.retrieveCalendars(false, Account("testAccount", "testType")) {
+            result = it
+            latch.countDown()
+        }
+
+        latch.await()
+
+        val expectedSelection = "${CalendarContract.Calendars.ACCOUNT_NAME} = ? AND ${CalendarContract.Calendars.ACCOUNT_TYPE} = ?"
+        val expectedSelectionArgs = arrayOf("testAccount", "testType")
+
+        verify {
+            contentResolver.query(
+                calendarContentUri,
+                any(),
+                expectedSelection,
+                expectedSelectionArgs,
+                any()
+            )
+        }
+
+        assertTrue(result!!.isSuccess)
+        assertTrue(result!!.getOrNull()?.isEmpty()!!)
+    }
+
+    @Test
+    fun retrieveCalendars_onlyWritable_appliesCorrectSelection() = runTest {
+        every { permissionHandler.requestReadPermission(any()) } answers {
+            firstArg<(Boolean) -> Unit>().invoke(true)
+        }
+        val cursor = mockk<Cursor>(relaxed = true)
+        every { contentResolver.query(any(), any(), any(), any(), any()) } returns cursor
+        every { cursor.moveToNext() } returns false
+
+        var result: Result<List<Calendar>>? = null
+        val latch = CountDownLatch(1)
+        calendarImplem.retrieveCalendars(true, null) {
+            result = it
+            latch.countDown()
+        }
+
+        latch.await()
+
+        val expectedSelection = "${CalendarContract.Calendars.CALENDAR_ACCESS_LEVEL} >= ?"
+        val expectedSelectionArgs = arrayOf(CalendarContract.Calendars.CAL_ACCESS_CONTRIBUTOR.toString())
+
+        verify {
+            contentResolver.query(
+                calendarContentUri,
+                any(),
+                expectedSelection,
+                expectedSelectionArgs,
+                any()
+            )
+        }
+
+        assertTrue(result!!.isSuccess)
+        assertTrue(result!!.getOrNull()?.isEmpty()!!)
+    }
+
+    @Test
+    fun retrieveCalendars_noFilter_appliesCorrectSelection() = runTest {
+        every { permissionHandler.requestReadPermission(any()) } answers {
+            firstArg<(Boolean) -> Unit>().invoke(true)
+        }
+        val cursor = mockk<Cursor>(relaxed = true)
+        every { contentResolver.query(any(), any(), any(), any(), any()) } returns cursor
+        every { cursor.moveToNext() } returns false
+
+        var result: Result<List<Calendar>>? = null
+        val latch = CountDownLatch(1)
+        calendarImplem.retrieveCalendars(false, null) {
+            result = it
+            latch.countDown()
+        }
+
+        latch.await()
+
+        verify {
+            contentResolver.query(
+                calendarContentUri,
+                any(),
+                null,
+                null,
+                any()
+            )
+        }
+
+        assertTrue(result!!.isSuccess)
+        assertTrue(result!!.getOrNull()?.isEmpty()!!)
+    }
+
+    @Test
     fun retrieveCalendars_withDeniedPermission_failsToRetrieveCalendars() = runTest {
         every { permissionHandler.requestReadPermission(any()) } answers {
             firstArg<(Boolean) -> Unit>().invoke(false)
         }
 
         var result: Result<List<Calendar>>? = null
-        calendarImplem.retrieveCalendars(false) {
+        calendarImplem.retrieveCalendars(false, null) {
             result = it
         }
 
@@ -201,7 +339,7 @@ class CalendarImplemTest {
 
         var result: Result<List<Calendar>>? = null
         val latch = CountDownLatch(1)
-        calendarImplem.retrieveCalendars(false) {
+        calendarImplem.retrieveCalendars(false, null) {
             result = it
             latch.countDown()
         }

@@ -288,7 +288,7 @@ class CalendarApi {
   }
 
   Future<List<Calendar>> retrieveCalendars(
-      {required bool onlyWritableCalendars}) async {
+      {required bool onlyWritableCalendars, required Account? from}) async {
     final String pigeonVar_channelName =
         'dev.flutter.pigeon.eventide.CalendarApi.retrieveCalendars$pigeonVar_messageChannelSuffix';
     final BasicMessageChannel<Object?> pigeonVar_channel =
@@ -298,7 +298,7 @@ class CalendarApi {
       binaryMessenger: pigeonVar_binaryMessenger,
     );
     final List<Object?>? pigeonVar_replyList = await pigeonVar_channel
-        .send(<Object?>[onlyWritableCalendars]) as List<Object?>?;
+        .send(<Object?>[onlyWritableCalendars, from]) as List<Object?>?;
     if (pigeonVar_replyList == null) {
       throw _createConnectionError(pigeonVar_channelName);
     } else if (pigeonVar_replyList.length > 1) {

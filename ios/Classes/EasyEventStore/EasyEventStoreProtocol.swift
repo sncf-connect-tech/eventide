@@ -10,7 +10,7 @@ import Foundation
 protocol EasyEventStoreProtocol {
     func createCalendar(title: String, color: UIColor, account: Account?) throws -> Calendar
     
-    func retrieveCalendars(onlyWritable: Bool) -> [Calendar]
+    func retrieveCalendars(onlyWritable: Bool, from account: Account?) -> [Calendar]
     
     func deleteCalendar(calendarId: String) throws -> Void
     

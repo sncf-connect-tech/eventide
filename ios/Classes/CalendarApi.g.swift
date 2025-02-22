@@ -73,7 +73,7 @@ private func nilOrValue<T>(_ value: Any?) -> T? {
 /// [color] is the color of the calendar.
 ///
 /// [isWritable] is a boolean to indicate if the calendar is writable.
-/// 
+///
 /// [account] is the account the calendar belongs to
 /// TODO: explain android/ios differences
 ///
@@ -260,7 +260,7 @@ class CalendarApiPigeonCodec: FlutterStandardMessageCodec, @unchecked Sendable {
 protocol CalendarApi {
   func requestCalendarPermission(completion: @escaping (Result<Bool, Error>) -> Void)
   func createCalendar(title: String, color: Int64, account: Account?, completion: @escaping (Result<Calendar, Error>) -> Void)
-  func retrieveCalendars(onlyWritableCalendars: Bool, completion: @escaping (Result<[Calendar], Error>) -> Void)
+  func retrieveCalendars(onlyWritableCalendars: Bool, from: Account?, completion: @escaping (Result<[Calendar], Error>) -> Void)
   func deleteCalendar(_ calendarId: String, completion: @escaping (Result<Void, Error>) -> Void)
   func createEvent(calendarId: String, title: String, startDate: Int64, endDate: Int64, isAllDay: Bool, description: String?, url: String?, completion: @escaping (Result<Event, Error>) -> Void)
   func retrieveEvents(calendarId: String, startDate: Int64, endDate: Int64, completion: @escaping (Result<[Event], Error>) -> Void)
@@ -314,7 +314,8 @@ class CalendarApiSetup {
       retrieveCalendarsChannel.setMessageHandler { message, reply in
         let args = message as! [Any?]
         let onlyWritableCalendarsArg = args[0] as! Bool
-        api.retrieveCalendars(onlyWritableCalendars: onlyWritableCalendarsArg) { result in
+        let fromArg: Account? = nilOrValue(args[1])
+        api.retrieveCalendars(onlyWritableCalendars: onlyWritableCalendarsArg, from: fromArg) { result in
           switch result {
           case .success(let res):
             reply(wrapResult(res))

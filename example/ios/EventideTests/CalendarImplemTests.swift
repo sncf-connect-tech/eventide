@@ -149,6 +149,95 @@ final class CalendarImplemTests: XCTestCase {
         waitForExpectations(timeout: timeout)
     }
     
+    func testRetrieveCalendars_onlyWritableWithAccountFilter_permissionGranted() {
+        let expectation = expectation(description: "No eligible calendar")
+        
+        let account1 = Account(name: "local", type: "local")
+        let account2 = Account(name: "iCloud", type: "calDAV")
+        let mockEasyEventStore = MockEasyEventStore(
+            calendars: [
+                MockCalendar(
+                    id: "1",
+                    title: "title",
+                    color: UIColor.red,
+                    isWritable: false,
+                    account: account1,
+                    events: []
+                ),
+                MockCalendar(
+                    id: "2",
+                    title: "title",
+                    color: UIColor.blue,
+                    isWritable: true,
+                    account: account2,
+                    events: []
+                )
+            ]
+        )
+        
+        calendarImplem = CalendarImplem(
+            easyEventStore: mockEasyEventStore,
+            permissionHandler: PermissionGranted()
+        )
+        
+        calendarImplem.retrieveCalendars(onlyWritableCalendars: true, from: account1) { retrieveCalendarsResult in
+            switch (retrieveCalendarsResult) {
+            case .success(let calendars):
+                XCTAssert(calendars.isEmpty)
+                expectation.fulfill()
+            case .failure:
+                XCTFail("Calendars should have been retrieved")
+            }
+        }
+        
+        waitForExpectations(timeout: timeout)
+    }
+    
+    func testRetrieveCalendars_accountFilter_permissionGranted() {
+        let expectation = expectation(description: "Calendar has been retrieved")
+        
+        let account1 = Account(name: "local", type: "local")
+        let account2 = Account(name: "iCloud", type: "calDAV")
+        let mockEasyEventStore = MockEasyEventStore(
+            calendars: [
+                MockCalendar(
+                    id: "1",
+                    title: "title",
+                    color: UIColor.red,
+                    isWritable: false,
+                    account: account1,
+                    events: []
+                ),
+                MockCalendar(
+                    id: "2",
+                    title: "title",
+                    color: UIColor.blue,
+                    isWritable: true,
+                    account: account2,
+                    events: []
+                )
+            ]
+        )
+        
+        calendarImplem = CalendarImplem(
+            easyEventStore: mockEasyEventStore,
+            permissionHandler: PermissionGranted()
+        )
+        
+        calendarImplem.retrieveCalendars(onlyWritableCalendars: false, from: account2) { retrieveCalendarsResult in
+            switch (retrieveCalendarsResult) {
+            case .success(let calendars):
+                XCTAssert(calendars.count == 1)
+                XCTAssert(calendars.last!.id == "2")
+                expectation.fulfill()
+            case .failure:
+                XCTFail("Calendars should have been retrieved")
+            }
+        }
+        
+        waitForExpectations(timeout: timeout)
+    }
+    
     func testRetrieveCalendars_all_permissionGranted() {
         let expectation = expectation(description: "Calendars have been retrieved")
         

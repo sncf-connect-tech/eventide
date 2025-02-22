@@ -101,7 +101,11 @@ class CalendarImplem(
         }
     }
 
-    override fun retrieveCalendars(onlyWritableCalendars: Boolean, callback: (Result<List<Calendar>>) -> Unit) {
+    override fun retrieveCalendars(
+        onlyWritableCalendars: Boolean,
+        from: Account?,
+        callback: (Result<List<Calendar>>) -> Unit
+    ) {
         permissionHandler.requestReadPermission { granted ->
             if (granted) {
                 CoroutineScope(Dispatchers.IO).launch {
@@ -114,8 +118,24 @@ class CalendarImplem(
                             CalendarContract.Calendars.ACCOUNT_NAME,
                             CalendarContract.Calendars.ACCOUNT_TYPE
                         )
-                        val selection = if (onlyWritableCalendars) ("(" + CalendarContract.Calendars.CALENDAR_ACCESS_LEVEL + " >=  ?)") else null
-                        val selectionArgs = if (onlyWritableCalendars) arrayOf(CalendarContract.Calendars.CAL_ACCESS_CONTRIBUTOR.toString()) else null
+
+                        val (selection, selectionArgs) = Pair(onlyWritableCalendars, from).let { (onlyWritable, account) ->
+                            if (onlyWritable && account != null) {
+                                val selection = CalendarContract.Calendars.CALENDAR_ACCESS_LEVEL + " >= ? AND " + CalendarContract.Calendars.ACCOUNT_NAME + " = ? AND " + CalendarContract.Calendars.ACCOUNT_TYPE + " = ?"
+                                val selectionArgs = arrayOf(CalendarContract.Calendars.CAL_ACCESS_CONTRIBUTOR.toString(), account.name, account.type)
+                                return@let Pair(selection, selectionArgs)
+                            } else if (onlyWritable) {
+                                val selection = CalendarContract.Calendars.CALENDAR_ACCESS_LEVEL + " >= ?"
+                                val selectionArgs = arrayOf(CalendarContract.Calendars.CAL_ACCESS_CONTRIBUTOR.toString())
+                                return@let Pair(selection, selectionArgs)
+                            } else if (account != null) {
+                                val selection = CalendarContract.Calendars.ACCOUNT_NAME + " = ? AND " + CalendarContract.Calendars.ACCOUNT_TYPE + " = ?"
+                                val selectionArgs = arrayOf(account.name, account.type)
+                                return@let Pair(selection, selectionArgs)
+                            } else {
+                                return@let Pair(null, null)
+                            }
+                        }
 
                         val cursor = contentResolver.query(calendarContentUri, projection, selection, selectionArgs, null)
                         val calendars = mutableListOf<Calendar>()
