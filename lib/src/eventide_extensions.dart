@@ -44,6 +44,22 @@ extension EventToETEvent on Event {
   }
 }
 
+extension ETEventCopy on ETEvent {
+  ETEvent copyWithReminders(List<Duration>? reminders) {
+    return ETEvent(
+      id: id,
+      title: title,
+      isAllDay: isAllDay,
+      startDate: startDate,
+      endDate: endDate,
+      calendarId: calendarId,
+      description: description,
+      url: url,
+      reminders: reminders ?? this.reminders,
+    );
+  }
+}
+
 extension AccountToETAccount on Account {
   ETAccount toETAccount() {
     return ETAccount(
