@@ -339,10 +339,10 @@ packages:
     description:
       path: "packages/value_state"
       ref: refacto
-      resolved-ref: "297801d902fb1823e4c3ee8e0a46f9844b1323ca"
+      resolved-ref: "659aed814c961c7b2a9cf8de36d06a94543b1eca"
       url: "https://github.com/zemanux/value_state.git"
     source: git
-    version: "2.0.0-beta.0"
+    version: "2.0.0-beta.1"
   vector_math:
     dependency: transitive
     description:
