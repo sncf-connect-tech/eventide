@@ -1,8 +1,6 @@
 ## 📆 Eventide
 
-[![Flutter Tests](https://github.com/sncf-connect-tech/eventide/actions/workflows/flutter.yml/badge.svg)](https://github.com/sncf-connect-tech/eventide/actions/workflows/flutter.yml)
-[![Android Tests](https://github.com/sncf-connect-tech/eventide/actions/workflows/android.yml/badge.svg)](https://github.com/sncf-connect-tech/eventide/actions/workflows/android.yml)
-[![iOS Tests](https://github.com/sncf-connect-tech/eventide/actions/workflows/ios.yml/badge.svg)](https://github.com/sncf-connect-tech/eventide/actions/workflows/ios.yml)
+[![pub package](https://img.shields.io/pub/v/eventide.svg)](https://pub.dev/packages/eventide) [![Flutter Tests](https://github.com/sncf-connect-tech/eventide/actions/workflows/flutter.yml/badge.svg)](https://github.com/sncf-connect-tech/eventide/actions/workflows/flutter.yml) [![Android Tests](https://github.com/sncf-connect-tech/eventide/actions/workflows/android.yml/badge.svg)](https://github.com/sncf-connect-tech/eventide/actions/workflows/android.yml) [![iOS Tests](https://github.com/sncf-connect-tech/eventide/actions/workflows/ios.yml/badge.svg)](https://github.com/sncf-connect-tech/eventide/actions/workflows/ios.yml)
 
 Eventide provides a easy-to-use flutter interface to access & modify native device calendars (iOS & Android).
 
