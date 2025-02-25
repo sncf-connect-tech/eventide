@@ -14,8 +14,8 @@ class CalendarImplem(
     private var permissionHandler: PermissionHandler,
     private var calendarContentUri: Uri = CalendarContract.Calendars.CONTENT_URI,
     private var eventContentUri: Uri = CalendarContract.Events.CONTENT_URI,
-    private var remindersContentUri: Uri = CalendarContract.Reminders.CONTENT_URI,
-    ): CalendarApi {
+    private var remindersContentUri: Uri = CalendarContract.Reminders.CONTENT_URI
+): CalendarApi {
     override fun requestCalendarPermission(callback: (Result<Boolean>) -> Unit) {
         permissionHandler.requestWritePermission { granted ->
             callback(Result.success(granted))
@@ -25,20 +25,22 @@ class CalendarImplem(
     override fun createCalendar(
         title: String,
         color: Long,
+        account: Account?,
         callback: (Result<Calendar>) -> Unit
     ) {
         permissionHandler.requestWritePermission { granted ->
             if (granted) {
                 CoroutineScope(Dispatchers.IO).launch {
                     try {
+                        val resolvedAccount = account ?: Account("eventide", CalendarContract.ACCOUNT_TYPE_LOCAL)
                         val values = ContentValues().apply {
-                            put(CalendarContract.Calendars.ACCOUNT_NAME, "account_name")
-                            put(CalendarContract.Calendars.ACCOUNT_TYPE, CalendarContract.ACCOUNT_TYPE_LOCAL)
+                            put(CalendarContract.Calendars.ACCOUNT_NAME, resolvedAccount.name)
+                            put(CalendarContract.Calendars.ACCOUNT_TYPE, resolvedAccount.type)
                             put(CalendarContract.Calendars.NAME, title)
                             put(CalendarContract.Calendars.CALENDAR_DISPLAY_NAME, title)
                             put(CalendarContract.Calendars.CALENDAR_COLOR, color)
                             put(CalendarContract.Calendars.CALENDAR_ACCESS_LEVEL, CalendarContract.Calendars.CAL_ACCESS_OWNER)
-                            put(CalendarContract.Calendars.OWNER_ACCOUNT, "owner_account")
+                            put(CalendarContract.Calendars.OWNER_ACCOUNT, resolvedAccount.name)
                             put(CalendarContract.Calendars.VISIBLE, 1)
                             put(CalendarContract.Calendars.SYNC_EVENTS, 1)
                         }
@@ -46,15 +48,21 @@ class CalendarImplem(
                         val uri = calendarContentUri
                             .buildUpon()
                             .appendQueryParameter(CalendarContract.CALLER_IS_SYNCADAPTER, "true")
-                            .appendQueryParameter(CalendarContract.Calendars.ACCOUNT_NAME, "account_name")
-                            .appendQueryParameter(CalendarContract.Calendars.ACCOUNT_TYPE, CalendarContract.ACCOUNT_TYPE_LOCAL)
+                            .appendQueryParameter(CalendarContract.Calendars.ACCOUNT_NAME, resolvedAccount.name)
+                            .appendQueryParameter(CalendarContract.Calendars.ACCOUNT_TYPE, resolvedAccount.type)
                             .build()
 
                         val calendarUri = contentResolver.insert(uri, values)
                         if (calendarUri != null) {
                             val calendarId = calendarUri.lastPathSegment?.toLong()
                             if (calendarId != null) {
-                                val calendar = Calendar(calendarId.toString(), title, color, isWritable = true, CalendarContract.ACCOUNT_TYPE_LOCAL)
+                                val calendar = Calendar(
+                                    id = calendarId.toString(),
+                                    title = title,
+                                    color = color,
+                                    isWritable = true,
+                                    account = resolvedAccount
+                                )
                                 callback(Result.success(calendar))
                             } else {
                                 callback(Result.failure(
@@ -93,7 +101,11 @@ class CalendarImplem(
         }
     }
 
-    override fun retrieveCalendars(onlyWritableCalendars: Boolean, callback: (Result<List<Calendar>>) -> Unit) {
+    override fun retrieveCalendars(
+        onlyWritableCalendars: Boolean,
+        from: Account?,
+        callback: (Result<List<Calendar>>) -> Unit
+    ) {
         permissionHandler.requestReadPermission { granted ->
             if (granted) {
                 CoroutineScope(Dispatchers.IO).launch {
@@ -103,10 +115,27 @@ class CalendarImplem(
                             CalendarContract.Calendars.CALENDAR_DISPLAY_NAME,
                             CalendarContract.Calendars.CALENDAR_COLOR,
                             CalendarContract.Calendars.CALENDAR_ACCESS_LEVEL,
-                            CalendarContract.Calendars.ACCOUNT_NAME
+                            CalendarContract.Calendars.ACCOUNT_NAME,
+                            CalendarContract.Calendars.ACCOUNT_TYPE
                         )
-                        val selection = if (onlyWritableCalendars) ("(" + CalendarContract.Calendars.CALENDAR_ACCESS_LEVEL + " >=  ?)") else null
-                        val selectionArgs = if (onlyWritableCalendars) arrayOf(CalendarContract.Calendars.CAL_ACCESS_CONTRIBUTOR.toString()) else null
+
+                        val (selection, selectionArgs) = Pair(onlyWritableCalendars, from).let { (onlyWritable, account) ->
+                            if (onlyWritable && account != null) {
+                                val selection = CalendarContract.Calendars.CALENDAR_ACCESS_LEVEL + " >= ? AND " + CalendarContract.Calendars.ACCOUNT_NAME + " = ? AND " + CalendarContract.Calendars.ACCOUNT_TYPE + " = ?"
+                                val selectionArgs = arrayOf(CalendarContract.Calendars.CAL_ACCESS_CONTRIBUTOR.toString(), account.name, account.type)
+                                return@let Pair(selection, selectionArgs)
+                            } else if (onlyWritable) {
+                                val selection = CalendarContract.Calendars.CALENDAR_ACCESS_LEVEL + " >= ?"
+                                val selectionArgs = arrayOf(CalendarContract.Calendars.CAL_ACCESS_CONTRIBUTOR.toString())
+                                return@let Pair(selection, selectionArgs)
+                            } else if (account != null) {
+                                val selection = CalendarContract.Calendars.ACCOUNT_NAME + " = ? AND " + CalendarContract.Calendars.ACCOUNT_TYPE + " = ?"
+                                val selectionArgs = arrayOf(account.name, account.type)
+                                return@let Pair(selection, selectionArgs)
+                            } else {
+                                return@let Pair(null, null)
+                            }
+                        }
 
                         val cursor = contentResolver.query(calendarContentUri, projection, selection, selectionArgs, null)
                         val calendars = mutableListOf<Calendar>()
@@ -117,14 +146,18 @@ class CalendarImplem(
                                 val displayName = it.getString(it.getColumnIndexOrThrow(CalendarContract.Calendars.CALENDAR_DISPLAY_NAME))
                                 val color = it.getLong(it.getColumnIndexOrThrow(CalendarContract.Calendars.CALENDAR_COLOR))
                                 val accessLevel = it.getInt(it.getColumnIndexOrThrow(CalendarContract.Calendars.CALENDAR_ACCESS_LEVEL))
-                                val sourceName = it.getString(it.getColumnIndexOrThrow(CalendarContract.Calendars.ACCOUNT_NAME))
+                                val accountName = it.getString(it.getColumnIndexOrThrow(CalendarContract.Calendars.ACCOUNT_NAME))
+                                val accountType = it.getString(it.getColumnIndexOrThrow(CalendarContract.Calendars.ACCOUNT_TYPE))
 
                                 val calendar = Calendar(
                                     id = id,
                                     title = displayName,
                                     color = color,
                                     isWritable = accessLevel >= CalendarContract.Calendars.CAL_ACCESS_CONTRIBUTOR,
-                                    sourceName = sourceName
+                                    account = Account(
+                                        name = accountName,
+                                        type = accountType
+                                    )
                                 )
 
                                 calendars.add(calendar)

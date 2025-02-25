@@ -14,8 +14,8 @@ final class EasyEventStore: EasyEventStoreProtocol {
         self.eventStore = eventStore
     }
     
-    func createCalendar(title: String, color: UIColor) throws -> Calendar {
-        guard let source = getSource() else {
+    func createCalendar(title: String, color: UIColor, account: Account?) throws -> Calendar {
+        guard let source = getSource(account: account) else {
             throw PigeonError(
                 code: "NOT_FOUND",
                 message: "Calendar source was not found",
@@ -31,7 +31,7 @@ final class EasyEventStore: EasyEventStoreProtocol {
         
         do {
             try eventStore.saveCalendar(ekCalendar, commit: true)
-            return ekCalendar.toEasyCalendar()
+            return ekCalendar.toCalendar()
             
         } catch {
             eventStore.reset()
@@ -43,10 +43,17 @@ final class EasyEventStore: EasyEventStoreProtocol {
         }
     }
     
-    func retrieveCalendars(onlyWritable: Bool) -> [Calendar] {
+    func retrieveCalendars(
+        onlyWritable: Bool,
+        from account: Account?
+    ) -> [Calendar] {
         return eventStore.calendars(for: .event)
             .filter { onlyWritable ? $0.allowsContentModifications : true }
-            .map { $0.toEasyCalendar() }
+            .filter { calendar in
+                guard let account = account else { return true }
+                return account.name == calendar.source.sourceIdentifier && account.type == calendar.source.sourceType.toString()
+            }
+            .map { $0.toCalendar() }
     }
     
     func deleteCalendar(calendarId: String) throws {
@@ -104,7 +111,7 @@ final class EasyEventStore: EasyEventStoreProtocol {
         
         do {
             try eventStore.save(ekEvent, span: EKSpan.thisEvent, commit: true)
-            return ekEvent.toEasyEvent()
+            return ekEvent.toEvent()
             
         } catch {
             eventStore.reset()
@@ -131,7 +138,7 @@ final class EasyEventStore: EasyEventStoreProtocol {
             calendars: [calendar]
         )
         
-        return eventStore.events(matching: predicate).map { $0.toEasyEvent() }
+        return eventStore.events(matching: predicate).map { $0.toEvent() }
     }
     
     func deleteEvent(eventId: String) throws {
@@ -182,7 +189,7 @@ final class EasyEventStore: EasyEventStoreProtocol {
 
         do {
             try eventStore.save(ekEvent, span: EKSpan.thisEvent, commit: true)
-            return ekEvent.toEasyEvent()
+            return ekEvent.toEvent()
             
         } catch {
             eventStore.reset()
@@ -217,7 +224,7 @@ final class EasyEventStore: EasyEventStoreProtocol {
         
         do {
             try self.eventStore.save(ekEvent, span: EKSpan.thisEvent, commit: true)
-            return ekEvent.toEasyEvent()
+            return ekEvent.toEvent()
             
         } catch {
             self.eventStore.reset()
@@ -229,10 +236,17 @@ final class EasyEventStore: EasyEventStoreProtocol {
         }
     }
     
-    private func getSource() -> EKSource? {
+    private func getSource(account: Account?) -> EKSource? {
         guard let defaultSource = eventStore.defaultCalendarForNewEvents?.source else {
             // if eventStore.defaultCalendarForNewEvents?.source is nil then eventStore.sources is empty
             return nil
+        }
+        
+        if let account = account, let sourceType = EKSourceType(from: account.type) {
+            let wantedSources = eventStore.sources.filter { $0.sourceType == sourceType && $0.sourceIdentifier == account.name }
+            if !wantedSources.isEmpty {
+                return wantedSources.first
+            }
         }
         
         let iCloudSources = eventStore.sources.filter { $0.sourceType == .calDAV && $0.sourceIdentifier == "iCloud" }
@@ -252,19 +266,22 @@ final class EasyEventStore: EasyEventStoreProtocol {
 }
 
 fileprivate extension EKCalendar {
-    func toEasyCalendar() -> Calendar {
+    func toCalendar() -> Calendar {
         Calendar(
             id: calendarIdentifier,
             title: title,
             color: UIColor(cgColor: cgColor).toInt64(),
             isWritable: allowsContentModifications,
-            sourceName: source.sourceIdentifier
+            account: Account(
+                name: source.sourceIdentifier,
+                type: source.sourceType.toString()
+            )
         )
     }
 }
 
 fileprivate extension EKEvent {
-    func toEasyEvent() -> Event {
+    func toEvent() -> Event {
         Event(
             id: eventIdentifier,
             title: title,
@@ -276,5 +293,54 @@ fileprivate extension EKEvent {
             url: url?.absoluteString,
             reminders: alarms?.map { Int64($0.relativeOffset) }
         )
+    }
+}
+
+fileprivate extension EKSource {
+    func toAccount() -> Account {
+        return Account(
+            name: sourceIdentifier,
+            type: sourceType.toString()
+        )
+    }
+}
+
+fileprivate extension EKSourceType {
+     init?(from string: String) {
+        switch string.lowercased() {
+        case "local":
+            self = .local
+        case "caldav":
+            self = .calDAV
+        case "exchange":
+            self = .exchange
+        case "subscribed":
+            self = .subscribed
+        case "mobileme":
+            self = .mobileMe
+        case "birthdays":
+            self = .birthdays
+        default:
+            return nil
+        }
+    }
+
+    func toString() -> String {
+        switch self {
+        case .local:
+            return "Local"
+        case .calDAV:
+            return "CalDAV"
+        case .exchange:
+            return "Exchange"
+        case .subscribed:
+            return "Subscribed"
+        case .mobileMe:
+            return "MobileMe"
+        case .birthdays:
+            return "Birthdays"
+        @unknown default:
+            return "Local"
+        }
     }
 }

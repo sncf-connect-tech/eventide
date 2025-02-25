@@ -65,16 +65,17 @@ private func nilOrValue<T>(_ value: Any?) -> T? {
 }
 
 /// Native data struct to represent a calendar.
-/// 
+///
 /// [id] is a unique identifier for the calendar.
-/// 
+///
 /// [title] is the title of the calendar.
-/// 
+///
 /// [color] is the color of the calendar.
-/// 
+///
 /// [isWritable] is a boolean to indicate if the calendar is writable.
-/// 
-/// [sourceName] is the name of the source of the calendar.
+///
+/// [account] is the account the calendar belongs to
+/// TODO: explain android/ios differences
 ///
 /// Generated class from Pigeon that represents data sent in messages.
 struct Calendar {
@@ -82,7 +83,7 @@ struct Calendar {
   var title: String
   var color: Int64
   var isWritable: Bool
-  var sourceName: String
+  var account: Account
 
 
   // swift-format-ignore: AlwaysUseLowerCamelCase
@@ -91,14 +92,14 @@ struct Calendar {
     let title = pigeonVar_list[1] as! String
     let color = pigeonVar_list[2] as! Int64
     let isWritable = pigeonVar_list[3] as! Bool
-    let sourceName = pigeonVar_list[4] as! String
+    let account = pigeonVar_list[4] as! Account
 
     return Calendar(
       id: id,
       title: title,
       color: color,
       isWritable: isWritable,
-      sourceName: sourceName
+      account: account
     )
   }
   func toList() -> [Any?] {
@@ -107,29 +108,29 @@ struct Calendar {
       title,
       color,
       isWritable,
-      sourceName,
+      account,
     ]
   }
 }
 
 /// Native data struct to represent an event.
-/// 
+///
 /// [id] is a unique identifier for the event.
-/// 
+///
 /// [title] is the title of the event.
-/// 
+///
 /// [isAllDay] is whether or not the event is an all day.
-/// 
+///
 /// [startDate] is the start date of the event in milliseconds since epoch.
-/// 
+///
 /// [endDate] is the end date of the event in milliseconds since epoch.
-/// 
+///
 /// [calendarId] is the id of the calendar that the event belongs to.
-/// 
+///
 /// [description] is the description of the event.
-/// 
-/// [url] is the url of the event.  
-/// 
+///
+/// [url] is the url of the event.
+///
 /// [reminders] is a list of minutes before the event to remind the user.
 ///
 /// Generated class from Pigeon that represents data sent in messages.
@@ -184,6 +185,30 @@ struct Event {
   }
 }
 
+/// Generated class from Pigeon that represents data sent in messages.
+struct Account {
+  var name: String
+  var type: String
+
+
+  // swift-format-ignore: AlwaysUseLowerCamelCase
+  static func fromList(_ pigeonVar_list: [Any?]) -> Account? {
+    let name = pigeonVar_list[0] as! String
+    let type = pigeonVar_list[1] as! String
+
+    return Account(
+      name: name,
+      type: type
+    )
+  }
+  func toList() -> [Any?] {
+    return [
+      name,
+      type,
+    ]
+  }
+}
+
 private class CalendarApiPigeonCodecReader: FlutterStandardReader {
   override func readValue(ofType type: UInt8) -> Any? {
     switch type {
@@ -191,6 +216,8 @@ private class CalendarApiPigeonCodecReader: FlutterStandardReader {
       return Calendar.fromList(self.readValue() as! [Any?])
     case 130:
       return Event.fromList(self.readValue() as! [Any?])
+    case 131:
+      return Account.fromList(self.readValue() as! [Any?])
     default:
       return super.readValue(ofType: type)
     }
@@ -204,6 +231,9 @@ private class CalendarApiPigeonCodecWriter: FlutterStandardWriter {
       super.writeValue(value.toList())
     } else if let value = value as? Event {
       super.writeByte(130)
+      super.writeValue(value.toList())
+    } else if let value = value as? Account {
+      super.writeByte(131)
       super.writeValue(value.toList())
     } else {
       super.writeValue(value)
@@ -229,8 +259,8 @@ class CalendarApiPigeonCodec: FlutterStandardMessageCodec, @unchecked Sendable {
 /// Generated protocol from Pigeon that represents a handler of messages from Flutter.
 protocol CalendarApi {
   func requestCalendarPermission(completion: @escaping (Result<Bool, Error>) -> Void)
-  func createCalendar(title: String, color: Int64, completion: @escaping (Result<Calendar, Error>) -> Void)
-  func retrieveCalendars(onlyWritableCalendars: Bool, completion: @escaping (Result<[Calendar], Error>) -> Void)
+  func createCalendar(title: String, color: Int64, account: Account?, completion: @escaping (Result<Calendar, Error>) -> Void)
+  func retrieveCalendars(onlyWritableCalendars: Bool, from: Account?, completion: @escaping (Result<[Calendar], Error>) -> Void)
   func deleteCalendar(_ calendarId: String, completion: @escaping (Result<Void, Error>) -> Void)
   func createEvent(calendarId: String, title: String, startDate: Int64, endDate: Int64, isAllDay: Bool, description: String?, url: String?, completion: @escaping (Result<Event, Error>) -> Void)
   func retrieveEvents(calendarId: String, startDate: Int64, endDate: Int64, completion: @escaping (Result<[Event], Error>) -> Void)
@@ -266,7 +296,8 @@ class CalendarApiSetup {
         let args = message as! [Any?]
         let titleArg = args[0] as! String
         let colorArg = args[1] as! Int64
-        api.createCalendar(title: titleArg, color: colorArg) { result in
+        let accountArg: Account? = nilOrValue(args[2])
+        api.createCalendar(title: titleArg, color: colorArg, account: accountArg) { result in
           switch result {
           case .success(let res):
             reply(wrapResult(res))
@@ -283,7 +314,8 @@ class CalendarApiSetup {
       retrieveCalendarsChannel.setMessageHandler { message, reply in
         let args = message as! [Any?]
         let onlyWritableCalendarsArg = args[0] as! Bool
-        api.retrieveCalendars(onlyWritableCalendars: onlyWritableCalendarsArg) { result in
+        let fromArg: Account? = nilOrValue(args[1])
+        api.retrieveCalendars(onlyWritableCalendars: onlyWritableCalendarsArg, from: fromArg) { result in
           switch result {
           case .success(let res):
             reply(wrapResult(res))

@@ -2,6 +2,7 @@ import 'dart:ui';
 
 import 'package:eventide/src/eventide.dart';
 import 'package:equatable/equatable.dart';
+import 'package:flutter/services.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 
 abstract class EventidePlatform extends PlatformInterface {
@@ -23,10 +24,12 @@ abstract class EventidePlatform extends PlatformInterface {
   Future<ETCalendar> createCalendar({
     required String title,
     required Color color,
+    ETAccount? account,
   });
 
   Future<List<ETCalendar>> retrieveCalendars({
     bool onlyWritableCalendars = true,
+    ETAccount? fromAccount,
   });
 
   Future<void> deleteCalendar({
@@ -79,17 +82,17 @@ final class ETCalendar extends Equatable {
   final String title;
   final Color color;
   final bool isWritable;
-  final String sourceName;
+  final ETAccount account;
 
   @override
-  List<Object?> get props => [id, title, color, isWritable, sourceName];
+  List<Object?> get props => [id, title, color, isWritable, account];
 
   const ETCalendar({
     required this.id,
     required this.title,
     required this.color,
     required this.isWritable,
-    required this.sourceName,
+    required this.account,
   });
 }
 
@@ -144,5 +147,27 @@ final class ETEvent extends Equatable {
     this.description,
     this.url,
     this.reminders,
+  });
+}
+
+/// Represents an account.
+///
+/// [name] is the name of the account. It corresponds to CalendarContract.Calendars.ACCOUNT_NAME on Android and EKSource.sourceIdentifier on iOS.
+///
+/// [type] is the type of the account. It corresponds to CalendarContract.Calendars.ACCOUNT_TYPE on Android and EKSource.sourceType on iOS.
+///
+/// This class is used to represent the account that the calendar belongs to.
+///
+/// For example, if the calendar belongs to a Google account, the account name will be the email address of the Google account.
+final class ETAccount extends Equatable {
+  final String name;
+  final String type;
+
+  @override
+  List<Object?> get props => [name, type];
+
+  const ETAccount({
+    required this.name,
+    required this.type,
   });
 }

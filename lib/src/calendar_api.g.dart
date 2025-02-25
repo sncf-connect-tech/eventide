@@ -25,14 +25,15 @@ PlatformException _createConnectionError(String channelName) {
 ///
 /// [isWritable] is a boolean to indicate if the calendar is writable.
 ///
-/// [sourceName] is the name of the source of the calendar.
+/// [account] is the account the calendar belongs to
+/// TODO: explain android/ios differences
 class Calendar {
   Calendar({
     required this.id,
     required this.title,
     required this.color,
     required this.isWritable,
-    required this.sourceName,
+    required this.account,
   });
 
   String id;
@@ -43,7 +44,7 @@ class Calendar {
 
   bool isWritable;
 
-  String sourceName;
+  Account account;
 
   Object encode() {
     return <Object?>[
@@ -51,7 +52,7 @@ class Calendar {
       title,
       color,
       isWritable,
-      sourceName,
+      account,
     ];
   }
 
@@ -62,7 +63,7 @@ class Calendar {
       title: result[1]! as String,
       color: result[2]! as int,
       isWritable: result[3]! as bool,
-      sourceName: result[4]! as String,
+      account: result[4]! as Account,
     );
   }
 }
@@ -147,6 +148,32 @@ class Event {
   }
 }
 
+class Account {
+  Account({
+    required this.name,
+    required this.type,
+  });
+
+  String name;
+
+  String type;
+
+  Object encode() {
+    return <Object?>[
+      name,
+      type,
+    ];
+  }
+
+  static Account decode(Object result) {
+    result as List<Object?>;
+    return Account(
+      name: result[0]! as String,
+      type: result[1]! as String,
+    );
+  }
+}
+
 class _PigeonCodec extends StandardMessageCodec {
   const _PigeonCodec();
   @override
@@ -160,6 +187,9 @@ class _PigeonCodec extends StandardMessageCodec {
     } else if (value is Event) {
       buffer.putUint8(130);
       writeValue(buffer, value.encode());
+    } else if (value is Account) {
+      buffer.putUint8(131);
+      writeValue(buffer, value.encode());
     } else {
       super.writeValue(buffer, value);
     }
@@ -172,6 +202,8 @@ class _PigeonCodec extends StandardMessageCodec {
         return Calendar.decode(readValue(buffer)!);
       case 130:
         return Event.decode(readValue(buffer)!);
+      case 131:
+        return Account.decode(readValue(buffer)!);
       default:
         return super.readValueOfType(type, buffer);
     }
@@ -222,8 +254,11 @@ class CalendarApi {
     }
   }
 
-  Future<Calendar> createCalendar(
-      {required String title, required int color}) async {
+  Future<Calendar> createCalendar({
+    required String title,
+    required int color,
+    required Account? account,
+  }) async {
     final String pigeonVar_channelName =
         'dev.flutter.pigeon.eventide.CalendarApi.createCalendar$pigeonVar_messageChannelSuffix';
     final BasicMessageChannel<Object?> pigeonVar_channel =
@@ -232,8 +267,8 @@ class CalendarApi {
       pigeonChannelCodec,
       binaryMessenger: pigeonVar_binaryMessenger,
     );
-    final List<Object?>? pigeonVar_replyList =
-        await pigeonVar_channel.send(<Object?>[title, color]) as List<Object?>?;
+    final List<Object?>? pigeonVar_replyList = await pigeonVar_channel
+        .send(<Object?>[title, color, account]) as List<Object?>?;
     if (pigeonVar_replyList == null) {
       throw _createConnectionError(pigeonVar_channelName);
     } else if (pigeonVar_replyList.length > 1) {
@@ -253,7 +288,7 @@ class CalendarApi {
   }
 
   Future<List<Calendar>> retrieveCalendars(
-      {required bool onlyWritableCalendars}) async {
+      {required bool onlyWritableCalendars, required Account? from}) async {
     final String pigeonVar_channelName =
         'dev.flutter.pigeon.eventide.CalendarApi.retrieveCalendars$pigeonVar_messageChannelSuffix';
     final BasicMessageChannel<Object?> pigeonVar_channel =
@@ -263,7 +298,7 @@ class CalendarApi {
       binaryMessenger: pigeonVar_binaryMessenger,
     );
     final List<Object?>? pigeonVar_replyList = await pigeonVar_channel
-        .send(<Object?>[onlyWritableCalendars]) as List<Object?>?;
+        .send(<Object?>[onlyWritableCalendars, from]) as List<Object?>?;
     if (pigeonVar_replyList == null) {
       throw _createConnectionError(pigeonVar_channelName);
     } else if (pigeonVar_replyList.length > 1) {

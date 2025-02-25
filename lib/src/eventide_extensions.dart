@@ -14,19 +14,19 @@ extension ColorToValue on Color {
   int _floatToInt8(double x) => (x * 255.0).round() & 0xff;
 }
 
-extension CalendarToECCalendar on Calendar {
+extension CalendarToETCalendar on Calendar {
   ETCalendar toETCalendar() {
     return ETCalendar(
       id: id,
       title: title,
       color: Color(color),
       isWritable: isWritable,
-      sourceName: sourceName,
+      account: account.toETAccount(),
     );
   }
 }
 
-extension EventToECEvent on Event {
+extension EventToETEvent on Event {
   ETEvent toETEvent() {
     return ETEvent(
       id: id,
@@ -44,13 +44,31 @@ extension EventToECEvent on Event {
   }
 }
 
-extension CalendarListToECCalendar on List<Calendar> {
+extension AccountToETAccount on Account {
+  ETAccount toETAccount() {
+    return ETAccount(
+      name: name,
+      type: name,
+    );
+  }
+}
+
+extension ETAccountToAccount on ETAccount {
+  Account toAccount() {
+    return Account(
+      name: name,
+      type: name,
+    );
+  }
+}
+
+extension CalendarListToETCalendar on List<Calendar> {
   List<ETCalendar> toETCalendarList() {
     return map((c) => c.toETCalendar()).toList();
   }
 }
 
-extension EventListToECEvent on List<Event> {
+extension EventListToETEvent on List<Event> {
   List<ETEvent> toETEventList() {
     return map((e) => e.toETEvent()).toList();
   }
