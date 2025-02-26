@@ -1,13 +1,13 @@
-import 'package:eventide/eventide.dart';
-import 'package:eventide/src/eventide_extensions.dart';
-import 'package:eventide/src/eventide_platform_interface.dart';
 import 'package:flutter/foundation.dart';
+
 import 'package:flutter_test/flutter_test.dart';
-import 'package:eventide/src/eventide.dart';
-import 'package:eventide/src/calendar_api.g.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:timezone/timezone.dart';
 import 'package:timezone/data/latest.dart' as tz;
+import 'package:timezone/timezone.dart';
+
+import 'package:eventide/eventide.dart';
+import 'package:eventide/src/calendar_api.g.dart';
+import 'package:eventide/src/eventide_extensions.dart';
 
 class _MockCalendarApi extends Mock implements CalendarApi {}
 

@@ -18,7 +18,7 @@ Eventide provides a easy-to-use flutter interface to access & modify native devi
 :construction: | Attendees
 :construction: | Streams
 
-NOTE: Eventide handles timezones as UTC. It's up to you to make sure he sends the right data with a [timezone aware DateTime class](https://pub.dev/packages/timezone).
+NOTE: Eventide handles timezones as UTC. Make sure the right data is feed to the plugin with a [timezone aware DateTime class](https://pub.dev/packages/timezone).
 
 ---
 

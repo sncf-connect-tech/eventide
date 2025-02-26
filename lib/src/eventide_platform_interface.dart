@@ -1,9 +1,11 @@
 import 'dart:ui';
 
-import 'package:eventide/src/eventide.dart';
-import 'package:equatable/equatable.dart';
 import 'package:flutter/services.dart';
+
+import 'package:equatable/equatable.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
+
+import 'package:eventide/src/eventide.dart';
 
 abstract class EventidePlatform extends PlatformInterface {
   EventidePlatform() : super(token: _token);

@@ -1,9 +1,10 @@
-import 'package:eventide/src/eventide_extensions.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
-import 'package:eventide/src/eventide_exception.dart';
-import 'package:eventide/src/eventide_platform_interface.dart';
+
 import 'package:eventide/src/calendar_api.g.dart';
+import 'package:eventide/src/eventide_exception.dart';
+import 'package:eventide/src/eventide_extensions.dart';
+import 'package:eventide/src/eventide_platform_interface.dart';
 
 class Eventide extends EventidePlatform {
   final CalendarApi _calendarApi;
