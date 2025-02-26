@@ -124,6 +124,7 @@ class Eventide extends EventidePlatform {
     bool isAllDay = false,
     String? description,
     String? url,
+    List<Duration>? reminders,
   }) async {
     try {
       final event = await _calendarApi.createEvent(
@@ -136,7 +137,17 @@ class Eventide extends EventidePlatform {
         url: url,
       );
 
-      return event.toETEvent();
+      if (reminders != null) {
+        for (final reminder in reminders) {
+          await _calendarApi.createReminder(
+            reminder: reminder.toNativeDuration(),
+            eventId: event.id,
+          );
+        }
+      }
+
+      return event.toETEvent().copyWithReminders(reminders);
+      
     } on PlatformException catch (e) {
       throw e.toETException();
     }

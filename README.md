@@ -57,9 +57,13 @@ final event = await eventide.createEvent(
     title: 'Meeting',
     startDate: DateTime.now(),
     endDate: DateTime.now().add(Duration(hours: 1)),
+    reminders: [
+        const Duration(hours: 1)
+        const Duration(minutes: 15),
+    ],
 );
 
-final updatedEvent = await eventide.addReminder(
+final updatedEvent = await eventide.deleteReminder(
     durationBeforeEvent: Duration(minutes: 15),
     eventId: event.id,
 );

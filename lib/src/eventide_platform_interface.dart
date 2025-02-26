@@ -43,6 +43,7 @@ abstract class EventidePlatform extends PlatformInterface {
     required DateTime endDate,
     String? description,
     String? url,
+    List<Duration>? reminders,
   });
 
   Future<List<ETEvent>> retrieveEvents({
