@@ -23,27 +23,17 @@ jobs:
           java-version: '17'
           cache: 'gradle'
 
-      - name: Verify JDK Installation
-        run: java -version
-
-      - name: Setup Flutter SDK
-        uses: flutter-actions/setup-flutter@v4
+      - uses: subosito/flutter-action@v2
         with:
-          channel: stable
-          version: 3.27.0
-
-      - name: Install dependencies
-        run: flutter pub get
+          flutter-version: '3.27.4'
+          channel: 'stable'
 
       - name: Verify Flutter Installation
         run: flutter doctor -v
 
-      - name: Set up local.properties
-        run: |
-          echo "sdk.dir=${{ vars.ANDROID_SDK_PATH }}" > ./example/android/local.properties
-          echo "flutter.sdk=${{ vars.FLUTTER_SDK_PATH }}" >> ./example/android/local.properties
-          echo "flutter.buildMode=${{ vars.BUILD_MODE }}" >> ./example/android/local.properties
+      - name: Install dependencies
+        run: flutter pub get
 
       - name: Build and test
         run: |
-          ./example/android/gradlew testDebug -p ./example/android/
+          ./example/android/gradlew testDebugUnitTest -p ./example/android/
