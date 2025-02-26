@@ -17,11 +17,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup Flutter SDK
-        uses: flutter-actions/setup-flutter@v4
+      - uses: subosito/flutter-action@v2
         with:
-          channel: stable
-          version: 3.27.0
+          flutter-version: '3.27.4'
+          channel: 'stable'
+
+      - name: Verify Flutter Installation
+        run: flutter doctor -v
 
       - name: Install dependencies
         run: |
@@ -29,9 +31,6 @@ jobs:
           cd example/ios
           pod install
           cd ../..
-
-      - name: Verify Flutter Installation
-        run: flutter doctor -v
 
       - name: Run tests
         run: |
