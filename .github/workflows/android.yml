@@ -46,4 +46,4 @@ jobs:
 
       - name: Build and test
         run: |
-          ./example/android/gradlew testDebug -p ./example/android/
+          ./example/android/gradlew testDebugUnitTest -p ./example/android/
