@@ -250,6 +250,105 @@ void main() {
             url: any(named: 'url'),
           )).called(1);
     });
+    
+    group('iOS tests', () {
+      setUpAll(() {
+        debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+      });
+
+      tearDownAll(() {
+        debugDefaultTargetPlatformOverride = null;
+      });
+
+      test('createEvent with reminders returns an ECEvent with reminders', () async {
+        // Given
+        const reminders = [Duration(minutes: 10), Duration(minutes: 20)];
+        when(() => mockCalendarApi.createEvent(
+          title: any(named: 'title'),
+          isAllDay: any(named: 'isAllDay'),
+          startDate: any(named: 'startDate'),
+          endDate: any(named: 'endDate'),
+          calendarId: any(named: 'calendarId'),
+          description: any(named: 'description'),
+          url: any(named: 'url'),
+        )).thenAnswer((_) async => event);
+        when(() => mockCalendarApi.createReminder(reminder: any(named: 'reminder'), eventId: any(named: 'eventId')))
+          .thenAnswer((_) async => event.copyWithReminders(reminders.toNativeList()));
+
+        // When
+        final result = await eventide.createEvent(
+          title: 'Test Event', 
+          startDate: startDate,
+          endDate: endDate,
+          calendarId: '1',
+          reminders: reminders,
+        );
+
+        // Then
+        expect(result.reminders, equals(reminders));
+        verify(() => mockCalendarApi.createEvent(
+          title: any(named: 'title'),
+          isAllDay: any(named: 'isAllDay'),
+          startDate: any(named: 'startDate'),
+          endDate: any(named: 'endDate'),
+          calendarId: any(named: 'calendarId'),
+          description: any(named: 'description'),
+          url: any(named: 'url'),
+        )).called(1);
+        verify(() => mockCalendarApi.createReminder(reminder: 10*60, eventId: event.id)).called(1);
+        verify(() => mockCalendarApi.createReminder(reminder: 20*60, eventId: event.id)).called(1);
+      });
+    });
+
+    group('Android tests', () {
+      setUpAll(() {
+        debugDefaultTargetPlatformOverride = TargetPlatform.android;
+      });
+
+      tearDownAll(() {
+        debugDefaultTargetPlatformOverride = null;
+      });
+
+      test('createEvent with reminders returns an ECEvent with reminders', () async {
+        // Given
+        const reminders = [Duration(minutes: 10), Duration(minutes: 20)];
+        when(() => mockCalendarApi.createEvent(
+          title: any(named: 'title'),
+          isAllDay: any(named: 'isAllDay'),
+          startDate: any(named: 'startDate'),
+          endDate: any(named: 'endDate'),
+          calendarId: any(named: 'calendarId'),
+          description: any(named: 'description'),
+          url: any(named: 'url'),
+        )).thenAnswer((_) async => event);
+        when(() => mockCalendarApi.createReminder(reminder: any(named: 'reminder'), eventId: any(named: 'eventId')))
+          .thenAnswer((_) async => event.copyWithReminders(reminders.toNativeList()));
+
+        // When
+        final result = await eventide.createEvent(
+          title: 'Test Event', 
+          startDate: startDate,
+          endDate: endDate,
+          calendarId: '1',
+          reminders: reminders,
+        );
+
+        // Then
+        expect(result.reminders, equals(reminders));
+        verify(() => mockCalendarApi.createEvent(
+          title: any(named: 'title'),
+          isAllDay: any(named: 'isAllDay'),
+          startDate: any(named: 'startDate'),
+          endDate: any(named: 'endDate'),
+          calendarId: any(named: 'calendarId'),
+          description: any(named: 'description'),
+          url: any(named: 'url'),
+        )).called(1);
+        verify(() => mockCalendarApi.createReminder(reminder: 10, eventId: event.id)).called(1);
+        verify(() => mockCalendarApi.createReminder(reminder: 20, eventId: event.id)).called(1);
+      });
+    });
+
 
     test('retrieveEvents returns a list of ETEvents with reminders', () async {
       // Given
