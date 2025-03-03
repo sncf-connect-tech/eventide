@@ -1,0 +1,6 @@
+codecov:
+  default: main
+
+ignore:
+  - "**/test/"
+  - "example/"
