@@ -47,7 +47,9 @@ jobs:
             build/reports/EventideTests.xcresult > build/reports/ios-coverage.xml
 
       - name: Upload coverage report to Codecov
-        uses: codecov/codecov-action@v4.0.1
-        with:
-          files: build/reports/ios-coverage.xml
+        uses: codecov/codecov-action@v5
+        env:
           token: ${{ secrets.CODECOV_TOKEN }}
+        with:
+          fail_ci_if_error: true
+          files: ./build/reports/ios-coverage.xml

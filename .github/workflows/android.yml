@@ -39,7 +39,9 @@ jobs:
           ./example/android/gradlew testDebugUnitTest jacocoTestReport -p ./example/android/
 
       - name: Upload coverage report to Codecov
-        uses: codecov/codecov-action@v4.0.1
-        with:
-          files: android/build/reports/jacocoTestReport.xml
+        uses: codecov/codecov-action@v5
+        env:
           token: ${{ secrets.CODECOV_TOKEN }}
+        with:
+          fail_ci_if_error: true
+          files: ./android/build/reports/jacocoTestReport.xml
