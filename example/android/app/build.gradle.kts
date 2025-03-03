@@ -3,6 +3,11 @@ plugins {
     id("kotlin-android")
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
+    id("jacoco")
+}
+
+jacoco {
+    toolVersion = "0.8.12"
 }
 
 android {

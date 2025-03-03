@@ -1,6 +1,8 @@
 ## 📆 Eventide
 
-[![pub package](https://img.shields.io/pub/v/eventide.svg)](https://pub.dev/packages/eventide) [![Flutter Tests](https://github.com/sncf-connect-tech/eventide/actions/workflows/flutter.yml/badge.svg)](https://github.com/sncf-connect-tech/eventide/actions/workflows/flutter.yml) [![Android Tests](https://github.com/sncf-connect-tech/eventide/actions/workflows/android.yml/badge.svg)](https://github.com/sncf-connect-tech/eventide/actions/workflows/android.yml) [![iOS Tests](https://github.com/sncf-connect-tech/eventide/actions/workflows/ios.yml/badge.svg)](https://github.com/sncf-connect-tech/eventide/actions/workflows/ios.yml)
+[![pub package](https://img.shields.io/pub/v/value_state.svg)](https://pub.dev/packages/value_state) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+[![codecov](https://codecov.io/gh/sncf-connect-tech/eventide/graph/badge.svg?token=jxA8pZnWmR)](https://codecov.io/gh/sncf-connect-tech/eventide) [![Flutter Tests](https://github.com/sncf-connect-tech/eventide/actions/workflows/flutter.yml/badge.svg)](https://github.com/sncf-connect-tech/eventide/actions/workflows/flutter.yml) [![Android Tests](https://github.com/sncf-connect-tech/eventide/actions/workflows/android.yml/badge.svg)](https://github.com/sncf-connect-tech/eventide/actions/workflows/android.yml) [![iOS Tests](https://github.com/sncf-connect-tech/eventide/actions/workflows/ios.yml/badge.svg)](https://github.com/sncf-connect-tech/eventide/actions/workflows/ios.yml)
 
 Eventide provides a easy-to-use flutter interface to access & modify native device calendars (iOS & Android).
 
@@ -76,3 +78,7 @@ You can find more in the example app.
 ### License
 
 Copyright © 2025 SNCF Connect & Tech. This project is licensed under the MIT License - see the LICENSE file for details.
+
+### Feedback
+
+Please file any issues, bugs or feature requests as an issue on the [Github page](https://github.com/sncf-connect-tech/eventide/issues).
