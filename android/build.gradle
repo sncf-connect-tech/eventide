@@ -9,7 +9,7 @@ buildscript {
     }
 
     dependencies {
-        classpath 'com.android.tools.build:gradle:7.3.1'
+        classpath "com.android.tools.build:gradle:8.8.2"
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
     }
 }
@@ -23,6 +23,7 @@ allprojects {
 
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
+apply plugin: 'jacoco'
 
 android {
     compileSdk 35
@@ -71,8 +72,42 @@ android {
     ndkVersion '27.0.12077973'
 }
 
-dependencies {
-    implementation("androidx.activity:activity-ktx:1.10.0")
-    implementation("androidx.fragment:fragment-ktx:1.8.6")
+tasks.register('jacocoTestReport', JacocoReport) {
+    dependsOn 'testDebugUnitTest'
+
+    reports {
+        xml.required = true
+        xml.outputLocation.set(file("$project.projectDir/build/reports/jacocoTestReport.xml"))
+        html.required = false
+        csv.required = false
+    }
+
+    def fileFilter = [
+        '**/R.class',
+        '**/R$*.class',
+        '**/BuildConfig.*',
+        '**/Manifest*.*',
+        '**/CalendarApi*',
+        '**/Calendar.class',
+        '**/Calendar$Companion.class',
+        '**/Event*.class',
+        '**/Account*.class',
+    ] // ignore pigeon generated files
+    def mainSrc = "${project.projectDir}/src/main/kotlin/sncf/connect/tech/eventide/"
+
+    sourceDirectories.setFrom(files(mainSrc))
+    classDirectories.setFrom(files("${buildDir}/intermediates/runtime_library_classes_dir/debug/sncf/connect/tech/eventide/").asFileTree.matching {
+        exclude fileFilter
+    })
+    executionData.setFrom(files("${buildDir}/jacoco/testDebugUnitTest.exec"))
 }
 
+tasks.withType(Test).configureEach {
+    useJUnitPlatform()
+    finalizedBy jacocoTestReport
+}
+
+dependencies {
+    implementation("androidx.activity:activity-ktx:1.10.1")
+    implementation("androidx.fragment:fragment-ktx:1.8.6")
+}
