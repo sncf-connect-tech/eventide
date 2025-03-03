@@ -64,7 +64,7 @@ extension AccountToETAccount on Account {
   ETAccount toETAccount() {
     return ETAccount(
       name: name,
-      type: name,
+      type: type,
     );
   }
 }
@@ -73,7 +73,7 @@ extension ETAccountToAccount on ETAccount {
   Account toAccount() {
     return Account(
       name: name,
-      type: name,
+      type: type,
     );
   }
 }
