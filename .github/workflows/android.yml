@@ -36,4 +36,10 @@ jobs:
 
       - name: Build and test
         run: |
-          ./example/android/gradlew testDebugUnitTest -p ./example/android/
+          ./example/android/gradlew testDebugUnitTest jacocoTestReport -p ./example/android/
+
+      - name: Upload coverage report to Codecov
+        uses: codecov/codecov-action@v4.0.1
+        with:
+          files: android/build/reports/jacocoTestReport.xml
+          token: ${{ secrets.CODECOV_TOKEN }}
