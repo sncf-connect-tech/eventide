@@ -98,7 +98,7 @@ jobs:
 
       - name: Build and test
         run: |
-          ./example/android/gradlew testDebugUnitTest jacocoTestReport -p ./example/android/
+          ./example/android/gradlew testDebugUnitTest -p ./example/android/
 
       - name: Upload coverage report as artifact
         uses: actions/upload-artifact@v4
