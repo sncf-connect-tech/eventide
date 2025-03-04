@@ -6,7 +6,6 @@
 //
 
 import UIKit
-import EventKit
 @testable import eventide
 
 class MockEasyEventStore: EasyEventStoreProtocol {
@@ -133,9 +132,9 @@ class MockEasyEventStore: EasyEventStoreProtocol {
         }
         
         if (mockEvent.reminders == nil) {
-            mockEvent.reminders = [EKAlarm(relativeOffset: timeInterval)]
+            mockEvent.reminders = [timeInterval]
         } else {
-            mockEvent.reminders!.append(EKAlarm(relativeOffset: timeInterval))
+            mockEvent.reminders!.append(timeInterval)
         }
 
         return mockEvent.toEvent()
@@ -150,7 +149,7 @@ class MockEasyEventStore: EasyEventStoreProtocol {
             )
         }
         
-        guard let index = mockEvent.reminders?.firstIndex(where: { -$0.relativeOffset == timeInterval }) else {
+        guard let index = mockEvent.reminders?.firstIndex(where: { -$0 == timeInterval }) else {
             throw PigeonError(
                 code: "NOT_FOUND",
                 message: "Reminder not found",
@@ -212,7 +211,7 @@ class MockEvent {
     let isAllDay: Bool
     let description: String?
     let url: String?
-    var reminders: [EKAlarm]?
+    var reminders: [TimeInterval]?
     
     init(id: String, title: String, startDate: Date, endDate: Date, calendarId: String, isAllDay: Bool, description: String?, url: String?, reminders: [TimeInterval]? = nil) {
         self.id = id
@@ -223,7 +222,7 @@ class MockEvent {
         self.isAllDay = isAllDay
         self.description = description
         self.url = url
-        self.reminders = reminders?.map({ EKAlarm(relativeOffset: $0) })
+        self.reminders = reminders?.map({ $0 })
     }
     
     fileprivate func toEvent() -> Event {
@@ -236,7 +235,7 @@ class MockEvent {
             calendarId: calendarId,
             description: description,
             url: url,
-            reminders: reminders?.map({ Int64($0.relativeOffset) })
+            reminders: reminders?.map({ Int64($0) })
         )
     }
 }

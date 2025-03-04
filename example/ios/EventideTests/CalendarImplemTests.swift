@@ -820,7 +820,57 @@ final class CalendarImplemTests: XCTestCase {
             case .success(let event):
                 XCTAssert(event.reminders!.count == 1)
                 XCTAssert(event.reminders!.first == -reminder)
-                XCTAssert(mockEasyEventStore.calendars.first!.events.first!.reminders!.first!.relativeOffset == TimeInterval(-reminder))
+                XCTAssert(mockEasyEventStore.calendars.first!.events.first!.reminders!.first! == TimeInterval(-reminder))
+                expectation.fulfill()
+            case .failure:
+                XCTFail("Reminder should have been created")
+            }
+        }
+        
+        waitForExpectations(timeout: timeout)
+    }
+    
+    func testCreateReminder_withExistingReminder_permissionGranted() {
+        let expectation = expectation(description: "Reminder has been created")
+        
+        let reminder: Int64 = 3600
+        
+        let mockEasyEventStore = MockEasyEventStore(
+            calendars: [
+                MockCalendar(
+                    id: "1",
+                    title: "title",
+                    color: UIColor.red,
+                    isWritable: true,
+                    account: Account(name: "local", type: "local"),
+                    events: [
+                        MockEvent(
+                            id: "1",
+                            title: "title",
+                            startDate: Date(),
+                            endDate: Date().addingTimeInterval(TimeInterval(10)),
+                            calendarId: "1",
+                            isAllDay: false,
+                            description: "description",
+                            url: "url",
+                            reminders: [10]
+                        )
+                    ]
+                )
+            ]
+        )
+        
+        calendarImplem = CalendarImplem(
+            easyEventStore: mockEasyEventStore,
+            permissionHandler: PermissionGranted()
+        )
+        
+        calendarImplem.createReminder(reminder, forEventId: "1") { createReminderResult in
+            switch (createReminderResult) {
+            case .success(let event):
+                XCTAssert(event.reminders!.count == 2)
+                XCTAssert(event.reminders!.last == -reminder)
+                XCTAssert(mockEasyEventStore.calendars.first!.events.first!.reminders!.last! == TimeInterval(-reminder))
                 expectation.fulfill()
             case .failure:
                 XCTFail("Reminder should have been created")
