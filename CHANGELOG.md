@@ -1,3 +1,9 @@
+## 0.3.0
+
+* Create reminder alongside event by @AlexisChoupault in https://github.com/sncf-connect-tech/eventide/pull/18
+* Fix android action by @AlexisChoupault in https://github.com/sncf-connect-tech/eventide/pull/24
+* Code coverage https://github.com/sncf-connect-tech/eventide/pull/25
+
 ## 0.2.0
 
 * Fixed gradle issue by targeting jvm 17 ([Issue #7](https://github.com/sncf-connect-tech/eventide/issues/7))
