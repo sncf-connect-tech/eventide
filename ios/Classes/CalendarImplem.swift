@@ -32,18 +32,9 @@ class CalendarImplem: CalendarApi {
         account: Account?,
         completion: @escaping (Result<Calendar, Error>) -> Void
     ) {
-        permissionHandler.checkCalendarAccessThenExecute { [self] in
-            guard let uiColor = UIColor(int64: color) else {
-                completion(.failure(PigeonError(
-                    code: "GENERIC_ERROR",
-                    message: "Unable to parse cgColor from hex",
-                    details: "hexadecimal number needs to start with # and to be 8 or 6 char long"
-                )))
-                return
-            }
-            
+        permissionHandler.checkCalendarAccessThenExecute { [self] in            
             do {
-                let createdCalendar = try easyEventStore.createCalendar(title: title, color: uiColor, account: account)
+                let createdCalendar = try easyEventStore.createCalendar(title: title, color: UIColor(int64: color), account: account)
                 completion(.success(createdCalendar))
                 
             } catch {

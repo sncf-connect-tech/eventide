@@ -39,7 +39,7 @@ extension UIColor {
         }
     }
     
-    convenience init?(int64: Int64) {
+    convenience init(int64: Int64) {
         let hexString = String(int64, radix: 16)
         var rgbValue: UInt64 = 0
         Scanner(string: hexString).scanHexInt64(&rgbValue)

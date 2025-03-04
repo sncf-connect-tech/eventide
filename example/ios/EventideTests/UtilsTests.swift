@@ -34,9 +34,9 @@ class UtilsTests: XCTestCase {
     func testUIColorInitWithInt64() {
         let color = UIColor(int64: 0xFFFF0000) // Red color
         XCTAssertNotNil(color)
-        XCTAssertEqual(color?.cgColor.alpha, 1.0)
-        XCTAssertEqual(color?.cgColor.components?[0], 1.0)
-        XCTAssertEqual(color?.cgColor.components?[1], 0.0)
-        XCTAssertEqual(color?.cgColor.components?[2], 0.0)
+        XCTAssertEqual(color.cgColor.alpha, 1.0)
+        XCTAssertEqual(color.cgColor.components?[0], 1.0)
+        XCTAssertEqual(color.cgColor.components?[1], 0.0)
+        XCTAssertEqual(color.cgColor.components?[2], 0.0)
     }
 }
