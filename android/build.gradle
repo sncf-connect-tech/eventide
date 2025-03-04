@@ -78,7 +78,8 @@ tasks.register('jacocoTestReport', JacocoReport) {
     reports {
         xml.required = true
         xml.outputLocation.set(file("$project.projectDir/build/reports/jacocoTestReport.xml"))
-        html.required = false
+        html.required = true
+        html.outputLocation.set(file("$project.projectDir/build/reports/html"))
         csv.required = false
     }
 
@@ -87,11 +88,6 @@ tasks.register('jacocoTestReport', JacocoReport) {
         '**/R$*.class',
         '**/BuildConfig.*',
         '**/Manifest*.*',
-        '**/CalendarApi*',
-        '**/Calendar.class',
-        '**/Calendar$Companion.class',
-        '**/Event*.class',
-        '**/Account*.class',
     ] // ignore pigeon generated files
     def mainSrc = "${project.projectDir}/src/main/kotlin/sncf/connect/tech/eventide/"
 
@@ -102,7 +98,9 @@ tasks.register('jacocoTestReport', JacocoReport) {
     executionData.setFrom(files("${buildDir}/jacoco/testDebugUnitTest.exec"))
 }
 
-tasks.withType(Test).configureEach {
+tasks.withType(Test) {
+    jacoco.includeNoLocationClasses = true
+    jacoco.excludes = ['jdk.internal.*']
     useJUnitPlatform()
     finalizedBy jacocoTestReport
 }

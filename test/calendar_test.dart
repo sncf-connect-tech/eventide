@@ -54,7 +54,7 @@ void main() {
     when(() => mockCalendarApi.createCalendar(
         title: any(named: 'title'),
         color: any(named: 'color'),
-        account: null)).thenThrow(Exception('API Error'));
+        account: null)).thenThrow(ETGenericException(message: 'API Error'));
 
     // When
     Future<ETCalendar> call() =>
@@ -108,7 +108,7 @@ void main() {
     // Given
     when(() => mockCalendarApi.retrieveCalendars(
             onlyWritableCalendars: any(named: 'onlyWritableCalendars'),from: null,))
-        .thenThrow(Exception('API Error'));
+        .thenThrow(ETGenericException(message: 'API Error'));
 
     // When
     Future<List<ETCalendar>> call() =>
@@ -137,7 +137,7 @@ void main() {
     // Given
     when(() => mockCalendarApi.deleteCalendar(
             calendarId: any(named: 'calendarId')))
-        .thenThrow(Exception('API Error'));
+        .thenThrow(ETGenericException(message: 'API Error'));
 
     // When
     Future<void> call() => eventide.deleteCalendar(calendarId: '1');

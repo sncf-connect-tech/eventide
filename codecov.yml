@@ -1,6 +1,25 @@
 codecov:
-  default: main
+  branch: main
+  disable_default_path_fixes: true
+
+coverage:
+  range: 70...100
+  round: down
+  precision: 2
+
+  status:
+    # Learn more at http://docs.codecov.io/docs/codecov-yaml
+    project:
+      default:
+        enabled: yes
+        target: 80%    # the required coverage value
+        threshold: 1%  # the leniency in hitting the target
+
+fixes:
+  - "Users/runner/work/eventide/eventide/::"
 
 ignore:
-  - "**/test/"
+  - "**/*.g.*"
   - "example/"
+  - "**/EasyEventStore.swift"
+  - "**/PermissionHandler.swift"
