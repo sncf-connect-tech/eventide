@@ -12,7 +12,7 @@ final class CalendarImplemTests: XCTestCase {
     private let timeout = TimeInterval(5)
     private var calendarImplem: CalendarImplem!
     
-    func requestCalendarPermission_permissionGranted() {
+    func testRequestCalendarPermission_permissionGranted() {
         let expectation = expectation(description: "Permission has been granted")
         
         let mockEasyEventStore = MockEasyEventStore()
@@ -35,7 +35,7 @@ final class CalendarImplemTests: XCTestCase {
         waitForExpectations(timeout: timeout)
     }
     
-    func requestCalendarPermission_permissionRefused() {
+    func testRequestCalendarPermission_permissionRefused() {
         let expectation = expectation(description: "Permission has been refused")
         
         let mockEasyEventStore = MockEasyEventStore()
@@ -58,7 +58,7 @@ final class CalendarImplemTests: XCTestCase {
         waitForExpectations(timeout: timeout)
     }
     
-    func requestCalendarPermission_permissionError() {
+    func testRequestCalendarPermission_permissionError() {
         let expectation = expectation(description: "Permission error")
         
         let mockEasyEventStore = MockEasyEventStore()
@@ -81,7 +81,7 @@ final class CalendarImplemTests: XCTestCase {
         waitForExpectations(timeout: timeout)
     }
     
-    func createCalendar_permissionGranted() {
+    func testCreateCalendar_permissionGranted() {
         let expectation = expectation(description: "Calendar has been created")
         
         let mockEasyEventStore = MockEasyEventStore()
@@ -1006,7 +1006,7 @@ final class CalendarImplemTests: XCTestCase {
         waitForExpectations(timeout: timeout)
     }
     
-    func createCalendar_permissionRefused() {
+    func testCreateCalendar_permissionRefused() {
         let expectation = expectation(description: "Calendar has not been created")
         
         let mockEasyEventStore = MockEasyEventStore()
