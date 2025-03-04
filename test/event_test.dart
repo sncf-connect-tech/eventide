@@ -1,3 +1,4 @@
+import 'package:eventide/eventide.dart';
 import 'package:eventide/src/eventide_extensions.dart';
 import 'package:eventide/src/eventide_platform_interface.dart';
 import 'package:flutter/foundation.dart';
@@ -93,7 +94,7 @@ void main() {
           calendarId: any(named: 'calendarId'),
           description: any(named: 'description'),
           url: any(named: 'url'),
-        )).thenThrow(Exception('API Error'));
+        )).thenThrow(ETGenericException(message: 'API Error'));
 
     // When
     Future<ETEvent> call() => eventide.createEvent(
