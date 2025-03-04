@@ -8,12 +8,19 @@ coverage:
   precision: 2
 
   status:
-    # Learn more at http://docs.codecov.io/docs/codecov-yaml
     project:
-      default:
+      flutter:
         enabled: yes
-        target: 80%    # the required coverage value
-        threshold: 1%  # the leniency in hitting the target
+        target: 80%
+        threshold: 1%
+      ios:
+        enabled: yes
+        target: 80%
+        threshold: 1%
+      android:
+        enabled: no # Disabled while android is not behaving with codecov
+        target: 80%
+        threshold: 1%
 
 fixes:
   - "Users/runner/work/eventide/eventide/::"
