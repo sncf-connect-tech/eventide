@@ -2,26 +2,20 @@ PODS:
   - eventide (0.1.0):
     - Flutter
   - Flutter (1.0.0)
-  - integration_test (0.0.1):
-    - Flutter
 
 DEPENDENCIES:
   - eventide (from `.symlinks/plugins/eventide/ios`)
   - Flutter (from `Flutter`)
-  - integration_test (from `.symlinks/plugins/integration_test/ios`)
 
 EXTERNAL SOURCES:
   eventide:
     :path: ".symlinks/plugins/eventide/ios"
   Flutter:
     :path: Flutter
-  integration_test:
-    :path: ".symlinks/plugins/integration_test/ios"
 
 SPEC CHECKSUMS:
   eventide: 49d6de19a7d84b90e51cc70a058631fb2bbe9cb8
   Flutter: e0871f40cf51350855a761d2e70bf5af5b9b5de7
-  integration_test: 4a889634ef21a45d28d50d622cf412dc6d9f586e
 
 PODFILE CHECKSUM: 687a4f822c79d65793be5e7d85d1c6a0768b0a5f
 
