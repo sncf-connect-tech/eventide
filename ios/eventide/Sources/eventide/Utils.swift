@@ -7,6 +7,7 @@
 
 import Foundation
 import EventKit
+import UIKit
 
 extension Date {
     var millisecondsSince1970: Int64 {

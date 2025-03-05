@@ -147,7 +147,6 @@ class Eventide extends EventidePlatform {
       }
 
       return event.toETEvent().copyWithReminders(reminders);
-      
     } on PlatformException catch (e) {
       throw e.toETException();
     }

@@ -1,4 +1,3 @@
-
 import 'package:clock/clock.dart';
 import 'package:eventide/eventide.dart';
 import 'package:eventide/src/calendar_api.g.dart';
@@ -42,9 +41,8 @@ void main() {
       );
 
       when(() => mockCalendarApi.createReminder(
-              reminder: any(named: 'reminder'),
-              eventId: any(named: 'eventId')))
-          .thenAnswer((_) async => targetEvent);
+          reminder: any(named: 'reminder'),
+          eventId: any(named: 'eventId'))).thenAnswer((_) async => targetEvent);
 
       // When
       final result = await eventide.createReminder(
@@ -62,8 +60,8 @@ void main() {
     test('createReminder throws an exception when API fails', () async {
       // Given
       when(() => mockCalendarApi.createReminder(
-          reminder: any(named: 'reminder'),
-          eventId: any(named: 'eventId'))).thenThrow(ETGenericException(message: 'API Error'));
+              reminder: any(named: 'reminder'), eventId: any(named: 'eventId')))
+          .thenThrow(ETGenericException(message: 'API Error'));
 
       // When
       Future<ETEvent> call() => eventide.createReminder(
@@ -90,9 +88,8 @@ void main() {
       );
 
       when(() => mockCalendarApi.deleteReminder(
-              reminder: any(named: 'reminder'),
-              eventId: any(named: 'eventId')))
-          .thenAnswer((_) async => targetEvent);
+          reminder: any(named: 'reminder'),
+          eventId: any(named: 'eventId'))).thenAnswer((_) async => targetEvent);
 
       // When
       final result = await eventide.deleteReminder(
@@ -110,8 +107,8 @@ void main() {
     test('deleteReminder throws an exception when API fails', () async {
       // Given
       when(() => mockCalendarApi.deleteReminder(
-          reminder: any(named: 'reminder'),
-          eventId: any(named: 'eventId'))).thenThrow(ETGenericException(message: 'API Error'));
+              reminder: any(named: 'reminder'), eventId: any(named: 'eventId')))
+          .thenThrow(ETGenericException(message: 'API Error'));
 
       // When
       Future<ETEvent> call() => eventide.deleteReminder(
@@ -149,9 +146,8 @@ void main() {
       );
 
       when(() => mockCalendarApi.createReminder(
-              reminder: any(named: 'reminder'),
-              eventId: any(named: 'eventId')))
-          .thenAnswer((_) async => targetEvent);
+          reminder: any(named: 'reminder'),
+          eventId: any(named: 'eventId'))).thenAnswer((_) async => targetEvent);
 
       // When
       final result = await eventide.createReminder(
@@ -168,8 +164,8 @@ void main() {
     test('createReminder throws an exception when API fails', () async {
       // Given
       when(() => mockCalendarApi.createReminder(
-          reminder: any(named: 'reminder'),
-          eventId: any(named: 'eventId'))).thenThrow(ETGenericException(message: 'API Error'));
+              reminder: any(named: 'reminder'), eventId: any(named: 'eventId')))
+          .thenThrow(ETGenericException(message: 'API Error'));
 
       // When
       Future<ETEvent> call() => eventide.createReminder(
@@ -195,9 +191,8 @@ void main() {
       );
 
       when(() => mockCalendarApi.deleteReminder(
-              reminder: any(named: 'reminder'),
-              eventId: any(named: 'eventId')))
-          .thenAnswer((_) async => targetEvent);
+          reminder: any(named: 'reminder'),
+          eventId: any(named: 'eventId'))).thenAnswer((_) async => targetEvent);
 
       // When
       final result = await eventide.deleteReminder(
@@ -214,8 +209,8 @@ void main() {
     test('deleteReminder throws an exception when API fails', () async {
       // Given
       when(() => mockCalendarApi.deleteReminder(
-          reminder: any(named: 'reminder'),
-          eventId: any(named: 'eventId'))).thenThrow(ETGenericException(message: 'API Error'));
+              reminder: any(named: 'reminder'), eventId: any(named: 'eventId')))
+          .thenThrow(ETGenericException(message: 'API Error'));
 
       // When
       Future<ETEvent> call() => eventide.deleteReminder(

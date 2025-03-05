@@ -89,26 +89,28 @@ void main() {
       ),
     ];
     when(() => mockCalendarApi.retrieveCalendars(
-      onlyWritableCalendars: any(named: 'onlyWritableCalendars'),
-      from: any(named: 'from'),
-    )).thenAnswer((_) async => [calendars.last]);
+          onlyWritableCalendars: any(named: 'onlyWritableCalendars'),
+          from: any(named: 'from'),
+        )).thenAnswer((_) async => [calendars.last]);
 
     // When
-    final result = await eventide.retrieveCalendars(onlyWritableCalendars: true);
+    final result =
+        await eventide.retrieveCalendars(onlyWritableCalendars: true);
 
     // Then
     expect(result, [calendars.last].toETCalendarList());
     verify(() => mockCalendarApi.retrieveCalendars(
-      onlyWritableCalendars: true,
-      from: any(named: 'from'),
-    )).called(1);
+          onlyWritableCalendars: true,
+          from: any(named: 'from'),
+        )).called(1);
   });
 
   test('retrieveCalendars throws an exception when API fails', () async {
     // Given
     when(() => mockCalendarApi.retrieveCalendars(
-            onlyWritableCalendars: any(named: 'onlyWritableCalendars'),from: null,))
-        .thenThrow(ETGenericException(message: 'API Error'));
+          onlyWritableCalendars: any(named: 'onlyWritableCalendars'),
+          from: null,
+        )).thenThrow(ETGenericException(message: 'API Error'));
 
     // When
     Future<List<ETCalendar>> call() =>
@@ -116,9 +118,10 @@ void main() {
 
     // Then
     expect(call, throwsException);
-    verify(() =>
-            mockCalendarApi.retrieveCalendars(onlyWritableCalendars: true,from: null,))
-        .called(1);
+    verify(() => mockCalendarApi.retrieveCalendars(
+          onlyWritableCalendars: true,
+          from: null,
+        )).called(1);
   });
 
   test('deleteCalendar calls the API', () async {

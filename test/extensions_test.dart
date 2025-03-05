@@ -172,7 +172,8 @@ void main() {
     test('List<int> toDurationList', () {
       debugDefaultTargetPlatformOverride = TargetPlatform.android;
       final durations = [10, 20];
-      expect(durations.toDurationList(), [Duration(minutes: 10), Duration(minutes: 20)]);
+      expect(durations.toDurationList(),
+          [Duration(minutes: 10), Duration(minutes: 20)]);
       debugDefaultTargetPlatformOverride = null;
     });
   });

@@ -6,6 +6,7 @@
 //
 
 import EventKit
+import UIKit
 
 final class EasyEventStore: EasyEventStoreProtocol {
     private let eventStore: EKEventStore

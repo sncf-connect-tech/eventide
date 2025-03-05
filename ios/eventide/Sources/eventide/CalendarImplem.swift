@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import UIKit
 
 class CalendarImplem: CalendarApi {
     private let easyEventStore: EasyEventStoreProtocol

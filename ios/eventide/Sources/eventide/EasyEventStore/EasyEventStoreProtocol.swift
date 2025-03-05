@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import UIKit
 
 protocol EasyEventStoreProtocol {
     func createCalendar(title: String, color: UIColor, account: Account?) throws -> Calendar
