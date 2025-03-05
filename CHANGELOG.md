@@ -1,12 +1,16 @@
+## 0.4.0
+
+* Added Swift Package Manager support
+* dart 3.7.0 format
+
 ## 0.3.0
 
-* Create reminder alongside event by @AlexisChoupault in https://github.com/sncf-connect-tech/eventide/pull/18
-* Fix android action by @AlexisChoupault in https://github.com/sncf-connect-tech/eventide/pull/24
-* Code coverage https://github.com/sncf-connect-tech/eventide/pull/25
+* Create reminder alongside event creation
+* Fix android action where name was affected to type
 
 ## 0.2.0
 
-* Fixed gradle issue by targeting jvm 17 ([Issue #7](https://github.com/sncf-connect-tech/eventide/issues/7))
+* Fixed gradle issue by targeting JVM 17
 * Exposed a new class `ETAccount` { name, type } ([Issue #8](https://github.com/sncf-connect-tech/eventide/issues/8))
     name = EKSource.sourceIdentifier and type = EKSource.sourceType on iOS
     name = CalendarContract.Calendars.ACCOUNT_NAME and type = CalendarContract.Calendars.ACCOUNT_TYPE on Android
