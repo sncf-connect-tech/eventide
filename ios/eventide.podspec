@@ -5,15 +5,16 @@
 Pod::Spec.new do |s|
   s.name             = 'eventide'
   s.version          = '0.1.0'
-  s.summary          = 'A new Flutter plugin project.'
+  s.summary          = 'Flutter calendar plugin'
   s.description      = <<-DESC
-A new Flutter plugin project.
+Eventide provides a easy-to-use flutter interface to access & modify native device calendars.
                        DESC
-  s.homepage         = 'http://example.com'
-  s.license          = { :file => '../LICENSE' }
-  s.author           = { 'Your Company' => 'email@example.com' }
-  s.source           = { :path => '.' }
-  s.source_files = 'Classes/**/*'
+  s.homepage         = 'https://github.com/sncf-connect-tech/eventide'
+  s.license          = { :type => "MIT", :file => '../LICENSE' }
+  s.author           = { 'SNCF Connect & Tech' => 'alexis.choupault@connect-tech.sncf' }
+  s.source           = { :git => 'https://github.com/sncf-connect-tech/eventide.git', :tag => s.version.to_s }
+  s.source_files = 'eventide/Sources/eventide/**/*.swift'
+  s.resource_bundles = {'eventide_privacy' => ['eventide/Sources/eventide/PrivacyInfo.xcprivacy']}
   s.dependency 'Flutter'
   s.platform = :ios, '13.0'
 

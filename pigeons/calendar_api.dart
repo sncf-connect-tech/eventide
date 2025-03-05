@@ -7,7 +7,7 @@ import 'package:pigeon/pigeon.dart';
   kotlinOut:
       'android/src/main/kotlin/sncf/connect/tech/eventide/CalendarApi.g.kt',
   kotlinOptions: KotlinOptions(package: 'sncf.connect.tech.eventide'),
-  swiftOut: 'ios/Classes/CalendarApi.g.swift',
+  swiftOut: 'ios/eventide/Sources/eventide/CalendarApi.g.swift',
   swiftOptions: SwiftOptions(),
   dartPackageName: 'eventide',
 ))
@@ -85,7 +85,6 @@ abstract class CalendarApi {
 /// [isWritable] is a boolean to indicate if the calendar is writable.
 ///
 /// [account] is the account the calendar belongs to
-/// TODO: explain android/ios differences
 final class Calendar {
   final String id;
   final String title;
