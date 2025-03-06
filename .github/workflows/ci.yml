@@ -24,8 +24,13 @@ jobs:
         run: flutter pub get
 
       - name: Analyze project source
-        run: flutter analyze --fatal-infos
-        working-directory: lib
+        run: dart analyze . --fatal-infos
+
+      - name: Import sort
+        run: dart run import_sorter:main . --no-comments --exit-if-changed
+
+      - name: Format code
+        run: dart format . --set-exit-if-changed
 
       - name: Run tests
         run: flutter test --coverage

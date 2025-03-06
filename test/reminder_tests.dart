@@ -1,10 +1,12 @@
+import 'package:flutter/foundation.dart';
+
 import 'package:clock/clock.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:mocktail/mocktail.dart';
+
 import 'package:eventide/eventide.dart';
 import 'package:eventide/src/calendar_api.g.dart';
 import 'package:eventide/src/eventide_extensions.dart';
-import 'package:flutter/foundation.dart';
-import 'package:flutter_test/flutter_test.dart';
-import 'package:mocktail/mocktail.dart';
 
 class _MockCalendarApi extends Mock implements CalendarApi {}
 

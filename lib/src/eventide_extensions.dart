@@ -1,6 +1,7 @@
 import 'dart:ui';
 
 import 'package:flutter/foundation.dart';
+
 import 'package:eventide/src/calendar_api.g.dart';
 import 'package:eventide/src/eventide_platform_interface.dart';
 
