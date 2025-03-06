@@ -290,12 +290,11 @@ packages:
   value_state:
     dependency: "direct main"
     description:
-      path: "packages/value_state"
-      ref: refacto
-      resolved-ref: "659aed814c961c7b2a9cf8de36d06a94543b1eca"
-      url: "https://github.com/zemanux/value_state.git"
-    source: git
-    version: "2.0.0-beta.1"
+      name: value_state
+      sha256: ffd4d2e2d33f72a3aff2155f9030fff41c2aa132037955c90a5be6b8d2a513e6
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.0.1"
   vector_math:
     dependency: transitive
     description:
