@@ -54,10 +54,10 @@ class CalendarImplem(
 
                         val calendarUri = contentResolver.insert(uri, values)
                         if (calendarUri != null) {
-                            val calendarId = calendarUri.lastPathSegment?.toLong()
+                            val calendarId = calendarUri.lastPathSegment
                             if (calendarId != null) {
                                 val calendar = Calendar(
-                                    id = calendarId.toString(),
+                                    id = calendarId,
                                     title = title,
                                     color = color,
                                     isWritable = true,
@@ -119,22 +119,12 @@ class CalendarImplem(
                             CalendarContract.Calendars.ACCOUNT_TYPE
                         )
 
-                        val (selection, selectionArgs) = Pair(onlyWritableCalendars, from).let { (onlyWritable, account) ->
-                            if (onlyWritable && account != null) {
-                                val selection = CalendarContract.Calendars.CALENDAR_ACCESS_LEVEL + " >= ? AND " + CalendarContract.Calendars.ACCOUNT_NAME + " = ? AND " + CalendarContract.Calendars.ACCOUNT_TYPE + " = ?"
-                                val selectionArgs = arrayOf(CalendarContract.Calendars.CAL_ACCESS_CONTRIBUTOR.toString(), account.name, account.type)
-                                return@let Pair(selection, selectionArgs)
-                            } else if (onlyWritable) {
-                                val selection = CalendarContract.Calendars.CALENDAR_ACCESS_LEVEL + " >= ?"
-                                val selectionArgs = arrayOf(CalendarContract.Calendars.CAL_ACCESS_CONTRIBUTOR.toString())
-                                return@let Pair(selection, selectionArgs)
-                            } else if (account != null) {
-                                val selection = CalendarContract.Calendars.ACCOUNT_NAME + " = ? AND " + CalendarContract.Calendars.ACCOUNT_TYPE + " = ?"
-                                val selectionArgs = arrayOf(account.name, account.type)
-                                return@let Pair(selection, selectionArgs)
-                            } else {
-                                return@let Pair(null, null)
-                            }
+                        var selection: String? = null
+                        var selectionArgs: Array<String>? = null
+
+                        from?.let { account ->
+                            selection = CalendarContract.Calendars.ACCOUNT_NAME + " = ? AND " + CalendarContract.Calendars.ACCOUNT_TYPE + " = ?"
+                            selectionArgs = arrayOf(account.name, account.type)
                         }
 
                         val cursor = contentResolver.query(calendarContentUri, projection, selection, selectionArgs, null)
@@ -149,18 +139,21 @@ class CalendarImplem(
                                 val accountName = it.getString(it.getColumnIndexOrThrow(CalendarContract.Calendars.ACCOUNT_NAME))
                                 val accountType = it.getString(it.getColumnIndexOrThrow(CalendarContract.Calendars.ACCOUNT_TYPE))
 
-                                val calendar = Calendar(
-                                    id = id,
-                                    title = displayName,
-                                    color = color,
-                                    isWritable = accessLevel >= CalendarContract.Calendars.CAL_ACCESS_CONTRIBUTOR,
-                                    account = Account(
-                                        name = accountName,
-                                        type = accountType
+                                val isWritable = accessLevel >= CalendarContract.Calendars.CAL_ACCESS_CONTRIBUTOR
+                                if (!onlyWritableCalendars || isWritable) {
+                                    val calendar = Calendar(
+                                        id = id,
+                                        title = displayName,
+                                        color = color,
+                                        isWritable = isWritable,
+                                        account = Account(
+                                            name = accountName,
+                                            type = accountType
+                                        )
                                     )
-                                )
 
-                                calendars.add(calendar)
+                                    calendars.add(calendar)
+                                }
                             }
                         }
 

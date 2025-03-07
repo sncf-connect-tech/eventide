@@ -87,7 +87,7 @@ class CalendarImplemTest {
 
         var result: Result<Calendar>? = null
         val latch = CountDownLatch(1)
-        calendarImplem.createCalendar("Test Calendar", 0xFF0000, Account("1", "Test Account")) {
+        calendarImplem.createCalendar("Test Calendar", 0x00FF00, Account("1", "Test Account")) {
             result = it
             latch.countDown()
         }
@@ -95,6 +95,10 @@ class CalendarImplemTest {
         latch.await()
 
         assertTrue(result!!.isSuccess)
+        assertTrue(result!!.getOrNull()!!.title == "Test Calendar")
+        assertTrue(result!!.getOrNull()!!.color.toInt() == 0x00FF00)
+        assertTrue(result!!.getOrNull()!!.account.name == "1")
+        assertTrue(result!!.getOrNull()!!.account.type == "Test Account")
         assertEquals("1", result!!.getOrNull()?.id)
     }
 
@@ -110,6 +114,7 @@ class CalendarImplemTest {
         }
 
         assertTrue(result!!.isFailure)
+        assertNull(result!!.getOrNull())
     }
 
     @Test
@@ -129,6 +134,7 @@ class CalendarImplemTest {
         latch.await()
 
         assertTrue(result!!.isFailure)
+        assertNull(result!!.getOrNull())
     }
 
     @Test
@@ -150,6 +156,7 @@ class CalendarImplemTest {
         latch.await()
 
         assertTrue(result!!.isFailure)
+        assertNull(result!!.getOrNull())
     }
 
     @Test
@@ -158,11 +165,11 @@ class CalendarImplemTest {
             firstArg<(Boolean) -> Unit>().invoke(true)
         }
         val cursor = mockk<Cursor>(relaxed = true)
-        every { contentResolver.query(any(), any(), any(), any(), any()) } returns cursor
-        every { cursor.moveToNext() } returnsMany listOf(true, false)
-        every { cursor.getLong(any()) } returns 1L
-        every { cursor.getString(any()) } returns "Test Calendar"
-        every { cursor.getLong(any()) } returns 0xFF0000
+        every { contentResolver.query(calendarContentUri, any(), any(), any(), any()) } returns cursor
+        every { cursor.moveToNext() } returnsMany listOf(true, true, false)
+        every { cursor.getLong(any()) } returnsMany listOf(1L, 0xFF0000, 2L, 0xFF0000)
+        every { cursor.getString(any()) } returnsMany listOf("Test Calendar", "Test Account", "Test Account Type", "Test Calendar2", "Test Account", "Test Account Type")
+        every { cursor.getInt(any()) } returnsMany listOf(CalendarContract.Calendars.CAL_ACCESS_OWNER, CalendarContract.Calendars.CAL_ACCESS_OWNER)
 
         var result: Result<List<Calendar>>? = null
         val latch = CountDownLatch(1)
@@ -174,42 +181,35 @@ class CalendarImplemTest {
         latch.await()
 
         assertTrue(result!!.isSuccess)
-        assertEquals(1, result!!.getOrNull()?.size)
+        assertEquals(2, result!!.getOrNull()?.size)
+        assertEquals("Test Calendar", result!!.getOrNull()?.get(0)?.title)
+        assertEquals("Test Calendar2", result!!.getOrNull()?.get(1)?.title)
     }
 
     @Test
-    fun retrieveCalendars_onlyWritableAndAccountFilter_appliesCorrectSelection() = runTest {
+    fun retrieveCalendars_withGrantedPermission_returnsOnlyWritableCalendars() = runTest {
         every { permissionHandler.requestReadPermission(any()) } answers {
             firstArg<(Boolean) -> Unit>().invoke(true)
         }
         val cursor = mockk<Cursor>(relaxed = true)
-        every { contentResolver.query(any(), any(), any(), any(), any()) } returns cursor
-        every { cursor.moveToNext() } returns false
+        every { contentResolver.query(calendarContentUri, any(), any(), any(), any()) } returns cursor
+        every { cursor.moveToNext() } returnsMany listOf(true, true, false)
+        every { cursor.getLong(any()) } returnsMany listOf(1L, 0xFF0000, 2L, 0xFF0000)
+        every { cursor.getString(any()) } returnsMany listOf("Test Calendar", "Test Account", "Test Account Type", "Test Calendar", "Test Account", "Test Account Type")
+        every { cursor.getInt(any()) } returnsMany listOf(CalendarContract.Calendars.CAL_ACCESS_OWNER, CalendarContract.Calendars.CAL_ACCESS_READ)
 
         var result: Result<List<Calendar>>? = null
         val latch = CountDownLatch(1)
-        calendarImplem.retrieveCalendars(true, Account("testAccount", "testType")) {
+        calendarImplem.retrieveCalendars(true, null) {
             result = it
             latch.countDown()
         }
 
         latch.await()
 
-        val expectedSelection = "${CalendarContract.Calendars.CALENDAR_ACCESS_LEVEL} >= ? AND ${CalendarContract.Calendars.ACCOUNT_NAME} = ? AND ${CalendarContract.Calendars.ACCOUNT_TYPE} = ?"
-        val expectedSelectionArgs = arrayOf(CalendarContract.Calendars.CAL_ACCESS_CONTRIBUTOR.toString(), "testAccount", "testType")
-
-        verify {
-            contentResolver.query(
-                calendarContentUri,
-                any(),
-                expectedSelection,
-                expectedSelectionArgs,
-                any()
-            )
-        }
-
         assertTrue(result!!.isSuccess)
-        assertTrue(result!!.getOrNull()?.isEmpty()!!)
+        assertEquals(1, result!!.getOrNull()?.size)
+        assertEquals("Test Calendar", result!!.getOrNull()?.get(0)?.title)
     }
 
     @Test
@@ -218,7 +218,7 @@ class CalendarImplemTest {
             firstArg<(Boolean) -> Unit>().invoke(true)
         }
         val cursor = mockk<Cursor>(relaxed = true)
-        every { contentResolver.query(any(), any(), any(), any(), any()) } returns cursor
+        every { contentResolver.query(calendarContentUri, any(), any(), any(), any()) } returns cursor
         every { cursor.moveToNext() } returns false
 
         var result: Result<List<Calendar>>? = null
@@ -248,47 +248,12 @@ class CalendarImplemTest {
     }
 
     @Test
-    fun retrieveCalendars_onlyWritable_appliesCorrectSelection() = runTest {
-        every { permissionHandler.requestReadPermission(any()) } answers {
-            firstArg<(Boolean) -> Unit>().invoke(true)
-        }
-        val cursor = mockk<Cursor>(relaxed = true)
-        every { contentResolver.query(any(), any(), any(), any(), any()) } returns cursor
-        every { cursor.moveToNext() } returns false
-
-        var result: Result<List<Calendar>>? = null
-        val latch = CountDownLatch(1)
-        calendarImplem.retrieveCalendars(true, null) {
-            result = it
-            latch.countDown()
-        }
-
-        latch.await()
-
-        val expectedSelection = "${CalendarContract.Calendars.CALENDAR_ACCESS_LEVEL} >= ?"
-        val expectedSelectionArgs = arrayOf(CalendarContract.Calendars.CAL_ACCESS_CONTRIBUTOR.toString())
-
-        verify {
-            contentResolver.query(
-                calendarContentUri,
-                any(),
-                expectedSelection,
-                expectedSelectionArgs,
-                any()
-            )
-        }
-
-        assertTrue(result!!.isSuccess)
-        assertTrue(result!!.getOrNull()?.isEmpty()!!)
-    }
-
-    @Test
     fun retrieveCalendars_noFilter_appliesCorrectSelection() = runTest {
         every { permissionHandler.requestReadPermission(any()) } answers {
             firstArg<(Boolean) -> Unit>().invoke(true)
         }
         val cursor = mockk<Cursor>(relaxed = true)
-        every { contentResolver.query(any(), any(), any(), any(), any()) } returns cursor
+        every { contentResolver.query(calendarContentUri, any(), any(), any(), any()) } returns cursor
         every { cursor.moveToNext() } returns false
 
         var result: Result<List<Calendar>>? = null
@@ -334,7 +299,7 @@ class CalendarImplemTest {
             firstArg<(Boolean) -> Unit>().invoke(true)
         }
         val cursor = mockk<Cursor>(relaxed = true)
-        every { contentResolver.query(any(), any(), any(), any(), any()) } returns cursor
+        every { contentResolver.query(calendarContentUri, any(), any(), any(), any()) } returns cursor
         every { cursor.moveToNext() } returns false
 
         var result: Result<List<Calendar>>? = null
@@ -355,7 +320,7 @@ class CalendarImplemTest {
         every { permissionHandler.requestWritePermission(any()) } answers {
             firstArg<(Boolean) -> Unit>().invoke(true)
         }
-        every { contentResolver.delete(any(), any(), any()) } returns 1
+        every { contentResolver.delete(calendarContentUri, any(), any()) } returns 1
 
         var result: Result<Unit>? = null
         val latch = CountDownLatch(1)
@@ -388,7 +353,7 @@ class CalendarImplemTest {
         every { permissionHandler.requestWritePermission(any()) } answers {
             firstArg<(Boolean) -> Unit>().invoke(true)
         }
-        every { contentResolver.delete(any(), any(), any()) } throws Exception("Delete failed")
+        every { contentResolver.delete(calendarContentUri, any(), any()) } throws Exception("Delete failed")
 
         var result: Result<Unit>? = null
         val latch = CountDownLatch(1)
@@ -407,7 +372,7 @@ class CalendarImplemTest {
         every { permissionHandler.requestWritePermission(any()) } answers {
             firstArg<(Boolean) -> Unit>().invoke(true)
         }
-        every { contentResolver.delete(any(), any(), any()) } returns 0
+        every { contentResolver.delete(calendarContentUri, any(), any()) } returns 0
 
         var result: Result<Unit>? = null
         val latch = CountDownLatch(1)
@@ -517,11 +482,14 @@ class CalendarImplemTest {
             firstArg<(Boolean) -> Unit>().invoke(true)
         }
         val cursor = mockk<Cursor>(relaxed = true)
-        every { contentResolver.query(any(), any(), any(), any(), any()) } returns cursor
+
+        CalendarContract.Events.ALL_DAY
+        every { contentResolver.query(eventContentUri, any(), any(), any(), any()) } returns cursor
         every { cursor.moveToNext() } returnsMany listOf(true, false)
-        every { cursor.getLong(any()) } returns 1L
-        every { cursor.getString(any()) } returns "Test Event"
+        every { cursor.getLong(cursor.getColumnIndexOrThrow(CalendarContract.Events._ID)) } returns 1L
+        every { cursor.getString(any()) } returnsMany listOf("Test Event", "Description")
         every { cursor.getLong(any()) } returns 0L
+        every { cursor.getInt(cursor.getColumnIndexOrThrow(CalendarContract.Events.ALL_DAY)) } returns 0
 
         var result: Result<List<Event>>? = null
         val latch = CountDownLatch(1)
@@ -557,7 +525,7 @@ class CalendarImplemTest {
             firstArg<(Boolean) -> Unit>().invoke(true)
         }
         val cursor = mockk<Cursor>(relaxed = true)
-        every { contentResolver.query(any(), any(), any(), any(), any()) } returns cursor
+        every { contentResolver.query(eventContentUri, any(), any(), any(), any()) } returns cursor
         every { cursor.moveToNext() } returns false
 
         var result: Result<List<Event>>? = null
@@ -578,7 +546,7 @@ class CalendarImplemTest {
         every { permissionHandler.requestReadPermission(any()) } answers {
             firstArg<(Boolean) -> Unit>().invoke(true)
         }
-        every { contentResolver.query(any(), any(), any(), any(), any()) } throws Exception("Query failed")
+        every { contentResolver.query(eventContentUri, any(), any(), any(), any()) } throws Exception("Query failed")
 
         var result: Result<List<Event>>? = null
         val latch = CountDownLatch(1)
@@ -597,7 +565,7 @@ class CalendarImplemTest {
         every { permissionHandler.requestWritePermission(any()) } answers {
             firstArg<(Boolean) -> Unit>().invoke(true)
         }
-        every { contentResolver.delete(any(), any(), any()) } returns 1
+        every { contentResolver.delete(eventContentUri, any(), any()) } returns 1
 
         var result: Result<Unit>? = null
         val latch = CountDownLatch(1)
@@ -630,7 +598,7 @@ class CalendarImplemTest {
         every { permissionHandler.requestWritePermission(any()) } answers {
             firstArg<(Boolean) -> Unit>().invoke(true)
         }
-        every { contentResolver.delete(any(), any(), any()) } throws Exception("Delete failed")
+        every { contentResolver.delete(eventContentUri, any(), any()) } throws Exception("Delete failed")
 
         var result: Result<Unit>? = null
         val latch = CountDownLatch(1)
@@ -649,7 +617,7 @@ class CalendarImplemTest {
         every { permissionHandler.requestWritePermission(any()) } answers {
             firstArg<(Boolean) -> Unit>().invoke(true)
         }
-        every { contentResolver.delete(any(), any(), any()) } returns 0
+        every { contentResolver.delete(eventContentUri, any(), any()) } returns 0
 
         var result: Result<Unit>? = null
         val latch = CountDownLatch(1)
@@ -789,7 +757,7 @@ class CalendarImplemTest {
         every { permissionHandler.requestWritePermission(any()) } answers {
             firstArg<(Boolean) -> Unit>().invoke(true)
         }
-        every { contentResolver.delete(any(), any(), any()) } throws Exception("Delete failed")
+        every { contentResolver.delete(eventContentUri, any(), any()) } throws Exception("Delete failed")
 
         var result: Result<Event>? = null
         val latch = CountDownLatch(1)
@@ -810,7 +778,7 @@ class CalendarImplemTest {
         every { permissionHandler.requestWritePermission(any()) } answers {
             firstArg<(Boolean) -> Unit>().invoke(true)
         }
-        every { contentResolver.delete(any(), any(), any()) } returns 0
+        every { contentResolver.delete(remindersContentUri, any(), any()) } returns 0
 
         var result: Result<Event>? = null
         val latch = CountDownLatch(1)
