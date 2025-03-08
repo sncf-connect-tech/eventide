@@ -41,18 +41,12 @@ class CalendarImplem(
                             put(CalendarContract.Calendars.CALENDAR_COLOR, color)
                             put(CalendarContract.Calendars.CALENDAR_ACCESS_LEVEL, CalendarContract.Calendars.CAL_ACCESS_OWNER)
                             put(CalendarContract.Calendars.OWNER_ACCOUNT, resolvedAccount.name)
+                            put(CalendarContract.CALLER_IS_SYNCADAPTER, "true")
                             put(CalendarContract.Calendars.VISIBLE, 1)
                             put(CalendarContract.Calendars.SYNC_EVENTS, 1)
                         }
 
-                        val uri = calendarContentUri
-                            .buildUpon()
-                            .appendQueryParameter(CalendarContract.CALLER_IS_SYNCADAPTER, "true")
-                            .appendQueryParameter(CalendarContract.Calendars.ACCOUNT_NAME, resolvedAccount.name)
-                            .appendQueryParameter(CalendarContract.Calendars.ACCOUNT_TYPE, resolvedAccount.type)
-                            .build()
-
-                        val calendarUri = contentResolver.insert(uri, values)
+                        val calendarUri = contentResolver.insert(calendarContentUri, values)
                         if (calendarUri != null) {
                             val calendarId = calendarUri.lastPathSegment
                             if (calendarId != null) {
@@ -68,7 +62,7 @@ class CalendarImplem(
                                 callback(Result.failure(
                                     FlutterError(
                                         code = "NOT_FOUND",
-                                        message = "Failed to retrieve calendar ID"
+                                        message = "Failed to retrieve calendar ID. It might not have been created"
                                     )
                                 ))
                             }
@@ -196,8 +190,8 @@ class CalendarImplem(
                                 callback(
                                     Result.failure(
                                         FlutterError(
-                                            code = "NOT_FOUND",
-                                            message = "Failed to delete calendar"
+                                            code = "GENERIC_ERROR",
+                                            message = "An error occurred during deletion"
                                         )
                                     )
                                 )
@@ -251,48 +245,63 @@ class CalendarImplem(
             if (granted) {
                 CoroutineScope(Dispatchers.IO).launch {
                     try {
-                        // TODO: check if calendar is writable
+                        if (isCalendarWritable(calendarId)) {
+                            val eventValues = ContentValues().apply {
+                                put(CalendarContract.Events.CALENDAR_ID, calendarId)
+                                put(CalendarContract.Events.TITLE, title)
+                                put(CalendarContract.Events.DESCRIPTION, description)
+                                put(CalendarContract.Events.DTSTART, startDate)
+                                put(CalendarContract.Events.DTEND, endDate)
+                                put(CalendarContract.Events.EVENT_TIMEZONE, "UTC")
+                                put(CalendarContract.Events.ALL_DAY, isAllDay)
+                            }
 
-                        val eventValues = ContentValues().apply {
-                            put(CalendarContract.Events.CALENDAR_ID, calendarId)
-                            put(CalendarContract.Events.TITLE, title)
-                            put(CalendarContract.Events.DESCRIPTION, description)
-                            put(CalendarContract.Events.DTSTART, startDate)
-                            put(CalendarContract.Events.DTEND, endDate)
-                            put(CalendarContract.Events.EVENT_TIMEZONE, "UTC")
-                            put(CalendarContract.Events.ALL_DAY, isAllDay)
-                        }
-
-                        val eventUri = contentResolver.insert(eventContentUri, eventValues)
-                        if (eventUri != null) {
-                            val eventId = eventUri.lastPathSegment?.toLong()
-                            if (eventId != null) {
-                                val event = Event(
-                                    id = eventId.toString(),
-                                    title = title,
-                                    startDate = startDate,
-                                    endDate = endDate,
-                                    calendarId = calendarId,
-                                    description = description,
-                                    isAllDay = isAllDay
-                                )
-                                callback(Result.success(event))
+                            val eventUri = contentResolver.insert(eventContentUri, eventValues)
+                            if (eventUri != null) {
+                                val eventId = eventUri.lastPathSegment
+                                if (eventId != null) {
+                                    val event = Event(
+                                        id = eventId,
+                                        title = title,
+                                        startDate = startDate,
+                                        endDate = endDate,
+                                        calendarId = calendarId,
+                                        description = description,
+                                        isAllDay = isAllDay
+                                    )
+                                    callback(Result.success(event))
+                                } else {
+                                    callback(
+                                        Result.failure(
+                                            FlutterError(
+                                                code = "NOT_FOUND",
+                                                message = "Failed to retrieve event ID"
+                                            )
+                                        )
+                                    )
+                                }
                             } else {
                                 callback(Result.failure(
                                     FlutterError(
-                                        code = "NOT_FOUND",
-                                        message = "Failed to retrieve event ID"
+                                        code = "GENERIC_ERROR",
+                                        message = "Failed to create event"
                                     )
                                 ))
                             }
                         } else {
-                            callback(Result.failure(
-                                FlutterError(
-                                    code = "GENERIC_ERROR",
-                                    message = "Failed to create event"
+                            callback(
+                                Result.failure(
+                                    FlutterError(
+                                        code = "NOT_EDITABLE",
+                                        message = "Calendar is not writable"
+                                    )
                                 )
-                            ))
+                            )
                         }
+
+                    } catch (e: FlutterError) {
+                        callback(Result.failure(e))
+
                     } catch (e: Exception) {
                         callback(Result.failure(
                             FlutterError(
@@ -416,21 +425,38 @@ class CalendarImplem(
             if (granted) {
                 CoroutineScope(Dispatchers.IO).launch {
                     try {
-                        // TODO: check if calendar is writable
-                        val selection = CalendarContract.Events._ID + " = ?"
-                        val selectionArgs = arrayOf(eventId)
+                        val calendarId = getCalendarId(eventId)
+                        if (isCalendarWritable(calendarId)) {
+                            val selection = CalendarContract.Events._ID + " = ?"
+                            val selectionArgs = arrayOf(eventId)
 
-                        val deleted = contentResolver.delete(eventContentUri, selection, selectionArgs)
-                        if (deleted > 0) {
-                            callback(Result.success(Unit))
-                        } else {
-                            callback(Result.failure(
-                                FlutterError(
-                                    code = "NOT_FOUND",
-                                    message = "Failed to delete event"
+                            val deleted = contentResolver.delete(eventContentUri, selection, selectionArgs)
+                            if (deleted > 0) {
+                                callback(Result.success(Unit))
+                            } else {
+                                callback(
+                                    Result.failure(
+                                        FlutterError(
+                                            code = "NOT_FOUND",
+                                            message = "Failed to delete event"
+                                        )
+                                    )
                                 )
-                            ))
+                            }
+                        } else {
+                            callback(
+                                Result.failure(
+                                    FlutterError(
+                                        code = "NOT_EDITABLE",
+                                        message = "Calendar is not writable"
+                                    )
+                                )
+                            )
                         }
+
+                    } catch (e: FlutterError) {
+                        callback(Result.failure(e))
+
                     } catch (e: Exception) {
                         callback(Result.failure(
                             FlutterError(
@@ -545,6 +571,33 @@ class CalendarImplem(
                 throw FlutterError(
                     code = "NOT_FOUND",
                     message = "Failed to retrieve calendar"
+                )
+            }
+        }
+
+        throw FlutterError(
+            code = "GENERIC_ERROR",
+            message = "An error occurred"
+        )
+    }
+
+    private fun getCalendarId(
+        eventId: String,
+    ): String {
+        val projection = arrayOf(
+            CalendarContract.Events.CALENDAR_ID
+        )
+        val selection = CalendarContract.Events._ID + " = ?"
+        val selectionArgs = arrayOf(eventId)
+
+        val cursor = contentResolver.query(eventContentUri, projection, selection, selectionArgs, null)
+        cursor?.use {
+            if (it.moveToNext()) {
+                return it.getLong(it.getColumnIndexOrThrow(CalendarContract.Events.CALENDAR_ID)).toString()
+            } else {
+                throw FlutterError(
+                    code = "NOT_FOUND",
+                    message = "Failed to retrieve event"
                 )
             }
         }
