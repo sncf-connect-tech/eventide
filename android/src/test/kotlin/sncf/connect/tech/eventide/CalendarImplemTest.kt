@@ -316,10 +316,14 @@ class CalendarImplemTest {
     }
 
     @Test
-    fun deleteCalendar_withGrantedPermission_deletesCalendarSuccessfully() = runTest {
+    fun deleteCalendar_withGrantedPermission_andWritableCalendar_deletesCalendarSuccessfully() = runTest {
         every { permissionHandler.requestWritePermission(any()) } answers {
             firstArg<(Boolean) -> Unit>().invoke(true)
         }
+        val cursor = mockk<Cursor>(relaxed = true)
+        every { contentResolver.query(calendarContentUri, any(), any(), any(), any()) } returns cursor
+        every { cursor.moveToNext() } returns true
+        every { cursor.getInt(any()) } returns CalendarContract.Calendars.CAL_ACCESS_OWNER
         every { contentResolver.delete(calendarContentUri, any(), any()) } returns 1
 
         var result: Result<Unit>? = null

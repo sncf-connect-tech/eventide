@@ -188,17 +188,34 @@ class CalendarImplem(
                         val selection = CalendarContract.Calendars._ID + " = ?"
                         val selectionArgs = arrayOf(calendarId)
 
-                        val deleted = contentResolver.delete(calendarContentUri, selection, selectionArgs)
-                        if (deleted > 0) {
-                            callback(Result.success(Unit))
-                        } else {
-                            callback(Result.failure(
-                                FlutterError(
-                                    code = "NOT_FOUND",
-                                    message = "Failed to delete calendar"
+                        if (isCalendarWritable(calendarId)) {
+                            val deleted = contentResolver.delete(calendarContentUri, selection, selectionArgs)
+                            if (deleted > 0) {
+                                callback(Result.success(Unit))
+                            } else {
+                                callback(
+                                    Result.failure(
+                                        FlutterError(
+                                            code = "NOT_FOUND",
+                                            message = "Failed to delete calendar"
+                                        )
+                                    )
                                 )
-                            ))
+                            }
+                        } else {
+                            callback(
+                                Result.failure(
+                                    FlutterError(
+                                        code = "NOT_EDITABLE",
+                                        message = "Calendar is not writable"
+                                    )
+                                )
+                            )
                         }
+
+                    } catch (e: FlutterError) {
+                        callback(Result.failure(e))
+
                     } catch (e: Exception) {
                         callback(Result.failure(
                             FlutterError(
@@ -234,6 +251,8 @@ class CalendarImplem(
             if (granted) {
                 CoroutineScope(Dispatchers.IO).launch {
                     try {
+                        // TODO: check if calendar is writable
+
                         val eventValues = ContentValues().apply {
                             put(CalendarContract.Events.CALENDAR_ID, calendarId)
                             put(CalendarContract.Events.TITLE, title)
@@ -397,6 +416,7 @@ class CalendarImplem(
             if (granted) {
                 CoroutineScope(Dispatchers.IO).launch {
                     try {
+                        // TODO: check if calendar is writable
                         val selection = CalendarContract.Events._ID + " = ?"
                         val selectionArgs = arrayOf(eventId)
 
@@ -505,6 +525,34 @@ class CalendarImplem(
                 ))
             }
         }
+    }
+
+    private fun isCalendarWritable(
+        calendarId: String,
+    ): Boolean {
+        val projection = arrayOf(
+            CalendarContract.Calendars.CALENDAR_ACCESS_LEVEL
+        )
+        val selection = CalendarContract.Calendars._ID + " = ?"
+        val selectionArgs = arrayOf(calendarId)
+
+        val cursor = contentResolver.query(calendarContentUri, projection, selection, selectionArgs, null)
+        cursor?.use {
+            if (it.moveToNext()) {
+                val accessLevel = it.getInt(it.getColumnIndexOrThrow(CalendarContract.Calendars.CALENDAR_ACCESS_LEVEL))
+                return accessLevel >= CalendarContract.Calendars.CAL_ACCESS_CONTRIBUTOR
+            } else {
+                throw FlutterError(
+                    code = "NOT_FOUND",
+                    message = "Failed to retrieve calendar"
+                )
+            }
+        }
+
+        throw FlutterError(
+            code = "GENERIC_ERROR",
+            message = "An error occurred"
+        )
     }
 
     private fun retrieveEvent(
