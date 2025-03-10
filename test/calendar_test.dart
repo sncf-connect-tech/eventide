@@ -5,7 +5,9 @@ import 'package:mocktail/mocktail.dart';
 
 import 'package:eventide/eventide.dart';
 import 'package:eventide/src/calendar_api.g.dart';
-import 'package:eventide/src/eventide_extensions.dart';
+import 'package:eventide/src/extensions/account_extensions.dart';
+import 'package:eventide/src/extensions/calendar_extensions.dart';
+import 'package:eventide/src/extensions/color_extensions.dart';
 
 class _MockCalendarApi extends Mock implements CalendarApi {}
 
@@ -141,5 +143,54 @@ void main() {
     // Then
     expect(call, throwsException);
     verify(() => mockCalendarApi.deleteCalendar(calendarId: '1')).called(1);
+  });
+
+  group('CalendarToETCalendar tests', () {
+    test('Calendar toETCalendar', () {
+      final calendar = Calendar(
+        id: '1',
+        title: 'Test Calendar',
+        color: 0xFF123456,
+        isWritable: true,
+        account: Account(name: 'Test Account', type: 'Test Type'),
+      );
+      final etCalendar = calendar.toETCalendar();
+      expect(etCalendar.id, '1');
+      expect(etCalendar.title, 'Test Calendar');
+      expect(etCalendar.color, const Color(0xFF123456));
+      expect(etCalendar.isWritable, true);
+      expect(etCalendar.account.name, 'Test Account');
+    });
+
+    test('List<Calendar> toETCalendarList', () {
+      final calendars = [
+        Calendar(
+          id: '1',
+          title: 'Test Calendar',
+          color: 0xFF123456,
+          isWritable: true,
+          account: Account(name: 'Test Account', type: 'Test Type'),
+        ),
+      ];
+      final etCalendars = calendars.toETCalendarList();
+      expect(etCalendars.length, 1);
+      expect(etCalendars.first.id, '1');
+    });
+  });
+
+  group('Account tests', () {
+    test('Account toETAccount', () {
+      final account = Account(name: 'Test Account', type: 'Test Type');
+      final etAccount = account.toETAccount();
+      expect(etAccount.name, 'Test Account');
+      expect(etAccount.type, 'Test Type');
+    });
+
+    test('ETAccount toAccount', () {
+      final etAccount = ETAccount(name: 'Test Account', type: 'Test Type');
+      final account = etAccount.toAccount();
+      expect(account.name, 'Test Account');
+      expect(account.type, 'Test Type');
+    });
   });
 }

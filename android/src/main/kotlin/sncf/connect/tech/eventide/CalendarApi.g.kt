@@ -122,7 +122,8 @@ data class Event (
   val calendarId: String,
   val description: String? = null,
   val url: String? = null,
-  val reminders: List<Long>? = null
+  val reminders: List<Long>? = null,
+  val attendees: List<Attendee>? = null
 )
  {
   companion object {
@@ -136,7 +137,8 @@ data class Event (
       val description = pigeonVar_list[6] as String?
       val url = pigeonVar_list[7] as String?
       val reminders = pigeonVar_list[8] as List<Long>?
-      return Event(id, title, isAllDay, startDate, endDate, calendarId, description, url, reminders)
+      val attendees = pigeonVar_list[9] as List<Attendee>?
+      return Event(id, title, isAllDay, startDate, endDate, calendarId, description, url, reminders, attendees)
     }
   }
   fun toList(): List<Any?> {
@@ -150,6 +152,7 @@ data class Event (
       description,
       url,
       reminders,
+      attendees,
     )
   }
 }
@@ -174,6 +177,39 @@ data class Account (
     )
   }
 }
+
+/** Generated class from Pigeon that represents data sent in messages. */
+data class Attendee (
+  val eventId: String,
+  val name: String,
+  val email: String,
+  val type: Long,
+  val role: Long,
+  val status: Long
+)
+ {
+  companion object {
+    fun fromList(pigeonVar_list: List<Any?>): Attendee {
+      val eventId = pigeonVar_list[0] as String
+      val name = pigeonVar_list[1] as String
+      val email = pigeonVar_list[2] as String
+      val type = pigeonVar_list[3] as Long
+      val role = pigeonVar_list[4] as Long
+      val status = pigeonVar_list[5] as Long
+      return Attendee(eventId, name, email, type, role, status)
+    }
+  }
+  fun toList(): List<Any?> {
+    return listOf(
+      eventId,
+      name,
+      email,
+      type,
+      role,
+      status,
+    )
+  }
+}
 private open class CalendarApiPigeonCodec : StandardMessageCodec() {
   override fun readValueOfType(type: Byte, buffer: ByteBuffer): Any? {
     return when (type) {
@@ -190,6 +226,11 @@ private open class CalendarApiPigeonCodec : StandardMessageCodec() {
       131.toByte() -> {
         return (readValue(buffer) as? List<Any?>)?.let {
           Account.fromList(it)
+        }
+      }
+      132.toByte() -> {
+        return (readValue(buffer) as? List<Any?>)?.let {
+          Attendee.fromList(it)
         }
       }
       else -> super.readValueOfType(type, buffer)
@@ -209,6 +250,10 @@ private open class CalendarApiPigeonCodec : StandardMessageCodec() {
         stream.write(131)
         writeValue(stream, value.toList())
       }
+      is Attendee -> {
+        stream.write(132)
+        writeValue(stream, value.toList())
+      }
       else -> super.writeValue(stream, value)
     }
   }
@@ -226,6 +271,9 @@ interface CalendarApi {
   fun deleteEvent(eventId: String, callback: (Result<Unit>) -> Unit)
   fun createReminder(reminder: Long, eventId: String, callback: (Result<Event>) -> Unit)
   fun deleteReminder(reminder: Long, eventId: String, callback: (Result<Event>) -> Unit)
+  fun createAttendee(eventId: String, name: String, email: String, role: Long, type: Long, callback: (Result<Attendee>) -> Unit)
+  fun retrieveAttendees(eventId: String, callback: (Result<List<Attendee>>) -> Unit)
+  fun deleteAttendee(eventId: String, email: String, callback: (Result<Unit>) -> Unit)
 
   companion object {
     /** The codec used by CalendarApi. */
@@ -418,6 +466,70 @@ interface CalendarApi {
               } else {
                 val data = result.getOrNull()
                 reply.reply(wrapResult(data))
+              }
+            }
+          }
+        } else {
+          channel.setMessageHandler(null)
+        }
+      }
+      run {
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.eventide.CalendarApi.createAttendee$separatedMessageChannelSuffix", codec)
+        if (api != null) {
+          channel.setMessageHandler { message, reply ->
+            val args = message as List<Any?>
+            val eventIdArg = args[0] as String
+            val nameArg = args[1] as String
+            val emailArg = args[2] as String
+            val roleArg = args[3] as Long
+            val typeArg = args[4] as Long
+            api.createAttendee(eventIdArg, nameArg, emailArg, roleArg, typeArg) { result: Result<Attendee> ->
+              val error = result.exceptionOrNull()
+              if (error != null) {
+                reply.reply(wrapError(error))
+              } else {
+                val data = result.getOrNull()
+                reply.reply(wrapResult(data))
+              }
+            }
+          }
+        } else {
+          channel.setMessageHandler(null)
+        }
+      }
+      run {
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.eventide.CalendarApi.retrieveAttendees$separatedMessageChannelSuffix", codec)
+        if (api != null) {
+          channel.setMessageHandler { message, reply ->
+            val args = message as List<Any?>
+            val eventIdArg = args[0] as String
+            api.retrieveAttendees(eventIdArg) { result: Result<List<Attendee>> ->
+              val error = result.exceptionOrNull()
+              if (error != null) {
+                reply.reply(wrapError(error))
+              } else {
+                val data = result.getOrNull()
+                reply.reply(wrapResult(data))
+              }
+            }
+          }
+        } else {
+          channel.setMessageHandler(null)
+        }
+      }
+      run {
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.eventide.CalendarApi.deleteAttendee$separatedMessageChannelSuffix", codec)
+        if (api != null) {
+          channel.setMessageHandler { message, reply ->
+            val args = message as List<Any?>
+            val eventIdArg = args[0] as String
+            val emailArg = args[1] as String
+            api.deleteAttendee(eventIdArg, emailArg) { result: Result<Unit> ->
+              val error = result.exceptionOrNull()
+              if (error != null) {
+                reply.reply(wrapError(error))
+              } else {
+                reply.reply(wrapResult(null))
               }
             }
           }

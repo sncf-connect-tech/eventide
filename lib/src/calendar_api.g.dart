@@ -97,6 +97,7 @@ class Event {
     this.description,
     this.url,
     this.reminders,
+    this.attendees,
   });
 
   String id;
@@ -117,6 +118,8 @@ class Event {
 
   List<int>? reminders;
 
+  List<Attendee>? attendees;
+
   Object encode() {
     return <Object?>[
       id,
@@ -128,6 +131,7 @@ class Event {
       description,
       url,
       reminders,
+      attendees,
     ];
   }
 
@@ -143,6 +147,7 @@ class Event {
       description: result[6] as String?,
       url: result[7] as String?,
       reminders: (result[8] as List<Object?>?)?.cast<int>(),
+      attendees: (result[9] as List<Object?>?)?.cast<Attendee>(),
     );
   }
 }
@@ -173,6 +178,52 @@ class Account {
   }
 }
 
+class Attendee {
+  Attendee({
+    required this.eventId,
+    required this.name,
+    required this.email,
+    required this.type,
+    required this.role,
+    required this.status,
+  });
+
+  String eventId;
+
+  String name;
+
+  String email;
+
+  int type;
+
+  int role;
+
+  int status;
+
+  Object encode() {
+    return <Object?>[
+      eventId,
+      name,
+      email,
+      type,
+      role,
+      status,
+    ];
+  }
+
+  static Attendee decode(Object result) {
+    result as List<Object?>;
+    return Attendee(
+      eventId: result[0]! as String,
+      name: result[1]! as String,
+      email: result[2]! as String,
+      type: result[3]! as int,
+      role: result[4]! as int,
+      status: result[5]! as int,
+    );
+  }
+}
+
 class _PigeonCodec extends StandardMessageCodec {
   const _PigeonCodec();
   @override
@@ -189,6 +240,9 @@ class _PigeonCodec extends StandardMessageCodec {
     } else if (value is Account) {
       buffer.putUint8(131);
       writeValue(buffer, value.encode());
+    } else if (value is Attendee) {
+      buffer.putUint8(132);
+      writeValue(buffer, value.encode());
     } else {
       super.writeValue(buffer, value);
     }
@@ -203,6 +257,8 @@ class _PigeonCodec extends StandardMessageCodec {
         return Event.decode(readValue(buffer)!);
       case 131:
         return Account.decode(readValue(buffer)!);
+      case 132:
+        return Attendee.decode(readValue(buffer)!);
       default:
         return super.readValueOfType(type, buffer);
     }
@@ -478,6 +534,101 @@ class CalendarApi {
       );
     } else {
       return (pigeonVar_replyList[0] as Event?)!;
+    }
+  }
+
+  Future<Attendee> createAttendee({
+    required String eventId,
+    required String name,
+    required String email,
+    required int role,
+    required int type,
+  }) async {
+    final String pigeonVar_channelName =
+        'dev.flutter.pigeon.eventide.CalendarApi.createAttendee$pigeonVar_messageChannelSuffix';
+    final BasicMessageChannel<Object?> pigeonVar_channel =
+        BasicMessageChannel<Object?>(
+      pigeonVar_channelName,
+      pigeonChannelCodec,
+      binaryMessenger: pigeonVar_binaryMessenger,
+    );
+    final Future<Object?> pigeonVar_sendFuture =
+        pigeonVar_channel.send(<Object?>[eventId, name, email, role, type]);
+    final List<Object?>? pigeonVar_replyList =
+        await pigeonVar_sendFuture as List<Object?>?;
+    if (pigeonVar_replyList == null) {
+      throw _createConnectionError(pigeonVar_channelName);
+    } else if (pigeonVar_replyList.length > 1) {
+      throw PlatformException(
+        code: pigeonVar_replyList[0]! as String,
+        message: pigeonVar_replyList[1] as String?,
+        details: pigeonVar_replyList[2],
+      );
+    } else if (pigeonVar_replyList[0] == null) {
+      throw PlatformException(
+        code: 'null-error',
+        message: 'Host platform returned null value for non-null return value.',
+      );
+    } else {
+      return (pigeonVar_replyList[0] as Attendee?)!;
+    }
+  }
+
+  Future<List<Attendee>> retrieveAttendees({required String eventId}) async {
+    final String pigeonVar_channelName =
+        'dev.flutter.pigeon.eventide.CalendarApi.retrieveAttendees$pigeonVar_messageChannelSuffix';
+    final BasicMessageChannel<Object?> pigeonVar_channel =
+        BasicMessageChannel<Object?>(
+      pigeonVar_channelName,
+      pigeonChannelCodec,
+      binaryMessenger: pigeonVar_binaryMessenger,
+    );
+    final Future<Object?> pigeonVar_sendFuture =
+        pigeonVar_channel.send(<Object?>[eventId]);
+    final List<Object?>? pigeonVar_replyList =
+        await pigeonVar_sendFuture as List<Object?>?;
+    if (pigeonVar_replyList == null) {
+      throw _createConnectionError(pigeonVar_channelName);
+    } else if (pigeonVar_replyList.length > 1) {
+      throw PlatformException(
+        code: pigeonVar_replyList[0]! as String,
+        message: pigeonVar_replyList[1] as String?,
+        details: pigeonVar_replyList[2],
+      );
+    } else if (pigeonVar_replyList[0] == null) {
+      throw PlatformException(
+        code: 'null-error',
+        message: 'Host platform returned null value for non-null return value.',
+      );
+    } else {
+      return (pigeonVar_replyList[0] as List<Object?>?)!.cast<Attendee>();
+    }
+  }
+
+  Future<void> deleteAttendee(
+      {required String eventId, required String email}) async {
+    final String pigeonVar_channelName =
+        'dev.flutter.pigeon.eventide.CalendarApi.deleteAttendee$pigeonVar_messageChannelSuffix';
+    final BasicMessageChannel<Object?> pigeonVar_channel =
+        BasicMessageChannel<Object?>(
+      pigeonVar_channelName,
+      pigeonChannelCodec,
+      binaryMessenger: pigeonVar_binaryMessenger,
+    );
+    final Future<Object?> pigeonVar_sendFuture =
+        pigeonVar_channel.send(<Object?>[eventId, email]);
+    final List<Object?>? pigeonVar_replyList =
+        await pigeonVar_sendFuture as List<Object?>?;
+    if (pigeonVar_replyList == null) {
+      throw _createConnectionError(pigeonVar_channelName);
+    } else if (pigeonVar_replyList.length > 1) {
+      throw PlatformException(
+        code: pigeonVar_replyList[0]! as String,
+        message: pigeonVar_replyList[1] as String?,
+        details: pigeonVar_replyList[2],
+      );
+    } else {
+      return;
     }
   }
 }

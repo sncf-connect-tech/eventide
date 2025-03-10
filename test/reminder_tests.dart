@@ -6,7 +6,7 @@ import 'package:mocktail/mocktail.dart';
 
 import 'package:eventide/eventide.dart';
 import 'package:eventide/src/calendar_api.g.dart';
-import 'package:eventide/src/eventide_extensions.dart';
+import 'package:eventide/src/extensions/event_extensions.dart';
 
 class _MockCalendarApi extends Mock implements CalendarApi {}
 

@@ -143,6 +143,7 @@ struct Event {
   var description: String? = nil
   var url: String? = nil
   var reminders: [Int64]? = nil
+  var attendees: [Attendee]? = nil
 
 
   // swift-format-ignore: AlwaysUseLowerCamelCase
@@ -156,6 +157,7 @@ struct Event {
     let description: String? = nilOrValue(pigeonVar_list[6])
     let url: String? = nilOrValue(pigeonVar_list[7])
     let reminders: [Int64]? = nilOrValue(pigeonVar_list[8])
+    let attendees: [Attendee]? = nilOrValue(pigeonVar_list[9])
 
     return Event(
       id: id,
@@ -166,7 +168,8 @@ struct Event {
       calendarId: calendarId,
       description: description,
       url: url,
-      reminders: reminders
+      reminders: reminders,
+      attendees: attendees
     )
   }
   func toList() -> [Any?] {
@@ -180,6 +183,7 @@ struct Event {
       description,
       url,
       reminders,
+      attendees,
     ]
   }
 }
@@ -208,6 +212,46 @@ struct Account {
   }
 }
 
+/// Generated class from Pigeon that represents data sent in messages.
+struct Attendee {
+  var eventId: String
+  var name: String
+  var email: String
+  var type: Int64
+  var role: Int64
+  var status: Int64
+
+
+  // swift-format-ignore: AlwaysUseLowerCamelCase
+  static func fromList(_ pigeonVar_list: [Any?]) -> Attendee? {
+    let eventId = pigeonVar_list[0] as! String
+    let name = pigeonVar_list[1] as! String
+    let email = pigeonVar_list[2] as! String
+    let type = pigeonVar_list[3] as! Int64
+    let role = pigeonVar_list[4] as! Int64
+    let status = pigeonVar_list[5] as! Int64
+
+    return Attendee(
+      eventId: eventId,
+      name: name,
+      email: email,
+      type: type,
+      role: role,
+      status: status
+    )
+  }
+  func toList() -> [Any?] {
+    return [
+      eventId,
+      name,
+      email,
+      type,
+      role,
+      status,
+    ]
+  }
+}
+
 private class CalendarApiPigeonCodecReader: FlutterStandardReader {
   override func readValue(ofType type: UInt8) -> Any? {
     switch type {
@@ -217,6 +261,8 @@ private class CalendarApiPigeonCodecReader: FlutterStandardReader {
       return Event.fromList(self.readValue() as! [Any?])
     case 131:
       return Account.fromList(self.readValue() as! [Any?])
+    case 132:
+      return Attendee.fromList(self.readValue() as! [Any?])
     default:
       return super.readValue(ofType: type)
     }
@@ -233,6 +279,9 @@ private class CalendarApiPigeonCodecWriter: FlutterStandardWriter {
       super.writeValue(value.toList())
     } else if let value = value as? Account {
       super.writeByte(131)
+      super.writeValue(value.toList())
+    } else if let value = value as? Attendee {
+      super.writeByte(132)
       super.writeValue(value.toList())
     } else {
       super.writeValue(value)
@@ -266,6 +315,9 @@ protocol CalendarApi {
   func deleteEvent(withId eventId: String, completion: @escaping (Result<Void, Error>) -> Void)
   func createReminder(_ reminder: Int64, forEventId eventId: String, completion: @escaping (Result<Event, Error>) -> Void)
   func deleteReminder(_ reminder: Int64, withEventId eventId: String, completion: @escaping (Result<Event, Error>) -> Void)
+  func createAttendee(eventId: String, name: String, email: String, role: Int64, type: Int64, completion: @escaping (Result<Attendee, Error>) -> Void)
+  func retrieveAttendees(eventId: String, completion: @escaping (Result<[Attendee], Error>) -> Void)
+  func deleteAttendee(eventId: String, email: String, completion: @escaping (Result<Void, Error>) -> Void)
 }
 
 /// Generated setup class from Pigeon to handle messages through the `binaryMessenger`.
@@ -437,6 +489,62 @@ class CalendarApiSetup {
       }
     } else {
       deleteReminderChannel.setMessageHandler(nil)
+    }
+    let createAttendeeChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.eventide.CalendarApi.createAttendee\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
+    if let api = api {
+      createAttendeeChannel.setMessageHandler { message, reply in
+        let args = message as! [Any?]
+        let eventIdArg = args[0] as! String
+        let nameArg = args[1] as! String
+        let emailArg = args[2] as! String
+        let roleArg = args[3] as! Int64
+        let typeArg = args[4] as! Int64
+        api.createAttendee(eventId: eventIdArg, name: nameArg, email: emailArg, role: roleArg, type: typeArg) { result in
+          switch result {
+          case .success(let res):
+            reply(wrapResult(res))
+          case .failure(let error):
+            reply(wrapError(error))
+          }
+        }
+      }
+    } else {
+      createAttendeeChannel.setMessageHandler(nil)
+    }
+    let retrieveAttendeesChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.eventide.CalendarApi.retrieveAttendees\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
+    if let api = api {
+      retrieveAttendeesChannel.setMessageHandler { message, reply in
+        let args = message as! [Any?]
+        let eventIdArg = args[0] as! String
+        api.retrieveAttendees(eventId: eventIdArg) { result in
+          switch result {
+          case .success(let res):
+            reply(wrapResult(res))
+          case .failure(let error):
+            reply(wrapError(error))
+          }
+        }
+      }
+    } else {
+      retrieveAttendeesChannel.setMessageHandler(nil)
+    }
+    let deleteAttendeeChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.eventide.CalendarApi.deleteAttendee\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
+    if let api = api {
+      deleteAttendeeChannel.setMessageHandler { message, reply in
+        let args = message as! [Any?]
+        let eventIdArg = args[0] as! String
+        let emailArg = args[1] as! String
+        api.deleteAttendee(eventId: eventIdArg, email: emailArg) { result in
+          switch result {
+          case .success:
+            reply(wrapResult(nil))
+          case .failure(let error):
+            reply(wrapError(error))
+          }
+        }
+      }
+    } else {
+      deleteAttendeeChannel.setMessageHandler(nil)
     }
   }
 }

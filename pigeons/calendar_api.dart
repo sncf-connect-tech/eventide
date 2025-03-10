@@ -71,6 +71,26 @@ abstract class CalendarApi {
     required int reminder,
     required String eventId,
   });
+
+  @async
+  Attendee createAttendee({
+    required String eventId,
+    required String name,
+    required String email,
+    required int role,
+    required int type,
+  });
+
+  @async
+  List<Attendee> retrieveAttendees({
+    required String eventId,
+  });
+
+  @async
+  void deleteAttendee({
+    required String eventId,
+    required String email,
+  });
 }
 
 /// Native data struct to represent a calendar.
@@ -129,6 +149,7 @@ final class Event {
   final String? description;
   final String? url;
   final List<int>? reminders;
+  final List<Attendee>? attendees;
 
   const Event({
     required this.id,
@@ -140,6 +161,7 @@ final class Event {
     required this.description,
     required this.url,
     required this.reminders,
+    required this.attendees,
   });
 }
 
@@ -150,5 +172,23 @@ final class Account {
   const Account({
     required this.name,
     required this.type,
+  });
+}
+
+final class Attendee {
+  final String eventId;
+  final String name;
+  final String email;
+  final int type;
+  final int role;
+  final int status;
+
+  const Attendee({
+    required this.eventId,
+    required this.name,
+    required this.email,
+    required this.role,
+    required this.type,
+    required this.status,
   });
 }

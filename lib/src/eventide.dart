@@ -3,8 +3,13 @@ import 'package:flutter/services.dart';
 
 import 'package:eventide/src/calendar_api.g.dart';
 import 'package:eventide/src/eventide_exception.dart';
-import 'package:eventide/src/eventide_extensions.dart';
 import 'package:eventide/src/eventide_platform_interface.dart';
+import 'package:eventide/src/extensions/account_extensions.dart';
+import 'package:eventide/src/extensions/attendee_extensions.dart';
+import 'package:eventide/src/extensions/calendar_extensions.dart';
+import 'package:eventide/src/extensions/color_extensions.dart';
+import 'package:eventide/src/extensions/duration_extensions.dart';
+import 'package:eventide/src/extensions/event_extensions.dart';
 
 class Eventide extends EventidePlatform {
   final CalendarApi _calendarApi;
@@ -246,6 +251,38 @@ class Eventide extends EventidePlatform {
         eventId: eventId,
       );
       return updatedEvent.toETEvent();
+    } on PlatformException catch (e) {
+      throw e.toETException();
+    }
+  }
+
+  @override
+  Future<ETAttendee> addAttendee({
+    required String eventId,
+    required String name,
+    required String email,
+    required ETAttendeeType type,
+  }) async {
+    try {
+      final attendee = await _calendarApi.createAttendee(
+        eventId: eventId,
+        name: name,
+        email: email,
+        role: type.nativeRole,
+        type: type.nativeType,
+      );
+      return attendee.toETAttendee();
+    } on PlatformException catch (e) {
+      throw e.toETException();
+    }
+  }
+
+  @override
+  Future<void> removeAttendee(ETAttendee etAttendee) async {
+    try {
+      final attendee = etAttendee.toAttendee();
+      await _calendarApi.deleteAttendee(
+          eventId: attendee.eventId, email: attendee.email);
     } on PlatformException catch (e) {
       throw e.toETException();
     }
