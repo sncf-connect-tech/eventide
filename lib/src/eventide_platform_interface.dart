@@ -59,13 +59,25 @@ abstract class EventidePlatform extends PlatformInterface {
   });
 
   Future<ETEvent> createReminder({
-    required Duration durationBeforeEvent,
     required String eventId,
+    required Duration durationBeforeEvent,
   });
 
   Future<ETEvent> deleteReminder({
-    required Duration durationBeforeEvent,
     required String eventId,
+    required Duration durationBeforeEvent,
+  });
+
+  Future<ETEvent> createAttendee({
+    required String eventId,
+    required String name,
+    required String email,
+    required ETAttendeeType type,
+  });
+
+  Future<ETEvent> deleteAttendee({
+    required String eventId,
+    required ETAttendee attendee,
   });
 }
 
@@ -123,12 +135,24 @@ final class ETEvent extends Equatable {
   final DateTime startDate;
   final DateTime endDate;
   final String calendarId;
+  final List<Duration> reminders;
+  final List<ETAttendee> attendees;
   final String? description;
   final String? url;
-  final List<Duration>? reminders;
 
   @override
-  List<Object?> get props => [id, title, isAllDay, startDate, endDate, calendarId, description, url, reminders];
+  List<Object?> get props => [
+        id,
+        title,
+        isAllDay,
+        startDate,
+        endDate,
+        calendarId,
+        reminders,
+        attendees,
+        description,
+        url,
+      ];
 
   const ETEvent({
     required this.id,
@@ -137,9 +161,10 @@ final class ETEvent extends Equatable {
     required this.startDate,
     required this.endDate,
     required this.calendarId,
+    this.reminders = const [],
+    this.attendees = const [],
     this.description,
     this.url,
-    this.reminders,
   });
 }
 
@@ -162,5 +187,128 @@ final class ETAccount extends Equatable {
   const ETAccount({
     required this.name,
     required this.type,
+  });
+}
+
+/// Represents an attendee.
+///
+/// [name] is the name of the attendee.
+///
+/// [email] is the email of the attendee.
+///
+/// [type] is the type of the attendee. See README for more information.
+///
+/// [status] is the status of the attendee.
+final class ETAttendee extends Equatable {
+  final String name;
+  final String email;
+  final ETAttendeeType type;
+  final ETAttendanceStatus status;
+
+  @override
+  List<Object?> get props => [name, email, type, status];
+
+  const ETAttendee({
+    required this.name,
+    required this.email,
+    required this.type,
+    required this.status,
+  });
+}
+
+enum ETAttendeeType {
+  unknown(
+    iosParticipantType: 0,
+    iosParticipantRole: 0,
+    androidAttendeeType: 0,
+    androidAttendeeRelationship: 0,
+  ),
+  requiredPerson(
+    iosParticipantType: 1,
+    iosParticipantRole: 1,
+    androidAttendeeType: 1,
+    androidAttendeeRelationship: 1,
+  ),
+  optionalPerson(
+    iosParticipantType: 1,
+    iosParticipantRole: 2,
+    androidAttendeeType: 2,
+    androidAttendeeRelationship: 1,
+  ),
+  organizer(
+    iosParticipantType: 1,
+    iosParticipantRole: 3,
+    androidAttendeeType: 1,
+    androidAttendeeRelationship: 2,
+  ),
+  resource(
+    iosParticipantType: 3,
+    iosParticipantRole: 1,
+    androidAttendeeType: 3,
+    androidAttendeeRelationship: 1,
+  );
+
+  final int iosParticipantType;
+  final int iosParticipantRole;
+  final int androidAttendeeType;
+  final int androidAttendeeRelationship;
+
+  const ETAttendeeType({
+    required this.iosParticipantType,
+    required this.iosParticipantRole,
+    required this.androidAttendeeType,
+    required this.androidAttendeeRelationship,
+  });
+}
+
+/// ETAttendanceStatus
+/// IOS     EKParticipantStatus : unknown, pending, accepted, declined, tentative, delegated, completed, inProcess
+/// ANDROID ATTENDEE_STATUS     : STATUS_NONE, STATUS_ACCEPTED, STATUS_DECLINED, STATUS_INVITED, STATUS_TENTATIVE
+
+/// Represents the status of the attendee.
+///
+/// [unknown] is the status of the attendee when the status is unknown.
+///
+/// [pending] is the status of the attendee when the attendee has not accepted the invitation.
+///
+/// [accepted] is the status of the attendee when the attendee has accepted the invitation.
+///
+/// [declined] is the status of the attendee when the attendee has declined the invitation.
+///
+/// [tentative] is the status of the attendee when the attendee has tentatively accepted the invitation.
+///
+/// Notes :
+///
+/// [EKParticipantStatus.inProcess] and [EKParticipantStatus.completed] are relative to the event status and not the participant attendance status and will be treated as [unknown].
+///
+/// [EKParticipantStatus.delegated] is not supported because it has no equivalent on Android.
+enum ETAttendanceStatus {
+  unknown(
+    iosStatus: 0,
+    androidStatus: 0,
+  ),
+  pending(
+    iosStatus: 1,
+    androidStatus: 3,
+  ),
+  accepted(
+    iosStatus: 2,
+    androidStatus: 1,
+  ),
+  declined(
+    iosStatus: 3,
+    androidStatus: 2,
+  ),
+  tentative(
+    iosStatus: 4,
+    androidStatus: 4,
+  );
+
+  final int iosStatus;
+  final int androidStatus;
+
+  const ETAttendanceStatus({
+    required this.iosStatus,
+    required this.androidStatus,
   });
 }

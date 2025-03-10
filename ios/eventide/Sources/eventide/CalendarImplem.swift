@@ -226,4 +226,39 @@ class CalendarImplem: CalendarApi {
             completion(.failure(error))
         }
     }
+    
+    func createAttendee(
+        eventId: String,
+        name: String,
+        email: String,
+        role: Int64,
+        type: Int64,
+        completion: @escaping (Result<Event, any Error>) -> Void
+    ) {
+        /// EventKit cannot add participants to an event nor change participant information.
+        /// https://developer.apple.com/documentation/eventkit/ekparticipant#overview
+        completion(.failure(
+            PigeonError(
+                code: "INCOMPATIBLE_PLATFORM",
+                message: "Platform does not handle this method",
+                details: "EventKit API does not support attendee addition"
+            )
+        ))
+    }
+    
+    func deleteAttendee(
+        eventId: String,
+        email: String,
+        completion: @escaping (Result<Event, any Error>) -> Void
+    ) {
+        /// EventKit cannot add participants to an event nor change participant information.
+        /// https://developer.apple.com/documentation/eventkit/ekparticipant#overview
+        completion(.failure(
+            PigeonError(
+                code: "INCOMPATIBLE_PLATFORM",
+                message: "Platform does not handle this method",
+                details: "EventKit API does not support attendee deletion"
+            )
+        ))
+    }
 }

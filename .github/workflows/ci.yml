@@ -86,7 +86,7 @@ jobs:
           flutter config --enable-swift-package-manager
           flutter pub get
           cd example/ios
-          flutter build ios --config-only --no-codesign
+          flutter build ios --config-only
           cd ../..
 
       - name: Run tests

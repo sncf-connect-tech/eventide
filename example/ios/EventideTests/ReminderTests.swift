@@ -49,8 +49,8 @@ final class ReminderTests: XCTestCase {
         calendarImplem.createReminder(reminder, forEventId: "1") { createReminderResult in
             switch (createReminderResult) {
             case .success(let event):
-                XCTAssert(event.reminders!.count == 1)
-                XCTAssert(event.reminders!.first == -reminder)
+                XCTAssert(event.reminders.count == 1)
+                XCTAssert(event.reminders.first == -reminder)
                 XCTAssert(mockEasyEventStore.calendars.first!.events.first!.reminders!.first! == TimeInterval(-reminder))
                 expectation.fulfill()
             case .failure:
@@ -99,8 +99,8 @@ final class ReminderTests: XCTestCase {
         calendarImplem.createReminder(reminder, forEventId: "1") { createReminderResult in
             switch (createReminderResult) {
             case .success(let event):
-                XCTAssert(event.reminders!.count == 2)
-                XCTAssert(event.reminders!.last == -reminder)
+                XCTAssert(event.reminders.count == 2)
+                XCTAssert(event.reminders.last == -reminder)
                 XCTAssert(mockEasyEventStore.calendars.first!.events.first!.reminders!.last! == TimeInterval(-reminder))
                 expectation.fulfill()
             case .failure:
@@ -199,7 +199,7 @@ final class ReminderTests: XCTestCase {
         calendarImplem.deleteReminder(3600, withEventId: "1") { createReminderResult in
             switch (createReminderResult) {
             case .success(let event):
-                XCTAssert(event.reminders!.isEmpty)
+                XCTAssert(event.reminders.isEmpty)
                 XCTAssert(mockEasyEventStore.calendars.first!.events.first!.reminders!.isEmpty)
                 expectation.fulfill()
             case .failure:

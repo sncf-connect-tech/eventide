@@ -1,3 +1,10 @@
+## 0.5.0
+* retrieve attendees through events (Android & iOS)
+* create/delete attendees (Android only)
+* set up lefthook & ci format check
+* fixed some permission checks
+* fixed some configuration issues
+
 ## 0.4.0
 
 * Added Swift Package Manager support

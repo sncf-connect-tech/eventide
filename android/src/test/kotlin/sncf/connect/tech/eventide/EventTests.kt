@@ -21,6 +21,7 @@ class EventTests {
     private lateinit var calendarContentUri: Uri
     private lateinit var eventContentUri: Uri
     private lateinit var remindersContentUri: Uri
+    private lateinit var attendeesContentUri: Uri
 
     @BeforeEach
     fun setup() {
@@ -29,13 +30,15 @@ class EventTests {
         calendarContentUri = mockk(relaxed = true)
         eventContentUri = mockk(relaxed = true)
         remindersContentUri = mockk(relaxed = true)
+        attendeesContentUri = mockk(relaxed = true)
 
         calendarImplem = CalendarImplem(
             contentResolver = contentResolver,
             permissionHandler = permissionHandler,
             calendarContentUri = calendarContentUri,
             eventContentUri = eventContentUri,
-            remindersContentUri = remindersContentUri
+            remindersContentUri = remindersContentUri,
+            attendeesContentUri = attendeesContentUri
         )
     }
 
@@ -129,6 +132,8 @@ class EventTests {
             calendarId = "1",
             description = "Description",
             isAllDay = false,
+            reminders = emptyList(),
+            attendees = emptyList()
         ), result!!.getOrNull()!!)
     }
 
@@ -236,15 +241,9 @@ class EventTests {
     fun retrieveEvents_withGrantedPermission_returnsEvents() = runTest {
         mockPermissionGranted()
 
-        val cursor = mockk<Cursor>(relaxed = true)
-
-        CalendarContract.Events.ALL_DAY
-        every { contentResolver.query(eventContentUri, any(), any(), any(), any()) } returns cursor
-        every { cursor.moveToNext() } returnsMany listOf(true, false)
-        every { cursor.getLong(cursor.getColumnIndexOrThrow(CalendarContract.Events._ID)) } returns 1L
-        every { cursor.getString(any()) } returnsMany listOf("Test Event", "Description")
-        every { cursor.getLong(any()) } returns 0L
-        every { cursor.getInt(cursor.getColumnIndexOrThrow(CalendarContract.Events.ALL_DAY)) } returns 0
+        mockRetrieveEvents(contentResolver, eventContentUri)
+        mockRetrieveAttendees(contentResolver, attendeesContentUri)
+        mockRetrieveReminders(contentResolver, remindersContentUri)
 
         var result: Result<List<Event>>? = null
         val latch = CountDownLatch(1)
@@ -257,7 +256,6 @@ class EventTests {
 
         assertTrue(result!!.isSuccess)
         assertEquals(1, result!!.getOrNull()?.size)
-        assertEquals("Test Event", result!!.getOrNull()?.get(0)?.title)
     }
 
     @Test

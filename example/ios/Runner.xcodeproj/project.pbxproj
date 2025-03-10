@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 54;
+	objectVersion = 60;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -14,7 +14,6 @@
 		97C146FC1CF9000F007C117D /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FA1CF9000F007C117D /* Main.storyboard */; };
 		97C146FE1CF9000F007C117D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FD1CF9000F007C117D /* Assets.xcassets */; };
 		97C147011CF9000F007C117D /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FF1CF9000F007C117D /* LaunchScreen.storyboard */; };
-		EA5CD6C52D8C99CB004CFD37 /* EventideTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA5CD6C42D8C99CB004CFD37 /* EventideTests.swift */; };
 		EA5CD6CC2D8C99F2004CFD37 /* UtilsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAECB9432D395CA3000FAA80 /* UtilsTests.swift */; };
 		EA5CD6CE2D8C9A3B004CFD37 /* MockPermissionHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA5B29A32D3908C3005E7771 /* MockPermissionHandler.swift */; };
 		EA5CD6CF2D8C9A3B004CFD37 /* MockEasyEventStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA3C14952D42D3C80038A047 /* MockEasyEventStore.swift */; };
@@ -64,7 +63,6 @@
 		EA3C14952D42D3C80038A047 /* MockEasyEventStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockEasyEventStore.swift; sourceTree = "<group>"; };
 		EA5B29A32D3908C3005E7771 /* MockPermissionHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockPermissionHandler.swift; sourceTree = "<group>"; };
 		EA5CD6C22D8C99CA004CFD37 /* EventideTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = EventideTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		EA5CD6C42D8C99CB004CFD37 /* EventideTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventideTests.swift; sourceTree = "<group>"; };
 		EA8AABCA2D8D884300A1D69B /* ReminderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReminderTests.swift; sourceTree = "<group>"; };
 		EA8AABCC2D8D889600A1D69B /* CalendarTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarTests.swift; sourceTree = "<group>"; };
 		EA8AABCE2D8D88D600A1D69B /* PermissionHandlerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PermissionHandlerTests.swift; sourceTree = "<group>"; };
@@ -153,7 +151,6 @@
 				EA8AABD02D8D891A00A1D69B /* EventTests.swift */,
 				EA8AABCE2D8D88D600A1D69B /* PermissionHandlerTests.swift */,
 				EAECB9432D395CA3000FAA80 /* UtilsTests.swift */,
-				EA5CD6C42D8C99CB004CFD37 /* EventideTests.swift */,
 			);
 			path = EventideTests;
 			sourceTree = "<group>";
@@ -324,7 +321,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				EA8AABCF2D8D88D600A1D69B /* PermissionHandlerTests.swift in Sources */,
-				EA5CD6C52D8C99CB004CFD37 /* EventideTests.swift in Sources */,
 				EA5CD6CC2D8C99F2004CFD37 /* UtilsTests.swift in Sources */,
 				EA5CD6CF2D8C9A3B004CFD37 /* MockEasyEventStore.swift in Sources */,
 				EA5CD6CE2D8C9A3B004CFD37 /* MockPermissionHandler.swift in Sources */,

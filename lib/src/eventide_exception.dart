@@ -41,6 +41,13 @@ class ETGenericException extends ETException {
   }) : super(code: 'GENERIC_ERROR');
 }
 
+class ETNotSupportedByPlatform extends ETException {
+  ETNotSupportedByPlatform({
+    required super.message,
+    super.details,
+  }) : super(code: "INCOMPATIBLE_PLATFORM");
+}
+
 extension PlatformExceptionToETCalendarException on PlatformException {
   /// Converts a [PlatformException] to a [ETException].
   ETException toETException() {
@@ -54,6 +61,10 @@ extension PlatformExceptionToETCalendarException on PlatformException {
           details: details,
         ),
       'NOT_EDITABLE' => ETNotEditableException(
+          message: message,
+          details: details,
+        ),
+      'INCOMPATIBLE_PLATFORM' => ETNotSupportedByPlatform(
           message: message,
           details: details,
         ),

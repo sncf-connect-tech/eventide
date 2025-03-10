@@ -22,12 +22,17 @@ class PermissionRequestTests {
             calendarContentUri = mockk(relaxed = true),
             eventContentUri = mockk(relaxed = true),
             remindersContentUri = mockk(relaxed = true),
+            attendeesContentUri = mockk(relaxed = true),
         )
     }
 
     @Test
     fun requestCalendarPermission_withGrantedPermission_returnsTrue() = runTest {
         every { permissionHandler.requestWritePermission(any()) } answers {
+            firstArg<(Boolean) -> Unit>().invoke(true)
+        }
+
+        every { permissionHandler.requestReadPermission(any()) } answers {
             firstArg<(Boolean) -> Unit>().invoke(true)
         }
 
@@ -45,8 +50,35 @@ class PermissionRequestTests {
     }
 
     @Test
-    fun requestCalendarPermission_withDeniedPermission_returnsFalse() = runTest {
+    fun requestCalendarPermission_withDeniedWritePermission_returnsFalse() = runTest {
         every { permissionHandler.requestWritePermission(any()) } answers {
+            firstArg<(Boolean) -> Unit>().invoke(false)
+        }
+
+        every { permissionHandler.requestReadPermission(any()) } answers {
+            firstArg<(Boolean) -> Unit>().invoke(true)
+        }
+
+        var result: Result<Boolean>? = null
+        val latch = CountDownLatch(1)
+        calendarImplem.requestCalendarPermission {
+            result = it
+            latch.countDown()
+        }
+
+        latch.await()
+
+        assertTrue(result!!.isSuccess)
+        assertFalse(result!!.getOrNull()!!)
+    }
+
+    @Test
+    fun requestCalendarPermission_withDeniedReadPermission_returnsFalse() = runTest {
+        every { permissionHandler.requestWritePermission(any()) } answers {
+            firstArg<(Boolean) -> Unit>().invoke(true)
+        }
+
+        every { permissionHandler.requestReadPermission(any()) } answers {
             firstArg<(Boolean) -> Unit>().invoke(false)
         }
 

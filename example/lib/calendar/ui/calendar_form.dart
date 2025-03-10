@@ -71,10 +71,6 @@ class _CalendarFormState extends State<CalendarForm> {
 
             widget.onSubmit(title, selectedColor);
 
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Creating calendar...')),
-            );
-
             Navigator.of(context).pop();
           },
           child: const Text('Create calendar'),

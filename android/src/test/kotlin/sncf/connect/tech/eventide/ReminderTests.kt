@@ -17,6 +17,7 @@ class ReminderTests {
     private lateinit var calendarContentUri: Uri
     private lateinit var eventContentUri: Uri
     private lateinit var remindersContentUri: Uri
+    private lateinit var attendeesContentUri: Uri
 
     @BeforeEach
     fun setup() {
@@ -25,6 +26,7 @@ class ReminderTests {
         calendarContentUri = mockk(relaxed = true)
         eventContentUri = mockk(relaxed = true)
         remindersContentUri = mockk(relaxed = true)
+        attendeesContentUri = mockk(relaxed = true)
 
         calendarImplem = CalendarImplem(
             contentResolver = contentResolver,
@@ -32,6 +34,7 @@ class ReminderTests {
             calendarContentUri = calendarContentUri,
             eventContentUri = eventContentUri,
             remindersContentUri = remindersContentUri,
+            attendeesContentUri = attendeesContentUri
         )
     }
 

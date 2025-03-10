@@ -21,6 +21,7 @@ class CalendarTests {
     private lateinit var calendarContentUri: Uri
     private lateinit var eventContentUri: Uri
     private lateinit var remindersContentUri: Uri
+    private lateinit var attendeesContentUri: Uri
 
     @BeforeEach
     fun setup() {
@@ -29,13 +30,15 @@ class CalendarTests {
         calendarContentUri = mockk(relaxed = true)
         eventContentUri = mockk(relaxed = true)
         remindersContentUri = mockk(relaxed = true)
+        attendeesContentUri = mockk(relaxed = true)
 
         calendarImplem = CalendarImplem(
             contentResolver = contentResolver,
             permissionHandler = permissionHandler,
             calendarContentUri = calendarContentUri,
             eventContentUri = eventContentUri,
-            remindersContentUri = remindersContentUri
+            remindersContentUri = remindersContentUri,
+            attendeesContentUri = attendeesContentUri
         )
     }
 
@@ -181,8 +184,8 @@ class CalendarTests {
         val cursor = mockk<Cursor>(relaxed = true)
         every { contentResolver.query(calendarContentUri, any(), any(), any(), any()) } returns cursor
         every { cursor.moveToNext() } returnsMany listOf(true, true, false)
-        every { cursor.getLong(any()) } returnsMany listOf(1L, 0xFF0000, 2L, 0xFF0000)
-        every { cursor.getString(any()) } returnsMany listOf("Test Calendar", "Test Account", "Test Account Type", "Test Calendar2", "Test Account", "Test Account Type")
+        every { cursor.getLong(any()) } returnsMany listOf(0xFF0000, 0xFF0000)
+        every { cursor.getString(any()) } returnsMany listOf("id", "Test Calendar", "Test Account", "Test Account Type", "id2", "Test Calendar2", "Test Account", "Test Account Type")
         every { cursor.getInt(any()) } returnsMany listOf(CalendarContract.Calendars.CAL_ACCESS_OWNER, CalendarContract.Calendars.CAL_ACCESS_OWNER)
 
         var result: Result<List<Calendar>>? = null
@@ -207,8 +210,8 @@ class CalendarTests {
         val cursor = mockk<Cursor>(relaxed = true)
         every { contentResolver.query(calendarContentUri, any(), any(), any(), any()) } returns cursor
         every { cursor.moveToNext() } returnsMany listOf(true, true, false)
-        every { cursor.getLong(any()) } returnsMany listOf(1L, 0xFF0000, 2L, 0xFF0000)
-        every { cursor.getString(any()) } returnsMany listOf("Test Calendar", "Test Account", "Test Account Type", "Test Calendar", "Test Account", "Test Account Type")
+        every { cursor.getLong(any()) } returnsMany listOf(0xFF0000, 0xFF0000)
+        every { cursor.getString(any()) } returnsMany listOf("id1", "Test Calendar", "Test Account", "Test Account Type", "id2", "Test Calendar", "Test Account", "Test Account Type")
         every { cursor.getInt(any()) } returnsMany listOf(CalendarContract.Calendars.CAL_ACCESS_OWNER, CalendarContract.Calendars.CAL_ACCESS_READ)
 
         var result: Result<List<Calendar>>? = null
