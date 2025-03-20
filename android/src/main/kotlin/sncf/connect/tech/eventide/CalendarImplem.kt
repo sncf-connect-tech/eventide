@@ -14,7 +14,8 @@ class CalendarImplem(
     private var permissionHandler: PermissionHandler,
     private var calendarContentUri: Uri = CalendarContract.Calendars.CONTENT_URI,
     private var eventContentUri: Uri = CalendarContract.Events.CONTENT_URI,
-    private var remindersContentUri: Uri = CalendarContract.Reminders.CONTENT_URI
+    private var remindersContentUri: Uri = CalendarContract.Reminders.CONTENT_URI,
+    private var attendeesContentUri: Uri = CalendarContract.Attendees.CONTENT_URI
 ): CalendarApi {
     override fun requestCalendarPermission(callback: (Result<Boolean>) -> Unit) {
         permissionHandler.requestWritePermission { granted ->
@@ -553,6 +554,153 @@ class CalendarImplem(
         }
     }
 
+    override fun createAttendee(
+        eventId: String,
+        name: String,
+        email: String,
+        role: Long,
+        type: Long,
+        callback: (Result<Attendee>) -> Unit
+    ) {
+        permissionHandler.requestWritePermission { granted ->
+            if (granted) {
+                CoroutineScope(Dispatchers.IO).launch {
+                    try {
+                        val values = ContentValues().apply {
+                            put(CalendarContract.Attendees.EVENT_ID, eventId)
+                            put(CalendarContract.Attendees.ATTENDEE_NAME, name)
+                            put(CalendarContract.Attendees.ATTENDEE_EMAIL, email)
+                            put(CalendarContract.Attendees.ATTENDEE_RELATIONSHIP, type)
+                            put(CalendarContract.Attendees.ATTENDEE_TYPE, role)
+                        }
+                        contentResolver.insert(attendeesContentUri, values)
+
+                        retrieveAttendee(eventId, email, callback)
+
+                    } catch (e: Exception) {
+                        callback(Result.failure(
+                            FlutterError(
+                                code = "GENERIC_ERROR",
+                                message = "An error occurred",
+                                details = e.message
+                            )
+                        ))
+                    }
+                }
+            } else {
+                callback(Result.failure(
+                    FlutterError(
+                        code = "ACCESS_REFUSED",
+                        message = "Calendar access has been refused or has not been given yet",
+                    )
+                ))
+            }
+        }
+    }
+
+    override fun retrieveAttendees(eventId: String, callback: (Result<List<Attendee>>) -> Unit) {
+        permissionHandler.requestReadPermission { granted ->
+            if (granted) {
+                CoroutineScope(Dispatchers.IO).launch {
+                    try {
+                        val projection = arrayOf(
+                            CalendarContract.Attendees.ATTENDEE_NAME,
+                            CalendarContract.Attendees.ATTENDEE_EMAIL,
+                            CalendarContract.Attendees.ATTENDEE_RELATIONSHIP,
+                            CalendarContract.Attendees.ATTENDEE_STATUS,
+                            CalendarContract.Attendees.ATTENDEE_TYPE,
+                        )
+                        val selection = CalendarContract.Attendees.EVENT_ID + " = ?"
+                        val selectionArgs = arrayOf(eventId)
+
+                        val cursor = contentResolver.query(attendeesContentUri, projection, selection, selectionArgs, null)
+                        val attendees = mutableListOf<Attendee>()
+
+                        cursor?.use {
+                            while (it.moveToNext()) {
+                                val name = it.getString(it.getColumnIndexOrThrow(CalendarContract.Attendees.ATTENDEE_NAME))
+                                val email = it.getString(it.getColumnIndexOrThrow(CalendarContract.Attendees.ATTENDEE_EMAIL))
+                                val relationship = it.getInt(it.getColumnIndexOrThrow(CalendarContract.Attendees.ATTENDEE_RELATIONSHIP))
+                                val type = it.getInt(it.getColumnIndexOrThrow(CalendarContract.Attendees.ATTENDEE_TYPE))
+                                val status = it.getInt(it.getColumnIndexOrThrow(CalendarContract.Attendees.ATTENDEE_STATUS))
+
+                                val attendee = Attendee(
+                                    eventId = eventId,
+                                    name = name,
+                                    email = email,
+                                    type = relationship.toLong(),
+                                    role = type.toLong(),
+                                    status = status.toLong(),
+                                )
+
+                                attendees.add(attendee)
+                            }
+                        }
+
+                        callback(Result.success(attendees))
+
+                    } catch (e: Exception) {
+                        callback(Result.failure(
+                            FlutterError(
+                                code = "GENERIC_ERROR",
+                                message = "An error occurred",
+                                details = e.message
+                            )
+                        ))
+                    }
+                }
+
+            } else {
+                callback(Result.failure(
+                    FlutterError(
+                        code = "ACCESS_REFUSED",
+                        message = "Calendar access has been refused or has not been given yet",
+                    ))
+                )
+            }
+        }
+    }
+
+    override fun deleteAttendee(eventId: String, email: String, callback: (Result<Unit>) -> Unit) {
+        permissionHandler.requestWritePermission { granted ->
+            if (granted) {
+                CoroutineScope(Dispatchers.IO).launch {
+                    try {
+                        val selection = CalendarContract.Attendees.EVENT_ID + " = ?" + " AND " + CalendarContract.Attendees.ATTENDEE_EMAIL + " = ?"
+                        val selectionArgs = arrayOf(eventId, email)
+
+                        val deleted = contentResolver.delete(attendeesContentUri, selection, selectionArgs)
+                        if (deleted > 0) {
+                            callback(Result.success(Unit))
+                        } else {
+                            callback(Result.failure(
+                                FlutterError(
+                                    code = "NOT_FOUND",
+                                    message = "Failed to delete attendee"
+                                )
+                            ))
+                        }
+                    } catch (e: Exception) {
+                        callback(Result.failure(
+                            FlutterError(
+                                code = "GENERIC_ERROR",
+                                message = "An error occurred",
+                                details = e.message
+                            )
+                        ))
+                    }
+                }
+            } else {
+                callback(Result.failure(
+                    FlutterError(
+                        code = "ACCESS_REFUSED",
+                        message = "Calendar access has been refused or has not been given yet",
+                    ))
+                )
+            }
+        }
+    }
+
     private fun isCalendarWritable(
         calendarId: String,
     ): Boolean {
@@ -702,6 +850,56 @@ class CalendarImplem(
             }
 
             callback(Result.success(reminders))
+
+        } catch (e: Exception) {
+            callback(Result.failure(
+                FlutterError(
+                    code = "GENERIC_ERROR",
+                    message = "An error occurred",
+                    details = e.message
+                )
+            ))
+        }
+    }
+
+    private fun retrieveAttendee(eventId: String, email: String, callback: (Result<Attendee>) -> Unit) {
+        try {
+            val projection = arrayOf(
+                CalendarContract.Attendees.ATTENDEE_NAME,
+                CalendarContract.Attendees.ATTENDEE_RELATIONSHIP,
+                CalendarContract.Attendees.ATTENDEE_STATUS,
+                CalendarContract.Attendees.ATTENDEE_TYPE,
+            )
+            val selection = CalendarContract.Attendees.EVENT_ID + " = ? AND " + CalendarContract.Attendees.ATTENDEE_EMAIL + " = ?"
+            val selectionArgs = arrayOf(eventId, email)
+
+            val cursor = contentResolver.query(attendeesContentUri, projection, selection, selectionArgs, null)
+            cursor?.use {
+                if (it.moveToNext()) {
+                    val name = it.getString(it.getColumnIndexOrThrow(CalendarContract.Attendees.ATTENDEE_NAME))
+                    val relationship = it.getInt(it.getColumnIndexOrThrow(CalendarContract.Attendees.ATTENDEE_RELATIONSHIP))
+                    val type = it.getInt(it.getColumnIndexOrThrow(CalendarContract.Attendees.ATTENDEE_TYPE))
+                    val status = it.getInt(it.getColumnIndexOrThrow(CalendarContract.Attendees.ATTENDEE_STATUS))
+
+                    val attendee = Attendee(
+                        eventId = eventId,
+                        name = name,
+                        email = email,
+                        type = relationship.toLong(),
+                        role = type.toLong(),
+                        status = status.toLong(),
+                    )
+
+                    callback(Result.success(attendee))
+                } else {
+                    callback(Result.failure(
+                        FlutterError(
+                            code = "NOT_FOUND",
+                            message = "Failed to retrieve attendee"
+                        )
+                    ))
+                }
+            }
 
         } catch (e: Exception) {
             callback(Result.failure(
