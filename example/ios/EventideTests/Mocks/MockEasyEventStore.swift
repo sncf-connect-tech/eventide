@@ -161,6 +161,18 @@ class MockEasyEventStore: EasyEventStoreProtocol {
         return mockEvent.toEvent()
     }
     
+    func retrieveAttendees(eventId: String) throws -> [eventide.Attendee] {
+        guard let mockEvent = findEvent(eventId: eventId) else {
+            throw PigeonError(
+                code: "NOT_FOUND",
+                message: "Event not found",
+                details: "The provided event.id is certainly incorrect"
+            )
+        }
+        
+        return mockEvent.attendees.map { $0.toAttendee() }
+    }
+    
     private func findEvent(eventId: String) -> MockEvent? {
         for calendar in calendars {
             for event in calendar.events {
@@ -212,6 +224,7 @@ class MockEvent {
     let description: String?
     let url: String?
     var reminders: [TimeInterval]?
+    let attendees: [MockAttendee]
     
     init(id: String, title: String, startDate: Date, endDate: Date, calendarId: String, isAllDay: Bool, description: String?, url: String?, reminders: [TimeInterval]? = nil) {
         self.id = id
@@ -236,6 +249,30 @@ class MockEvent {
             description: description,
             url: url,
             reminders: reminders?.map({ Int64($0) })
+        )
+    }
+}
+
+class MockAttendee {
+    let eventId: String
+    let name: String
+    let email: String
+    let type: Int64
+    let role: Int64
+    let status: Int64
+    
+    init(eventId: String, name: String, email: String, type: Int64, role: Int64, status: Int64) {
+        self.eventId = eventId
+        self.name = name
+        self.email = email
+        self.type = type
+        self.role = role
+        self.status = status
+    }
+    
+    fileprivate func toAttendee() -> Attendee {
+        return Attendee(
+            
         )
     }
 }

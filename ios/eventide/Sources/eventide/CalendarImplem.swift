@@ -226,4 +226,60 @@ class CalendarImplem: CalendarApi {
             completion(.failure(error))
         }
     }
+    
+    func createAttendee(
+        eventId: String,
+        name: String,
+        email: String,
+        role: Int64,
+        type: Int64,
+        completion: @escaping (Result<Attendee, any Error>) -> Void
+    ) {
+        completion(.failure(
+            PigeonError(
+                code: "INCOMPATIBLE_PLATFORM",
+                message: "Platform does not handle this method",
+                details: "EventKit API does not support attendee addition"
+            )
+        ))
+    }
+    
+    func retrieveAttendees(
+        eventId: String,
+        completion: @escaping (Result<[Attendee], any Error>) -> Void
+    ) {
+        permissionHandler.checkCalendarAccessThenExecute { [self] in
+            do {
+                let attendees = try easyEventStore.retrieveAttendees(eventId: eventId)
+                completion(.success(attendees))
+                
+            } catch {
+                completion(.failure(error))
+            }
+            
+        } onPermissionRefused: {
+            completion(.failure(PigeonError(
+                code: "ACCESS_REFUSED",
+                message: "Calendar access has been refused or has not been given yet",
+                details: nil
+            )))
+        } onPermissionError: { error in
+            completion(.failure(error))
+        }
+
+    }
+    
+    func deleteAttendee(
+        eventId: String,
+        email: String,
+        completion: @escaping (Result<Void, any Error>) -> Void
+    ) {
+        completion(.failure(
+            PigeonError(
+                code: "INCOMPATIBLE_PLATFORM",
+                message: "Platform does not handle this method",
+                details: "EventKit API does not support attendee deletion"
+            )
+        ))
+    }
 }
