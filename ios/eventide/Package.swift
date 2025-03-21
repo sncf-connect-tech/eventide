@@ -9,16 +9,17 @@ let package = Package(
         .iOS("13.0")
     ],
     products: [
-        .library(name: "eventide", targets: ["eventide"])
+        .library(
+            name: "eventide",
+            targets: ["eventide"]
+        )
     ],
-    dependencies: [],
     targets: [
         .target(
             name: "eventide",
-            dependencies: [],
             resources: [
                 .process("PrivacyInfo.xcprivacy"),
             ]
-        )
+        ),
     ]
 )
