@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 54;
+	objectVersion = 60;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -16,9 +16,12 @@
 		97C147011CF9000F007C117D /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FF1CF9000F007C117D /* LaunchScreen.storyboard */; };
 		EA5CD6C52D8C99CB004CFD37 /* EventideTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA5CD6C42D8C99CB004CFD37 /* EventideTests.swift */; };
 		EA5CD6CC2D8C99F2004CFD37 /* UtilsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAECB9432D395CA3000FAA80 /* UtilsTests.swift */; };
-		EA5CD6CD2D8C99F2004CFD37 /* CalendarImplemTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA1485B02D43D49600CBE94D /* CalendarImplemTests.swift */; };
 		EA5CD6CE2D8C9A3B004CFD37 /* MockPermissionHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA5B29A32D3908C3005E7771 /* MockPermissionHandler.swift */; };
 		EA5CD6CF2D8C9A3B004CFD37 /* MockEasyEventStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA3C14952D42D3C80038A047 /* MockEasyEventStore.swift */; };
+		EA8AABCB2D8D884300A1D69B /* ReminderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA8AABCA2D8D884300A1D69B /* ReminderTests.swift */; };
+		EA8AABCD2D8D889600A1D69B /* CalendarTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA8AABCC2D8D889600A1D69B /* CalendarTests.swift */; };
+		EA8AABCF2D8D88D600A1D69B /* PermissionHandlerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA8AABCE2D8D88D600A1D69B /* PermissionHandlerTests.swift */; };
+		EA8AABD12D8D891A00A1D69B /* EventTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA8AABD02D8D891A00A1D69B /* EventTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -58,11 +61,14 @@
 		97C146FD1CF9000F007C117D /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		97C147001CF9000F007C117D /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		97C147021CF9000F007C117D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		EA1485B02D43D49600CBE94D /* CalendarImplemTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarImplemTests.swift; sourceTree = "<group>"; };
 		EA3C14952D42D3C80038A047 /* MockEasyEventStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockEasyEventStore.swift; sourceTree = "<group>"; };
 		EA5B29A32D3908C3005E7771 /* MockPermissionHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockPermissionHandler.swift; sourceTree = "<group>"; };
 		EA5CD6C22D8C99CA004CFD37 /* EventideTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = EventideTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		EA5CD6C42D8C99CB004CFD37 /* EventideTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventideTests.swift; sourceTree = "<group>"; };
+		EA8AABCA2D8D884300A1D69B /* ReminderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReminderTests.swift; sourceTree = "<group>"; };
+		EA8AABCC2D8D889600A1D69B /* CalendarTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarTests.swift; sourceTree = "<group>"; };
+		EA8AABCE2D8D88D600A1D69B /* PermissionHandlerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PermissionHandlerTests.swift; sourceTree = "<group>"; };
+		EA8AABD02D8D891A00A1D69B /* EventTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventTests.swift; sourceTree = "<group>"; };
 		EAECB9432D395CA3000FAA80 /* UtilsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UtilsTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -142,7 +148,10 @@
 			isa = PBXGroup;
 			children = (
 				EA5CD6D02D8C9A4C004CFD37 /* Mocks */,
-				EA1485B02D43D49600CBE94D /* CalendarImplemTests.swift */,
+				EA8AABCA2D8D884300A1D69B /* ReminderTests.swift */,
+				EA8AABCC2D8D889600A1D69B /* CalendarTests.swift */,
+				EA8AABD02D8D891A00A1D69B /* EventTests.swift */,
+				EA8AABCE2D8D88D600A1D69B /* PermissionHandlerTests.swift */,
 				EAECB9432D395CA3000FAA80 /* UtilsTests.swift */,
 				EA5CD6C42D8C99CB004CFD37 /* EventideTests.swift */,
 			);
@@ -314,11 +323,14 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				EA5CD6CD2D8C99F2004CFD37 /* CalendarImplemTests.swift in Sources */,
+				EA8AABCF2D8D88D600A1D69B /* PermissionHandlerTests.swift in Sources */,
 				EA5CD6C52D8C99CB004CFD37 /* EventideTests.swift in Sources */,
 				EA5CD6CC2D8C99F2004CFD37 /* UtilsTests.swift in Sources */,
 				EA5CD6CF2D8C9A3B004CFD37 /* MockEasyEventStore.swift in Sources */,
 				EA5CD6CE2D8C9A3B004CFD37 /* MockPermissionHandler.swift in Sources */,
+				EA8AABCB2D8D884300A1D69B /* ReminderTests.swift in Sources */,
+				EA8AABD12D8D891A00A1D69B /* EventTests.swift in Sources */,
+				EA8AABCD2D8D889600A1D69B /* CalendarTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
