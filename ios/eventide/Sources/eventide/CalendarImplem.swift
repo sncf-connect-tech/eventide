@@ -235,6 +235,8 @@ class CalendarImplem: CalendarApi {
         type: Int64,
         completion: @escaping (Result<Attendee, any Error>) -> Void
     ) {
+        /// EventKit cannot add participants to an event nor change participant information.
+        /// https://developer.apple.com/documentation/eventkit/ekparticipant#overview
         completion(.failure(
             PigeonError(
                 code: "INCOMPATIBLE_PLATFORM",
@@ -274,6 +276,8 @@ class CalendarImplem: CalendarApi {
         email: String,
         completion: @escaping (Result<Void, any Error>) -> Void
     ) {
+        /// EventKit cannot add participants to an event nor change participant information.
+        /// https://developer.apple.com/documentation/eventkit/ekparticipant#overview
         completion(.failure(
             PigeonError(
                 code: "INCOMPATIBLE_PLATFORM",
