@@ -4,8 +4,7 @@ import 'package:pigeon/pigeon.dart';
 @ConfigurePigeon(PigeonOptions(
   dartOut: 'lib/src/calendar_api.g.dart',
   dartOptions: DartOptions(),
-  kotlinOut:
-      'android/src/main/kotlin/sncf/connect/tech/eventide/CalendarApi.g.kt',
+  kotlinOut: 'android/src/main/kotlin/sncf/connect/tech/eventide/CalendarApi.g.kt',
   kotlinOptions: KotlinOptions(package: 'sncf.connect.tech.eventide'),
   swiftOut: 'ios/eventide/Sources/eventide/CalendarApi.g.swift',
   swiftOptions: SwiftOptions(),

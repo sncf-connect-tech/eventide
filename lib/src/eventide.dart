@@ -218,8 +218,8 @@ class Eventide extends EventidePlatform {
     required String eventId,
   }) async {
     try {
-      final updatedEvent = await _calendarApi.createReminder(
-          reminder: durationBeforeEvent.toNativeDuration(), eventId: eventId);
+      final updatedEvent =
+          await _calendarApi.createReminder(reminder: durationBeforeEvent.toNativeDuration(), eventId: eventId);
       return updatedEvent.toETEvent();
     } on PlatformException catch (e) {
       throw e.toETException();
@@ -239,8 +239,8 @@ class Eventide extends EventidePlatform {
     required String eventId,
   }) async {
     try {
-      final updatedEvent = await _calendarApi.deleteReminder(
-          reminder: durationBeforeEvent.toNativeDuration(), eventId: eventId);
+      final updatedEvent =
+          await _calendarApi.deleteReminder(reminder: durationBeforeEvent.toNativeDuration(), eventId: eventId);
       return updatedEvent.toETEvent();
     } on PlatformException catch (e) {
       throw e.toETException();

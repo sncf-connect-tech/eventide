@@ -28,17 +28,14 @@ class CalendarCubit extends Cubit<Value<List<ETCalendar>>> {
 
   Future<void> fetchCalendars({required bool onlyWritable}) async {
     await state.fetchFrom(() async {
-      return await _calendarPlugin.retrieveCalendars(
-          onlyWritableCalendars: onlyWritable);
+      return await _calendarPlugin.retrieveCalendars(onlyWritableCalendars: onlyWritable);
     }).forEach(emit);
   }
 
   Future<void> deleteCalendar(String calendarId) async {
     await state.fetchFrom(() async {
       await _calendarPlugin.deleteCalendar(calendarId: calendarId);
-      return [
-        ...state.data?.where((calendar) => calendar.id != calendarId) ?? []
-      ];
+      return [...state.data?.where((calendar) => calendar.id != calendarId) ?? []];
     }).forEach(emit);
   }
 }

@@ -53,21 +53,16 @@ void main() {
 
   test('createCalendar throws an exception when API fails', () async {
     // Given
-    when(() => mockCalendarApi.createCalendar(
-        title: any(named: 'title'),
-        color: any(named: 'color'),
-        account: null)).thenThrow(ETGenericException(message: 'API Error'));
+    when(() => mockCalendarApi.createCalendar(title: any(named: 'title'), color: any(named: 'color'), account: null))
+        .thenThrow(ETGenericException(message: 'API Error'));
 
     // When
-    Future<ETCalendar> call() =>
-        eventide.createCalendar(title: 'Test Calendar', color: Colors.blue);
+    Future<ETCalendar> call() => eventide.createCalendar(title: 'Test Calendar', color: Colors.blue);
 
     // Then
     expect(call, throwsException);
-    verify(() => mockCalendarApi.createCalendar(
-        title: 'Test Calendar',
-        color: Colors.blue.toValue(),
-        account: null)).called(1);
+    verify(() => mockCalendarApi.createCalendar(title: 'Test Calendar', color: Colors.blue.toValue(), account: null))
+        .called(1);
   });
 
   test('retrieveCalendars returns a list of ETCalendars', () async {
@@ -96,8 +91,7 @@ void main() {
         )).thenAnswer((_) async => [calendars.last]);
 
     // When
-    final result =
-        await eventide.retrieveCalendars(onlyWritableCalendars: true);
+    final result = await eventide.retrieveCalendars(onlyWritableCalendars: true);
 
     // Then
     expect(result, [calendars.last].toETCalendarList());
@@ -115,8 +109,7 @@ void main() {
         )).thenThrow(ETGenericException(message: 'API Error'));
 
     // When
-    Future<List<ETCalendar>> call() =>
-        eventide.retrieveCalendars(onlyWritableCalendars: true);
+    Future<List<ETCalendar>> call() => eventide.retrieveCalendars(onlyWritableCalendars: true);
 
     // Then
     expect(call, throwsException);
@@ -128,8 +121,7 @@ void main() {
 
   test('deleteCalendar calls the API', () async {
     // Given
-    when(() => mockCalendarApi.deleteCalendar(
-        calendarId: any(named: 'calendarId'))).thenAnswer((_) async => {});
+    when(() => mockCalendarApi.deleteCalendar(calendarId: any(named: 'calendarId'))).thenAnswer((_) async => {});
 
     // When
     await eventide.deleteCalendar(calendarId: '1');
@@ -140,8 +132,7 @@ void main() {
 
   test('deleteCalendar throws an exception when API fails', () async {
     // Given
-    when(() => mockCalendarApi.deleteCalendar(
-            calendarId: any(named: 'calendarId')))
+    when(() => mockCalendarApi.deleteCalendar(calendarId: any(named: 'calendarId')))
         .thenThrow(ETGenericException(message: 'API Error'));
 
     // When

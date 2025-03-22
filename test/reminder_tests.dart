@@ -42,9 +42,8 @@ void main() {
         reminders: [10 * 60],
       );
 
-      when(() => mockCalendarApi.createReminder(
-          reminder: any(named: 'reminder'),
-          eventId: any(named: 'eventId'))).thenAnswer((_) async => targetEvent);
+      when(() => mockCalendarApi.createReminder(reminder: any(named: 'reminder'), eventId: any(named: 'eventId')))
+          .thenAnswer((_) async => targetEvent);
 
       // When
       final result = await eventide.createReminder(
@@ -54,15 +53,12 @@ void main() {
 
       // Then
       expect(result, targetEvent.toETEvent());
-      verify(() =>
-              mockCalendarApi.createReminder(reminder: 10 * 60, eventId: '1'))
-          .called(1);
+      verify(() => mockCalendarApi.createReminder(reminder: 10 * 60, eventId: '1')).called(1);
     });
 
     test('createReminder throws an exception when API fails', () async {
       // Given
-      when(() => mockCalendarApi.createReminder(
-              reminder: any(named: 'reminder'), eventId: any(named: 'eventId')))
+      when(() => mockCalendarApi.createReminder(reminder: any(named: 'reminder'), eventId: any(named: 'eventId')))
           .thenThrow(ETGenericException(message: 'API Error'));
 
       // When
@@ -73,9 +69,7 @@ void main() {
 
       // Then
       expect(call, throwsException);
-      verify(() =>
-              mockCalendarApi.createReminder(reminder: 10 * 60, eventId: '1'))
-          .called(1);
+      verify(() => mockCalendarApi.createReminder(reminder: 10 * 60, eventId: '1')).called(1);
     });
 
     test('deleteReminder returns an ETEvent', () async {
@@ -89,9 +83,8 @@ void main() {
         calendarId: '1',
       );
 
-      when(() => mockCalendarApi.deleteReminder(
-          reminder: any(named: 'reminder'),
-          eventId: any(named: 'eventId'))).thenAnswer((_) async => targetEvent);
+      when(() => mockCalendarApi.deleteReminder(reminder: any(named: 'reminder'), eventId: any(named: 'eventId')))
+          .thenAnswer((_) async => targetEvent);
 
       // When
       final result = await eventide.deleteReminder(
@@ -101,15 +94,12 @@ void main() {
 
       // Then
       expect(result, targetEvent.toETEvent());
-      verify(() =>
-              mockCalendarApi.deleteReminder(reminder: 10 * 60, eventId: '1'))
-          .called(1);
+      verify(() => mockCalendarApi.deleteReminder(reminder: 10 * 60, eventId: '1')).called(1);
     });
 
     test('deleteReminder throws an exception when API fails', () async {
       // Given
-      when(() => mockCalendarApi.deleteReminder(
-              reminder: any(named: 'reminder'), eventId: any(named: 'eventId')))
+      when(() => mockCalendarApi.deleteReminder(reminder: any(named: 'reminder'), eventId: any(named: 'eventId')))
           .thenThrow(ETGenericException(message: 'API Error'));
 
       // When
@@ -120,9 +110,7 @@ void main() {
 
       // Then
       expect(call, throwsException);
-      verify(() =>
-              mockCalendarApi.deleteReminder(reminder: 10 * 60, eventId: '1'))
-          .called(1);
+      verify(() => mockCalendarApi.deleteReminder(reminder: 10 * 60, eventId: '1')).called(1);
     });
   });
 
@@ -147,9 +135,8 @@ void main() {
         reminders: [10 * 60],
       );
 
-      when(() => mockCalendarApi.createReminder(
-          reminder: any(named: 'reminder'),
-          eventId: any(named: 'eventId'))).thenAnswer((_) async => targetEvent);
+      when(() => mockCalendarApi.createReminder(reminder: any(named: 'reminder'), eventId: any(named: 'eventId')))
+          .thenAnswer((_) async => targetEvent);
 
       // When
       final result = await eventide.createReminder(
@@ -159,14 +146,12 @@ void main() {
 
       // Then
       expect(result, targetEvent.toETEvent());
-      verify(() => mockCalendarApi.createReminder(reminder: 10, eventId: '1'))
-          .called(1);
+      verify(() => mockCalendarApi.createReminder(reminder: 10, eventId: '1')).called(1);
     });
 
     test('createReminder throws an exception when API fails', () async {
       // Given
-      when(() => mockCalendarApi.createReminder(
-              reminder: any(named: 'reminder'), eventId: any(named: 'eventId')))
+      when(() => mockCalendarApi.createReminder(reminder: any(named: 'reminder'), eventId: any(named: 'eventId')))
           .thenThrow(ETGenericException(message: 'API Error'));
 
       // When
@@ -177,8 +162,7 @@ void main() {
 
       // Then
       expect(call, throwsException);
-      verify(() => mockCalendarApi.createReminder(reminder: 10, eventId: '1'))
-          .called(1);
+      verify(() => mockCalendarApi.createReminder(reminder: 10, eventId: '1')).called(1);
     });
 
     test('deleteReminder returns an ETEvent', () async {
@@ -192,9 +176,8 @@ void main() {
         calendarId: '1',
       );
 
-      when(() => mockCalendarApi.deleteReminder(
-          reminder: any(named: 'reminder'),
-          eventId: any(named: 'eventId'))).thenAnswer((_) async => targetEvent);
+      when(() => mockCalendarApi.deleteReminder(reminder: any(named: 'reminder'), eventId: any(named: 'eventId')))
+          .thenAnswer((_) async => targetEvent);
 
       // When
       final result = await eventide.deleteReminder(
@@ -204,14 +187,12 @@ void main() {
 
       // Then
       expect(result, targetEvent.toETEvent());
-      verify(() => mockCalendarApi.deleteReminder(reminder: 10, eventId: '1'))
-          .called(1);
+      verify(() => mockCalendarApi.deleteReminder(reminder: 10, eventId: '1')).called(1);
     });
 
     test('deleteReminder throws an exception when API fails', () async {
       // Given
-      when(() => mockCalendarApi.deleteReminder(
-              reminder: any(named: 'reminder'), eventId: any(named: 'eventId')))
+      when(() => mockCalendarApi.deleteReminder(reminder: any(named: 'reminder'), eventId: any(named: 'eventId')))
           .thenThrow(ETGenericException(message: 'API Error'));
 
       // When
@@ -222,8 +203,7 @@ void main() {
 
       // Then
       expect(call, throwsException);
-      verify(() => mockCalendarApi.deleteReminder(reminder: 10, eventId: '1'))
-          .called(1);
+      verify(() => mockCalendarApi.deleteReminder(reminder: 10, eventId: '1')).called(1);
     });
   });
 }

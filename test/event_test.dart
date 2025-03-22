@@ -126,8 +126,7 @@ void main() {
       debugDefaultTargetPlatformOverride = null;
     });
 
-    test('createEvent with reminders returns an ECEvent with reminders',
-        () async {
+    test('createEvent with reminders returns an ECEvent with reminders', () async {
       // Given
       const reminders = [Duration(minutes: 10), Duration(minutes: 20)];
       when(() => mockCalendarApi.createEvent(
@@ -139,10 +138,8 @@ void main() {
             description: any(named: 'description'),
             url: any(named: 'url'),
           )).thenAnswer((_) async => event);
-      when(() => mockCalendarApi.createReminder(
-              reminder: any(named: 'reminder'), eventId: any(named: 'eventId')))
-          .thenAnswer(
-              (_) async => event.copyWithReminders(reminders.toNativeList()));
+      when(() => mockCalendarApi.createReminder(reminder: any(named: 'reminder'), eventId: any(named: 'eventId')))
+          .thenAnswer((_) async => event.copyWithReminders(reminders.toNativeList()));
 
       // When
       final result = await eventide.createEvent(
@@ -164,10 +161,8 @@ void main() {
             description: any(named: 'description'),
             url: any(named: 'url'),
           )).called(1);
-      verify(() => mockCalendarApi.createReminder(
-          reminder: 10 * 60, eventId: event.id)).called(1);
-      verify(() => mockCalendarApi.createReminder(
-          reminder: 20 * 60, eventId: event.id)).called(1);
+      verify(() => mockCalendarApi.createReminder(reminder: 10 * 60, eventId: event.id)).called(1);
+      verify(() => mockCalendarApi.createReminder(reminder: 20 * 60, eventId: event.id)).called(1);
     });
   });
 
@@ -180,8 +175,7 @@ void main() {
       debugDefaultTargetPlatformOverride = null;
     });
 
-    test('createEvent with reminders returns an ECEvent with reminders',
-        () async {
+    test('createEvent with reminders returns an ECEvent with reminders', () async {
       // Given
       const reminders = [Duration(minutes: 10), Duration(minutes: 20)];
       when(() => mockCalendarApi.createEvent(
@@ -193,10 +187,8 @@ void main() {
             description: any(named: 'description'),
             url: any(named: 'url'),
           )).thenAnswer((_) async => event);
-      when(() => mockCalendarApi.createReminder(
-              reminder: any(named: 'reminder'), eventId: any(named: 'eventId')))
-          .thenAnswer(
-              (_) async => event.copyWithReminders(reminders.toNativeList()));
+      when(() => mockCalendarApi.createReminder(reminder: any(named: 'reminder'), eventId: any(named: 'eventId')))
+          .thenAnswer((_) async => event.copyWithReminders(reminders.toNativeList()));
 
       // When
       final result = await eventide.createEvent(
@@ -218,12 +210,8 @@ void main() {
             description: any(named: 'description'),
             url: any(named: 'url'),
           )).called(1);
-      verify(() =>
-              mockCalendarApi.createReminder(reminder: 10, eventId: event.id))
-          .called(1);
-      verify(() =>
-              mockCalendarApi.createReminder(reminder: 20, eventId: event.id))
-          .called(1);
+      verify(() => mockCalendarApi.createReminder(reminder: 10, eventId: event.id)).called(1);
+      verify(() => mockCalendarApi.createReminder(reminder: 20, eventId: event.id)).called(1);
     });
   });
 
@@ -231,11 +219,9 @@ void main() {
     // Given
     const reminders = [Duration(minutes: 10), Duration(minutes: 20)];
     when(() => mockCalendarApi.retrieveEvents(
-            calendarId: any(named: 'calendarId'),
-            startDate: any(named: 'startDate'),
-            endDate: any(named: 'endDate')))
-        .thenAnswer(
-            (_) async => [event.copyWithReminders(reminders.toNativeList())]);
+        calendarId: any(named: 'calendarId'),
+        startDate: any(named: 'startDate'),
+        endDate: any(named: 'endDate'))).thenAnswer((_) async => [event.copyWithReminders(reminders.toNativeList())]);
 
     // When
     final result = await eventide.retrieveEvents(calendarId: '1');
@@ -243,17 +229,12 @@ void main() {
     // Then
     expect(result.first.reminders, equals(reminders));
     verify(() => mockCalendarApi.retrieveEvents(
-        calendarId: '1',
-        startDate: any(named: 'startDate'),
-        endDate: any(named: 'endDate'))).called(1);
+        calendarId: '1', startDate: any(named: 'startDate'), endDate: any(named: 'endDate'))).called(1);
   });
 
-  test('create Event timezone management test: Paris - Montréal flight',
-      () async {
-    final parisDeparture =
-        TZDateTime(getLocation('Europe/Paris'), 2025, 9, 8, 13, 30);
-    final montrealArrival =
-        TZDateTime(getLocation('America/Montreal'), 2025, 9, 8, 15, 00);
+  test('create Event timezone management test: Paris - Montréal flight', () async {
+    final parisDeparture = TZDateTime(getLocation('Europe/Paris'), 2025, 9, 8, 13, 30);
+    final montrealArrival = TZDateTime(getLocation('America/Montreal'), 2025, 9, 8, 15, 00);
     final utcParisDeparture = parisDeparture.toUtc();
     final utcMontrealArrival = montrealArrival.toUtc();
 
