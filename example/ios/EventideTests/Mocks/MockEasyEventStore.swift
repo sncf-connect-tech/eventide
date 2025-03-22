@@ -249,7 +249,8 @@ class MockEvent {
             calendarId: calendarId,
             description: description,
             url: url,
-            reminders: reminders?.map({ Int64($0) })
+            reminders: reminders?.map({ Int64($0) }),
+            attendees: attendees?.map { $0.toAttendee() }
         )
     }
 }

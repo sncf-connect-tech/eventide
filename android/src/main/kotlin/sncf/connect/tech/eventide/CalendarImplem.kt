@@ -7,7 +7,11 @@ import android.provider.CalendarContract
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.withContext
 import java.util.concurrent.CountDownLatch
+import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
 
 class CalendarImplem(
     private var contentResolver: ContentResolver,
@@ -40,7 +44,10 @@ class CalendarImplem(
                             put(CalendarContract.Calendars.NAME, title)
                             put(CalendarContract.Calendars.CALENDAR_DISPLAY_NAME, title)
                             put(CalendarContract.Calendars.CALENDAR_COLOR, color)
-                            put(CalendarContract.Calendars.CALENDAR_ACCESS_LEVEL, CalendarContract.Calendars.CAL_ACCESS_OWNER)
+                            put(
+                                CalendarContract.Calendars.CALENDAR_ACCESS_LEVEL,
+                                CalendarContract.Calendars.CAL_ACCESS_OWNER
+                            )
                             put(CalendarContract.Calendars.OWNER_ACCOUNT, resolvedAccount.name)
                             put(CalendarContract.CALLER_IS_SYNCADAPTER, "true")
                             put(CalendarContract.Calendars.VISIBLE, 1)
@@ -60,37 +67,45 @@ class CalendarImplem(
                                 )
                                 callback(Result.success(calendar))
                             } else {
-                                callback(Result.failure(
-                                    FlutterError(
-                                        code = "NOT_FOUND",
-                                        message = "Failed to retrieve calendar ID. It might not have been created"
+                                callback(
+                                    Result.failure(
+                                        FlutterError(
+                                            code = "NOT_FOUND",
+                                            message = "Failed to retrieve calendar ID. It might not have been created"
+                                        )
                                     )
-                                ))
+                                )
                             }
                         } else {
-                            callback(Result.failure(
+                            callback(
+                                Result.failure(
+                                    FlutterError(
+                                        code = "GENERIC_ERROR",
+                                        message = "Failed to create calendar"
+                                    )
+                                )
+                            )
+                        }
+                    } catch (e: Exception) {
+                        callback(
+                            Result.failure(
                                 FlutterError(
                                     code = "GENERIC_ERROR",
-                                    message = "Failed to create calendar"
+                                    message = "An error occurred",
+                                    details = e.message
                                 )
-                            ))
-                        }
-                    } catch (e: Exception) { 
-                        callback(Result.failure(
-                            FlutterError(
-                                code = "GENERIC_ERROR",
-                                message = "An error occurred",
-                                details = e.message
                             )
-                        ))
+                        )
                     }
                 }
             } else {
-                callback(Result.failure(
-                    FlutterError(
-                        code = "ACCESS_REFUSED",
-                        message = "Calendar access has been refused or has not been given yet",
-                    ))
+                callback(
+                    Result.failure(
+                        FlutterError(
+                            code = "ACCESS_REFUSED",
+                            message = "Calendar access has been refused or has not been given yet",
+                        )
+                    )
                 )
             }
         }
@@ -118,21 +133,28 @@ class CalendarImplem(
                         var selectionArgs: Array<String>? = null
 
                         from?.let { account ->
-                            selection = CalendarContract.Calendars.ACCOUNT_NAME + " = ? AND " + CalendarContract.Calendars.ACCOUNT_TYPE + " = ?"
+                            selection =
+                                CalendarContract.Calendars.ACCOUNT_NAME + " = ? AND " + CalendarContract.Calendars.ACCOUNT_TYPE + " = ?"
                             selectionArgs = arrayOf(account.name, account.type)
                         }
 
-                        val cursor = contentResolver.query(calendarContentUri, projection, selection, selectionArgs, null)
+                        val cursor =
+                            contentResolver.query(calendarContentUri, projection, selection, selectionArgs, null)
                         val calendars = mutableListOf<Calendar>()
 
                         cursor?.use {
                             while (it.moveToNext()) {
-                                val id = it.getLong(it.getColumnIndexOrThrow(CalendarContract.Calendars._ID)).toString()
-                                val displayName = it.getString(it.getColumnIndexOrThrow(CalendarContract.Calendars.CALENDAR_DISPLAY_NAME))
-                                val color = it.getLong(it.getColumnIndexOrThrow(CalendarContract.Calendars.CALENDAR_COLOR))
-                                val accessLevel = it.getInt(it.getColumnIndexOrThrow(CalendarContract.Calendars.CALENDAR_ACCESS_LEVEL))
-                                val accountName = it.getString(it.getColumnIndexOrThrow(CalendarContract.Calendars.ACCOUNT_NAME))
-                                val accountType = it.getString(it.getColumnIndexOrThrow(CalendarContract.Calendars.ACCOUNT_TYPE))
+                                val id = it.getString(it.getColumnIndexOrThrow(CalendarContract.Calendars._ID))
+                                val displayName =
+                                    it.getString(it.getColumnIndexOrThrow(CalendarContract.Calendars.CALENDAR_DISPLAY_NAME))
+                                val color =
+                                    it.getLong(it.getColumnIndexOrThrow(CalendarContract.Calendars.CALENDAR_COLOR))
+                                val accessLevel =
+                                    it.getInt(it.getColumnIndexOrThrow(CalendarContract.Calendars.CALENDAR_ACCESS_LEVEL))
+                                val accountName =
+                                    it.getString(it.getColumnIndexOrThrow(CalendarContract.Calendars.ACCOUNT_NAME))
+                                val accountType =
+                                    it.getString(it.getColumnIndexOrThrow(CalendarContract.Calendars.ACCOUNT_TYPE))
 
                                 val isWritable = accessLevel >= CalendarContract.Calendars.CAL_ACCESS_CONTRIBUTOR
                                 if (!onlyWritableCalendars || isWritable) {
@@ -154,22 +176,26 @@ class CalendarImplem(
 
                         callback(Result.success(calendars))
                     } catch (e: Exception) {
-                        callback(Result.failure(
-                            FlutterError(
-                                code = "GENERIC_ERROR",
-                                message = "An error occurred",
-                                details = e.message
+                        callback(
+                            Result.failure(
+                                FlutterError(
+                                    code = "GENERIC_ERROR",
+                                    message = "An error occurred",
+                                    details = e.message
+                                )
                             )
-                        ))
+                        )
                     }
                 }
 
             } else {
-                callback(Result.failure(
-                    FlutterError(
-                        code = "ACCESS_REFUSED",
-                        message = "Calendar access has been refused or has not been given yet",
-                    ))
+                callback(
+                    Result.failure(
+                        FlutterError(
+                            code = "ACCESS_REFUSED",
+                            message = "Calendar access has been refused or has not been given yet",
+                        )
+                    )
                 )
             }
         }
@@ -212,21 +238,25 @@ class CalendarImplem(
                         callback(Result.failure(e))
 
                     } catch (e: Exception) {
-                        callback(Result.failure(
-                            FlutterError(
-                                code = "GENERIC_ERROR",
-                                message = "An error occurred",
-                                details = e.message
+                        callback(
+                            Result.failure(
+                                FlutterError(
+                                    code = "GENERIC_ERROR",
+                                    message = "An error occurred",
+                                    details = e.message
+                                )
                             )
-                        ))
+                        )
                     }
                 }
             } else {
-                callback(Result.failure(
-                    FlutterError(
-                        code = "ACCESS_REFUSED",
-                        message = "Calendar access has been refused or has not been given yet",
-                    ))
+                callback(
+                    Result.failure(
+                        FlutterError(
+                            code = "ACCESS_REFUSED",
+                            message = "Calendar access has been refused or has not been given yet",
+                        )
+                    )
                 )
             }
         }
@@ -282,12 +312,14 @@ class CalendarImplem(
                                     )
                                 }
                             } else {
-                                callback(Result.failure(
-                                    FlutterError(
-                                        code = "GENERIC_ERROR",
-                                        message = "Failed to create event"
+                                callback(
+                                    Result.failure(
+                                        FlutterError(
+                                            code = "GENERIC_ERROR",
+                                            message = "Failed to create event"
+                                        )
                                     )
-                                ))
+                                )
                             }
                         } else {
                             callback(
@@ -304,21 +336,25 @@ class CalendarImplem(
                         callback(Result.failure(e))
 
                     } catch (e: Exception) {
-                        callback(Result.failure(
-                            FlutterError(
-                                code = "GENERIC_ERROR",
-                                message = "An error occurred",
-                                details = e.message
+                        callback(
+                            Result.failure(
+                                FlutterError(
+                                    code = "GENERIC_ERROR",
+                                    message = "An error occurred",
+                                    details = e.message
+                                )
                             )
-                        ))
+                        )
                     }
                 }
             } else {
-                callback(Result.failure(
-                    FlutterError(
-                        code = "ACCESS_REFUSED",
-                        message = "Calendar access has been refused or has not been given yet",
-                    ))
+                callback(
+                    Result.failure(
+                        FlutterError(
+                            code = "ACCESS_REFUSED",
+                            message = "Calendar access has been refused or has not been given yet",
+                        )
+                    )
                 )
             }
         }
@@ -343,79 +379,89 @@ class CalendarImplem(
                             CalendarContract.Events.EVENT_TIMEZONE,
                             CalendarContract.Events.ALL_DAY,
                         )
-                        val selection = CalendarContract.Events.CALENDAR_ID + " = ? AND " + CalendarContract.Events.DTSTART + " >= ? AND " + CalendarContract.Events.DTEND + " <= ?"
+                        val selection =
+                            CalendarContract.Events.CALENDAR_ID + " = ? AND " + CalendarContract.Events.DTSTART + " >= ? AND " + CalendarContract.Events.DTEND + " <= ?"
                         val selectionArgs = arrayOf(calendarId, startDate.toString(), endDate.toString())
 
                         val cursor = contentResolver.query(eventContentUri, projection, selection, selectionArgs, null)
-                        val tmp = mutableListOf<Event>()
-
-                        cursor?.use {
-                            while (it.moveToNext()) {
-                                val id = it.getLong(it.getColumnIndexOrThrow(CalendarContract.Events._ID)).toString()
-                                val title = it.getString(it.getColumnIndexOrThrow(CalendarContract.Events.TITLE))
-                                val description = it.getString(it.getColumnIndexOrThrow(CalendarContract.Events.DESCRIPTION))
-                                val start = it.getLong(it.getColumnIndexOrThrow(CalendarContract.Events.DTSTART))
-                                val end = it.getLong(it.getColumnIndexOrThrow(CalendarContract.Events.DTEND))
-                                val isAllDay = it.getInt(it.getColumnIndexOrThrow(CalendarContract.Events.ALL_DAY)) == 1
-
-                                tmp.add(Event(
-                                    id = id,
-                                    title = title,
-                                    startDate = start,
-                                    endDate = end,
-                                    calendarId = calendarId,
-                                    description = description,
-                                    isAllDay = isAllDay
-                                ))
-                            }
-                        }
-
                         val events = mutableListOf<Event>()
 
-                        val latch = CountDownLatch(tmp.size)
-                        for (event in tmp) {
-                            retrieveReminders(event.id) { result ->
-                                result.onSuccess { reminders ->
-                                    events.add(
-                                        Event(
-                                            id = event.id,
-                                            title = event.title,
-                                            startDate = event.startDate,
-                                            endDate = event.endDate,
-                                            calendarId = event.calendarId,
-                                            description = event.description,
-                                            reminders = reminders,
-                                            isAllDay = event.isAllDay
-                                        )
+                        cursor?.use { c ->
+                            while (c.moveToNext()) {
+                                val id = c.getString(c.getColumnIndexOrThrow(CalendarContract.Events._ID))
+                                val title = c.getString(c.getColumnIndexOrThrow(CalendarContract.Events.TITLE))
+                                val description =
+                                    c.getString(c.getColumnIndexOrThrow(CalendarContract.Events.DESCRIPTION))
+                                val start = c.getLong(c.getColumnIndexOrThrow(CalendarContract.Events.DTSTART))
+                                val end = c.getLong(c.getColumnIndexOrThrow(CalendarContract.Events.DTEND))
+                                val isAllDay = c.getInt(c.getColumnIndexOrThrow(CalendarContract.Events.ALL_DAY)) == 1
+
+                                val attendees = mutableListOf<Attendee>()
+                                val attendeesLatch = CountDownLatch(1)
+                                retrieveAttendees(id) { result ->
+                                    result.onSuccess {
+                                        attendees.addAll(it)
+                                        attendeesLatch.countDown()
+                                    }
+                                    result.onFailure { error ->
+                                        callback(Result.failure(error))
+                                    }
+                                }
+
+                                val reminders = mutableListOf<Long>()
+                                val remindersLatch = CountDownLatch(1)
+                                retrieveReminders(id) { result ->
+                                    result.onSuccess {
+                                        reminders.addAll(it)
+                                        remindersLatch.countDown()
+                                    }
+                                    result.onFailure { error ->
+                                        callback(Result.failure(error))
+                                    }
+                                }
+
+                                attendeesLatch.await()
+                                remindersLatch.await()
+
+                                events.add(
+                                    Event(
+                                        id = id,
+                                        title = title,
+                                        startDate = start,
+                                        endDate = end,
+                                        calendarId = calendarId,
+                                        description = description,
+                                        isAllDay = isAllDay,
+                                        reminders = reminders,
+                                        attendees = attendees
                                     )
-                                }
-                                result.onFailure { error ->
-                                    callback(Result.failure(error))
-                                }
-                                latch.countDown()
+                                )
                             }
                         }
-                        latch.await()
 
                         callback(Result.success(events))
 
                     } catch (e: Exception) {
-                        callback(Result.failure(
-                            FlutterError(
-                                code = "GENERIC_ERROR",
-                                message = "An error occurred",
-                                details = e.message
+                        callback(
+                            Result.failure(
+                                FlutterError(
+                                    code = "GENERIC_ERROR",
+                                    message = "An error occurred",
+                                    details = e.message
+                                )
                             )
-                        ))
+                        )
                     }
                 }
 
             } else {
-                callback(Result.failure(
-                    FlutterError(
-                        code = "ACCESS_REFUSED",
-                        message = "Calendar access has been refused or has not been given yet",
-                    ))
+                callback(
+                    Result.failure(
+                        FlutterError(
+                            code = "ACCESS_REFUSED",
+                            message = "Calendar access has been refused or has not been given yet",
+                        )
+                    )
                 )
             }
         }
@@ -459,21 +505,25 @@ class CalendarImplem(
                         callback(Result.failure(e))
 
                     } catch (e: Exception) {
-                        callback(Result.failure(
-                            FlutterError(
-                                code = "GENERIC_ERROR",
-                                message = "An error occurred",
-                                details = e.message
+                        callback(
+                            Result.failure(
+                                FlutterError(
+                                    code = "GENERIC_ERROR",
+                                    message = "An error occurred",
+                                    details = e.message
+                                )
                             )
-                        ))
+                        )
                     }
                 }
             } else {
-                callback(Result.failure(
-                    FlutterError(
-                        code = "ACCESS_REFUSED",
-                        message = "Calendar access has been refused or has not been given yet",
-                    ))
+                callback(
+                    Result.failure(
+                        FlutterError(
+                            code = "ACCESS_REFUSED",
+                            message = "Calendar access has been refused or has not been given yet",
+                        )
+                    )
                 )
             }
         }
@@ -494,22 +544,26 @@ class CalendarImplem(
                         retrieveEvent(eventId, callback)
 
                     } catch (e: Exception) {
-                        callback(Result.failure(
-                            FlutterError(
-                                code = "GENERIC_ERROR",
-                                message = "An error occurred",
-                                details = e.message
+                        callback(
+                            Result.failure(
+                                FlutterError(
+                                    code = "GENERIC_ERROR",
+                                    message = "An error occurred",
+                                    details = e.message
+                                )
                             )
-                        ))
+                        )
                     }
                 }
             } else {
-                callback(Result.failure(
-                    FlutterError(
-                        code = "ACCESS_REFUSED",
-                        message = "Calendar access has been refused or has not been given yet",
+                callback(
+                    Result.failure(
+                        FlutterError(
+                            code = "ACCESS_REFUSED",
+                            message = "Calendar access has been refused or has not been given yet",
+                        )
                     )
-                ))
+                )
             }
         }
     }
@@ -519,37 +573,44 @@ class CalendarImplem(
             if (granted) {
                 CoroutineScope(Dispatchers.IO).launch {
                     try {
-                        val selection = CalendarContract.Reminders.EVENT_ID + " = ?" + " AND " + CalendarContract.Reminders.MINUTES + " = ?"
+                        val selection =
+                            CalendarContract.Reminders.EVENT_ID + " = ?" + " AND " + CalendarContract.Reminders.MINUTES + " = ?"
                         val selectionArgs = arrayOf(eventId, reminder.toString())
 
                         val deleted = contentResolver.delete(remindersContentUri, selection, selectionArgs)
                         if (deleted > 0) {
                             retrieveEvent(eventId, callback)
                         } else {
-                            callback(Result.failure(
-                                FlutterError(
-                                    code = "NOT_FOUND",
-                                    message = "Failed to delete reminder"
+                            callback(
+                                Result.failure(
+                                    FlutterError(
+                                        code = "NOT_FOUND",
+                                        message = "Failed to delete reminder"
+                                    )
                                 )
-                            ))
+                            )
                         }
                     } catch (e: Exception) {
-                        callback(Result.failure(
-                            FlutterError(
-                                code = "GENERIC_ERROR",
-                                message = "An error occurred",
-                                details = e.message
+                        callback(
+                            Result.failure(
+                                FlutterError(
+                                    code = "GENERIC_ERROR",
+                                    message = "An error occurred",
+                                    details = e.message
+                                )
                             )
-                        ))
+                        )
                     }
                 }
             } else {
-                callback(Result.failure(
-                    FlutterError(
-                        code = "ACCESS_REFUSED",
-                        message = "Calendar access has been refused or has not been given yet",
+                callback(
+                    Result.failure(
+                        FlutterError(
+                            code = "ACCESS_REFUSED",
+                            message = "Calendar access has been refused or has not been given yet",
+                        )
                     )
-                ))
+                )
             }
         }
     }
@@ -578,22 +639,26 @@ class CalendarImplem(
                         retrieveAttendee(eventId, email, callback)
 
                     } catch (e: Exception) {
-                        callback(Result.failure(
-                            FlutterError(
-                                code = "GENERIC_ERROR",
-                                message = "An error occurred",
-                                details = e.message
+                        callback(
+                            Result.failure(
+                                FlutterError(
+                                    code = "GENERIC_ERROR",
+                                    message = "An error occurred",
+                                    details = e.message
+                                )
                             )
-                        ))
+                        )
                     }
                 }
             } else {
-                callback(Result.failure(
-                    FlutterError(
-                        code = "ACCESS_REFUSED",
-                        message = "Calendar access has been refused or has not been given yet",
+                callback(
+                    Result.failure(
+                        FlutterError(
+                            code = "ACCESS_REFUSED",
+                            message = "Calendar access has been refused or has not been given yet",
+                        )
                     )
-                ))
+                )
             }
         }
     }
@@ -613,16 +678,21 @@ class CalendarImplem(
                         val selection = CalendarContract.Attendees.EVENT_ID + " = ?"
                         val selectionArgs = arrayOf(eventId)
 
-                        val cursor = contentResolver.query(attendeesContentUri, projection, selection, selectionArgs, null)
+                        val cursor =
+                            contentResolver.query(attendeesContentUri, projection, selection, selectionArgs, null)
                         val attendees = mutableListOf<Attendee>()
 
                         cursor?.use {
                             while (it.moveToNext()) {
-                                val name = it.getString(it.getColumnIndexOrThrow(CalendarContract.Attendees.ATTENDEE_NAME))
-                                val email = it.getString(it.getColumnIndexOrThrow(CalendarContract.Attendees.ATTENDEE_EMAIL))
-                                val relationship = it.getInt(it.getColumnIndexOrThrow(CalendarContract.Attendees.ATTENDEE_RELATIONSHIP))
+                                val name =
+                                    it.getString(it.getColumnIndexOrThrow(CalendarContract.Attendees.ATTENDEE_NAME))
+                                val email =
+                                    it.getString(it.getColumnIndexOrThrow(CalendarContract.Attendees.ATTENDEE_EMAIL))
+                                val relationship =
+                                    it.getInt(it.getColumnIndexOrThrow(CalendarContract.Attendees.ATTENDEE_RELATIONSHIP))
                                 val type = it.getInt(it.getColumnIndexOrThrow(CalendarContract.Attendees.ATTENDEE_TYPE))
-                                val status = it.getInt(it.getColumnIndexOrThrow(CalendarContract.Attendees.ATTENDEE_STATUS))
+                                val status =
+                                    it.getInt(it.getColumnIndexOrThrow(CalendarContract.Attendees.ATTENDEE_STATUS))
 
                                 val attendee = Attendee(
                                     eventId = eventId,
@@ -640,22 +710,26 @@ class CalendarImplem(
                         callback(Result.success(attendees))
 
                     } catch (e: Exception) {
-                        callback(Result.failure(
-                            FlutterError(
-                                code = "GENERIC_ERROR",
-                                message = "An error occurred",
-                                details = e.message
+                        callback(
+                            Result.failure(
+                                FlutterError(
+                                    code = "GENERIC_ERROR",
+                                    message = "An error occurred",
+                                    details = e.message
+                                )
                             )
-                        ))
+                        )
                     }
                 }
 
             } else {
-                callback(Result.failure(
-                    FlutterError(
-                        code = "ACCESS_REFUSED",
-                        message = "Calendar access has been refused or has not been given yet",
-                    ))
+                callback(
+                    Result.failure(
+                        FlutterError(
+                            code = "ACCESS_REFUSED",
+                            message = "Calendar access has been refused or has not been given yet",
+                        )
+                    )
                 )
             }
         }
@@ -666,36 +740,43 @@ class CalendarImplem(
             if (granted) {
                 CoroutineScope(Dispatchers.IO).launch {
                     try {
-                        val selection = CalendarContract.Attendees.EVENT_ID + " = ?" + " AND " + CalendarContract.Attendees.ATTENDEE_EMAIL + " = ?"
+                        val selection =
+                            CalendarContract.Attendees.EVENT_ID + " = ?" + " AND " + CalendarContract.Attendees.ATTENDEE_EMAIL + " = ?"
                         val selectionArgs = arrayOf(eventId, email)
 
                         val deleted = contentResolver.delete(attendeesContentUri, selection, selectionArgs)
                         if (deleted > 0) {
                             callback(Result.success(Unit))
                         } else {
-                            callback(Result.failure(
-                                FlutterError(
-                                    code = "NOT_FOUND",
-                                    message = "Failed to delete attendee"
+                            callback(
+                                Result.failure(
+                                    FlutterError(
+                                        code = "NOT_FOUND",
+                                        message = "Failed to delete attendee"
+                                    )
                                 )
-                            ))
+                            )
                         }
                     } catch (e: Exception) {
-                        callback(Result.failure(
-                            FlutterError(
-                                code = "GENERIC_ERROR",
-                                message = "An error occurred",
-                                details = e.message
+                        callback(
+                            Result.failure(
+                                FlutterError(
+                                    code = "GENERIC_ERROR",
+                                    message = "An error occurred",
+                                    details = e.message
+                                )
                             )
-                        ))
+                        )
                     }
                 }
             } else {
-                callback(Result.failure(
-                    FlutterError(
-                        code = "ACCESS_REFUSED",
-                        message = "Calendar access has been refused or has not been given yet",
-                    ))
+                callback(
+                    Result.failure(
+                        FlutterError(
+                            code = "ACCESS_REFUSED",
+                            message = "Calendar access has been refused or has not been given yet",
+                        )
+                    )
                 )
             }
         }
@@ -741,7 +822,7 @@ class CalendarImplem(
         val cursor = contentResolver.query(eventContentUri, projection, selection, selectionArgs, null)
         cursor?.use {
             if (it.moveToNext()) {
-                return it.getLong(it.getColumnIndexOrThrow(CalendarContract.Events.CALENDAR_ID)).toString()
+                return it.getString(it.getColumnIndexOrThrow(CalendarContract.Events.CALENDAR_ID))
             } else {
                 throw FlutterError(
                     code = "NOT_FOUND",
@@ -776,29 +857,55 @@ class CalendarImplem(
 
             val cursor = contentResolver.query(eventContentUri, projection, selection, selectionArgs, null)
             var event: Event? = null
-            val latch = CountDownLatch(1)
 
-            cursor?.use {
+            cursor?.use { it ->
                 if (it.moveToNext()) {
-                    retrieveReminders(eventId) { result ->
-                        result.onSuccess { reminders ->
-                            event = Event(
-                                id = it.getLong(it.getColumnIndexOrThrow(CalendarContract.Events._ID)).toString(),
-                                title = it.getString(it.getColumnIndexOrThrow(CalendarContract.Events.TITLE)),
-                                description = it.getString(it.getColumnIndexOrThrow(CalendarContract.Events.DESCRIPTION)),
-                                startDate = it.getLong(it.getColumnIndexOrThrow(CalendarContract.Events.DTSTART)),
-                                endDate = it.getLong(it.getColumnIndexOrThrow(CalendarContract.Events.DTEND)),
-                                calendarId = it.getLong(it.getColumnIndexOrThrow(CalendarContract.Events.CALENDAR_ID))
-                                    .toString(),
-                                reminders = reminders,
-                                isAllDay = it.getInt(it.getColumnIndexOrThrow(CalendarContract.Events.ALL_DAY)) == 1
-                            )
+                    val id = it.getString(it.getColumnIndexOrThrow(CalendarContract.Events._ID))
+                    val title = it.getString(it.getColumnIndexOrThrow(CalendarContract.Events.TITLE))
+                    val description = it.getString(it.getColumnIndexOrThrow(CalendarContract.Events.DESCRIPTION))
+                    val isAllDay = it.getInt(it.getColumnIndexOrThrow(CalendarContract.Events.ALL_DAY)) == 1
+                    val startDate = it.getLong(it.getColumnIndexOrThrow(CalendarContract.Events.DTSTART))
+                    val endDate = it.getLong(it.getColumnIndexOrThrow(CalendarContract.Events.DTEND))
+                    val calendarId = it.getString(it.getColumnIndexOrThrow(CalendarContract.Events.CALENDAR_ID))
+
+                    val attendees = mutableListOf<Attendee>()
+                    val attendeesLatch = CountDownLatch(1)
+                    retrieveAttendees(id) { result ->
+                        result.onSuccess {
+                            attendees.addAll(it)
+                            attendeesLatch.countDown()
                         }
                         result.onFailure { error ->
                             callback(Result.failure(error))
                         }
                     }
-                    latch.countDown()
+
+                    val reminders = mutableListOf<Long>()
+                    val remindersLatch = CountDownLatch(1)
+                    retrieveReminders(id) { result ->
+                        result.onSuccess {
+                            reminders.addAll(it)
+                            remindersLatch.countDown()
+                        }
+                        result.onFailure { error ->
+                            throw error
+                        }
+                    }
+
+                    attendeesLatch.await()
+                    remindersLatch.await()
+
+                    event = Event(
+                        id = id,
+                        title = title,
+                        startDate = startDate,
+                        endDate = endDate,
+                        calendarId = calendarId,
+                        description = description,
+                        isAllDay = isAllDay,
+                        reminders = reminders,
+                        attendees = attendees
+                    )
                 }
             }
 
@@ -812,7 +919,6 @@ class CalendarImplem(
                     )
                 )
             } else {
-                latch.await()
                 callback(Result.success(event!!))
             }
 

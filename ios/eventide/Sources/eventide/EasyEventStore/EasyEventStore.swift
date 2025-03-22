@@ -321,7 +321,17 @@ fileprivate extension EKEvent {
             calendarId: calendar.calendarIdentifier,
             description: notes,
             url: url?.absoluteString,
-            reminders: alarms?.map { Int64($0.relativeOffset) }
+            reminders: alarms?.map { Int64($0.relativeOffset) },
+            attendees: attendees?.map {
+                Attendee(
+                    eventId: eventIdentifier,
+                    name: $0.name ?? "",
+                    email: "",
+                    type: Int64($0.participantType.rawValue),
+                    role: Int64($0.participantRole.rawValue),
+                    status: Int64($0.participantStatus.rawValue)
+                )
+            }
         )
     }
 }

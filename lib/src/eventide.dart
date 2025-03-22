@@ -175,7 +175,7 @@ class Eventide extends EventidePlatform {
     DateTime? endDate,
   }) async {
     try {
-      final start = startDate ?? DateTime.now();
+      final start = startDate ?? DateTime.now().add(const Duration(days: -7));
       final end = endDate ?? DateTime.now().add(const Duration(days: 7));
       final events = await _calendarApi.retrieveEvents(
         calendarId: calendarId,
