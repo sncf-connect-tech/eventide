@@ -21,11 +21,8 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
-        BlocProvider(
-            create: (_) => CalendarCubit(calendarPlugin: _calendarPlugin)
-              ..fetchCalendars(onlyWritable: true)),
-        BlocProvider(
-            create: (_) => EventCubit(calendarPlugin: _calendarPlugin)),
+        BlocProvider(create: (_) => CalendarCubit(calendarPlugin: _calendarPlugin)..fetchCalendars(onlyWritable: true)),
+        BlocProvider(create: (_) => EventCubit(calendarPlugin: _calendarPlugin)),
       ],
       child: const MaterialApp(
         home: Scaffold(

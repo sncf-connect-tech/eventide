@@ -89,10 +89,8 @@ class _EventFormState extends State<EventForm> {
                   );
 
                   if (pickedDate != null) {
-                    final timeOfDay =
-                        TimeOfDay.fromDateTime(_selectedStartDate);
-                    final duration = Duration(
-                        hours: timeOfDay.hour, minutes: timeOfDay.minute);
+                    final timeOfDay = TimeOfDay.fromDateTime(_selectedStartDate);
+                    final duration = Duration(hours: timeOfDay.hour, minutes: timeOfDay.minute);
 
                     setState(() {
                       _selectedStartDate = pickedDate.add(duration);
@@ -114,8 +112,7 @@ class _EventFormState extends State<EventForm> {
 
                     if (timeOfDay != null) {
                       setState(() {
-                        _selectedStartDate =
-                            (_selectedStartDate).copyWith(time: timeOfDay);
+                        _selectedStartDate = (_selectedStartDate).copyWith(time: timeOfDay);
                       });
                     }
                   },
@@ -142,8 +139,7 @@ class _EventFormState extends State<EventForm> {
 
                   if (pickedDate != null) {
                     final timeOfDay = TimeOfDay.fromDateTime(_selectedEndDate);
-                    final duration = Duration(
-                        hours: timeOfDay.hour, minutes: timeOfDay.minute);
+                    final duration = Duration(hours: timeOfDay.hour, minutes: timeOfDay.minute);
 
                     setState(() {
                       _selectedEndDate = pickedDate.add(duration);
@@ -165,8 +161,7 @@ class _EventFormState extends State<EventForm> {
 
                     if (timeOfDay != null) {
                       setState(() {
-                        _selectedEndDate =
-                            (_selectedEndDate).copyWith(time: timeOfDay);
+                        _selectedEndDate = (_selectedEndDate).copyWith(time: timeOfDay);
                       });
                     }
                   },

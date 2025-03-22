@@ -128,17 +128,7 @@ final class ETEvent extends Equatable {
   final List<Duration>? reminders;
 
   @override
-  List<Object?> get props => [
-        id,
-        title,
-        isAllDay,
-        startDate,
-        endDate,
-        calendarId,
-        description,
-        url,
-        reminders
-      ];
+  List<Object?> get props => [id, title, isAllDay, startDate, endDate, calendarId, description, url, reminders];
 
   const ETEvent({
     required this.id,

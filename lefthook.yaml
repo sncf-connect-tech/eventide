@@ -2,7 +2,7 @@ pre-commit:
   parallel: false
   commands:
     linter:
-      run: dart analyze {staged_files} --fatal-infos
+      run: dart analyze . --fatal-infos
     sort-imports:
       glob: "*.dart"
       run: dart run import_sorter:main {staged_files} --no-comments && git add {staged_files}

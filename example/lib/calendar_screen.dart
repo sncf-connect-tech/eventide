@@ -12,8 +12,7 @@ class CalendarScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<CalendarCubit, Value<List<ETCalendar>>>(
-        builder: (_, state) {
+    return BlocBuilder<CalendarCubit, Value<List<ETCalendar>>>(builder: (_, state) {
       return SafeArea(
         child: Stack(
           children: [
@@ -30,8 +29,7 @@ class CalendarScreen extends StatelessWidget {
                         builder: (context) => AlertDialog(
                           title: const Text('Create calendar'),
                           content: Padding(
-                            padding:
-                                const EdgeInsets.symmetric(horizontal: 16.0),
+                            padding: const EdgeInsets.symmetric(horizontal: 16.0),
                             child: CalendarForm(
                               onSubmit: (title, color) async {
                                 await BlocProvider.of<CalendarCubit>(context)
@@ -52,26 +50,20 @@ class CalendarScreen extends StatelessWidget {
                         .map((calendar) => SizedBox(
                               height: 50,
                               child: Padding(
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 16),
+                                padding: const EdgeInsets.symmetric(horizontal: 16),
                                 child: InkWell(
                                   onTap: () async {
                                     try {
-                                      await BlocProvider.of<EventCubit>(context)
-                                          .selectCalendar(calendar);
+                                      await BlocProvider.of<EventCubit>(context).selectCalendar(calendar);
                                       if (context.mounted) {
                                         Navigator.of(context).push(
-                                          MaterialPageRoute(
-                                              builder: (context) =>
-                                                  const CalendarDetails()),
+                                          MaterialPageRoute(builder: (context) => const CalendarDetails()),
                                         );
                                       }
                                     } catch (error) {
                                       if (context.mounted) {
                                         ScaffoldMessenger.of(context)
-                                            .showSnackBar(SnackBar(
-                                                content: Text(
-                                                    'Error: ${error.toString()}')));
+                                            .showSnackBar(SnackBar(content: Text('Error: ${error.toString()}')));
                                       }
                                     }
                                   },
@@ -95,9 +87,7 @@ class CalendarScreen extends StatelessWidget {
                                         IconButton(
                                           icon: const Icon(Icons.delete),
                                           onPressed: () {
-                                            BlocProvider.of<CalendarCubit>(
-                                                    context)
-                                                .deleteCalendar(calendar.id);
+                                            BlocProvider.of<CalendarCubit>(context).deleteCalendar(calendar.id);
                                           },
                                         ),
                                       const SizedBox(width: 16),
@@ -134,14 +124,12 @@ class CalendarScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   ElevatedButton(
-                    onPressed: () => BlocProvider.of<CalendarCubit>(context)
-                        .fetchCalendars(onlyWritable: true),
+                    onPressed: () => BlocProvider.of<CalendarCubit>(context).fetchCalendars(onlyWritable: true),
                     child: const Text('Writable calendars'),
                   ),
                   const SizedBox(height: 8),
                   ElevatedButton(
-                    onPressed: () => BlocProvider.of<CalendarCubit>(context)
-                        .fetchCalendars(onlyWritable: false),
+                    onPressed: () => BlocProvider.of<CalendarCubit>(context).fetchCalendars(onlyWritable: false),
                     child: const Text('All calendars'),
                   ),
                 ],
