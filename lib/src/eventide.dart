@@ -281,8 +281,7 @@ class Eventide extends EventidePlatform {
   Future<void> removeAttendee(ETAttendee etAttendee) async {
     try {
       final attendee = etAttendee.toAttendee();
-      await _calendarApi.deleteAttendee(
-          eventId: attendee.eventId, email: attendee.email);
+      await _calendarApi.deleteAttendee(eventId: attendee.eventId, email: attendee.email);
     } on PlatformException catch (e) {
       throw e.toETException();
     }

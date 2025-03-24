@@ -26,13 +26,11 @@ class EventDetails extends StatelessWidget {
         children: [
           ListTile(
             title: Text(event.title),
-            subtitle:
-                event.description != null ? Text(event.description!) : null,
+            subtitle: event.description != null ? Text(event.description!) : null,
           ),
           ListTile(
             title: const Text('Duration'),
-            subtitle: Text(
-                "${event.startDate.toString()} -> ${event.endDate.toString()}"),
+            subtitle: Text("${event.startDate.toString()} -> ${event.endDate.toString()}"),
           ),
           if (event.url != null)
             ListTile(
@@ -46,16 +44,14 @@ class EventDetails extends StatelessWidget {
                   IconButton(
                     icon: const Icon(Icons.add),
                     onPressed: () {
-                      BlocProvider.of<EventCubit>(context).createReminder(
-                          Duration(seconds: Random().nextInt(172800)),
-                          event.id);
+                      BlocProvider.of<EventCubit>(context)
+                          .createReminder(Duration(seconds: Random().nextInt(172800)), event.id);
                     },
                   ),
                 ]
               ],
             ),
-            for (final reminder in event.reminders ?? [])
-              Text('${reminder.inMinutes} minutes before'),
+            for (final reminder in event.reminders ?? []) Text('${reminder.inMinutes} minutes before'),
           ],
           if (event.attendees != null && event.attendees!.isNotEmpty) ...[
             const Text('Attendees'),

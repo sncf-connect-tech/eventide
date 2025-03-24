@@ -67,9 +67,7 @@ class CalendarDetails extends StatelessWidget {
                             MaterialPageRoute(
                                 builder: (context) => EventDetails(
                                       event: event,
-                                      isCalendarWritable:
-                                          state.data?.calendar.isWritable ??
-                                              false,
+                                      isCalendarWritable: state.data?.calendar.isWritable ?? false,
                                     )),
                           ),
                           child: Row(
@@ -80,8 +78,7 @@ class CalendarDetails extends StatelessWidget {
                                   children: [
                                     Text(
                                       event.title,
-                                      style: const TextStyle(
-                                          fontWeight: FontWeight.w700),
+                                      style: const TextStyle(fontWeight: FontWeight.w700),
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                     ),

@@ -96,18 +96,10 @@ extension AttendeeToET on Attendee {
   */
   ETAttendanceStatus parseETAttendanceStatus() {
     return switch ((defaultTargetPlatform, status)) {
-      (TargetPlatform.iOS, 1) ||
-      (TargetPlatform.android, 3) =>
-        ETAttendanceStatus.pending,
-      (TargetPlatform.iOS, 2) ||
-      (TargetPlatform.android, 1) =>
-        ETAttendanceStatus.accepted,
-      (TargetPlatform.iOS, 3) ||
-      (TargetPlatform.android, 2) =>
-        ETAttendanceStatus.declined,
-      (TargetPlatform.iOS, 4) ||
-      (TargetPlatform.android, 4) =>
-        ETAttendanceStatus.tentative,
+      (TargetPlatform.iOS, 1) || (TargetPlatform.android, 3) => ETAttendanceStatus.pending,
+      (TargetPlatform.iOS, 2) || (TargetPlatform.android, 1) => ETAttendanceStatus.accepted,
+      (TargetPlatform.iOS, 3) || (TargetPlatform.android, 2) => ETAttendanceStatus.declined,
+      (TargetPlatform.iOS, 4) || (TargetPlatform.android, 4) => ETAttendanceStatus.tentative,
       _ => ETAttendanceStatus.unknown,
     };
   }
