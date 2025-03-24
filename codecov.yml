@@ -23,10 +23,12 @@ coverage:
         threshold: 1%
 
 fixes:
-  - "Users/runner/work/eventide/eventide/::"
+  - "Users/runner/work/eventide/eventide/example/ios/EventideTests::ios/"
 
 ignore:
   - "**/*.g.*"
   - "example/"
   - "**/EasyEventStore.swift"
   - "**/PermissionHandler.swift"
+  - "**/AppDelegate.swift"
+  - "**/GeneratedPluginRegistrant.m"

@@ -37,13 +37,10 @@ class CalendarDetails extends StatelessWidget {
                             return AlertDialog(
                               title: const Text('Create event'),
                               content: Padding(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 16.0),
+                                padding: const EdgeInsets.symmetric(horizontal: 16.0),
                                 child: EventForm(
-                                  onSubmit: (title, description, isAllDay,
-                                      startDate, endDate) {
-                                    BlocProvider.of<EventCubit>(context)
-                                        .createEvent(
+                                  onSubmit: (title, description, isAllDay, startDate, endDate) {
+                                    BlocProvider.of<EventCubit>(context).createEvent(
                                       title: title,
                                       description: description,
                                       isAllDay: isAllDay,
@@ -63,8 +60,7 @@ class CalendarDetails extends StatelessWidget {
               if (state case Value(:final data?) when data.events.isNotEmpty)
                 SliverList(
                   delegate: SliverChildListDelegate([
-                    for (final event
-                        in data.events..sort((a, b) => a.id.compareTo(b.id)))
+                    for (final event in data.events..sort((a, b) => a.id.compareTo(b.id)))
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 16),
                         child: Column(
@@ -73,13 +69,11 @@ class CalendarDetails extends StatelessWidget {
                               children: [
                                 Expanded(
                                   child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
+                                    crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
                                       Text(
                                         event.title,
-                                        style: const TextStyle(
-                                            fontWeight: FontWeight.w700),
+                                        style: const TextStyle(fontWeight: FontWeight.w700),
                                         maxLines: 1,
                                         overflow: TextOverflow.ellipsis,
                                       ),
@@ -105,19 +99,14 @@ class CalendarDetails extends StatelessWidget {
                                     icon: const Icon(Icons.add),
                                     onPressed: () {
                                       BlocProvider.of<EventCubit>(context)
-                                          .createReminder(
-                                              Duration(
-                                                  seconds:
-                                                      Random().nextInt(172800)),
-                                              event.id);
+                                          .createReminder(Duration(seconds: Random().nextInt(172800)), event.id);
                                     },
                                   ),
                                 if (state.data?.calendar.isWritable ?? false)
                                   IconButton(
                                     icon: const Icon(Icons.delete),
                                     onPressed: () {
-                                      BlocProvider.of<EventCubit>(context)
-                                          .deleteEvent(event.id);
+                                      BlocProvider.of<EventCubit>(context).deleteEvent(event.id);
                                     },
                                   ),
                               ],
@@ -126,8 +115,7 @@ class CalendarDetails extends StatelessWidget {
                               ...event.reminders!.map((duration) => _Reminder(
                                     duration: duration,
                                     onDelete: () {
-                                      BlocProvider.of<EventCubit>(context)
-                                          .deleteReminder(duration, event.id);
+                                      BlocProvider.of<EventCubit>(context).deleteReminder(duration, event.id);
                                     },
                                   )),
                           ],
