@@ -24,4 +24,6 @@ protocol EasyEventStoreProtocol {
     func createReminder(timeInterval: TimeInterval, eventId: String) throws -> Event
     
     func deleteReminder(timeInterval: TimeInterval, eventId: String) throws -> Event
+    
+    func retrieveAttendees(eventId: String) throws -> [Attendee]
 }

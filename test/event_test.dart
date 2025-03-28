@@ -7,7 +7,8 @@ import 'package:timezone/timezone.dart';
 
 import 'package:eventide/eventide.dart';
 import 'package:eventide/src/calendar_api.g.dart';
-import 'package:eventide/src/eventide_extensions.dart';
+import 'package:eventide/src/extensions/duration_extensions.dart';
+import 'package:eventide/src/extensions/event_extensions.dart';
 
 class _MockCalendarApi extends Mock implements CalendarApi {}
 
@@ -35,6 +36,7 @@ void main() {
     description: null,
     url: null,
     reminders: [],
+    attendees: [],
   );
 
   setUpAll(() {
@@ -50,6 +52,8 @@ void main() {
       startDate: startDate.millisecondsSinceEpoch,
       endDate: endDate.add(const Duration(hours: 1)).millisecondsSinceEpoch,
       calendarId: '1',
+      reminders: [],
+      attendees: [],
     );
 
     when(() => mockCalendarApi.createEvent(
@@ -245,6 +249,8 @@ void main() {
       startDate: utcParisDeparture.millisecondsSinceEpoch,
       endDate: utcMontrealArrival.millisecondsSinceEpoch,
       calendarId: '1',
+      reminders: [],
+      attendees: [],
     );
 
     when(() => mockCalendarApi.createEvent(
@@ -274,6 +280,71 @@ void main() {
           url: null,
         )).called(1);
   });
+
+  group('EventToETEvent tests', () {
+    test('Event toETEvent', () {
+      final event = Event(
+        id: '1',
+        title: 'Test Event',
+        isAllDay: false,
+        startDate: DateTime(2023, 10, 1).millisecondsSinceEpoch,
+        endDate: DateTime(2023, 10, 2).millisecondsSinceEpoch,
+        calendarId: '1',
+        description: 'Test Description',
+        url: 'http://test.com',
+        reminders: [10, 20],
+        attendees: [],
+      );
+      final etEvent = event.toETEvent();
+      expect(etEvent.id, '1');
+      expect(etEvent.title, 'Test Event');
+      expect(etEvent.isAllDay, false);
+      expect(etEvent.startDate, DateTime(2023, 10, 1));
+      expect(etEvent.endDate, DateTime(2023, 10, 2));
+      expect(etEvent.calendarId, '1');
+      expect(etEvent.description, 'Test Description');
+      expect(etEvent.url, 'http://test.com');
+      expect(etEvent.reminders, [Duration(minutes: 10), Duration(minutes: 20)]);
+    });
+
+    test('List<Event> toETEventList', () {
+      final events = [
+        Event(
+          id: '1',
+          title: 'Test Event',
+          isAllDay: false,
+          startDate: DateTime(2023, 10, 1).millisecondsSinceEpoch,
+          endDate: DateTime(2023, 10, 2).millisecondsSinceEpoch,
+          calendarId: '1',
+          description: 'Test Description',
+          url: 'http://test.com',
+          reminders: [10, 20],
+          attendees: [],
+        ),
+      ];
+      final etEvents = events.toETEventList();
+      expect(etEvents.length, 1);
+      expect(etEvents.first.id, '1');
+    });
+  });
+
+  group('ETEventCopy tests', () {
+    test('ETEvent copyWithReminders', () {
+      final etEvent = ETEvent(
+        id: '1',
+        title: 'Test Event',
+        isAllDay: false,
+        startDate: DateTime(2023, 10, 1),
+        endDate: DateTime(2023, 10, 2),
+        calendarId: '1',
+        description: 'Test Description',
+        url: 'http://test.com',
+        reminders: [Duration(minutes: 10)],
+      );
+      final copiedEvent = etEvent.copyWithReminders([Duration(minutes: 20)]);
+      expect(copiedEvent.reminders, [Duration(minutes: 20)]);
+    });
+  });
 }
 
 extension on Event {
@@ -288,6 +359,7 @@ extension on Event {
       description: description,
       url: url,
       reminders: reminders,
+      attendees: [],
     );
   }
 }

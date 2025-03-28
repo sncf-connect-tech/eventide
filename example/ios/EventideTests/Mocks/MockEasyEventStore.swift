@@ -63,7 +63,7 @@ class MockEasyEventStore: EasyEventStoreProtocol {
         calendars.remove(at: index)
     }
     
-    func createEvent(calendarId: String, title: String, startDate: Date, endDate: Date, isAllDay: Bool, description: String?, url: String?) throws -> eventide.Event {
+    func createEvent(calendarId: String, title: String, startDate: Date, endDate: Date, isAllDay: Bool, description: String?, url: String?) throws -> Event {
         guard let mockCalendar = calendars.first(where: { $0.id == calendarId }) else {
             throw PigeonError(
                 code: "NOT_FOUND",
@@ -88,7 +88,7 @@ class MockEasyEventStore: EasyEventStoreProtocol {
         return mockEvent.toEvent()
     }
     
-    func retrieveEvents(calendarId: String, startDate: Date, endDate: Date) throws -> [eventide.Event] {
+    func retrieveEvents(calendarId: String, startDate: Date, endDate: Date) throws -> [Event] {
         guard let mockCalendar = calendars.first(where: { $0.id == calendarId }) else {
             throw PigeonError(
                 code: "NOT_FOUND",
@@ -122,7 +122,7 @@ class MockEasyEventStore: EasyEventStoreProtocol {
         calendars[index].events.removeAll { $0.id == eventId }
     }
     
-    func createReminder(timeInterval: TimeInterval, eventId: String) throws -> eventide.Event {
+    func createReminder(timeInterval: TimeInterval, eventId: String) throws -> Event {
         guard let mockEvent = findEvent(eventId: eventId) else {
             throw PigeonError(
                 code: "NOT_FOUND",
@@ -140,7 +140,7 @@ class MockEasyEventStore: EasyEventStoreProtocol {
         return mockEvent.toEvent()
     }
     
-    func deleteReminder(timeInterval: TimeInterval, eventId: String) throws -> eventide.Event {
+    func deleteReminder(timeInterval: TimeInterval, eventId: String) throws -> Event {
         guard let mockEvent = findEvent(eventId: eventId) else {
             throw PigeonError(
                 code: "NOT_FOUND",
@@ -159,6 +159,18 @@ class MockEasyEventStore: EasyEventStoreProtocol {
         
         mockEvent.reminders?.remove(at: index)
         return mockEvent.toEvent()
+    }
+    
+    func retrieveAttendees(eventId: String) throws -> [Attendee] {
+        guard let mockEvent = findEvent(eventId: eventId) else {
+            throw PigeonError(
+                code: "NOT_FOUND",
+                message: "Event not found",
+                details: "The provided event.id is certainly incorrect"
+            )
+        }
+        
+        return mockEvent.attendees?.map { $0.toAttendee() } ?? []
     }
     
     private func findEvent(eventId: String) -> MockEvent? {
@@ -212,8 +224,9 @@ class MockEvent {
     let description: String?
     let url: String?
     var reminders: [TimeInterval]?
+    let attendees: [MockAttendee]?
     
-    init(id: String, title: String, startDate: Date, endDate: Date, calendarId: String, isAllDay: Bool, description: String?, url: String?, reminders: [TimeInterval]? = nil) {
+    init(id: String, title: String, startDate: Date, endDate: Date, calendarId: String, isAllDay: Bool, description: String?, url: String?, reminders: [TimeInterval]? = nil, attendees: [MockAttendee]? = nil) {
         self.id = id
         self.title = title
         self.startDate = startDate
@@ -223,6 +236,7 @@ class MockEvent {
         self.description = description
         self.url = url
         self.reminders = reminders?.map({ $0 })
+        self.attendees = attendees
     }
     
     fileprivate func toEvent() -> Event {
@@ -235,7 +249,37 @@ class MockEvent {
             calendarId: calendarId,
             description: description,
             url: url,
-            reminders: reminders?.map({ Int64($0) })
+            reminders: reminders?.map({ Int64($0) }),
+            attendees: attendees?.map { $0.toAttendee() }
+        )
+    }
+}
+
+class MockAttendee {
+    let eventId: String
+    let name: String
+    let email: String
+    let type: Int64
+    let role: Int64
+    let status: Int64
+    
+    init(eventId: String, name: String, email: String, type: Int64, role: Int64, status: Int64) {
+        self.eventId = eventId
+        self.name = name
+        self.email = email
+        self.type = type
+        self.role = role
+        self.status = status
+    }
+    
+    fileprivate func toAttendee() -> Attendee {
+        return Attendee(
+            eventId: eventId,
+            name: name,
+            email: email,
+            type: type,
+            role: role,
+            status: status
         )
     }
 }

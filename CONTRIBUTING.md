@@ -20,5 +20,5 @@ This project uses [pigeon](https://pub.dev/packages/pigeon) to make communicatio
 Run the following command from project root to build boilerplate code with pigeon:
 
 ```bash
-fvm dart pub run pigeon --input ./pigeons/calendar_api.dart
+dart pub run pigeon --input ./pigeons/calendar_api.dart
 ```
