@@ -73,7 +73,7 @@ abstract class CalendarApi {
   });
 
   @async
-  Attendee createAttendee({
+  Event createAttendee({
     required String eventId,
     required String name,
     required String email,
@@ -87,7 +87,7 @@ abstract class CalendarApi {
   });
 
   @async
-  void deleteAttendee({
+  Event deleteAttendee({
     required String eventId,
     required String email,
   });
@@ -141,15 +141,15 @@ final class Calendar {
 /// [reminders] is a list of minutes before the event to remind the user.
 final class Event {
   final String id;
+  final String calendarId;
   final String title;
   final bool isAllDay;
   final int startDate;
   final int endDate;
-  final String calendarId;
+  final List<int> reminders;
+  final List<Attendee> attendees;
   final String? description;
   final String? url;
-  final List<int>? reminders;
-  final List<Attendee>? attendees;
 
   const Event({
     required this.id,
@@ -158,10 +158,10 @@ final class Event {
     required this.startDate,
     required this.endDate,
     required this.calendarId,
-    required this.description,
-    required this.url,
     required this.reminders,
     required this.attendees,
+    required this.description,
+    required this.url,
   });
 }
 
@@ -176,7 +176,6 @@ final class Account {
 }
 
 final class Attendee {
-  final String eventId;
   final String name;
   final String email;
   final int type;
@@ -184,7 +183,6 @@ final class Attendee {
   final int status;
 
   const Attendee({
-    required this.eventId,
     required this.name,
     required this.email,
     required this.role,

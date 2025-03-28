@@ -25,23 +25,9 @@ extension ETAttendanceStatusToNative on ETAttendanceStatus {
       };
 }
 
-extension ETAttendeeToAttendee on ETAttendee {
-  Attendee toAttendee() {
-    return Attendee(
-      eventId: eventId,
-      name: name,
-      email: email,
-      type: type.nativeType,
-      role: type.nativeRole,
-      status: status.nativeStatus,
-    );
-  }
-}
-
 extension AttendeeToET on Attendee {
   ETAttendee toETAttendee() {
     return ETAttendee(
-      eventId: eventId,
       name: name,
       email: email,
       type: parseETAttendeeType(),
@@ -102,5 +88,11 @@ extension AttendeeToET on Attendee {
       (TargetPlatform.iOS, 4) || (TargetPlatform.android, 4) => ETAttendanceStatus.tentative,
       _ => ETAttendanceStatus.unknown,
     };
+  }
+}
+
+extension AttendeeListToETAttendees on List<Attendee> {
+  List<ETAttendee> toETAttendeeList() {
+    return map((e) => e.toETAttendee()).toList();
   }
 }

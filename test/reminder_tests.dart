@@ -40,6 +40,7 @@ void main() {
         endDate: endDate.millisecondsSinceEpoch,
         calendarId: '1',
         reminders: [10 * 60],
+        attendees: [],
       );
 
       when(() => mockCalendarApi.createReminder(reminder: any(named: 'reminder'), eventId: any(named: 'eventId')))
@@ -81,6 +82,8 @@ void main() {
         startDate: startDate.millisecondsSinceEpoch,
         endDate: endDate.millisecondsSinceEpoch,
         calendarId: '1',
+        reminders: [],
+        attendees: [],
       );
 
       when(() => mockCalendarApi.deleteReminder(reminder: any(named: 'reminder'), eventId: any(named: 'eventId')))
@@ -133,6 +136,7 @@ void main() {
         endDate: endDate.millisecondsSinceEpoch,
         calendarId: '1',
         reminders: [10 * 60],
+        attendees: [],
       );
 
       when(() => mockCalendarApi.createReminder(reminder: any(named: 'reminder'), eventId: any(named: 'eventId')))
@@ -174,6 +178,8 @@ void main() {
         startDate: startDate.millisecondsSinceEpoch,
         endDate: endDate.millisecondsSinceEpoch,
         calendarId: '1',
+        reminders: [],
+        attendees: [],
       );
 
       when(() => mockCalendarApi.deleteReminder(reminder: any(named: 'reminder'), eventId: any(named: 'eventId')))

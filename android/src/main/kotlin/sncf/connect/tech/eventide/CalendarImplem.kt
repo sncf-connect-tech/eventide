@@ -298,7 +298,9 @@ class CalendarImplem(
                                         endDate = endDate,
                                         calendarId = calendarId,
                                         description = description,
-                                        isAllDay = isAllDay
+                                        isAllDay = isAllDay,
+                                        reminders = emptyList(),
+                                        attendees = emptyList(),
                                     )
                                     callback(Result.success(event))
                                 } else {
@@ -621,7 +623,7 @@ class CalendarImplem(
         email: String,
         role: Long,
         type: Long,
-        callback: (Result<Attendee>) -> Unit
+        callback: (Result<Event>) -> Unit
     ) {
         permissionHandler.requestWritePermission { granted ->
             if (granted) {
@@ -636,7 +638,7 @@ class CalendarImplem(
                         }
                         contentResolver.insert(attendeesContentUri, values)
 
-                        retrieveAttendee(eventId, email, callback)
+                        retrieveEvent(eventId, callback)
 
                     } catch (e: Exception) {
                         callback(
@@ -695,7 +697,6 @@ class CalendarImplem(
                                     it.getInt(it.getColumnIndexOrThrow(CalendarContract.Attendees.ATTENDEE_STATUS))
 
                                 val attendee = Attendee(
-                                    eventId = eventId,
                                     name = name,
                                     email = email,
                                     type = relationship.toLong(),
@@ -735,7 +736,11 @@ class CalendarImplem(
         }
     }
 
-    override fun deleteAttendee(eventId: String, email: String, callback: (Result<Unit>) -> Unit) {
+    override fun deleteAttendee(
+        eventId: String,
+        email: String,
+        callback: (Result<Event>) -> Unit
+    ) {
         permissionHandler.requestWritePermission { granted ->
             if (granted) {
                 CoroutineScope(Dispatchers.IO).launch {
@@ -746,7 +751,7 @@ class CalendarImplem(
 
                         val deleted = contentResolver.delete(attendeesContentUri, selection, selectionArgs)
                         if (deleted > 0) {
-                            callback(Result.success(Unit))
+                            retrieveEvent(eventId, callback)
                         } else {
                             callback(
                                 Result.failure(
@@ -888,7 +893,7 @@ class CalendarImplem(
                             remindersLatch.countDown()
                         }
                         result.onFailure { error ->
-                            throw error
+                            callback(Result.failure(error))
                         }
                     }
 
@@ -988,7 +993,6 @@ class CalendarImplem(
                     val status = it.getInt(it.getColumnIndexOrThrow(CalendarContract.Attendees.ATTENDEE_STATUS))
 
                     val attendee = Attendee(
-                        eventId = eventId,
                         name = name,
                         email = email,
                         type = relationship.toLong(),

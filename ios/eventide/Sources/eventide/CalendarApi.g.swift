@@ -135,55 +135,55 @@ struct Calendar {
 /// Generated class from Pigeon that represents data sent in messages.
 struct Event {
   var id: String
+  var calendarId: String
   var title: String
   var isAllDay: Bool
   var startDate: Int64
   var endDate: Int64
-  var calendarId: String
+  var reminders: [Int64]
+  var attendees: [Attendee]
   var description: String? = nil
   var url: String? = nil
-  var reminders: [Int64]? = nil
-  var attendees: [Attendee]? = nil
 
 
   // swift-format-ignore: AlwaysUseLowerCamelCase
   static func fromList(_ pigeonVar_list: [Any?]) -> Event? {
     let id = pigeonVar_list[0] as! String
-    let title = pigeonVar_list[1] as! String
-    let isAllDay = pigeonVar_list[2] as! Bool
-    let startDate = pigeonVar_list[3] as! Int64
-    let endDate = pigeonVar_list[4] as! Int64
-    let calendarId = pigeonVar_list[5] as! String
-    let description: String? = nilOrValue(pigeonVar_list[6])
-    let url: String? = nilOrValue(pigeonVar_list[7])
-    let reminders: [Int64]? = nilOrValue(pigeonVar_list[8])
-    let attendees: [Attendee]? = nilOrValue(pigeonVar_list[9])
+    let calendarId = pigeonVar_list[1] as! String
+    let title = pigeonVar_list[2] as! String
+    let isAllDay = pigeonVar_list[3] as! Bool
+    let startDate = pigeonVar_list[4] as! Int64
+    let endDate = pigeonVar_list[5] as! Int64
+    let reminders = pigeonVar_list[6] as! [Int64]
+    let attendees = pigeonVar_list[7] as! [Attendee]
+    let description: String? = nilOrValue(pigeonVar_list[8])
+    let url: String? = nilOrValue(pigeonVar_list[9])
 
     return Event(
       id: id,
+      calendarId: calendarId,
       title: title,
       isAllDay: isAllDay,
       startDate: startDate,
       endDate: endDate,
-      calendarId: calendarId,
-      description: description,
-      url: url,
       reminders: reminders,
-      attendees: attendees
+      attendees: attendees,
+      description: description,
+      url: url
     )
   }
   func toList() -> [Any?] {
     return [
       id,
+      calendarId,
       title,
       isAllDay,
       startDate,
       endDate,
-      calendarId,
-      description,
-      url,
       reminders,
       attendees,
+      description,
+      url,
     ]
   }
 }
@@ -214,7 +214,6 @@ struct Account {
 
 /// Generated class from Pigeon that represents data sent in messages.
 struct Attendee {
-  var eventId: String
   var name: String
   var email: String
   var type: Int64
@@ -224,15 +223,13 @@ struct Attendee {
 
   // swift-format-ignore: AlwaysUseLowerCamelCase
   static func fromList(_ pigeonVar_list: [Any?]) -> Attendee? {
-    let eventId = pigeonVar_list[0] as! String
-    let name = pigeonVar_list[1] as! String
-    let email = pigeonVar_list[2] as! String
-    let type = pigeonVar_list[3] as! Int64
-    let role = pigeonVar_list[4] as! Int64
-    let status = pigeonVar_list[5] as! Int64
+    let name = pigeonVar_list[0] as! String
+    let email = pigeonVar_list[1] as! String
+    let type = pigeonVar_list[2] as! Int64
+    let role = pigeonVar_list[3] as! Int64
+    let status = pigeonVar_list[4] as! Int64
 
     return Attendee(
-      eventId: eventId,
       name: name,
       email: email,
       type: type,
@@ -242,7 +239,6 @@ struct Attendee {
   }
   func toList() -> [Any?] {
     return [
-      eventId,
       name,
       email,
       type,
@@ -315,9 +311,9 @@ protocol CalendarApi {
   func deleteEvent(withId eventId: String, completion: @escaping (Result<Void, Error>) -> Void)
   func createReminder(_ reminder: Int64, forEventId eventId: String, completion: @escaping (Result<Event, Error>) -> Void)
   func deleteReminder(_ reminder: Int64, withEventId eventId: String, completion: @escaping (Result<Event, Error>) -> Void)
-  func createAttendee(eventId: String, name: String, email: String, role: Int64, type: Int64, completion: @escaping (Result<Attendee, Error>) -> Void)
+  func createAttendee(eventId: String, name: String, email: String, role: Int64, type: Int64, completion: @escaping (Result<Event, Error>) -> Void)
   func retrieveAttendees(eventId: String, completion: @escaping (Result<[Attendee], Error>) -> Void)
-  func deleteAttendee(eventId: String, email: String, completion: @escaping (Result<Void, Error>) -> Void)
+  func deleteAttendee(eventId: String, email: String, completion: @escaping (Result<Event, Error>) -> Void)
 }
 
 /// Generated setup class from Pigeon to handle messages through the `binaryMessenger`.
@@ -536,8 +532,8 @@ class CalendarApiSetup {
         let emailArg = args[1] as! String
         api.deleteAttendee(eventId: eventIdArg, email: emailArg) { result in
           switch result {
-          case .success:
-            reply(wrapResult(nil))
+          case .success(let res):
+            reply(wrapResult(res))
           case .failure(let error):
             reply(wrapError(error))
           }

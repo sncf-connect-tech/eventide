@@ -1,26 +1,20 @@
-import 'package:eventide_example/event_details.dart';
+import 'package:eventide_example/event_details/ui/event_details.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:eventide_example/forms/event_form.dart';
-import 'package:eventide_example/logic/event_cubit.dart';
-import 'package:eventide_example/logic/event_state.dart';
+import 'package:eventide_example/event_list/ui/event_form.dart';
+import 'package:eventide_example/event_list/logic/event_list_cubit.dart';
+import 'package:eventide_example/event_list/logic/event_list_state.dart';
 import 'package:value_state/value_state.dart';
 
-class CalendarDetails extends StatelessWidget {
-  const CalendarDetails({super.key});
+class EventList extends StatelessWidget {
+  const EventList({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return BlocConsumer<EventCubit, EventState>(listener: (context, state) {
-      if (state case Value(:final error?)) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text(error.toString()),
-        ));
-      }
-    }, builder: (context, state) {
-      return Scaffold(
-        body: SafeArea(
-          child: CustomScrollView(
+    return Scaffold(
+      body: SafeArea(
+        child: BlocBuilder<EventListCubit, EventListState>(builder: (context, state) {
+          return CustomScrollView(
             slivers: [
               SliverAppBar(
                 pinned: true,
@@ -39,7 +33,7 @@ class CalendarDetails extends StatelessWidget {
                                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
                                 child: EventForm(
                                   onSubmit: (title, description, isAllDay, startDate, endDate) {
-                                    BlocProvider.of<EventCubit>(context).createEvent(
+                                    BlocProvider.of<EventListCubit>(context).createEvent(
                                       title: title,
                                       description: description,
                                       isAllDay: isAllDay,
@@ -65,10 +59,11 @@ class CalendarDetails extends StatelessWidget {
                         child: InkWell(
                           onTap: () => Navigator.of(context).push(
                             MaterialPageRoute(
-                                builder: (context) => EventDetails(
-                                      event: event,
-                                      isCalendarWritable: state.data?.calendar.isWritable ?? false,
-                                    )),
+                              builder: (context) => EventDetails(
+                                event: event,
+                                isCalendarWritable: state.data?.calendar.isWritable ?? false,
+                              ),
+                            ),
                           ),
                           child: Row(
                             children: [
@@ -113,10 +108,10 @@ class CalendarDetails extends StatelessWidget {
                   ),
                 ),
             ],
-          ),
-        ),
-      );
-    });
+          );
+        }),
+      ),
+    );
   }
 }
 

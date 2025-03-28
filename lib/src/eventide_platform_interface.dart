@@ -59,23 +59,26 @@ abstract class EventidePlatform extends PlatformInterface {
   });
 
   Future<ETEvent> createReminder({
-    required Duration durationBeforeEvent,
     required String eventId,
+    required Duration durationBeforeEvent,
   });
 
   Future<ETEvent> deleteReminder({
-    required Duration durationBeforeEvent,
     required String eventId,
+    required Duration durationBeforeEvent,
   });
 
-  Future<ETAttendee> addAttendee({
+  Future<ETEvent> createAttendee({
     required String eventId,
     required String name,
     required String email,
     required ETAttendeeType type,
   });
 
-  Future<void> removeAttendee(ETAttendee attendee);
+  Future<ETEvent> deleteAttendee({
+    required String eventId,
+    required ETAttendee attendee,
+  });
 }
 
 /// Represents a calendar.
@@ -132,10 +135,10 @@ final class ETEvent extends Equatable {
   final DateTime startDate;
   final DateTime endDate;
   final String calendarId;
+  final List<Duration> reminders;
+  final List<ETAttendee> attendees;
   final String? description;
   final String? url;
-  final List<Duration>? reminders;
-  final List<ETAttendee>? attendees;
 
   @override
   List<Object?> get props => [
@@ -145,10 +148,10 @@ final class ETEvent extends Equatable {
         startDate,
         endDate,
         calendarId,
-        description,
-        url,
         reminders,
         attendees,
+        description,
+        url,
       ];
 
   const ETEvent({
@@ -158,10 +161,10 @@ final class ETEvent extends Equatable {
     required this.startDate,
     required this.endDate,
     required this.calendarId,
+    this.reminders = const [],
+    this.attendees = const [],
     this.description,
     this.url,
-    this.reminders,
-    this.attendees,
   });
 }
 
@@ -197,14 +200,12 @@ final class ETAccount extends Equatable {
 ///
 /// [status] is the status of the attendee.
 final class ETAttendee {
-  final String eventId;
   final String name;
   final String email;
   final ETAttendeeType type;
   final ETAttendanceStatus status;
 
   const ETAttendee({
-    required this.eventId,
     required this.name,
     required this.email,
     required this.type,

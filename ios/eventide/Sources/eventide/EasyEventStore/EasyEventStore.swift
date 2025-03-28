@@ -87,7 +87,15 @@ final class EasyEventStore: EasyEventStoreProtocol {
         }
     }
     
-    func createEvent(calendarId: String, title: String, startDate: Date, endDate: Date, isAllDay: Bool, description: String?, url: String?) throws -> Event {
+    func createEvent(
+        calendarId: String,
+        title: String,
+        startDate: Date,
+        endDate: Date,
+        isAllDay: Bool,
+        description: String?,
+        url: String?
+    ) throws -> Event {
         let ekEvent = EKEvent(eventStore: eventStore)
         
         guard let ekCalendar = eventStore.calendar(withIdentifier: calendarId) else {
@@ -253,7 +261,6 @@ final class EasyEventStore: EasyEventStoreProtocol {
         ekEvent.attendees?.forEach {
             attendees.append(
                 Attendee(
-                    eventId: ekEvent.eventIdentifier,
                     name: $0.name ?? "",
                     email: "",
                     type: Int64($0.participantType.rawValue),
@@ -314,24 +321,23 @@ fileprivate extension EKEvent {
     func toEvent() -> Event {
         Event(
             id: eventIdentifier,
+            calendarId: calendar.calendarIdentifier,
             title: title,
             isAllDay: isAllDay,
             startDate: startDate.millisecondsSince1970,
             endDate: endDate.millisecondsSince1970,
-            calendarId: calendar.calendarIdentifier,
-            description: notes,
-            url: url?.absoluteString,
-            reminders: alarms?.map { Int64($0.relativeOffset) },
+            reminders: alarms?.map { Int64($0.relativeOffset) } ?? [],
             attendees: attendees?.map {
-                Attendee(
-                    eventId: eventIdentifier,
+                return Attendee(
                     name: $0.name ?? "",
                     email: "",
                     type: Int64($0.participantType.rawValue),
                     role: Int64($0.participantRole.rawValue),
                     status: Int64($0.participantStatus.rawValue)
                 )
-            }
+            } ?? [],
+            description: notes,
+            url: url?.absoluteString
         )
     }
 }

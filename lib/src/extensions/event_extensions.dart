@@ -1,5 +1,6 @@
 import 'package:eventide/src/calendar_api.g.dart';
 import 'package:eventide/src/eventide_platform_interface.dart';
+import 'package:eventide/src/extensions/attendee_extensions.dart';
 import 'package:eventide/src/extensions/duration_extensions.dart';
 
 extension EventToETEvent on Event {
@@ -13,9 +14,8 @@ extension EventToETEvent on Event {
       calendarId: calendarId,
       description: description,
       url: url,
-      reminders: [
-        if (reminders != null) ...reminders!.toDurationList(),
-      ],
+      reminders: reminders.toDurationList(),
+      attendees: attendees.toETAttendeeList(),
     );
   }
 }
@@ -32,6 +32,7 @@ extension ETEventCopy on ETEvent {
       description: description,
       url: url,
       reminders: reminders ?? this.reminders,
+      attendees: attendees,
     );
   }
 }

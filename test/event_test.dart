@@ -36,6 +36,7 @@ void main() {
     description: null,
     url: null,
     reminders: [],
+    attendees: [],
   );
 
   setUpAll(() {
@@ -51,6 +52,8 @@ void main() {
       startDate: startDate.millisecondsSinceEpoch,
       endDate: endDate.add(const Duration(hours: 1)).millisecondsSinceEpoch,
       calendarId: '1',
+      reminders: [],
+      attendees: [],
     );
 
     when(() => mockCalendarApi.createEvent(
@@ -246,6 +249,8 @@ void main() {
       startDate: utcParisDeparture.millisecondsSinceEpoch,
       endDate: utcMontrealArrival.millisecondsSinceEpoch,
       calendarId: '1',
+      reminders: [],
+      attendees: [],
     );
 
     when(() => mockCalendarApi.createEvent(
@@ -288,6 +293,7 @@ void main() {
         description: 'Test Description',
         url: 'http://test.com',
         reminders: [10, 20],
+        attendees: [],
       );
       final etEvent = event.toETEvent();
       expect(etEvent.id, '1');
@@ -313,6 +319,7 @@ void main() {
           description: 'Test Description',
           url: 'http://test.com',
           reminders: [10, 20],
+          attendees: [],
         ),
       ];
       final etEvents = events.toETEventList();
@@ -352,6 +359,7 @@ extension on Event {
       description: description,
       url: url,
       reminders: reminders,
+      attendees: [],
     );
   }
 }

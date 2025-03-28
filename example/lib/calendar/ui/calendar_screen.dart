@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:eventide/eventide.dart';
-import 'package:eventide_example/calendar_details.dart';
-import 'package:eventide_example/logic/calendar_cubit.dart';
-import 'package:eventide_example/forms/calendar_form.dart';
-import 'package:eventide_example/logic/event_cubit.dart';
+import 'package:eventide_example/event_list/ui/event_list.dart';
+import 'package:eventide_example/calendar/logic/calendar_cubit.dart';
+import 'package:eventide_example/calendar/ui/calendar_form.dart';
+import 'package:eventide_example/event_list/logic/event_list_cubit.dart';
 import 'package:value_state/value_state.dart';
 
 class CalendarScreen extends StatelessWidget {
@@ -12,9 +12,9 @@ class CalendarScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<CalendarCubit, Value<List<ETCalendar>>>(builder: (_, state) {
-      return SafeArea(
-        child: Stack(
+    return SafeArea(
+      child: BlocBuilder<CalendarCubit, Value<List<ETCalendar>>>(builder: (context, state) {
+        return Stack(
           children: [
             CustomScrollView(slivers: [
               SliverAppBar(
@@ -54,10 +54,10 @@ class CalendarScreen extends StatelessWidget {
                                 child: InkWell(
                                   onTap: () async {
                                     try {
-                                      await BlocProvider.of<EventCubit>(context).selectCalendar(calendar);
+                                      await BlocProvider.of<EventListCubit>(context).selectCalendar(calendar);
                                       if (context.mounted) {
                                         Navigator.of(context).push(
-                                          MaterialPageRoute(builder: (context) => const CalendarDetails()),
+                                          MaterialPageRoute(builder: (context) => const EventList()),
                                         );
                                       }
                                     } catch (error) {
@@ -136,8 +136,8 @@ class CalendarScreen extends StatelessWidget {
               ),
             ),
           ],
-        ),
-      );
-    });
+        );
+      }),
+    );
   }
 }

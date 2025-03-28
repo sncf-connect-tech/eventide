@@ -89,18 +89,20 @@ class Calendar {
 class Event {
   Event({
     required this.id,
+    required this.calendarId,
     required this.title,
     required this.isAllDay,
     required this.startDate,
     required this.endDate,
-    required this.calendarId,
+    required this.reminders,
+    required this.attendees,
     this.description,
     this.url,
-    this.reminders,
-    this.attendees,
   });
 
   String id;
+
+  String calendarId;
 
   String title;
 
@@ -110,28 +112,26 @@ class Event {
 
   int endDate;
 
-  String calendarId;
+  List<int> reminders;
+
+  List<Attendee> attendees;
 
   String? description;
 
   String? url;
 
-  List<int>? reminders;
-
-  List<Attendee>? attendees;
-
   Object encode() {
     return <Object?>[
       id,
+      calendarId,
       title,
       isAllDay,
       startDate,
       endDate,
-      calendarId,
-      description,
-      url,
       reminders,
       attendees,
+      description,
+      url,
     ];
   }
 
@@ -139,15 +139,15 @@ class Event {
     result as List<Object?>;
     return Event(
       id: result[0]! as String,
-      title: result[1]! as String,
-      isAllDay: result[2]! as bool,
-      startDate: result[3]! as int,
-      endDate: result[4]! as int,
-      calendarId: result[5]! as String,
-      description: result[6] as String?,
-      url: result[7] as String?,
-      reminders: (result[8] as List<Object?>?)?.cast<int>(),
-      attendees: (result[9] as List<Object?>?)?.cast<Attendee>(),
+      calendarId: result[1]! as String,
+      title: result[2]! as String,
+      isAllDay: result[3]! as bool,
+      startDate: result[4]! as int,
+      endDate: result[5]! as int,
+      reminders: (result[6] as List<Object?>?)!.cast<int>(),
+      attendees: (result[7] as List<Object?>?)!.cast<Attendee>(),
+      description: result[8] as String?,
+      url: result[9] as String?,
     );
   }
 }
@@ -180,15 +180,12 @@ class Account {
 
 class Attendee {
   Attendee({
-    required this.eventId,
     required this.name,
     required this.email,
     required this.type,
     required this.role,
     required this.status,
   });
-
-  String eventId;
 
   String name;
 
@@ -202,7 +199,6 @@ class Attendee {
 
   Object encode() {
     return <Object?>[
-      eventId,
       name,
       email,
       type,
@@ -214,12 +210,11 @@ class Attendee {
   static Attendee decode(Object result) {
     result as List<Object?>;
     return Attendee(
-      eventId: result[0]! as String,
-      name: result[1]! as String,
-      email: result[2]! as String,
-      type: result[3]! as int,
-      role: result[4]! as int,
-      status: result[5]! as int,
+      name: result[0]! as String,
+      email: result[1]! as String,
+      type: result[2]! as int,
+      role: result[3]! as int,
+      status: result[4]! as int,
     );
   }
 }
@@ -537,7 +532,7 @@ class CalendarApi {
     }
   }
 
-  Future<Attendee> createAttendee({
+  Future<Event> createAttendee({
     required String eventId,
     required String name,
     required String email,
@@ -567,7 +562,7 @@ class CalendarApi {
         message: 'Host platform returned null value for non-null return value.',
       );
     } else {
-      return (pigeonVar_replyList[0] as Attendee?)!;
+      return (pigeonVar_replyList[0] as Event?)!;
     }
   }
 
@@ -599,7 +594,7 @@ class CalendarApi {
     }
   }
 
-  Future<void> deleteAttendee({required String eventId, required String email}) async {
+  Future<Event> deleteAttendee({required String eventId, required String email}) async {
     final String pigeonVar_channelName =
         'dev.flutter.pigeon.eventide.CalendarApi.deleteAttendee$pigeonVar_messageChannelSuffix';
     final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
@@ -617,8 +612,13 @@ class CalendarApi {
         message: pigeonVar_replyList[1] as String?,
         details: pigeonVar_replyList[2],
       );
+    } else if (pigeonVar_replyList[0] == null) {
+      throw PlatformException(
+        code: 'null-error',
+        message: 'Host platform returned null value for non-null return value.',
+      );
     } else {
-      return;
+      return (pigeonVar_replyList[0] as Event?)!;
     }
   }
 }

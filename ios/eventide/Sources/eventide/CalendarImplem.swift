@@ -233,7 +233,7 @@ class CalendarImplem: CalendarApi {
         email: String,
         role: Int64,
         type: Int64,
-        completion: @escaping (Result<Attendee, any Error>) -> Void
+        completion: @escaping (Result<Event, any Error>) -> Void
     ) {
         /// EventKit cannot add participants to an event nor change participant information.
         /// https://developer.apple.com/documentation/eventkit/ekparticipant#overview
@@ -274,7 +274,7 @@ class CalendarImplem: CalendarApi {
     func deleteAttendee(
         eventId: String,
         email: String,
-        completion: @escaping (Result<Void, any Error>) -> Void
+        completion: @escaping (Result<Event, any Error>) -> Void
     ) {
         /// EventKit cannot add participants to an event nor change participant information.
         /// https://developer.apple.com/documentation/eventkit/ekparticipant#overview
