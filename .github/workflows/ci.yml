@@ -42,7 +42,7 @@ jobs:
           path: coverage/lcov.info
 
   ios-tests:
-    runs-on: macos-14
+    runs-on: macos-latest
 
     steps:
       - uses: actions/checkout@v4
@@ -55,17 +55,15 @@ jobs:
       - name: Install dependencies
         run: |
           brew install xcresultparser
-          flutter config --enable-swift-package-manager
           flutter pub get
           cd example/ios
-          flutter build ios --config-only --no-codesign
-          cd ../..
+          pod install
 
       - name: Run tests
         run: |
           xcodebuild test -workspace ./example/ios/Runner.xcworkspace \
             -scheme EventideTests \
-            -destination 'platform=iOS Simulator,name=iPhone 15 Pro,OS=17.5' \
+            -destination 'platform=iOS Simulator,name=iPhone 16,OS=18.1' \
             -resultBundlePath build/reports/EventideTests.xcresult \
             -quiet
 

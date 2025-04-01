@@ -23,4 +23,5 @@ dev_dependencies:
   flutter_lints: ^4.0.0
 
 flutter:
+  disable-swift-package-manager: true
   uses-material-design: true

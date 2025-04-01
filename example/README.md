@@ -7,8 +7,6 @@ Demonstrates how to use the eventide plugin.
 Example app is set to use Swift Package Manager by default. Therefore there is no Podfile.
 
 ```sh
-flutter config --enable-swift-package-manager
 flutter pub get
-# Mandatory to get a FlutterGeneratedPluginSwiftPackage with a correct iOS minimum version
-flutter build ios --config-only --no-codesign
+cd ios && pod install
 ```
