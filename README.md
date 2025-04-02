@@ -80,13 +80,6 @@ You can find more in the example app.
 ⚠️ Please note that attendees edition is only supported by Android, due to iOS EventKit API limitations. Attendees are still retrievable through events on both iOS & Android.
 
 ```dart
-final event = await eventide.createEvent(
-    calendarId: calendar.id,
-    title: 'Meeting',
-    startDate: DateTime.now(),
-    endDate: DateTime.now().add(Duration(hours: 1)),
-);
-
 final eventWithAttendee = await eventide.createAttendee(
     eventId: event.id,
     name: 'John Doe',
