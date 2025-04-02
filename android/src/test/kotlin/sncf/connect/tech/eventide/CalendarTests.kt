@@ -21,6 +21,7 @@ class CalendarTests {
     private lateinit var calendarContentUri: Uri
     private lateinit var eventContentUri: Uri
     private lateinit var remindersContentUri: Uri
+    private lateinit var attendeesContentUri: Uri
 
     @BeforeEach
     fun setup() {
@@ -29,33 +30,16 @@ class CalendarTests {
         calendarContentUri = mockk(relaxed = true)
         eventContentUri = mockk(relaxed = true)
         remindersContentUri = mockk(relaxed = true)
+        attendeesContentUri = mockk(relaxed = true)
 
         calendarImplem = CalendarImplem(
             contentResolver = contentResolver,
             permissionHandler = permissionHandler,
             calendarContentUri = calendarContentUri,
             eventContentUri = eventContentUri,
-            remindersContentUri = remindersContentUri
+            remindersContentUri = remindersContentUri,
+            attendeesContentUri = attendeesContentUri
         )
-    }
-
-    private fun mockPermissionGranted() {
-        every { permissionHandler.requestWritePermission(any()) } answers {
-            firstArg<(Boolean) -> Unit>().invoke(true)
-        }
-
-        every { permissionHandler.requestReadPermission(any()) } answers {
-            firstArg<(Boolean) -> Unit>().invoke(true)
-        }
-    }
-
-    private fun mockPermissionDenied() {
-        every { permissionHandler.requestWritePermission(any()) } answers {
-            firstArg<(Boolean) -> Unit>().invoke(false)
-        }
-        every { permissionHandler.requestReadPermission(any()) } answers {
-            firstArg<(Boolean) -> Unit>().invoke(false)
-        }
     }
 
     private fun mockWritableCalendar() {
@@ -80,7 +64,7 @@ class CalendarTests {
 
     @Test
     fun createCalendar_withGrantedPermission_createsCalendarSuccessfully() = runTest {
-        mockPermissionGranted()
+        mockPermissionGranted(permissionHandler)
 
         val uri = mockk<Uri>(relaxed = true)
         every { contentResolver.insert(calendarContentUri, any()) } returns uri
@@ -105,7 +89,7 @@ class CalendarTests {
 
     @Test
     fun createCalendar_withDeniedPermission_returnsAccessRefusedError() = runTest {
-        mockPermissionDenied()
+        mockPermissionDenied(permissionHandler)
 
         var result: Result<Calendar>? = null
         calendarImplem.createCalendar("Test Calendar", 0xFF0000, null) {
@@ -118,7 +102,7 @@ class CalendarTests {
 
     @Test
     fun createCalendar_withInvalidUri_returnsGenericError() = runTest {
-        mockPermissionGranted()
+        mockPermissionGranted(permissionHandler)
 
         every { contentResolver.insert(calendarContentUri, any()) } returns null
 
@@ -137,7 +121,7 @@ class CalendarTests {
 
     @Test
     fun createCalendar_withNullLastPathSegment_returnsNotFoundError() = runTest {
-        mockPermissionGranted()
+        mockPermissionGranted(permissionHandler)
 
         val uri = mockk<Uri>(relaxed = true)
         every { contentResolver.insert(calendarContentUri, any()) } returns uri
@@ -158,7 +142,7 @@ class CalendarTests {
 
     @Test
     fun createCalendar_withException_returnsGenericError() = runTest {
-        mockPermissionGranted()
+        mockPermissionGranted(permissionHandler)
 
         every { contentResolver.insert(calendarContentUri, any()) } throws Exception("Insert failed")
 
@@ -177,12 +161,12 @@ class CalendarTests {
 
     @Test
     fun retrieveCalendars_withGrantedPermission_returnsCalendars() = runTest {
-        mockPermissionGranted()
+        mockPermissionGranted(permissionHandler)
         val cursor = mockk<Cursor>(relaxed = true)
         every { contentResolver.query(calendarContentUri, any(), any(), any(), any()) } returns cursor
         every { cursor.moveToNext() } returnsMany listOf(true, true, false)
-        every { cursor.getLong(any()) } returnsMany listOf(1L, 0xFF0000, 2L, 0xFF0000)
-        every { cursor.getString(any()) } returnsMany listOf("Test Calendar", "Test Account", "Test Account Type", "Test Calendar2", "Test Account", "Test Account Type")
+        every { cursor.getLong(any()) } returnsMany listOf(0xFF0000, 0xFF0000)
+        every { cursor.getString(any()) } returnsMany listOf("id", "Test Calendar", "Test Account", "Test Account Type", "id2", "Test Calendar2", "Test Account", "Test Account Type")
         every { cursor.getInt(any()) } returnsMany listOf(CalendarContract.Calendars.CAL_ACCESS_OWNER, CalendarContract.Calendars.CAL_ACCESS_OWNER)
 
         var result: Result<List<Calendar>>? = null
@@ -202,13 +186,13 @@ class CalendarTests {
 
     @Test
     fun retrieveCalendars_withGrantedPermission_returnsOnlyWritableCalendars() = runTest {
-        mockPermissionGranted()
+        mockPermissionGranted(permissionHandler)
         
         val cursor = mockk<Cursor>(relaxed = true)
         every { contentResolver.query(calendarContentUri, any(), any(), any(), any()) } returns cursor
         every { cursor.moveToNext() } returnsMany listOf(true, true, false)
-        every { cursor.getLong(any()) } returnsMany listOf(1L, 0xFF0000, 2L, 0xFF0000)
-        every { cursor.getString(any()) } returnsMany listOf("Test Calendar", "Test Account", "Test Account Type", "Test Calendar", "Test Account", "Test Account Type")
+        every { cursor.getLong(any()) } returnsMany listOf(0xFF0000, 0xFF0000)
+        every { cursor.getString(any()) } returnsMany listOf("id1", "Test Calendar", "Test Account", "Test Account Type", "id2", "Test Calendar", "Test Account", "Test Account Type")
         every { cursor.getInt(any()) } returnsMany listOf(CalendarContract.Calendars.CAL_ACCESS_OWNER, CalendarContract.Calendars.CAL_ACCESS_READ)
 
         var result: Result<List<Calendar>>? = null
@@ -227,7 +211,7 @@ class CalendarTests {
 
     @Test
     fun retrieveCalendars_accountFilter_appliesCorrectSelection() = runTest {
-        mockPermissionGranted()
+        mockPermissionGranted(permissionHandler)
 
         val cursor = mockk<Cursor>(relaxed = true)
         every { contentResolver.query(calendarContentUri, any(), any(), any(), any()) } returns cursor
@@ -260,7 +244,7 @@ class CalendarTests {
 
     @Test
     fun retrieveCalendars_noFilter_appliesCorrectSelection() = runTest {
-        mockPermissionGranted()
+        mockPermissionGranted(permissionHandler)
 
         val cursor = mockk<Cursor>(relaxed = true)
         every { contentResolver.query(calendarContentUri, any(), any(), any(), any()) } returns cursor
@@ -290,7 +274,7 @@ class CalendarTests {
 
     @Test
     fun retrieveCalendars_withDeniedPermission_returnsAccessRefusedError() = runTest {
-        mockPermissionDenied()
+        mockPermissionDenied(permissionHandler)
 
         var result: Result<List<Calendar>>? = null
         calendarImplem.retrieveCalendars(false, null) {
@@ -303,7 +287,7 @@ class CalendarTests {
 
     @Test
     fun retrieveCalendars_withEmptyCursor_returnsEmptyList() = runTest {
-        mockPermissionGranted()
+        mockPermissionGranted(permissionHandler)
 
         val cursor = mockk<Cursor>(relaxed = true)
         every { contentResolver.query(calendarContentUri, any(), any(), any(), any()) } returns cursor
@@ -324,7 +308,7 @@ class CalendarTests {
 
     @Test
     fun retrieveCalendars_withException_returnsGenericError() = runTest {
-        mockPermissionGranted()
+        mockPermissionGranted(permissionHandler)
 
         every { contentResolver.query(calendarContentUri, any(), any(), any(), any()) } throws Exception("Query failed")
 
@@ -343,7 +327,7 @@ class CalendarTests {
 
     @Test
     fun deleteCalendar_withGrantedPermission_andWritableCalendar_deletesCalendarSuccessfully() = runTest {
-        mockPermissionGranted()
+        mockPermissionGranted(permissionHandler)
         mockWritableCalendar()
 
         every { contentResolver.delete(calendarContentUri, any(), any()) } returns 1
@@ -362,7 +346,7 @@ class CalendarTests {
 
     @Test
     fun deleteCalendar_withGrantedPermission_andNotWritableCalendar_deletesCalendarSuccessfully() = runTest {
-        mockPermissionGranted()
+        mockPermissionGranted(permissionHandler)
         mockNotWritableCalendar()
 
         var result: Result<Unit>? = null
@@ -380,7 +364,7 @@ class CalendarTests {
 
     @Test
     fun deleteCalendar_withDeniedPermission_returnsAccessRefusedError() = runTest {
-        mockPermissionDenied()
+        mockPermissionDenied(permissionHandler)
 
         var result: Result<Unit>? = null
         calendarImplem.deleteCalendar("1") {
@@ -393,7 +377,7 @@ class CalendarTests {
 
     @Test
     fun deleteCalendar_withException_returnsGenericError() = runTest {
-        mockPermissionGranted()
+        mockPermissionGranted(permissionHandler)
         mockWritableCalendar()
 
         every { contentResolver.delete(calendarContentUri, any(), any()) } throws Exception("Delete failed")
@@ -413,7 +397,7 @@ class CalendarTests {
 
     @Test
     fun deleteCalendar_withNoRowsDeleted_returnsGenericError() = runTest {
-        mockPermissionGranted()
+        mockPermissionGranted(permissionHandler)
         mockWritableCalendar()
 
         every { contentResolver.delete(calendarContentUri, any(), any()) } returns 0
@@ -433,7 +417,7 @@ class CalendarTests {
 
     @Test
     fun deleteCalendar_withNotWritableCalendar_returnsNotEditableError() = runTest {
-        mockPermissionGranted()
+        mockPermissionGranted(permissionHandler)
         mockNotWritableCalendar()
 
         every { contentResolver.delete(calendarContentUri, any(), any()) } returns 0
@@ -453,7 +437,7 @@ class CalendarTests {
 
     @Test
     fun deleteCalendar_withNotFoundCalendar_returnsNotFoundError() = runTest {
-        mockPermissionGranted()
+        mockPermissionGranted(permissionHandler)
         mockCalendarNotFound()
 
         every { contentResolver.delete(calendarContentUri, any(), any()) } returns 0

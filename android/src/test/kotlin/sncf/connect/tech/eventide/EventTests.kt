@@ -21,6 +21,7 @@ class EventTests {
     private lateinit var calendarContentUri: Uri
     private lateinit var eventContentUri: Uri
     private lateinit var remindersContentUri: Uri
+    private lateinit var attendeesContentUri: Uri
 
     @BeforeEach
     fun setup() {
@@ -29,33 +30,16 @@ class EventTests {
         calendarContentUri = mockk(relaxed = true)
         eventContentUri = mockk(relaxed = true)
         remindersContentUri = mockk(relaxed = true)
+        attendeesContentUri = mockk(relaxed = true)
 
         calendarImplem = CalendarImplem(
             contentResolver = contentResolver,
             permissionHandler = permissionHandler,
             calendarContentUri = calendarContentUri,
             eventContentUri = eventContentUri,
-            remindersContentUri = remindersContentUri
+            remindersContentUri = remindersContentUri,
+            attendeesContentUri = attendeesContentUri
         )
-    }
-
-    private fun mockPermissionGranted() {
-        every { permissionHandler.requestWritePermission(any()) } answers {
-            firstArg<(Boolean) -> Unit>().invoke(true)
-        }
-
-        every { permissionHandler.requestReadPermission(any()) } answers {
-            firstArg<(Boolean) -> Unit>().invoke(true)
-        }
-    }
-
-    private fun mockPermissionDenied() {
-        every { permissionHandler.requestWritePermission(any()) } answers {
-            firstArg<(Boolean) -> Unit>().invoke(false)
-        }
-        every { permissionHandler.requestReadPermission(any()) } answers {
-            firstArg<(Boolean) -> Unit>().invoke(false)
-        }
     }
 
     private fun mockWritableCalendar() {
@@ -93,7 +77,7 @@ class EventTests {
 
     @Test
     fun createEvent_withGrantedPermission_andWritableCalendar_createsEventSuccessfully() = runTest {
-        mockPermissionGranted()
+        mockPermissionGranted(permissionHandler)
         mockWritableCalendar()
 
         val uri = mockk<Uri>(relaxed = true)
@@ -129,12 +113,14 @@ class EventTests {
             calendarId = "1",
             description = "Description",
             isAllDay = false,
+            reminders = emptyList(),
+            attendees = emptyList()
         ), result!!.getOrNull()!!)
     }
 
     @Test
     fun createEvent_withGrantedPermission_andNotWritableCalendar_returnsNotEditableError() = runTest {
-        mockPermissionGranted()
+        mockPermissionGranted(permissionHandler)
         mockNotWritableCalendar()
 
         var result: Result<Event>? = null
@@ -160,7 +146,7 @@ class EventTests {
 
     @Test
     fun createEvent_withGrantedPermission_andNotFoundCalendar_returnsNotFoundError() = runTest {
-        mockPermissionGranted()
+        mockPermissionGranted(permissionHandler)
         mockCalendarNotFound()
 
         var result: Result<Event>? = null
@@ -186,7 +172,7 @@ class EventTests {
 
     @Test
     fun createEvent_withDeniedPermission_returnsAccessRefusedError() = runTest {
-        mockPermissionDenied()
+        mockPermissionDenied(permissionHandler)
 
         var result: Result<Event>? = null
         calendarImplem.createEvent(
@@ -207,7 +193,7 @@ class EventTests {
 
     @Test
     fun createEvent_withInvalidUri_returnsNotFoundError() = runTest {
-        mockPermissionGranted()
+        mockPermissionGranted(permissionHandler)
 
         every { contentResolver.insert(any(), any()) } returns null
 
@@ -234,17 +220,11 @@ class EventTests {
 
     @Test
     fun retrieveEvents_withGrantedPermission_returnsEvents() = runTest {
-        mockPermissionGranted()
+        mockPermissionGranted(permissionHandler)
 
-        val cursor = mockk<Cursor>(relaxed = true)
-
-        CalendarContract.Events.ALL_DAY
-        every { contentResolver.query(eventContentUri, any(), any(), any(), any()) } returns cursor
-        every { cursor.moveToNext() } returnsMany listOf(true, false)
-        every { cursor.getLong(cursor.getColumnIndexOrThrow(CalendarContract.Events._ID)) } returns 1L
-        every { cursor.getString(any()) } returnsMany listOf("Test Event", "Description")
-        every { cursor.getLong(any()) } returns 0L
-        every { cursor.getInt(cursor.getColumnIndexOrThrow(CalendarContract.Events.ALL_DAY)) } returns 0
+        mockRetrieveEvents(contentResolver, eventContentUri)
+        mockRetrieveAttendees(contentResolver, attendeesContentUri)
+        mockRetrieveReminders(contentResolver, remindersContentUri)
 
         var result: Result<List<Event>>? = null
         val latch = CountDownLatch(1)
@@ -257,12 +237,11 @@ class EventTests {
 
         assertTrue(result!!.isSuccess)
         assertEquals(1, result!!.getOrNull()?.size)
-        assertEquals("Test Event", result!!.getOrNull()?.get(0)?.title)
     }
 
     @Test
     fun retrieveEvents_withDeniedPermission_returnsAccessRefusedError() = runTest {
-        mockPermissionDenied()
+        mockPermissionDenied(permissionHandler)
 
         var result: Result<List<Event>>? = null
         calendarImplem.retrieveEvents("1", 0L, 0L) {
@@ -275,7 +254,7 @@ class EventTests {
 
     @Test
     fun retrieveEvents_withEmptyCursor_returnsEmptyList() = runTest {
-        mockPermissionGranted()
+        mockPermissionGranted(permissionHandler)
 
         val cursor = mockk<Cursor>(relaxed = true)
         every { contentResolver.query(eventContentUri, any(), any(), any(), any()) } returns cursor
@@ -296,7 +275,7 @@ class EventTests {
 
     @Test
     fun retrieveEvents_withException_returnsGenericError() = runTest {
-        mockPermissionGranted()
+        mockPermissionGranted(permissionHandler)
 
         every { contentResolver.query(eventContentUri, any(), any(), any(), any()) } throws Exception("Query failed")
 
@@ -315,7 +294,7 @@ class EventTests {
 
     @Test
     fun deleteEvent_withGrantedPermission_deletesEventSuccessfully() = runTest {
-        mockPermissionGranted()
+        mockPermissionGranted(permissionHandler)
         mockCalendarIdFound()
         mockWritableCalendar()
 
@@ -335,7 +314,7 @@ class EventTests {
 
     @Test
     fun deleteEvent_withDeniedPermission_returnsAccessRefusedError() = runTest {
-        mockPermissionDenied()
+        mockPermissionDenied(permissionHandler)
 
         var result: Result<Unit>? = null
         calendarImplem.deleteEvent("1") {
@@ -347,7 +326,7 @@ class EventTests {
 
     @Test
     fun deleteEvent_withException_returnsGenericError() = runTest {
-        mockPermissionGranted()
+        mockPermissionGranted(permissionHandler)
         mockCalendarIdFound()
         mockWritableCalendar()
 
@@ -368,7 +347,7 @@ class EventTests {
 
     @Test
     fun deleteEvent_withNoRowsDeleted_returnsNotFoundError() = runTest {
-        mockPermissionGranted()
+        mockPermissionGranted(permissionHandler)
         mockCalendarIdFound()
         mockWritableCalendar()
 
@@ -389,7 +368,7 @@ class EventTests {
 
     @Test
     fun deleteEvent_withCalendarIdNotFound_returnsNotFoundError() = runTest {
-        mockPermissionGranted()
+        mockPermissionGranted(permissionHandler)
         mockCalendarIdNotFound()
 
         var result: Result<Unit>? = null

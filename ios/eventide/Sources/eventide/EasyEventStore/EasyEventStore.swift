@@ -87,7 +87,15 @@ final class EasyEventStore: EasyEventStoreProtocol {
         }
     }
     
-    func createEvent(calendarId: String, title: String, startDate: Date, endDate: Date, isAllDay: Bool, description: String?, url: String?) throws -> Event {
+    func createEvent(
+        calendarId: String,
+        title: String,
+        startDate: Date,
+        endDate: Date,
+        isAllDay: Bool,
+        description: String?,
+        url: String?
+    ) throws -> Event {
         let ekEvent = EKEvent(eventStore: eventStore)
         
         guard let ekCalendar = eventStore.calendar(withIdentifier: calendarId) else {
@@ -237,6 +245,34 @@ final class EasyEventStore: EasyEventStoreProtocol {
         }
     }
     
+    func retrieveAttendees(
+        eventId: String
+    ) throws -> [Attendee] {
+        guard let ekEvent = eventStore.event(withIdentifier: eventId) else {
+            throw PigeonError(
+                code: "NOT_FOUND",
+                message: "Event not found",
+                details: "The provided event.id is certainly incorrect"
+            )
+        }
+        
+        var attendees: [Attendee] = []
+        
+        ekEvent.attendees?.forEach {
+            attendees.append(
+                Attendee(
+                    name: $0.name ?? "",
+                    email: "",
+                    type: Int64($0.participantType.rawValue),
+                    role: Int64($0.participantRole.rawValue),
+                    status: Int64($0.participantStatus.rawValue)
+                )
+            )
+        }
+        
+        return attendees
+    }
+    
     private func getSource(account: Account?) -> EKSource? {
         guard let defaultSource = eventStore.defaultCalendarForNewEvents?.source else {
             // if eventStore.defaultCalendarForNewEvents?.source is nil then eventStore.sources is empty
@@ -285,14 +321,23 @@ fileprivate extension EKEvent {
     func toEvent() -> Event {
         Event(
             id: eventIdentifier,
+            calendarId: calendar.calendarIdentifier,
             title: title,
             isAllDay: isAllDay,
             startDate: startDate.millisecondsSince1970,
             endDate: endDate.millisecondsSince1970,
-            calendarId: calendar.calendarIdentifier,
+            reminders: alarms?.map { Int64($0.relativeOffset) } ?? [],
+            attendees: attendees?.compactMap {
+                Attendee(
+                    name: $0.name ?? "",
+                    email: "",
+                    type: Int64($0.participantType.rawValue),
+                    role: Int64($0.participantRole.rawValue),
+                    status: Int64($0.participantStatus.rawValue)
+                )
+            } ?? [],
             description: notes,
-            url: url?.absoluteString,
-            reminders: alarms?.map { Int64($0.relativeOffset) }
+            url: url?.absoluteString
         )
     }
 }

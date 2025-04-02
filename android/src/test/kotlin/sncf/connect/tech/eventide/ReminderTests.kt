@@ -17,6 +17,7 @@ class ReminderTests {
     private lateinit var calendarContentUri: Uri
     private lateinit var eventContentUri: Uri
     private lateinit var remindersContentUri: Uri
+    private lateinit var attendeesContentUri: Uri
 
     @BeforeEach
     fun setup() {
@@ -25,6 +26,7 @@ class ReminderTests {
         calendarContentUri = mockk(relaxed = true)
         eventContentUri = mockk(relaxed = true)
         remindersContentUri = mockk(relaxed = true)
+        attendeesContentUri = mockk(relaxed = true)
 
         calendarImplem = CalendarImplem(
             contentResolver = contentResolver,
@@ -32,24 +34,13 @@ class ReminderTests {
             calendarContentUri = calendarContentUri,
             eventContentUri = eventContentUri,
             remindersContentUri = remindersContentUri,
+            attendeesContentUri = attendeesContentUri
         )
-    }
-
-    private fun mockPermissionGranted() {
-        every { permissionHandler.requestWritePermission(any()) } answers {
-            firstArg<(Boolean) -> Unit>().invoke(true)
-        }
-    }
-
-    private fun mockPermissionDenied() {
-        every { permissionHandler.requestWritePermission(any()) } answers {
-            firstArg<(Boolean) -> Unit>().invoke(false)
-        }
     }
 
     @Test
     fun createReminder_withGrantedPermission_createsReminderSuccessfully() = runTest {
-        mockPermissionGranted()
+        mockPermissionGranted(permissionHandler)
 
         val eventId = "1"
         val minutes = 10L
@@ -81,7 +72,7 @@ class ReminderTests {
 
     @Test
     fun createReminder_withDeniedPermission_failsToCreateReminder() = runTest {
-        mockPermissionDenied()
+        mockPermissionDenied(permissionHandler)
 
         val eventId = "1"
         val minutes = 10L
@@ -96,7 +87,7 @@ class ReminderTests {
 
     @Test
     fun createReminder_withException_failsToCreateReminder() = runTest {
-        mockPermissionGranted()
+        mockPermissionGranted(permissionHandler)
 
         val eventId = "1"
         val minutes = 10L
@@ -116,7 +107,7 @@ class ReminderTests {
 
     @Test
     fun deleteReminder_withGrantedPermission_deletesReminderSuccessfully() = runTest {
-        mockPermissionGranted()
+        mockPermissionGranted(permissionHandler)
 
         val eventId = "1"
         val minutes = 10L
@@ -148,7 +139,7 @@ class ReminderTests {
 
     @Test
     fun deleteReminder_withDeniedPermission_failsToDeleteReminder() = runTest {
-        mockPermissionDenied()
+        mockPermissionDenied(permissionHandler)
 
         val eventId = "1"
         val minutes = 10L
@@ -163,7 +154,7 @@ class ReminderTests {
 
     @Test
     fun deleteReminder_withException_failsToDeleteReminder() = runTest {
-        mockPermissionGranted()
+        mockPermissionGranted(permissionHandler)
 
         val eventId = "1"
         val minutes = 10L
@@ -183,7 +174,7 @@ class ReminderTests {
 
     @Test
     fun deleteReminder_withNoRowsDeleted_failsToDeleteReminder() = runTest {
-        mockPermissionGranted()
+        mockPermissionGranted(permissionHandler)
 
         val eventId = "1"
         val minutes = 10L

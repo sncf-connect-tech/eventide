@@ -199,10 +199,6 @@ class _EventFormState extends State<EventForm> {
               TZDateTime.from(_selectedEndDate, getLocation('Europe/Paris')),
             );
 
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Creating event...')),
-            );
-
             Navigator.of(context).pop();
           },
           child: const Text('Create event'),

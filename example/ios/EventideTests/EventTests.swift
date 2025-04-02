@@ -110,7 +110,7 @@ final class EventTests: XCTestCase {
     }
     
     func testRetrieveEvents_withinSpecifiedDates_permissionGranted() {
-        let expectation = expectation(description: "One event have been retrieved")
+        let expectation = expectation(description: "One event has been retrieved")
         
         let startDate = Date()
         let endDate = Date().addingTimeInterval(TimeInterval(10))
@@ -164,6 +164,87 @@ final class EventTests: XCTestCase {
                 XCTAssert(events.count == 1)
                 XCTAssert(events.first!.id == "1")
                 XCTAssert(mockEasyEventStore.calendars.first!.events.first!.id == "1")
+                expectation.fulfill()
+            case .failure:
+                XCTFail("Event should have been retrieved")
+            }
+        }
+        
+        waitForExpectations(timeout: timeout)
+    }
+    
+    func testRetrieveEvents_withAttendeesAndReminders_permissionGranted() {
+        let expectation = expectation(description: "Event with attendees has been retrieved")
+        
+        let startDate = Date()
+        let endDate = Date().addingTimeInterval(TimeInterval(10))
+        
+        let mockEasyEventStore = MockEasyEventStore(
+            calendars: [
+                MockCalendar(
+                    id: "1",
+                    title: "title",
+                    color: UIColor.red,
+                    isWritable: true,
+                    account: Account(name: "local", type: "local"),
+                    events: [
+                        MockEvent(
+                            id: "1",
+                            title: "title",
+                            startDate: startDate,
+                            endDate: endDate,
+                            calendarId: "1",
+                            isAllDay: false,
+                            description: "description",
+                            url: "url"
+                        ),
+                        MockEvent(
+                            id: "2",
+                            title: "title",
+                            startDate: startDate.addingTimeInterval(TimeInterval(50)),
+                            endDate: endDate.addingTimeInterval(TimeInterval(50)),
+                            calendarId: "1",
+                            isAllDay: false,
+                            description: "description",
+                            url: "url",
+                            reminders: [TimeInterval(360), TimeInterval(3600)],
+                            attendees: [
+                                MockAttendee(
+                                    name: "John Doe",
+                                    email: "john.doe@example.com",
+                                    type: 1,
+                                    role: 1,
+                                    status: 1
+                                )
+                            ]
+                        )
+                    ]
+                )
+            ]
+        )
+        
+        calendarImplem = CalendarImplem(
+            easyEventStore: mockEasyEventStore,
+            permissionHandler: PermissionGranted()
+        )
+        
+        calendarImplem.retrieveEvents(
+            calendarId: "1",
+            startDate: startDate.addingTimeInterval(TimeInterval(40)).millisecondsSince1970,
+            endDate: endDate.addingTimeInterval(TimeInterval(60)).millisecondsSince1970
+        ) { retrieveEventsResult in
+            switch (retrieveEventsResult) {
+            case .success(let events):
+                XCTAssertEqual(events.count, 1)
+                XCTAssertEqual(events.first!.id, "2")
+                XCTAssertEqual(events.first!.attendees.count, 1)
+                XCTAssertEqual(events.first!.attendees.first!.name, "John Doe")
+                XCTAssertEqual(events.first!.attendees.first!.type, 1)
+                XCTAssertEqual(events.first!.attendees.first!.role, 1)
+                XCTAssertEqual(events.first!.attendees.first!.status, 1)
+                XCTAssertEqual(events.first!.reminders.count, 2)
+                XCTAssertEqual(events.first!.reminders.first, Int64(360))
+                XCTAssertEqual(events.first!.reminders.last, Int64(3600))
                 expectation.fulfill()
             case .failure:
                 XCTFail("Event should have been retrieved")

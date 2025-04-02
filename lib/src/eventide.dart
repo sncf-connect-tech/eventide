@@ -3,8 +3,13 @@ import 'package:flutter/services.dart';
 
 import 'package:eventide/src/calendar_api.g.dart';
 import 'package:eventide/src/eventide_exception.dart';
-import 'package:eventide/src/eventide_extensions.dart';
 import 'package:eventide/src/eventide_platform_interface.dart';
+import 'package:eventide/src/extensions/account_extensions.dart';
+import 'package:eventide/src/extensions/attendee_extensions.dart';
+import 'package:eventide/src/extensions/calendar_extensions.dart';
+import 'package:eventide/src/extensions/color_extensions.dart';
+import 'package:eventide/src/extensions/duration_extensions.dart';
+import 'package:eventide/src/extensions/event_extensions.dart';
 
 class Eventide extends EventidePlatform {
   final CalendarApi _calendarApi;
@@ -129,11 +134,11 @@ class Eventide extends EventidePlatform {
   }) async {
     try {
       final event = await _calendarApi.createEvent(
+        calendarId: calendarId,
         title: title,
         startDate: startDate.millisecondsSinceEpoch,
         endDate: endDate.millisecondsSinceEpoch,
         isAllDay: isAllDay,
-        calendarId: calendarId,
         description: description,
         url: url,
       );
@@ -170,12 +175,12 @@ class Eventide extends EventidePlatform {
     DateTime? endDate,
   }) async {
     try {
-      final start = startDate ?? DateTime.now();
+      final start = startDate ?? DateTime.now().add(const Duration(days: -3));
       final end = endDate ?? DateTime.now().add(const Duration(days: 7));
       final events = await _calendarApi.retrieveEvents(
         calendarId: calendarId,
         startDate: start.millisecondsSinceEpoch,
-        endDate: end.microsecondsSinceEpoch,
+        endDate: end.millisecondsSinceEpoch,
       );
       return events.toETEventList();
     } on PlatformException catch (e) {
@@ -214,8 +219,8 @@ class Eventide extends EventidePlatform {
   /// Throws a [ETGenericException] if any other error occurs during reminder creation.
   @override
   Future<ETEvent> createReminder({
-    required Duration durationBeforeEvent,
     required String eventId,
+    required Duration durationBeforeEvent,
   }) async {
     try {
       final updatedEvent = await _calendarApi.createReminder(
@@ -237,8 +242,8 @@ class Eventide extends EventidePlatform {
   /// Throws a [ETGenericException] if any other error occurs during reminder deletion.
   @override
   Future<ETEvent> deleteReminder({
-    required Duration durationBeforeEvent,
     required String eventId,
+    required Duration durationBeforeEvent,
   }) async {
     try {
       final updatedEvent = await _calendarApi.deleteReminder(
@@ -246,6 +251,58 @@ class Eventide extends EventidePlatform {
         eventId: eventId,
       );
       return updatedEvent.toETEvent();
+    } on PlatformException catch (e) {
+      throw e.toETException();
+    }
+  }
+
+  /// Creates a new attendee with the given [name], [email], and [type] for the event with the given [eventId].
+  ///
+  /// Throws a [ETPermissionException] if the user refuses to grant calendar permissions.
+  ///
+  /// Throws a [ETNotFoundException] if the event with the given [eventId] is not found.
+  ///
+  /// Throws a [ETGenericException] if any other error occurs during attendee creation.
+  ///
+  /// ⚠️ Throws a [ETNotSupportedByPlatform] if this method is called from iOS.
+  @override
+  Future<ETEvent> createAttendee({
+    required String eventId,
+    required String name,
+    required String email,
+    required ETAttendeeType type,
+  }) async {
+    try {
+      final event = await _calendarApi.createAttendee(
+        eventId: eventId,
+        name: name,
+        email: email,
+        role: type.nativeRole,
+        type: type.nativeType,
+      );
+      return event.toETEvent();
+    } on PlatformException catch (e) {
+      throw e.toETException();
+    }
+  }
+
+  /// Deletes the attendee with the given [attendee] for the event with the given [eventId].
+  ///
+  /// Throws a [ETPermissionException] if the user refuses to grant calendar permissions.
+  ///
+  /// Throws a [ETNotFoundException] if the event with the given [eventId] is not found.
+  ///
+  /// Throws a [ETGenericException] if any other error occurs during attendee deletion.
+  ///
+  /// ⚠️ Throws a [ETNotSupportedByPlatform] if this method is called from iOS.
+  @override
+  Future<ETEvent> deleteAttendee({
+    required String eventId,
+    required ETAttendee attendee,
+  }) async {
+    try {
+      final event = await _calendarApi.deleteAttendee(eventId: eventId, email: attendee.email);
+      return event.toETEvent();
     } on PlatformException catch (e) {
       throw e.toETException();
     }

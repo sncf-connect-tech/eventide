@@ -115,41 +115,44 @@ data class Calendar (
  */
 data class Event (
   val id: String,
+  val calendarId: String,
   val title: String,
   val isAllDay: Boolean,
   val startDate: Long,
   val endDate: Long,
-  val calendarId: String,
+  val reminders: List<Long>,
+  val attendees: List<Attendee>,
   val description: String? = null,
-  val url: String? = null,
-  val reminders: List<Long>? = null
+  val url: String? = null
 )
  {
   companion object {
     fun fromList(pigeonVar_list: List<Any?>): Event {
       val id = pigeonVar_list[0] as String
-      val title = pigeonVar_list[1] as String
-      val isAllDay = pigeonVar_list[2] as Boolean
-      val startDate = pigeonVar_list[3] as Long
-      val endDate = pigeonVar_list[4] as Long
-      val calendarId = pigeonVar_list[5] as String
-      val description = pigeonVar_list[6] as String?
-      val url = pigeonVar_list[7] as String?
-      val reminders = pigeonVar_list[8] as List<Long>?
-      return Event(id, title, isAllDay, startDate, endDate, calendarId, description, url, reminders)
+      val calendarId = pigeonVar_list[1] as String
+      val title = pigeonVar_list[2] as String
+      val isAllDay = pigeonVar_list[3] as Boolean
+      val startDate = pigeonVar_list[4] as Long
+      val endDate = pigeonVar_list[5] as Long
+      val reminders = pigeonVar_list[6] as List<Long>
+      val attendees = pigeonVar_list[7] as List<Attendee>
+      val description = pigeonVar_list[8] as String?
+      val url = pigeonVar_list[9] as String?
+      return Event(id, calendarId, title, isAllDay, startDate, endDate, reminders, attendees, description, url)
     }
   }
   fun toList(): List<Any?> {
     return listOf(
       id,
+      calendarId,
       title,
       isAllDay,
       startDate,
       endDate,
-      calendarId,
+      reminders,
+      attendees,
       description,
       url,
-      reminders,
     )
   }
 }
@@ -174,6 +177,36 @@ data class Account (
     )
   }
 }
+
+/** Generated class from Pigeon that represents data sent in messages. */
+data class Attendee (
+  val name: String,
+  val email: String,
+  val type: Long,
+  val role: Long,
+  val status: Long
+)
+ {
+  companion object {
+    fun fromList(pigeonVar_list: List<Any?>): Attendee {
+      val name = pigeonVar_list[0] as String
+      val email = pigeonVar_list[1] as String
+      val type = pigeonVar_list[2] as Long
+      val role = pigeonVar_list[3] as Long
+      val status = pigeonVar_list[4] as Long
+      return Attendee(name, email, type, role, status)
+    }
+  }
+  fun toList(): List<Any?> {
+    return listOf(
+      name,
+      email,
+      type,
+      role,
+      status,
+    )
+  }
+}
 private open class CalendarApiPigeonCodec : StandardMessageCodec() {
   override fun readValueOfType(type: Byte, buffer: ByteBuffer): Any? {
     return when (type) {
@@ -190,6 +223,11 @@ private open class CalendarApiPigeonCodec : StandardMessageCodec() {
       131.toByte() -> {
         return (readValue(buffer) as? List<Any?>)?.let {
           Account.fromList(it)
+        }
+      }
+      132.toByte() -> {
+        return (readValue(buffer) as? List<Any?>)?.let {
+          Attendee.fromList(it)
         }
       }
       else -> super.readValueOfType(type, buffer)
@@ -209,6 +247,10 @@ private open class CalendarApiPigeonCodec : StandardMessageCodec() {
         stream.write(131)
         writeValue(stream, value.toList())
       }
+      is Attendee -> {
+        stream.write(132)
+        writeValue(stream, value.toList())
+      }
       else -> super.writeValue(stream, value)
     }
   }
@@ -226,6 +268,8 @@ interface CalendarApi {
   fun deleteEvent(eventId: String, callback: (Result<Unit>) -> Unit)
   fun createReminder(reminder: Long, eventId: String, callback: (Result<Event>) -> Unit)
   fun deleteReminder(reminder: Long, eventId: String, callback: (Result<Event>) -> Unit)
+  fun createAttendee(eventId: String, name: String, email: String, role: Long, type: Long, callback: (Result<Event>) -> Unit)
+  fun deleteAttendee(eventId: String, email: String, callback: (Result<Event>) -> Unit)
 
   companion object {
     /** The codec used by CalendarApi. */
@@ -412,6 +456,51 @@ interface CalendarApi {
             val reminderArg = args[0] as Long
             val eventIdArg = args[1] as String
             api.deleteReminder(reminderArg, eventIdArg) { result: Result<Event> ->
+              val error = result.exceptionOrNull()
+              if (error != null) {
+                reply.reply(wrapError(error))
+              } else {
+                val data = result.getOrNull()
+                reply.reply(wrapResult(data))
+              }
+            }
+          }
+        } else {
+          channel.setMessageHandler(null)
+        }
+      }
+      run {
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.eventide.CalendarApi.createAttendee$separatedMessageChannelSuffix", codec)
+        if (api != null) {
+          channel.setMessageHandler { message, reply ->
+            val args = message as List<Any?>
+            val eventIdArg = args[0] as String
+            val nameArg = args[1] as String
+            val emailArg = args[2] as String
+            val roleArg = args[3] as Long
+            val typeArg = args[4] as Long
+            api.createAttendee(eventIdArg, nameArg, emailArg, roleArg, typeArg) { result: Result<Event> ->
+              val error = result.exceptionOrNull()
+              if (error != null) {
+                reply.reply(wrapError(error))
+              } else {
+                val data = result.getOrNull()
+                reply.reply(wrapResult(data))
+              }
+            }
+          }
+        } else {
+          channel.setMessageHandler(null)
+        }
+      }
+      run {
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.eventide.CalendarApi.deleteAttendee$separatedMessageChannelSuffix", codec)
+        if (api != null) {
+          channel.setMessageHandler { message, reply ->
+            val args = message as List<Any?>
+            val eventIdArg = args[0] as String
+            val emailArg = args[1] as String
+            api.deleteAttendee(eventIdArg, emailArg) { result: Result<Event> ->
               val error = result.exceptionOrNull()
               if (error != null) {
                 reply.reply(wrapError(error))

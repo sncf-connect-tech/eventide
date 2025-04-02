@@ -5,36 +5,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:eventide/src/eventide_exception.dart';
 
 void main() {
-  group('ETException tests', () {
-    test('ETPermissionException is instantiated correctly', () {
-      final exception = ETPermissionException(message: 'Permission denied');
-      expect(exception.code, 'ACCESS_REFUSED');
-      expect(exception.message, 'Permission denied');
-      expect(exception.details, isNull);
-    });
-
-    test('ETNotFoundException is instantiated correctly', () {
-      final exception = ETNotFoundException(message: 'Not found');
-      expect(exception.code, 'NOT_FOUND');
-      expect(exception.message, 'Not found');
-      expect(exception.details, isNull);
-    });
-
-    test('ETNotEditableException is instantiated correctly', () {
-      final exception = ETNotEditableException(message: 'Not editable');
-      expect(exception.code, 'NOT_EDITABLE');
-      expect(exception.message, 'Not editable');
-      expect(exception.details, isNull);
-    });
-
-    test('ETGenericException is instantiated correctly', () {
-      final exception = ETGenericException(message: 'Generic error');
-      expect(exception.code, 'GENERIC_ERROR');
-      expect(exception.message, 'Generic error');
-      expect(exception.details, isNull);
-    });
-  });
-
   group('PlatformExceptionToETCalendarException tests', () {
     test('Converts PlatformException to ETPermissionException', () {
       final platformException = PlatformException(
@@ -78,6 +48,17 @@ void main() {
       expect(etException, isA<ETGenericException>());
       expect(etException.code, 'GENERIC_ERROR');
       expect(etException.message, 'Unknown error');
+    });
+
+    test('Converts PlatformException to ETNotSupportedByPlatform', () {
+      final platformException = PlatformException(
+        code: 'PLATFORM_DOES_NOT_SUPPORT',
+        message: 'platform does not support this feature',
+      );
+      final etException = platformException.toETException();
+      expect(etException, isA<ETNotSupportedByPlatform>());
+      expect(etException.code, 'PLATFORM_DOES_NOT_SUPPORT');
+      expect(etException.message, 'platform does not support this feature');
     });
   });
 }

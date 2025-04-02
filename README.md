@@ -15,7 +15,7 @@ Eventide provides a easy-to-use flutter interface to access & modify native devi
 :white_check_mark: | Create/delete reminders
 :white_check_mark: | Custom exceptions
 :construction: | Recurring events
-:construction: | Attendees
+:white_check_mark: | Attendees
 :construction: | Streams
 
 NOTE: Eventide handles timezones as UTC. Make sure the right data is feed to the plugin with a [timezone aware DateTime class](https://pub.dev/packages/timezone).
@@ -70,6 +70,51 @@ final updatedEvent = await eventide.deleteReminder(
 ```
 
 You can find more in the example app.
+
+---
+
+### 🧑🏻 Attendees
+
+#### Creation & deletion
+
+⚠️ Please note that attendees edition is only supported by Android, due to iOS EventKit API limitations. Attendees are still retrievable through events on both iOS & Android.
+
+```dart
+final eventWithAttendee = await eventide.createAttendee(
+    eventId: event.id,
+    name: 'John Doe',
+    email: 'john.doe@gmail.com',
+    type: ETAttendeeType.requiredPerson,
+);
+
+final eventWithoutAttendee = await eventide.deleteAttendee(
+    eventId: event.id,
+    attendee: eventWithAttendee.attendees.first,
+);
+```
+
+#### Retrieval
+##### Common attendees types mapping table
+iOS and Android attendee APIs are quite different and thus required some conversion logic. Here's the mapping table that eventide currently supports:
+
+|  ETAttendeeType            | iOS (EKParticipantType)   | iOS (EKParticipantRole)   | Android (ATTENDEE_TYPE)   | Android (ATTENDEE_RELATIONSHIP)   |
+|  :------------------------ | :------------------------ | :------------------------ | :------------------------ | :-------------------------------- |
+|  unknown                   | unknown                   | unknown                   | TYPE_NONE                 | RELATIONSHIP_NONE                 |
+|  requiredPerson            | person                    | required                  | TYPE_REQUIRED             | RELATIONSHIP_ATTENDEE             |
+|  optionalPerson            | person                    | optional                  | TYPE_OPTIONAL             | RELATIONSHIP_ATTENDEE             |
+|  resource                  | resource                  | required                  | TYPE_RESOURCE             | RELATIONSHIP_ATTENDEE             |
+|  organizer                 | person                    | chair                     | TYPE_REQUIRED             | RELATIONSHIP_ORGANIZER            |
+
+##### Platform specific attendees types mapping table
+Platform specific values will be treated as follow when fetched from existing system calendar:
+
+| ETAttendeeType            | iOS (EKParticipantType)   | iOS (EKParticipantRole)   | Android (ATTENDEE_TYPE)   | Android (ATTENDEE_RELATIONSHIP)   |
+| :------------------------ | :------------------------ | :------------------------ | :------------------------ | :-------------------------------- |
+| optionalPerson            | person                    | nonParticipant            |                           |                                   |
+| resource                  | group                     | required                  |                           |                                   |
+| resource                  | room                      | required                  |                           |                                   |
+| requiredPerson            |                           |                           | TYPE_REQUIRED             | RELATIONSHIP_PERFORMER            |
+| requiredPerson            |                           |                           | TYPE_REQUIRED             | RELATIONSHIP_SPEAKER              |
 
 ---
 

@@ -2,7 +2,7 @@ import 'package:equatable/equatable.dart';
 import 'package:eventide/eventide.dart';
 import 'package:value_state/value_state.dart';
 
-typedef EventState = Value<EventValue>;
+typedef EventListState = Value<EventValue>;
 
 class EventValue extends Equatable {
   final ETCalendar calendar;
