@@ -42,16 +42,14 @@ class AttendeeTests {
 
     @Test
     fun createAttendee_withGrantedPermission_createsAttendeeSuccessfully() = runTest {
-        every { permissionHandler.requestWritePermission(any()) } answers {
-            firstArg<(Boolean) -> Unit>().invoke(true)
-        }
+        mockPermissionGranted(permissionHandler)
 
         val insertionUri = mockk<Uri>(relaxed = true)
         every { contentResolver.insert(attendeesContentUri, any()) } returns insertionUri
 
         mockRetrieveEvents(contentResolver, eventContentUri)
         mockRetrieveAttendees(contentResolver, attendeesContentUri)
-        mockRetrieveReminders(contentResolver, remindersContentUri)
+        mockRetrieveAttendees(contentResolver, remindersContentUri)
 
         var result: Result<Event>? = null
         val latch = CountDownLatch(1)
@@ -73,9 +71,7 @@ class AttendeeTests {
 
     @Test
     fun createAttendee_withDeniedPermission_failsToCreateAttendee() = runTest {
-        every { permissionHandler.requestWritePermission(any()) } answers {
-            firstArg<(Boolean) -> Unit>().invoke(false)
-        }
+        mockPermissionDenied(permissionHandler)
 
         var result: Result<Event>? = null
         calendarImplem.createAttendee("1", "John Doe", "john.doe@example.com", 1, 1) {
@@ -87,14 +83,12 @@ class AttendeeTests {
 
     @Test
     fun deleteAttendee_withGrantedPermission_deletesAttendeeSuccessfully() = runTest {
-        every { permissionHandler.requestWritePermission(any()) } answers {
-            firstArg<(Boolean) -> Unit>().invoke(true)
-        }
+        mockPermissionGranted(permissionHandler)
         every { contentResolver.delete(attendeesContentUri, any(), any()) } returns 1
 
         mockRetrieveEvents(contentResolver, eventContentUri)
         mockRetrieveAttendees(contentResolver, attendeesContentUri)
-        mockRetrieveReminders(contentResolver, remindersContentUri)
+        mockRetrieveAttendees(contentResolver, remindersContentUri)
 
         var result: Result<Event>? = null
         val latch = CountDownLatch(1)
@@ -110,14 +104,48 @@ class AttendeeTests {
 
     @Test
     fun deleteAttendee_withDeniedPermission_failsToDeleteAttendee() = runTest {
-        every { permissionHandler.requestWritePermission(any()) } answers {
-            firstArg<(Boolean) -> Unit>().invoke(false)
-        }
+        mockPermissionDenied(permissionHandler)
 
         var result: Result<Event>? = null
         calendarImplem.deleteAttendee("1", "john.doe@example.com") {
             result = it
         }
+
+        assertTrue(result!!.isFailure)
+    }
+
+    @Test
+    fun deleteAttendee_withException_failsToDeleteAttendee() = runTest {
+        mockPermissionGranted(permissionHandler)
+
+        every { contentResolver.delete(attendeesContentUri, any(), any()) } throws Exception("Delete failed")
+
+        var result: Result<Event>? = null
+        val latch = CountDownLatch(1)
+        calendarImplem.deleteAttendee("eventId", "john.doe@example.com") {
+            result = it
+            latch.countDown()
+        }
+
+        latch.await()
+
+        assertTrue(result!!.isFailure)
+    }
+
+    @Test
+    fun deleteAttendee_withNoRowsDeleted_failsToDeleteAttendee() = runTest {
+        mockPermissionGranted(permissionHandler)
+
+        every { contentResolver.delete(attendeesContentUri, any(), any()) } returns 0
+
+        var result: Result<Event>? = null
+        val latch = CountDownLatch(1)
+        calendarImplem.deleteAttendee("eventId", "john.doe@example.com") {
+            result = it
+            latch.countDown()
+        }
+
+        latch.await()
 
         assertTrue(result!!.isFailure)
     }

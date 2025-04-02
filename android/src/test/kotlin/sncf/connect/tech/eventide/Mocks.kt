@@ -30,3 +30,23 @@ fun mockRetrieveReminders(contentResolver: ContentResolver, remindersContentUri:
     every { remindersCursor.getInt(any()) } returns 0
     every { remindersCursor.getLong(any()) } returnsMany listOf(10)
 }
+
+fun mockPermissionGranted(permissionHandler: PermissionHandler) {
+    every { permissionHandler.requestWritePermission(any()) } answers {
+        firstArg<(Boolean) -> Unit>().invoke(true)
+    }
+
+    every { permissionHandler.requestReadPermission(any()) } answers {
+        firstArg<(Boolean) -> Unit>().invoke(true)
+    }
+}
+
+fun mockPermissionDenied(permissionHandler: PermissionHandler) {
+    every { permissionHandler.requestWritePermission(any()) } answers {
+        firstArg<(Boolean) -> Unit>().invoke(false)
+    }
+
+    every { permissionHandler.requestReadPermission(any()) } answers {
+        firstArg<(Boolean) -> Unit>().invoke(false)
+    }
+}

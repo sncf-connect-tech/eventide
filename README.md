@@ -71,30 +71,13 @@ final updatedEvent = await eventide.deleteReminder(
 
 You can find more in the example app.
 
-### Attendees
-#### Common attendees types mapping table
-iOS and Android attendee APIs are quite different and thus required some conversion logic. Here's the mapping table that eventide currently supports:
+---
 
-| iOS (EKParticipantType)   | iOS (EKParticipantRole)   | Android (ATTENDEE_TYPE)   | Android (ATTENDEE_RELATIONSHIP)   |  ETAttendeeType            |
-| :------------------------ | :------------------------ | :------------------------ | :-------------------------------- |  :------------------------ |
-| unknown                   | unknown                   | TYPE_NONE                 | RELATIONSHIP_NONE                 |  unknown                   |
-| person                    | required                  | TYPE_REQUIRED             | RELATIONSHIP_ATTENDEE             |  requiredPerson            |
-| person                    | optional                  | TYPE_OPTIONAL             | RELATIONSHIP_ATTENDEE             |  optionalPerson            |
-| resource                  | required                  | TYPE_RESOURCE             | RELATIONSHIP_ATTENDEE             |  resource                  |
-| person                    | chair                     | TYPE_REQUIRED             | RELATIONSHIP_ORGANIZER            |  organizer                 |
+### 🧑🏻 Attendees
 
-#### Platform specific attendees types mapping table
-Platform specific values will be treated as follow when fetched from existing system calendar:
+#### Creation & deletion
 
-| iOS (EKParticipantType)   | iOS (EKParticipantRole)   | Android (ATTENDEE_TYPE)   | Android (ATTENDEE_RELATIONSHIP)   | ETAttendeeType            |
-| :------------------------ | :------------------------ | :------------------------ | :-------------------------------- | :------------------------ |
-| person                    | nonParticipant            |                           |                                   | optionalPerson            |
-| group                     | required                  |                           |                                   | resource                  |
-| room                      | required                  |                           |                                   | resource                  |
-|                           |                           | TYPE_REQUIRED             | RELATIONSHIP_PERFORMER            | requiredPerson            |
-|                           |                           | TYPE_REQUIRED             | RELATIONSHIP_SPEAKER              | requiredPerson            |
-
-#### Usage
+⚠️ Please note that attendees edition is only supported by Android, due to iOS EventKit API limitations. Attendees are still retrievable through events on both iOS & Android.
 
 ```dart
 final event = await eventide.createEvent(
@@ -117,7 +100,28 @@ final eventWithoutAttendee = await eventide.deleteAttendee(
 );
 ```
 
-Please note that attendees edition is only supported by Android, due to iOS EventKit API limitations. Attendees are still retrievable through events on both iOS & Android.
+#### Retrieval
+##### Common attendees types mapping table
+iOS and Android attendee APIs are quite different and thus required some conversion logic. Here's the mapping table that eventide currently supports:
+
+|  ETAttendeeType            | iOS (EKParticipantType)   | iOS (EKParticipantRole)   | Android (ATTENDEE_TYPE)   | Android (ATTENDEE_RELATIONSHIP)   |
+|  :------------------------ | :------------------------ | :------------------------ | :------------------------ | :-------------------------------- |
+|  unknown                   | unknown                   | unknown                   | TYPE_NONE                 | RELATIONSHIP_NONE                 |
+|  requiredPerson            | person                    | required                  | TYPE_REQUIRED             | RELATIONSHIP_ATTENDEE             |
+|  optionalPerson            | person                    | optional                  | TYPE_OPTIONAL             | RELATIONSHIP_ATTENDEE             |
+|  resource                  | resource                  | required                  | TYPE_RESOURCE             | RELATIONSHIP_ATTENDEE             |
+|  organizer                 | person                    | chair                     | TYPE_REQUIRED             | RELATIONSHIP_ORGANIZER            |
+
+##### Platform specific attendees types mapping table
+Platform specific values will be treated as follow when fetched from existing system calendar:
+
+| ETAttendeeType            | iOS (EKParticipantType)   | iOS (EKParticipantRole)   | Android (ATTENDEE_TYPE)   | Android (ATTENDEE_RELATIONSHIP)   |
+| :------------------------ | :------------------------ | :------------------------ | :------------------------ | :-------------------------------- |
+| optionalPerson            | person                    | nonParticipant            |                           |                                   |
+| resource                  | group                     | required                  |                           |                                   |
+| resource                  | room                      | required                  |                           |                                   |
+| requiredPerson            |                           |                           | TYPE_REQUIRED             | RELATIONSHIP_PERFORMER            |
+| requiredPerson            |                           |                           | TYPE_REQUIRED             | RELATIONSHIP_SPEAKER              |
 
 ---
 
