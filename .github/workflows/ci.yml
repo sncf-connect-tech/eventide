@@ -41,6 +41,32 @@ jobs:
           name: flutter-coverage
           path: coverage/lcov.info
 
+  flutter-minimum-version-tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.27.0'
+          channel: 'stable'
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Analyze project source
+        run: dart analyze . --fatal-infos
+
+      - name: Import sort
+        run: dart run import_sorter:main . --no-comments --exit-if-changed
+
+      - name: Format code
+        run: dart format . --set-exit-if-changed
+
+      - name: Run tests
+        run: flutter test ./test/*
+
   ios-tests:
     runs-on: macos-latest
 
