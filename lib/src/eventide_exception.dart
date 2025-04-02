@@ -45,7 +45,7 @@ class ETNotSupportedByPlatform extends ETException {
   ETNotSupportedByPlatform({
     required super.message,
     super.details,
-  }) : super(code: "INCOMPATIBLE_PLATFORM");
+  }) : super(code: 'PLATFORM_DOES_NOT_SUPPORT');
 }
 
 extension PlatformExceptionToETCalendarException on PlatformException {
@@ -64,7 +64,7 @@ extension PlatformExceptionToETCalendarException on PlatformException {
           message: message,
           details: details,
         ),
-      'INCOMPATIBLE_PLATFORM' => ETNotSupportedByPlatform(
+      'PLATFORM_DOES_NOT_SUPPORT' => ETNotSupportedByPlatform(
           message: message,
           details: details,
         ),
