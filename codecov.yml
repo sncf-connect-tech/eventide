@@ -8,6 +8,19 @@ coverage:
   precision: 2
 
   status:
+    patch:
+      project:
+        enabled: yes
+        target: 80%
+        threshold: 5%
+      ios:
+        enabled: yes
+        target: 80%
+        threshold: 5%
+      android:
+        enabled: no # Disabled while android is not behaving with codecov
+        target: 80%
+        threshold: 5%
     project:
       flutter:
         enabled: yes
