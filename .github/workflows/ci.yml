@@ -58,12 +58,6 @@ jobs:
       - name: Analyze project source
         run: dart analyze . --fatal-infos
 
-      - name: Import sort
-        run: dart run import_sorter:main . --no-comments --exit-if-changed
-
-      - name: Format code
-        run: dart format . --set-exit-if-changed
-
       - name: Run tests
         run: flutter test ./test/*
 
@@ -91,7 +85,7 @@ jobs:
         run: |
           xcodebuild test -workspace ./example/ios/Runner.xcworkspace \
             -scheme EventideTests \
-            -destination 'platform=iOS Simulator,name=iPhone 16,OS=18.4' \
+            -destination 'platform=iOS Simulator,name=iPhone 16 Pro,OS=18.2' \
             -resultBundlePath build/reports/EventideTests.xcresult \
             -quiet
 

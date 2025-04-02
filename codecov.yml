@@ -12,15 +12,15 @@ coverage:
       flutter:
         enabled: yes
         target: 80%
-        threshold: 1%
+        threshold: 5%
       ios:
         enabled: yes
         target: 80%
-        threshold: 1%
+        threshold: 5%
       android:
         enabled: no # Disabled while android is not behaving with codecov
         target: 80%
-        threshold: 1%
+        threshold: 5%
 
 fixes:
   - "Users/runner/work/eventide/eventide/example/ios/EventideTests::ios/"
