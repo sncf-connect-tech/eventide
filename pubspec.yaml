@@ -31,8 +31,8 @@ keywords:
   - Android calendar
 
 environment:
-  sdk: '>=3.3.1 <4.0.0'
-  flutter: '>=3.3.0'
+  sdk: ^3.6.0
+  flutter: '>=3.27.0'
 
 dependencies:
   equatable: ^2.0.7

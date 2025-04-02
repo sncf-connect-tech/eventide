@@ -8,6 +8,14 @@ on:
     paths-ignore:
       - '**.md'
 
+env:
+  FLUTTER_VERSION: 3.29.2
+  FLUTTER_MINIMUM_VERSION: 3.27.0
+  JAVA_VERSION: 17
+  JAVA_DISTRIBUTION: corretto
+  IPHONE_NAME: iPhone 16 Pro
+  IPHONE_OS_VERSION: 18.2
+
 jobs:
   flutter-tests:
     runs-on: ubuntu-latest
@@ -17,7 +25,7 @@ jobs:
 
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.29.0'
+          flutter-version: ${{ env.FLUTTER_VERSION }}
           channel: 'stable'
 
       - name: Install dependencies
@@ -41,15 +49,35 @@ jobs:
           name: flutter-coverage
           path: coverage/lcov.info
 
-  ios-tests:
-    runs-on: macos-14
+  flutter-minimum-version-tests:
+    runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v4
 
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.29.0'
+          flutter-version: ${{ env.FLUTTER_MINIMUM_VERSION }}
+          channel: 'stable'
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Analyze project source
+        run: dart analyze . --fatal-infos
+
+      - name: Run tests
+        run: flutter test ./test/*
+
+  ios-tests:
+    runs-on: macos-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
           channel: 'stable'
 
       - name: Install dependencies
@@ -65,7 +93,7 @@ jobs:
         run: |
           xcodebuild test -workspace ./example/ios/Runner.xcworkspace \
             -scheme EventideTests \
-            -destination 'platform=iOS Simulator,name=iPhone 15 Pro,OS=17.5' \
+            -destination "platform=iOS Simulator,name=${{ env.IPHONE_NAME }},OS=${{ env.IPHONE_OS_VERSION }}" \
             -resultBundlePath build/reports/EventideTests.xcresult \
             -quiet
 
@@ -89,13 +117,13 @@ jobs:
 
       - uses: actions/setup-java@v4
         with:
-          distribution: 'corretto'
-          java-version: '17'
+          distribution: ${{ env.JAVA_DISTRIBUTION }}
+          java-version: ${{ env.JAVA_VERSION }}
           cache: 'gradle'
 
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.29.0'
+          flutter-version: ${{ env.FLUTTER_VERSION }}
           channel: 'stable'
 
       - name: Install dependencies
