@@ -1,8 +1,8 @@
 import 'dart:ui';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
-import 'package:equatable/equatable.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 
 import 'package:eventide/src/eventide.dart';
@@ -92,7 +92,7 @@ abstract class EventidePlatform extends PlatformInterface {
 /// [isWritable] is a boolean to indicate if the calendar is writable.
 ///
 /// [sourceName] is the name of the source of the calendar.
-final class ETCalendar extends Equatable {
+final class ETCalendar {
   final String id;
   final String title;
   final Color color;
@@ -100,7 +100,7 @@ final class ETCalendar extends Equatable {
   final ETAccount account;
 
   @override
-  List<Object?> get props => [id, title, color, isWritable, account];
+  int get hashCode => Object.hash(id, title, color, isWritable, account);
 
   const ETCalendar({
     required this.id,
@@ -109,6 +109,17 @@ final class ETCalendar extends Equatable {
     required this.isWritable,
     required this.account,
   });
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other.runtimeType == runtimeType &&
+          other is ETCalendar &&
+          other.id == id &&
+          other.title == title &&
+          other.color == color &&
+          other.isWritable == isWritable &&
+          other.account == account;
 }
 
 /// Represents an event.
@@ -128,7 +139,7 @@ final class ETCalendar extends Equatable {
 /// [url] is the url of the event.
 ///
 /// [reminders] is a list of [Duration] before the event.
-final class ETEvent extends Equatable {
+final class ETEvent {
   final String id;
   final String title;
   final bool isAllDay;
@@ -141,18 +152,18 @@ final class ETEvent extends Equatable {
   final String? url;
 
   @override
-  List<Object?> get props => [
+  int get hashCode => Object.hashAll([
         id,
         title,
         isAllDay,
         startDate,
         endDate,
         calendarId,
-        reminders,
-        attendees,
+        ...reminders,
+        ...attendees,
         description,
         url,
-      ];
+      ]);
 
   const ETEvent({
     required this.id,
@@ -166,6 +177,22 @@ final class ETEvent extends Equatable {
     this.description,
     this.url,
   });
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other.runtimeType == runtimeType &&
+          other is ETEvent &&
+          other.id == id &&
+          other.title == title &&
+          other.isAllDay == isAllDay &&
+          other.startDate == startDate &&
+          other.endDate == endDate &&
+          other.calendarId == calendarId &&
+          listEquals(other.reminders, reminders) &&
+          listEquals(other.attendees, attendees) &&
+          other.description == description &&
+          other.url == url;
 }
 
 /// Represents an account.
@@ -177,17 +204,22 @@ final class ETEvent extends Equatable {
 /// This class is used to represent the account that the calendar belongs to.
 ///
 /// For example, if the calendar belongs to a Google account, the account name will be the email address of the Google account.
-final class ETAccount extends Equatable {
+final class ETAccount {
   final String name;
   final String type;
 
   @override
-  List<Object?> get props => [name, type];
+  int get hashCode => Object.hash(name, type);
 
   const ETAccount({
     required this.name,
     required this.type,
   });
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other.runtimeType == runtimeType && other is ETAccount && other.name == name && other.type == type;
 }
 
 /// Represents an attendee.
@@ -199,14 +231,14 @@ final class ETAccount extends Equatable {
 /// [type] is the type of the attendee. See README for more information.
 ///
 /// [status] is the status of the attendee.
-final class ETAttendee extends Equatable {
+final class ETAttendee {
   final String name;
   final String email;
   final ETAttendeeType type;
   final ETAttendanceStatus status;
 
   @override
-  List<Object?> get props => [name, email, type, status];
+  int get hashCode => Object.hash(name, email, type, status);
 
   const ETAttendee({
     required this.name,
@@ -214,6 +246,16 @@ final class ETAttendee extends Equatable {
     required this.type,
     required this.status,
   });
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other.runtimeType == runtimeType &&
+          other is ETAttendee &&
+          other.name == name &&
+          other.email == email &&
+          other.type == type &&
+          other.status == status;
 }
 
 enum ETAttendeeType {
