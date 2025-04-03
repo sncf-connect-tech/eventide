@@ -65,7 +65,7 @@ void main() {
     });
 
     test('remove attendee', () async {
-      final attendee = ETAttendee(
+      const attendee = ETAttendee(
         name: 'name',
         email: 'email',
         type: ETAttendeeType.requiredPerson,

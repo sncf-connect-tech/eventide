@@ -187,7 +187,7 @@ void main() {
     });
 
     test('ETAccount toAccount', () {
-      final etAccount = ETAccount(name: 'Test Account', type: 'Test Type');
+      const etAccount = ETAccount(name: 'Test Account', type: 'Test Type');
       final account = etAccount.toAccount();
       expect(account.name, 'Test Account');
       expect(account.type, 'Test Type');

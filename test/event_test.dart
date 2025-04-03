@@ -304,7 +304,7 @@ void main() {
       expect(etEvent.calendarId, '1');
       expect(etEvent.description, 'Test Description');
       expect(etEvent.url, 'http://test.com');
-      expect(etEvent.reminders, [Duration(minutes: 10), Duration(minutes: 20)]);
+      expect(etEvent.reminders, [const Duration(minutes: 10), const Duration(minutes: 20)]);
     });
 
     test('List<Event> toETEventList', () {
@@ -339,10 +339,10 @@ void main() {
         calendarId: '1',
         description: 'Test Description',
         url: 'http://test.com',
-        reminders: [Duration(minutes: 10)],
+        reminders: const [Duration(minutes: 10)],
       );
-      final copiedEvent = etEvent.copyWithReminders([Duration(minutes: 20)]);
-      expect(copiedEvent.reminders, [Duration(minutes: 20)]);
+      final copiedEvent = etEvent.copyWithReminders([const Duration(minutes: 20)]);
+      expect(copiedEvent.reminders, [const Duration(minutes: 20)]);
     });
   });
 }

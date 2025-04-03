@@ -17,13 +17,13 @@ void main() {
   group('NativeToDuration tests', () {
     test('int toDuration on iOS', () {
       debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
-      expect(10.toDuration(), Duration(seconds: 10));
+      expect(10.toDuration(), const Duration(seconds: 10));
       debugDefaultTargetPlatformOverride = null;
     });
 
     test('int toDuration on Android', () {
       debugDefaultTargetPlatformOverride = TargetPlatform.android;
-      expect(10.toDuration(), Duration(minutes: 10));
+      expect(10.toDuration(), const Duration(minutes: 10));
       debugDefaultTargetPlatformOverride = null;
     });
   });
@@ -31,19 +31,19 @@ void main() {
   group('DurationToNative tests', () {
     test('Duration toNativeDuration on iOS', () {
       debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
-      expect(Duration(seconds: 10).toNativeDuration(), 10);
+      expect(const Duration(seconds: 10).toNativeDuration(), 10);
       debugDefaultTargetPlatformOverride = null;
     });
 
     test('Duration toNativeDuration on Android', () {
       debugDefaultTargetPlatformOverride = TargetPlatform.android;
-      expect(Duration(minutes: 10).toNativeDuration(), 10);
+      expect(const Duration(minutes: 10).toNativeDuration(), 10);
       debugDefaultTargetPlatformOverride = null;
     });
 
     test('List<Duration> toNativeList', () {
       debugDefaultTargetPlatformOverride = TargetPlatform.android;
-      final durations = [Duration(minutes: 10), Duration(minutes: 20)];
+      final durations = [const Duration(minutes: 10), const Duration(minutes: 20)];
       expect(durations.toNativeList(), [10, 20]);
       debugDefaultTargetPlatformOverride = null;
     });
@@ -51,7 +51,7 @@ void main() {
     test('List<int> toDurationList', () {
       debugDefaultTargetPlatformOverride = TargetPlatform.android;
       final durations = [10, 20];
-      expect(durations.toDurationList(), [Duration(minutes: 10), Duration(minutes: 20)]);
+      expect(durations.toDurationList(), [const Duration(minutes: 10), const Duration(minutes: 20)]);
       debugDefaultTargetPlatformOverride = null;
     });
   });

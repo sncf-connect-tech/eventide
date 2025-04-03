@@ -1,3 +1,6 @@
+## 0.5.1
+* minimum version flutter 3.24.0 & dart 3.5.0
+
 ## 0.5.0
 * retrieve attendees through events (Android & iOS)
 * create/delete attendees (Android only)
