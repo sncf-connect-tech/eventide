@@ -1,3 +1,7 @@
+## 0.6.0
+* removed dependency to [equatable](https://pub.dev/packages/equatable)
+* upgraded pigeon dependency to 25.2.0
+
 ## 0.5.0
 * retrieve attendees through events (Android & iOS)
 * create/delete attendees (Android only)
