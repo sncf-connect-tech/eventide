@@ -43,9 +43,11 @@ abstract class EventidePlatform extends PlatformInterface {
     required String title,
     required DateTime startDate,
     required DateTime endDate,
+    bool isAllDay = false,
     String? description,
     String? url,
     List<Duration>? reminders,
+    String? rRule,
   });
 
   Future<List<ETEvent>> retrieveEvents({

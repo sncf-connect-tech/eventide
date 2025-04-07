@@ -68,6 +68,7 @@ class Event {
     required this.attendees,
     this.description,
     this.url,
+    this.rRule,
   });
 
   String id;
@@ -90,6 +91,8 @@ class Event {
 
   String? url;
 
+  String? rRule;
+
   Object encode() {
     return <Object?>[
       id,
@@ -102,6 +105,7 @@ class Event {
       attendees,
       description,
       url,
+      rRule,
     ];
   }
 
@@ -118,6 +122,7 @@ class Event {
       attendees: (result[7] as List<Object?>?)!.cast<Attendee>(),
       description: result[8] as String?,
       url: result[9] as String?,
+      rRule: result[10] as String?,
     );
   }
 }
@@ -189,6 +194,7 @@ class Attendee {
   }
 }
 
+
 class _PigeonCodec extends StandardMessageCodec {
   const _PigeonCodec();
   @override
@@ -196,16 +202,16 @@ class _PigeonCodec extends StandardMessageCodec {
     if (value is int) {
       buffer.putUint8(4);
       buffer.putInt64(value);
-    } else if (value is Calendar) {
+    }    else if (value is Calendar) {
       buffer.putUint8(129);
       writeValue(buffer, value.encode());
-    } else if (value is Event) {
+    }    else if (value is Event) {
       buffer.putUint8(130);
       writeValue(buffer, value.encode());
-    } else if (value is Account) {
+    }    else if (value is Account) {
       buffer.putUint8(131);
       writeValue(buffer, value.encode());
-    } else if (value is Attendee) {
+    }    else if (value is Attendee) {
       buffer.putUint8(132);
       writeValue(buffer, value.encode());
     } else {
@@ -216,13 +222,13 @@ class _PigeonCodec extends StandardMessageCodec {
   @override
   Object? readValueOfType(int type, ReadBuffer buffer) {
     switch (type) {
-      case 129:
+      case 129: 
         return Calendar.decode(readValue(buffer)!);
-      case 130:
+      case 130: 
         return Event.decode(readValue(buffer)!);
-      case 131:
+      case 131: 
         return Account.decode(readValue(buffer)!);
-      case 132:
+      case 132: 
         return Attendee.decode(readValue(buffer)!);
       default:
         return super.readValueOfType(type, buffer);
@@ -244,15 +250,15 @@ class CalendarApi {
   final String pigeonVar_messageChannelSuffix;
 
   Future<bool> requestCalendarPermission() async {
-    final String pigeonVar_channelName =
-        'dev.flutter.pigeon.eventide.CalendarApi.requestCalendarPermission$pigeonVar_messageChannelSuffix';
+    final String pigeonVar_channelName = 'dev.flutter.pigeon.eventide.CalendarApi.requestCalendarPermission$pigeonVar_messageChannelSuffix';
     final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
       pigeonVar_channelName,
       pigeonChannelCodec,
       binaryMessenger: pigeonVar_binaryMessenger,
     );
     final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(null);
-    final List<Object?>? pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
+    final List<Object?>? pigeonVar_replyList =
+        await pigeonVar_sendFuture as List<Object?>?;
     if (pigeonVar_replyList == null) {
       throw _createConnectionError(pigeonVar_channelName);
     } else if (pigeonVar_replyList.length > 1) {
@@ -271,20 +277,16 @@ class CalendarApi {
     }
   }
 
-  Future<Calendar> createCalendar({
-    required String title,
-    required int color,
-    required String localAccountName,
-  }) async {
-    final String pigeonVar_channelName =
-        'dev.flutter.pigeon.eventide.CalendarApi.createCalendar$pigeonVar_messageChannelSuffix';
+  Future<Calendar> createCalendar({required String title, required int color, required String localAccountName, }) async {
+    final String pigeonVar_channelName = 'dev.flutter.pigeon.eventide.CalendarApi.createCalendar$pigeonVar_messageChannelSuffix';
     final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
       pigeonVar_channelName,
       pigeonChannelCodec,
       binaryMessenger: pigeonVar_binaryMessenger,
     );
     final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(<Object?>[title, color, localAccountName]);
-    final List<Object?>? pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
+    final List<Object?>? pigeonVar_replyList =
+        await pigeonVar_sendFuture as List<Object?>?;
     if (pigeonVar_replyList == null) {
       throw _createConnectionError(pigeonVar_channelName);
     } else if (pigeonVar_replyList.length > 1) {
@@ -303,18 +305,16 @@ class CalendarApi {
     }
   }
 
-  Future<List<Calendar>> retrieveCalendars(
-      {required bool onlyWritableCalendars, required String? fromLocalAccountName}) async {
-    final String pigeonVar_channelName =
-        'dev.flutter.pigeon.eventide.CalendarApi.retrieveCalendars$pigeonVar_messageChannelSuffix';
+  Future<List<Calendar>> retrieveCalendars({required bool onlyWritableCalendars, required String? fromLocalAccountName}) async {
+    final String pigeonVar_channelName = 'dev.flutter.pigeon.eventide.CalendarApi.retrieveCalendars$pigeonVar_messageChannelSuffix';
     final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
       pigeonVar_channelName,
       pigeonChannelCodec,
       binaryMessenger: pigeonVar_binaryMessenger,
     );
-    final Future<Object?> pigeonVar_sendFuture =
-        pigeonVar_channel.send(<Object?>[onlyWritableCalendars, fromLocalAccountName]);
-    final List<Object?>? pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
+    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(<Object?>[onlyWritableCalendars, fromLocalAccountName]);
+    final List<Object?>? pigeonVar_replyList =
+        await pigeonVar_sendFuture as List<Object?>?;
     if (pigeonVar_replyList == null) {
       throw _createConnectionError(pigeonVar_channelName);
     } else if (pigeonVar_replyList.length > 1) {
@@ -334,15 +334,15 @@ class CalendarApi {
   }
 
   Future<void> deleteCalendar({required String calendarId}) async {
-    final String pigeonVar_channelName =
-        'dev.flutter.pigeon.eventide.CalendarApi.deleteCalendar$pigeonVar_messageChannelSuffix';
+    final String pigeonVar_channelName = 'dev.flutter.pigeon.eventide.CalendarApi.deleteCalendar$pigeonVar_messageChannelSuffix';
     final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
       pigeonVar_channelName,
       pigeonChannelCodec,
       binaryMessenger: pigeonVar_binaryMessenger,
     );
     final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(<Object?>[calendarId]);
-    final List<Object?>? pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
+    final List<Object?>? pigeonVar_replyList =
+        await pigeonVar_sendFuture as List<Object?>?;
     if (pigeonVar_replyList == null) {
       throw _createConnectionError(pigeonVar_channelName);
     } else if (pigeonVar_replyList.length > 1) {
@@ -356,25 +356,16 @@ class CalendarApi {
     }
   }
 
-  Future<Event> createEvent({
-    required String calendarId,
-    required String title,
-    required int startDate,
-    required int endDate,
-    required bool isAllDay,
-    required String? description,
-    required String? url,
-  }) async {
-    final String pigeonVar_channelName =
-        'dev.flutter.pigeon.eventide.CalendarApi.createEvent$pigeonVar_messageChannelSuffix';
+  Future<Event> createEvent({required String calendarId, required String title, required int startDate, required int endDate, required bool isAllDay, required String? description, required String? url, required String? rRule, }) async {
+    final String pigeonVar_channelName = 'dev.flutter.pigeon.eventide.CalendarApi.createEvent$pigeonVar_messageChannelSuffix';
     final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
       pigeonVar_channelName,
       pigeonChannelCodec,
       binaryMessenger: pigeonVar_binaryMessenger,
     );
-    final Future<Object?> pigeonVar_sendFuture =
-        pigeonVar_channel.send(<Object?>[calendarId, title, startDate, endDate, isAllDay, description, url]);
-    final List<Object?>? pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
+    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(<Object?>[calendarId, title, startDate, endDate, isAllDay, description, url, rRule]);
+    final List<Object?>? pigeonVar_replyList =
+        await pigeonVar_sendFuture as List<Object?>?;
     if (pigeonVar_replyList == null) {
       throw _createConnectionError(pigeonVar_channelName);
     } else if (pigeonVar_replyList.length > 1) {
@@ -393,20 +384,16 @@ class CalendarApi {
     }
   }
 
-  Future<List<Event>> retrieveEvents({
-    required String calendarId,
-    required int startDate,
-    required int endDate,
-  }) async {
-    final String pigeonVar_channelName =
-        'dev.flutter.pigeon.eventide.CalendarApi.retrieveEvents$pigeonVar_messageChannelSuffix';
+  Future<List<Event>> retrieveEvents({required String calendarId, required int startDate, required int endDate, }) async {
+    final String pigeonVar_channelName = 'dev.flutter.pigeon.eventide.CalendarApi.retrieveEvents$pigeonVar_messageChannelSuffix';
     final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
       pigeonVar_channelName,
       pigeonChannelCodec,
       binaryMessenger: pigeonVar_binaryMessenger,
     );
     final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(<Object?>[calendarId, startDate, endDate]);
-    final List<Object?>? pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
+    final List<Object?>? pigeonVar_replyList =
+        await pigeonVar_sendFuture as List<Object?>?;
     if (pigeonVar_replyList == null) {
       throw _createConnectionError(pigeonVar_channelName);
     } else if (pigeonVar_replyList.length > 1) {
@@ -426,15 +413,15 @@ class CalendarApi {
   }
 
   Future<void> deleteEvent({required String eventId}) async {
-    final String pigeonVar_channelName =
-        'dev.flutter.pigeon.eventide.CalendarApi.deleteEvent$pigeonVar_messageChannelSuffix';
+    final String pigeonVar_channelName = 'dev.flutter.pigeon.eventide.CalendarApi.deleteEvent$pigeonVar_messageChannelSuffix';
     final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
       pigeonVar_channelName,
       pigeonChannelCodec,
       binaryMessenger: pigeonVar_binaryMessenger,
     );
     final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(<Object?>[eventId]);
-    final List<Object?>? pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
+    final List<Object?>? pigeonVar_replyList =
+        await pigeonVar_sendFuture as List<Object?>?;
     if (pigeonVar_replyList == null) {
       throw _createConnectionError(pigeonVar_channelName);
     } else if (pigeonVar_replyList.length > 1) {
@@ -449,15 +436,15 @@ class CalendarApi {
   }
 
   Future<Event> createReminder({required int reminder, required String eventId}) async {
-    final String pigeonVar_channelName =
-        'dev.flutter.pigeon.eventide.CalendarApi.createReminder$pigeonVar_messageChannelSuffix';
+    final String pigeonVar_channelName = 'dev.flutter.pigeon.eventide.CalendarApi.createReminder$pigeonVar_messageChannelSuffix';
     final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
       pigeonVar_channelName,
       pigeonChannelCodec,
       binaryMessenger: pigeonVar_binaryMessenger,
     );
     final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(<Object?>[reminder, eventId]);
-    final List<Object?>? pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
+    final List<Object?>? pigeonVar_replyList =
+        await pigeonVar_sendFuture as List<Object?>?;
     if (pigeonVar_replyList == null) {
       throw _createConnectionError(pigeonVar_channelName);
     } else if (pigeonVar_replyList.length > 1) {
@@ -477,15 +464,15 @@ class CalendarApi {
   }
 
   Future<Event> deleteReminder({required int reminder, required String eventId}) async {
-    final String pigeonVar_channelName =
-        'dev.flutter.pigeon.eventide.CalendarApi.deleteReminder$pigeonVar_messageChannelSuffix';
+    final String pigeonVar_channelName = 'dev.flutter.pigeon.eventide.CalendarApi.deleteReminder$pigeonVar_messageChannelSuffix';
     final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
       pigeonVar_channelName,
       pigeonChannelCodec,
       binaryMessenger: pigeonVar_binaryMessenger,
     );
     final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(<Object?>[reminder, eventId]);
-    final List<Object?>? pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
+    final List<Object?>? pigeonVar_replyList =
+        await pigeonVar_sendFuture as List<Object?>?;
     if (pigeonVar_replyList == null) {
       throw _createConnectionError(pigeonVar_channelName);
     } else if (pigeonVar_replyList.length > 1) {
@@ -504,22 +491,16 @@ class CalendarApi {
     }
   }
 
-  Future<Event> createAttendee({
-    required String eventId,
-    required String name,
-    required String email,
-    required int role,
-    required int type,
-  }) async {
-    final String pigeonVar_channelName =
-        'dev.flutter.pigeon.eventide.CalendarApi.createAttendee$pigeonVar_messageChannelSuffix';
+  Future<Event> createAttendee({required String eventId, required String name, required String email, required int role, required int type, }) async {
+    final String pigeonVar_channelName = 'dev.flutter.pigeon.eventide.CalendarApi.createAttendee$pigeonVar_messageChannelSuffix';
     final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
       pigeonVar_channelName,
       pigeonChannelCodec,
       binaryMessenger: pigeonVar_binaryMessenger,
     );
     final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(<Object?>[eventId, name, email, role, type]);
-    final List<Object?>? pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
+    final List<Object?>? pigeonVar_replyList =
+        await pigeonVar_sendFuture as List<Object?>?;
     if (pigeonVar_replyList == null) {
       throw _createConnectionError(pigeonVar_channelName);
     } else if (pigeonVar_replyList.length > 1) {
@@ -539,15 +520,15 @@ class CalendarApi {
   }
 
   Future<Event> deleteAttendee({required String eventId, required String email}) async {
-    final String pigeonVar_channelName =
-        'dev.flutter.pigeon.eventide.CalendarApi.deleteAttendee$pigeonVar_messageChannelSuffix';
+    final String pigeonVar_channelName = 'dev.flutter.pigeon.eventide.CalendarApi.deleteAttendee$pigeonVar_messageChannelSuffix';
     final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
       pigeonVar_channelName,
       pigeonChannelCodec,
       binaryMessenger: pigeonVar_binaryMessenger,
     );
     final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(<Object?>[eventId, email]);
-    final List<Object?>? pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
+    final List<Object?>? pigeonVar_replyList =
+        await pigeonVar_sendFuture as List<Object?>?;
     if (pigeonVar_replyList == null) {
       throw _createConnectionError(pigeonVar_channelName);
     } else if (pigeonVar_replyList.length > 1) {

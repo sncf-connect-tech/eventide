@@ -94,7 +94,8 @@ final class EasyEventStore: EasyEventStoreProtocol {
         endDate: Date,
         isAllDay: Bool,
         description: String?,
-        url: String?
+        url: String?,
+        rRule: String?
     ) throws -> Event {
         let ekEvent = EKEvent(eventStore: eventStore)
         
@@ -113,6 +114,22 @@ final class EasyEventStore: EasyEventStoreProtocol {
         ekEvent.endDate = endDate
         ekEvent.timeZone = TimeZone(identifier: "UTC")
         ekEvent.isAllDay = isAllDay
+        
+        if let rRule = rRule {
+            guard let recurrenceRule = EKRecurrenceRule(from: rRule) else {
+                throw PigeonError(
+                    code: "GENERIC_ERROR",
+                    message: "Unable to parse EKRecurrenceRule from rRule",
+                    details: "rRule must respect RFC5545 format convention"
+                )
+            }
+            
+            if (ekEvent.recurrenceRules == nil) {
+                ekEvent.recurrenceRules = [recurrenceRule]
+            } else {
+                ekEvent.recurrenceRules?.append(recurrenceRule)
+            }
+        }
         
         if url != nil {
             ekEvent.url = URL(string: url!)

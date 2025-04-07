@@ -4,15 +4,20 @@ import android.content.ContentResolver
 import android.content.ContentValues
 import android.net.Uri
 import android.provider.CalendarContract
+import androidx.core.database.getStringOrNull
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
+import java.time.Instant
+import java.time.LocalDateTime
+import java.time.ZoneOffset
 import java.util.concurrent.CountDownLatch
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
+import kotlin.time.Duration
 
 class CalendarImplem(
     private var contentResolver: ContentResolver,
@@ -283,6 +288,7 @@ class CalendarImplem(
         isAllDay: Boolean,
         description: String?,
         url: String?,
+        rRule: String?,
         callback: (Result<Event>) -> Unit
     ) {
         permissionHandler.requestWritePermission { granted ->
@@ -295,9 +301,25 @@ class CalendarImplem(
                                 put(CalendarContract.Events.TITLE, title)
                                 put(CalendarContract.Events.DESCRIPTION, description)
                                 put(CalendarContract.Events.DTSTART, startDate)
-                                put(CalendarContract.Events.DTEND, endDate)
                                 put(CalendarContract.Events.EVENT_TIMEZONE, "UTC")
                                 put(CalendarContract.Events.ALL_DAY, isAllDay)
+
+                                // FIXME: temporary
+                                put(CalendarContract.Events.DTEND, endDate)
+
+                                if (rRule != null) {
+                                    // https://developer.android.com/reference/android/provider/CalendarContract.Events#operations
+                                    //val duration = endDate - startDate
+                                    //put(CalendarContract.Events.DURATION, duration)
+
+                                    // https://stackoverflow.com/a/49515728/24891894
+                                    if (!rRule.contains("COUNT=") && !rRule.contains("UNTIL=")) {
+                                        rRule.plus(";COUNT=1000")
+                                    }
+                                    put(CalendarContract.Events.RRULE, rRule.replace("RRULE:", ""))
+                                } else {
+                                    //put(CalendarContract.Events.DTEND, endDate)
+                                }
                             }
 
                             val eventUri = contentResolver.insert(eventContentUri, eventValues)
@@ -393,6 +415,7 @@ class CalendarImplem(
                             CalendarContract.Events.DTEND,
                             CalendarContract.Events.EVENT_TIMEZONE,
                             CalendarContract.Events.ALL_DAY,
+                            CalendarContract.Events.RRULE,
                         )
                         val selection =
                             CalendarContract.Events.CALENDAR_ID + " = ? AND " + CalendarContract.Events.DTSTART + " >= ? AND " + CalendarContract.Events.DTEND + " <= ?"
@@ -410,6 +433,7 @@ class CalendarImplem(
                                 val start = c.getLong(c.getColumnIndexOrThrow(CalendarContract.Events.DTSTART))
                                 val end = c.getLong(c.getColumnIndexOrThrow(CalendarContract.Events.DTEND))
                                 val isAllDay = c.getInt(c.getColumnIndexOrThrow(CalendarContract.Events.ALL_DAY)) == 1
+                                val rRule = c.getStringOrNull(c.getColumnIndexOrThrow(CalendarContract.Events.RRULE))
 
                                 val attendees = mutableListOf<Attendee>()
                                 val attendeesLatch = CountDownLatch(1)
@@ -441,14 +465,15 @@ class CalendarImplem(
                                 events.add(
                                     Event(
                                         id = id,
+                                        calendarId = calendarId,
                                         title = title,
                                         startDate = start,
                                         endDate = end,
-                                        calendarId = calendarId,
+                                        reminders = reminders,
+                                        attendees = attendees,
                                         description = description,
                                         isAllDay = isAllDay,
-                                        reminders = reminders,
-                                        attendees = attendees
+                                        rRule = rRule
                                     )
                                 )
                             }

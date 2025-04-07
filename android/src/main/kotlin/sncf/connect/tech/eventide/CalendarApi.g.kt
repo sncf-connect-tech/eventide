@@ -87,7 +87,8 @@ data class Event (
   val reminders: List<Long>,
   val attendees: List<Attendee>,
   val description: String? = null,
-  val url: String? = null
+  val url: String? = null,
+  val rRule: String? = null
 )
  {
   companion object {
@@ -102,7 +103,8 @@ data class Event (
       val attendees = pigeonVar_list[7] as List<Attendee>
       val description = pigeonVar_list[8] as String?
       val url = pigeonVar_list[9] as String?
-      return Event(id, calendarId, title, isAllDay, startDate, endDate, reminders, attendees, description, url)
+      val rRule = pigeonVar_list[10] as String?
+      return Event(id, calendarId, title, isAllDay, startDate, endDate, reminders, attendees, description, url, rRule)
     }
   }
   fun toList(): List<Any?> {
@@ -117,6 +119,7 @@ data class Event (
       attendees,
       description,
       url,
+      rRule,
     )
   }
 }
@@ -227,7 +230,7 @@ interface CalendarApi {
   fun createCalendar(title: String, color: Long, localAccountName: String, callback: (Result<Calendar>) -> Unit)
   fun retrieveCalendars(onlyWritableCalendars: Boolean, fromLocalAccountName: String?, callback: (Result<List<Calendar>>) -> Unit)
   fun deleteCalendar(calendarId: String, callback: (Result<Unit>) -> Unit)
-  fun createEvent(calendarId: String, title: String, startDate: Long, endDate: Long, isAllDay: Boolean, description: String?, url: String?, callback: (Result<Event>) -> Unit)
+  fun createEvent(calendarId: String, title: String, startDate: Long, endDate: Long, isAllDay: Boolean, description: String?, url: String?, rRule: String?, callback: (Result<Event>) -> Unit)
   fun retrieveEvents(calendarId: String, startDate: Long, endDate: Long, callback: (Result<List<Event>>) -> Unit)
   fun deleteEvent(eventId: String, callback: (Result<Unit>) -> Unit)
   fun createReminder(reminder: Long, eventId: String, callback: (Result<Event>) -> Unit)
@@ -336,7 +339,8 @@ interface CalendarApi {
             val isAllDayArg = args[4] as Boolean
             val descriptionArg = args[5] as String?
             val urlArg = args[6] as String?
-            api.createEvent(calendarIdArg, titleArg, startDateArg, endDateArg, isAllDayArg, descriptionArg, urlArg) { result: Result<Event> ->
+            val rRuleArg = args[7] as String?
+            api.createEvent(calendarIdArg, titleArg, startDateArg, endDateArg, isAllDayArg, descriptionArg, urlArg, rRuleArg) { result: Result<Event> ->
               val error = result.exceptionOrNull()
               if (error != null) {
                 reply.reply(wrapError(error))
