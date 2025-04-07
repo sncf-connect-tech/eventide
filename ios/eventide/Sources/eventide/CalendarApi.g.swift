@@ -116,6 +116,8 @@ struct Calendar {
 ///
 /// [id] is a unique identifier for the event.
 ///
+/// [calendarId] is the id of the calendar that the event belongs to.
+///
 /// [title] is the title of the event.
 ///
 /// [isAllDay] is whether or not the event is an all day.
@@ -124,13 +126,15 @@ struct Calendar {
 ///
 /// [endDate] is the end date of the event in milliseconds since epoch.
 ///
-/// [calendarId] is the id of the calendar that the event belongs to.
+/// [reminders] is a list of minutes before the event to remind the user.
+///
+/// [attendees] is a list of attendees for the event.
 ///
 /// [description] is the description of the event.
 ///
 /// [url] is the url of the event.
 ///
-/// [reminders] is a list of minutes before the event to remind the user.
+/// [rRule] is the recurrence rule of the event (https://datatracker.ietf.org/doc/html/rfc5545).
 ///
 /// Generated class from Pigeon that represents data sent in messages.
 struct Event {
@@ -144,6 +148,7 @@ struct Event {
   var attendees: [Attendee]
   var description: String? = nil
   var url: String? = nil
+  var rRule: String? = nil
 
 
   // swift-format-ignore: AlwaysUseLowerCamelCase
@@ -158,6 +163,7 @@ struct Event {
     let attendees = pigeonVar_list[7] as! [Attendee]
     let description: String? = nilOrValue(pigeonVar_list[8])
     let url: String? = nilOrValue(pigeonVar_list[9])
+    let rRule: String? = nilOrValue(pigeonVar_list[10])
 
     return Event(
       id: id,
@@ -169,7 +175,8 @@ struct Event {
       reminders: reminders,
       attendees: attendees,
       description: description,
-      url: url
+      url: url,
+      rRule: rRule
     )
   }
   func toList() -> [Any?] {
@@ -184,6 +191,7 @@ struct Event {
       attendees,
       description,
       url,
+      rRule,
     ]
   }
 }
@@ -306,7 +314,7 @@ protocol CalendarApi {
   func createCalendar(title: String, color: Int64, account: Account?, completion: @escaping (Result<Calendar, Error>) -> Void)
   func retrieveCalendars(onlyWritableCalendars: Bool, from: Account?, completion: @escaping (Result<[Calendar], Error>) -> Void)
   func deleteCalendar(_ calendarId: String, completion: @escaping (Result<Void, Error>) -> Void)
-  func createEvent(calendarId: String, title: String, startDate: Int64, endDate: Int64, isAllDay: Bool, description: String?, url: String?, completion: @escaping (Result<Event, Error>) -> Void)
+  func createEvent(calendarId: String, title: String, startDate: Int64, endDate: Int64, isAllDay: Bool, description: String?, url: String?, rRule: String?, completion: @escaping (Result<Event, Error>) -> Void)
   func retrieveEvents(calendarId: String, startDate: Int64, endDate: Int64, completion: @escaping (Result<[Event], Error>) -> Void)
   func deleteEvent(withId eventId: String, completion: @escaping (Result<Void, Error>) -> Void)
   func createReminder(_ reminder: Int64, forEventId eventId: String, completion: @escaping (Result<Event, Error>) -> Void)
@@ -401,7 +409,8 @@ class CalendarApiSetup {
         let isAllDayArg = args[4] as! Bool
         let descriptionArg: String? = nilOrValue(args[5])
         let urlArg: String? = nilOrValue(args[6])
-        api.createEvent(calendarId: calendarIdArg, title: titleArg, startDate: startDateArg, endDate: endDateArg, isAllDay: isAllDayArg, description: descriptionArg, url: urlArg) { result in
+        let rRuleArg: String? = nilOrValue(args[7])
+        api.createEvent(calendarId: calendarIdArg, title: titleArg, startDate: startDateArg, endDate: endDateArg, isAllDay: isAllDayArg, description: descriptionArg, url: urlArg, rRule: rRuleArg) { result in
           switch result {
           case .success(let res):
             reply(wrapResult(res))

@@ -131,6 +131,7 @@ class Eventide extends EventidePlatform {
     String? description,
     String? url,
     List<Duration>? reminders,
+    String? rRule,
   }) async {
     try {
       final event = await _calendarApi.createEvent(
@@ -141,6 +142,7 @@ class Eventide extends EventidePlatform {
         isAllDay: isAllDay,
         description: description,
         url: url,
+        rRule: rRule,
       );
 
       if (reminders != null) {
