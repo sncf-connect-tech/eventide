@@ -19,13 +19,13 @@ abstract class CalendarApi {
   Calendar createCalendar({
     required String title,
     required int color,
-    required Account? account,
+    required String localAccountName,
   });
 
   @async
   List<Calendar> retrieveCalendars({
     required bool onlyWritableCalendars,
-    required Account? from,
+    required String? fromLocalAccountName,
   });
 
   @async
@@ -88,17 +88,6 @@ abstract class CalendarApi {
   });
 }
 
-/// Native data struct to represent a calendar.
-///
-/// [id] is a unique identifier for the calendar.
-///
-/// [title] is the title of the calendar.
-///
-/// [color] is the color of the calendar.
-///
-/// [isWritable] is a boolean to indicate if the calendar is writable.
-///
-/// [account] is the account the calendar belongs to
 final class Calendar {
   final String id;
   final String title;
@@ -115,25 +104,6 @@ final class Calendar {
   });
 }
 
-/// Native data struct to represent an event.
-///
-/// [id] is a unique identifier for the event.
-///
-/// [title] is the title of the event.
-///
-/// [isAllDay] is whether or not the event is an all day.
-///
-/// [startDate] is the start date of the event in milliseconds since epoch.
-///
-/// [endDate] is the end date of the event in milliseconds since epoch.
-///
-/// [calendarId] is the id of the calendar that the event belongs to.
-///
-/// [description] is the description of the event.
-///
-/// [url] is the url of the event.
-///
-/// [reminders] is a list of minutes before the event to remind the user.
 final class Event {
   final String id;
   final String calendarId;

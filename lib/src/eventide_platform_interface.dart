@@ -26,12 +26,12 @@ abstract class EventidePlatform extends PlatformInterface {
   Future<ETCalendar> createCalendar({
     required String title,
     required Color color,
-    ETAccount? account,
+    required String localAccountName,
   });
 
   Future<List<ETCalendar>> retrieveCalendars({
     bool onlyWritableCalendars = true,
-    ETAccount? fromAccount,
+    String? fromLocalAccountName,
   });
 
   Future<void> deleteCalendar({

@@ -67,12 +67,12 @@ class CalendarTests {
         mockPermissionGranted(permissionHandler)
 
         val uri = mockk<Uri>(relaxed = true)
-        every { contentResolver.insert(calendarContentUri, any()) } returns uri
+        every { contentResolver.insert(any(), any()) } returns uri
         every { uri.lastPathSegment } returns "1"
 
         var result: Result<Calendar>? = null
         val latch = CountDownLatch(1)
-        calendarImplem.createCalendar("Test Calendar", 0x00FF00, Account("1", "Test Account")) {
+        calendarImplem.createCalendar("Test Calendar", 0x00FF00, "Test Account") {
             result = it
             latch.countDown()
         }
@@ -82,8 +82,8 @@ class CalendarTests {
         assertTrue(result!!.isSuccess)
         assertTrue(result!!.getOrNull()!!.title == "Test Calendar")
         assertTrue(result!!.getOrNull()!!.color.toInt() == 0x00FF00)
-        assertTrue(result!!.getOrNull()!!.account.name == "1")
-        assertTrue(result!!.getOrNull()!!.account.type == "Test Account")
+        assertTrue(result!!.getOrNull()!!.account.name == "Test Account")
+        assertTrue(result!!.getOrNull()!!.account.type == CalendarContract.ACCOUNT_TYPE_LOCAL)
         assertEquals("1", result!!.getOrNull()?.id)
     }
 
@@ -92,7 +92,7 @@ class CalendarTests {
         mockPermissionDenied(permissionHandler)
 
         var result: Result<Calendar>? = null
-        calendarImplem.createCalendar("Test Calendar", 0xFF0000, null) {
+        calendarImplem.createCalendar("Test Calendar", 0xFF0000, "Test Account") {
             result = it
         }
 
@@ -104,11 +104,11 @@ class CalendarTests {
     fun createCalendar_withInvalidUri_returnsGenericError() = runTest {
         mockPermissionGranted(permissionHandler)
 
-        every { contentResolver.insert(calendarContentUri, any()) } returns null
+        every { contentResolver.insert(any(), any()) } returns null
 
         var result: Result<Calendar>? = null
         val latch = CountDownLatch(1)
-        calendarImplem.createCalendar("Test Calendar", 0xFF0000, null) {
+        calendarImplem.createCalendar("Test Calendar", 0xFF0000, "Test Account") {
             result = it
             latch.countDown()
         }
@@ -124,12 +124,12 @@ class CalendarTests {
         mockPermissionGranted(permissionHandler)
 
         val uri = mockk<Uri>(relaxed = true)
-        every { contentResolver.insert(calendarContentUri, any()) } returns uri
+        every { contentResolver.insert(any(), any()) } returns uri
         every { uri.lastPathSegment } returns null
 
         var result: Result<Calendar>? = null
         val latch = CountDownLatch(1)
-        calendarImplem.createCalendar("Test Calendar", 0xFF0000, null) {
+        calendarImplem.createCalendar("Test Calendar", 0xFF0000, "Test Account") {
             result = it
             latch.countDown()
         }
@@ -144,11 +144,11 @@ class CalendarTests {
     fun createCalendar_withException_returnsGenericError() = runTest {
         mockPermissionGranted(permissionHandler)
 
-        every { contentResolver.insert(calendarContentUri, any()) } throws Exception("Insert failed")
+        every { contentResolver.insert(any(), any()) } throws Exception("Insert failed")
 
         var result: Result<Calendar>? = null
         val latch = CountDownLatch(1)
-        calendarImplem.createCalendar("Test Calendar", 0xFF0000, null) {
+        calendarImplem.createCalendar("Test Calendar", 0xFF0000, "Test Account") {
             result = it
             latch.countDown()
         }
@@ -218,7 +218,7 @@ class CalendarTests {
 
         var result: Result<List<Calendar>>? = null
         val latch = CountDownLatch(1)
-        calendarImplem.retrieveCalendars(false, Account("testAccount", "testType")) {
+        calendarImplem.retrieveCalendars(false, "Test Account") {
             result = it
             latch.countDown()
         }
@@ -226,7 +226,7 @@ class CalendarTests {
         latch.await()
 
         val expectedSelection = "${CalendarContract.Calendars.ACCOUNT_NAME} = ? AND ${CalendarContract.Calendars.ACCOUNT_TYPE} = ?"
-        val expectedSelectionArgs = arrayOf("testAccount", "testType")
+        val expectedSelectionArgs = arrayOf("Test Account", CalendarContract.ACCOUNT_TYPE_LOCAL)
 
         verify {
             contentResolver.query(

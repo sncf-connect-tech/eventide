@@ -20,6 +20,7 @@ class CalendarCubit extends Cubit<Value<List<ETCalendar>>> {
       final calendar = await _calendarPlugin.createCalendar(
         title: title,
         color: color,
+        localAccountName: "My Company",
       );
 
       return [...state.data ?? [], calendar];

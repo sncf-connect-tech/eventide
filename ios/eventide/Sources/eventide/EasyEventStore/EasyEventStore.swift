@@ -15,8 +15,8 @@ final class EasyEventStore: EasyEventStoreProtocol {
         self.eventStore = eventStore
     }
     
-    func createCalendar(title: String, color: UIColor, account: Account?) throws -> Calendar {
-        guard let source = getSource(account: account) else {
+    func createCalendar(title: String, color: UIColor, localAccountName: String) throws -> Calendar {
+        guard let source = getSource() else {
             throw PigeonError(
                 code: "NOT_FOUND",
                 message: "Calendar source was not found",
@@ -46,13 +46,13 @@ final class EasyEventStore: EasyEventStoreProtocol {
     
     func retrieveCalendars(
         onlyWritable: Bool,
-        from account: Account?
+        from localAccountName: String?
     ) -> [Calendar] {
         return eventStore.calendars(for: .event)
             .filter { onlyWritable ? $0.allowsContentModifications : true }
             .filter { calendar in
-                guard let account = account else { return true }
-                return account.name == calendar.source.sourceIdentifier && account.type == calendar.source.sourceType.toString()
+                guard let localAccountName = localAccountName else { return true }
+                return calendar.source.sourceIdentifier == localAccountName
             }
             .map { $0.toCalendar() }
     }
@@ -273,32 +273,16 @@ final class EasyEventStore: EasyEventStoreProtocol {
         return attendees
     }
     
-    private func getSource(account: Account?) -> EKSource? {
+    private func getSource() -> EKSource? {
         guard let defaultSource = eventStore.defaultCalendarForNewEvents?.source else {
             // if eventStore.defaultCalendarForNewEvents?.source is nil then eventStore.sources is empty
             return nil
         }
         
-        if let account = account, let sourceType = EKSourceType(from: account.type) {
-            let wantedSources = eventStore.sources.filter { $0.sourceType == sourceType && $0.sourceIdentifier == account.name }
-            if !wantedSources.isEmpty {
-                return wantedSources.first
-            }
-        }
-        
+        let localSources = eventStore.sources.filter { $0.sourceType == .local }
         let iCloudSources = eventStore.sources.filter { $0.sourceType == .calDAV && $0.sourceIdentifier == "iCloud" }
 
-        if (!iCloudSources.isEmpty) {
-            return iCloudSources.first
-        }
-        
-        let localSources = eventStore.sources.filter { $0.sourceType == .local }
-
-        if (!localSources.isEmpty) {
-            return localSources.first
-        }
-
-        return defaultSource
+        return localSources.first ?? iCloudSources.first ?? defaultSource
     }
 }
 

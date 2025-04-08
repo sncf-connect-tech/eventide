@@ -4,7 +4,6 @@ import 'package:flutter/services.dart';
 import 'package:eventide/src/calendar_api.g.dart';
 import 'package:eventide/src/eventide_exception.dart';
 import 'package:eventide/src/eventide_platform_interface.dart';
-import 'package:eventide/src/extensions/account_extensions.dart';
 import 'package:eventide/src/extensions/attendee_extensions.dart';
 import 'package:eventide/src/extensions/calendar_extensions.dart';
 import 'package:eventide/src/extensions/color_extensions.dart';
@@ -51,13 +50,13 @@ class Eventide extends EventidePlatform {
   Future<ETCalendar> createCalendar({
     required String title,
     required Color color,
-    ETAccount? account,
+    required String localAccountName,
   }) async {
     try {
       final calendar = await _calendarApi.createCalendar(
         title: title,
         color: color.toValue(),
-        account: account?.toAccount(),
+        localAccountName: localAccountName,
       );
       return calendar.toETCalendar();
     } on PlatformException catch (e) {
@@ -76,12 +75,12 @@ class Eventide extends EventidePlatform {
   @override
   Future<List<ETCalendar>> retrieveCalendars({
     bool onlyWritableCalendars = true,
-    ETAccount? fromAccount,
+    String? fromLocalAccountName,
   }) async {
     try {
       final calendars = await _calendarApi.retrieveCalendars(
         onlyWritableCalendars: onlyWritableCalendars,
-        from: fromAccount?.toAccount(),
+        fromLocalAccountName: fromLocalAccountName,
       );
       return calendars.toETCalendarList();
     } on PlatformException catch (e) {

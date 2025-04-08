@@ -46,31 +46,30 @@ class CalendarImplem(
     override fun createCalendar(
         title: String,
         color: Long,
-        account: Account?,
+        localAccountName: String,
         callback: (Result<Calendar>) -> Unit
     ) {
         permissionHandler.requestWritePermission { granted ->
             if (granted) {
                 CoroutineScope(Dispatchers.IO).launch {
                     try {
-                        val resolvedAccount = account ?: Account("eventide", CalendarContract.ACCOUNT_TYPE_LOCAL)
+                        val syncAdapterUri = calendarContentUri.buildUpon()
+                            .appendQueryParameter(CalendarContract.CALLER_IS_SYNCADAPTER, "true")
+                            .appendQueryParameter(CalendarContract.Calendars.ACCOUNT_NAME, localAccountName)
+                            .appendQueryParameter(CalendarContract.Calendars.ACCOUNT_TYPE, CalendarContract.ACCOUNT_TYPE_LOCAL)
+                            .build()
+
                         val values = ContentValues().apply {
-                            put(CalendarContract.Calendars.ACCOUNT_NAME, resolvedAccount.name)
-                            put(CalendarContract.Calendars.ACCOUNT_TYPE, resolvedAccount.type)
+                            put(CalendarContract.Calendars.ACCOUNT_NAME, localAccountName)
+                            put(CalendarContract.Calendars.ACCOUNT_TYPE, CalendarContract.ACCOUNT_TYPE_LOCAL)
                             put(CalendarContract.Calendars.NAME, title)
                             put(CalendarContract.Calendars.CALENDAR_DISPLAY_NAME, title)
                             put(CalendarContract.Calendars.CALENDAR_COLOR, color)
-                            put(
-                                CalendarContract.Calendars.CALENDAR_ACCESS_LEVEL,
-                                CalendarContract.Calendars.CAL_ACCESS_OWNER
-                            )
-                            put(CalendarContract.Calendars.OWNER_ACCOUNT, resolvedAccount.name)
-                            put(CalendarContract.CALLER_IS_SYNCADAPTER, "true")
-                            put(CalendarContract.Calendars.VISIBLE, 1)
-                            put(CalendarContract.Calendars.SYNC_EVENTS, 1)
+                            put(CalendarContract.Calendars.CALENDAR_ACCESS_LEVEL, CalendarContract.Calendars.CAL_ACCESS_OWNER)
+                            put(CalendarContract.Calendars.OWNER_ACCOUNT, localAccountName)
                         }
 
-                        val calendarUri = contentResolver.insert(calendarContentUri, values)
+                        val calendarUri = contentResolver.insert(syncAdapterUri, values)
                         if (calendarUri != null) {
                             val calendarId = calendarUri.lastPathSegment
                             if (calendarId != null) {
@@ -79,7 +78,10 @@ class CalendarImplem(
                                     title = title,
                                     color = color,
                                     isWritable = true,
-                                    account = resolvedAccount
+                                    account = Account(
+                                        name = localAccountName,
+                                        type = CalendarContract.ACCOUNT_TYPE_LOCAL
+                                    )
                                 )
                                 callback(Result.success(calendar))
                             } else {
@@ -129,7 +131,7 @@ class CalendarImplem(
 
     override fun retrieveCalendars(
         onlyWritableCalendars: Boolean,
-        from: Account?,
+        fromLocalAccountName: String?,
         callback: (Result<List<Calendar>>) -> Unit
     ) {
         permissionHandler.requestReadPermission { granted ->
@@ -148,10 +150,10 @@ class CalendarImplem(
                         var selection: String? = null
                         var selectionArgs: Array<String>? = null
 
-                        from?.let { account ->
+                        fromLocalAccountName?.let { localAccountName ->
                             selection =
                                 CalendarContract.Calendars.ACCOUNT_NAME + " = ? AND " + CalendarContract.Calendars.ACCOUNT_TYPE + " = ?"
-                            selectionArgs = arrayOf(account.name, account.type)
+                            selectionArgs = arrayOf(localAccountName, CalendarContract.ACCOUNT_TYPE_LOCAL)
                         }
 
                         val cursor =
