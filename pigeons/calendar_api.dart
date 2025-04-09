@@ -43,6 +43,7 @@ abstract class CalendarApi {
     required bool isAllDay,
     required String? description,
     required String? url,
+    required String? rRule,
   });
 
   @async
@@ -119,6 +120,8 @@ final class Calendar {
 ///
 /// [id] is a unique identifier for the event.
 ///
+/// [calendarId] is the id of the calendar that the event belongs to.
+///
 /// [title] is the title of the event.
 ///
 /// [isAllDay] is whether or not the event is an all day.
@@ -127,13 +130,15 @@ final class Calendar {
 ///
 /// [endDate] is the end date of the event in milliseconds since epoch.
 ///
-/// [calendarId] is the id of the calendar that the event belongs to.
+/// [reminders] is a list of minutes before the event to remind the user.
+///
+/// [attendees] is a list of attendees for the event.
 ///
 /// [description] is the description of the event.
 ///
 /// [url] is the url of the event.
 ///
-/// [reminders] is a list of minutes before the event to remind the user.
+/// [rRule] is the recurrence rule of the event (https://datatracker.ietf.org/doc/html/rfc5545).
 final class Event {
   final String id;
   final String calendarId;
@@ -145,6 +150,7 @@ final class Event {
   final List<Attendee> attendees;
   final String? description;
   final String? url;
+  final String? rRule;
 
   const Event({
     required this.id,
@@ -157,6 +163,7 @@ final class Event {
     required this.attendees,
     required this.description,
     required this.url,
+    required this.rRule,
   });
 }
 
