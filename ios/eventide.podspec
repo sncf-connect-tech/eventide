@@ -4,7 +4,7 @@
 #
 Pod::Spec.new do |s|
   s.name             = 'eventide'
-  s.version          = '0.5.0'
+  s.version          = '0.7.0'
   s.summary          = 'Flutter calendar plugin'
   s.description      = <<-DESC
 Eventide provides a easy-to-use flutter interface to access & modify native device calendars.

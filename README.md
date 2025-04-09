@@ -50,7 +50,11 @@ import 'package:eventide/eventide.dart';
 
 final eventide = Eventide();
 
-final calendar = await eventide.createCalendar('Work', Colors.red);
+final calendar = await eventide.createCalendar(
+    title: 'Work',
+    color: Colors.red,
+    localAccountName: "My Company",
+);
 
 final event = await eventide.createEvent(
     calendarId: calendar.id,
@@ -115,6 +119,43 @@ Platform specific values will be treated as follow when fetched from existing sy
 | resource                  | room                      | required                  |                           |                                   |
 | requiredPerson            |                           |                           | TYPE_REQUIRED             | RELATIONSHIP_PERFORMER            |
 | requiredPerson            |                           |                           | TYPE_REQUIRED             | RELATIONSHIP_SPEAKER              |
+
+---
+
+### 📒 Accounts
+
+A calendar belongs to an account, such as a Google account or a local on-device account.
+
+You must provide a `localAccountName` when creating a calendar with eventide.
+
+```dart
+const myAppCalendarIdentifier = "My Company";
+
+await eventide.createCalendar(
+    title: 'Personal',
+    color: Colors.blue,
+    localAccountName: myAppCalendarIdentifier,
+);
+
+await eventide.createCalendar(
+    title: 'Work',
+    color: Colors.red,
+    localAccountName: myAppCalendarIdentifier,
+);
+```
+
+You can filter by `localAccountName` to retrieve only calendars that have been created by your app.
+
+```dart
+final myCompanyCalendars = await eventide.retrieveCalendars(
+    onlyWritableCalendars: true,
+    fromAccountName: myAppCalendarIdentifier
+);
+```
+
+User might need to allow your custom account on their calendar app to display your calendars & events.
+
+![Google Calendar App > Parameters > Manage accounts](./.github/documentation/manageaccounts.png)
 
 ---
 
