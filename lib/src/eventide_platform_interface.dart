@@ -152,6 +152,7 @@ final class ETEvent {
   final List<ETAttendee> attendees;
   final String? description;
   final String? url;
+  final String? rRule;
 
   @override
   int get hashCode => Object.hashAll([
@@ -165,6 +166,7 @@ final class ETEvent {
         ...attendees,
         description,
         url,
+        rRule,
       ]);
 
   const ETEvent({
@@ -178,6 +180,7 @@ final class ETEvent {
     this.attendees = const [],
     this.description,
     this.url,
+    this.rRule,
   });
 
   @override
@@ -194,7 +197,8 @@ final class ETEvent {
           listEquals(other.reminders, reminders) &&
           listEquals(other.attendees, attendees) &&
           other.description == description &&
-          other.url == url;
+          other.url == url &&
+          other.rRule == rRule;
 }
 
 /// Represents an account.

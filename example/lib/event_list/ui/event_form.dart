@@ -1,12 +1,52 @@
 import 'package:flutter/material.dart';
 import 'package:timezone/timezone.dart';
+import 'package:rrule/rrule.dart';
 
+final _supportedLocations = [
+  'Europe/Paris',
+  'America/Los_Angeles',
+  'America/Montreal',
+  'Asia/Beirut',
+];
+
+final _recurrenceRules = {
+  'daily': RecurrenceRule(
+    frequency: Frequency.daily,
+    interval: 1,
+  ),
+  'sun./2weeks dec.': RecurrenceRule(
+    frequency: Frequency.weekly,
+    interval: 2,
+    byMonths: [12],
+    byWeekDays: [
+      ByWeekDayEntry(DateTime.sunday),
+    ],
+  ),
+  'weekly': RecurrenceRule(
+    frequency: Frequency.weekly,
+    interval: 1,
+  ),
+  'every two weeks': RecurrenceRule(
+    frequency: Frequency.weekly,
+    interval: 2,
+  ),
+  'monthly': RecurrenceRule(
+    frequency: Frequency.monthly,
+    interval: 1,
+  ),
+  '1st wed./month': RecurrenceRule.fromString("RRULE:FREQ=MONTHLY;BYDAY=WE;BYMONTHDAY=1,2,3,4,5,6,-1"),
+  'yearly': RecurrenceRule(
+    frequency: Frequency.yearly,
+    interval: 1,
+  ),
+};
 typedef OnEventFormSubmit = void Function(
   String title,
   String description,
   bool isAllDay,
   TZDateTime startDate,
   TZDateTime endDate,
+  RecurrenceRule? rRule,
 );
 
 class EventForm extends StatefulWidget {
@@ -24,15 +64,26 @@ class EventForm extends StatefulWidget {
 class _EventFormState extends State<EventForm> {
   late final TextEditingController _titleController;
   late final TextEditingController _descriptionController;
-  DateTime _selectedStartDate = DateTime.now();
-  DateTime _selectedEndDate = DateTime.now().add(const Duration(hours: 1));
-  bool isAllDay = false;
+  late String _startLocation;
+  late String _endLocation;
+  late TZDateTime _selectedStartDate;
+  late TZDateTime _selectedEndDate;
+  late bool _isAllDay;
+  RecurrenceRule? _recurrenceRule;
 
   @override
   void initState() {
     super.initState();
     _titleController = TextEditingController();
     _descriptionController = TextEditingController();
+
+    _startLocation = _supportedLocations.first;
+    _endLocation = _supportedLocations.first;
+
+    _selectedStartDate = TZDateTime.now(getLocation(_startLocation));
+    _selectedEndDate = TZDateTime.now(getLocation(_endLocation)).add(const Duration(hours: 1));
+
+    _isAllDay = false;
   }
 
   @override
@@ -44,175 +95,225 @@ class _EventFormState extends State<EventForm> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        TextFormField(
-          controller: _titleController,
-          decoration: const InputDecoration(
-            labelText: 'Event title',
-          ),
-        ),
-        const SizedBox(height: 16),
-        TextFormField(
-          controller: _descriptionController,
-          decoration: const InputDecoration(
-            labelText: 'Event description',
-          ),
-        ),
-        const SizedBox(height: 16),
-        Row(
-          children: [
-            const Expanded(child: Text('isAllDay')),
-            Expanded(
-              child: Switch(
-                value: isAllDay,
-                onChanged: (value) => setState(() {
-                  isAllDay = value;
-                }),
-              ),
+    return SingleChildScrollView(
+      child: Column(
+        children: [
+          TextFormField(
+            controller: _titleController,
+            decoration: const InputDecoration(
+              labelText: 'title',
             ),
-          ],
-        ),
-        const SizedBox(height: 16),
-        Text('Start date: ${_selectedStartDate.toLocal()}'),
-        Row(
-          children: [
-            Expanded(
-              child: ElevatedButton(
-                onPressed: () async {
-                  final lastDate = _selectedEndDate;
-                  final pickedDate = await showDatePicker(
-                    context: context,
-                    initialDate: _selectedStartDate,
-                    firstDate: DateTime.now(),
-                    lastDate: lastDate,
-                  );
-
-                  if (pickedDate != null) {
-                    final timeOfDay = TimeOfDay.fromDateTime(_selectedStartDate);
-                    final duration = Duration(hours: timeOfDay.hour, minutes: timeOfDay.minute);
-
-                    setState(() {
-                      _selectedStartDate = pickedDate.add(duration);
-                    });
-                  }
-                },
-                child: const Icon(Icons.calendar_month),
-              ),
+          ),
+          const SizedBox(height: 8),
+          TextFormField(
+            controller: _descriptionController,
+            decoration: const InputDecoration(
+              labelText: 'description',
             ),
-            if (!isAllDay) ...[
-              const SizedBox(width: 16),
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              const Expanded(child: Text('isAllDay')),
               Expanded(
-                child: ElevatedButton(
-                  onPressed: () async {
-                    final timeOfDay = await showTimePicker(
-                      context: context,
-                      initialTime: TimeOfDay.fromDateTime(_selectedStartDate),
-                    );
-
-                    if (timeOfDay != null) {
-                      setState(() {
-                        _selectedStartDate = (_selectedStartDate).copyWith(time: timeOfDay);
-                      });
-                    }
-                  },
-                  child: const Icon(Icons.access_time),
+                child: Switch(
+                  value: _isAllDay,
+                  onChanged: (value) => setState(() {
+                    _isAllDay = value;
+                  }),
                 ),
               ),
             ],
-          ],
-        ),
-        const SizedBox(height: 16),
-        Text('End date: ${_selectedEndDate.toLocal()}'),
-        Row(
-          children: [
-            Expanded(
-              child: ElevatedButton(
-                onPressed: () async {
-                  final firstDate = _selectedStartDate;
-                  final pickedDate = await showDatePicker(
-                    context: context,
-                    initialDate: _selectedEndDate,
-                    firstDate: firstDate,
-                    lastDate: firstDate.add(const Duration(days: 365)),
-                  );
-
-                  if (pickedDate != null) {
-                    final timeOfDay = TimeOfDay.fromDateTime(_selectedEndDate);
-                    final duration = Duration(hours: timeOfDay.hour, minutes: timeOfDay.minute);
-
-                    setState(() {
-                      _selectedEndDate = pickedDate.add(duration);
-                    });
-                  }
-                },
-                child: const Icon(Icons.calendar_month),
-              ),
-            ),
-            if (!isAllDay) ...[
-              const SizedBox(width: 16),
+          ),
+          const SizedBox(height: 8),
+          Text('Start date: ${_selectedStartDate.toIso8601String()}'),
+          DropdownButton<String>(
+            value: _startLocation,
+            items: _supportedLocations.map((location) {
+              return DropdownMenuItem<String>(
+                value: location,
+                child: Text(location),
+              );
+            }).toList(),
+            onChanged: (newValue) {
+              if (newValue == null) return;
+              setState(() {
+                _startLocation = newValue;
+                _selectedStartDate = TZDateTime.from(_selectedStartDate, getLocation(newValue));
+                if (_selectedEndDate.toUtc().isBefore(_selectedStartDate.toUtc())) {
+                  _selectedEndDate = TZDateTime.from(_selectedStartDate, getLocation(_endLocation));
+                }
+              });
+            },
+          ),
+          Row(
+            children: [
               Expanded(
                 child: ElevatedButton(
                   onPressed: () async {
-                    final timeOfDay = await showTimePicker(
+                    final pickedDate = await showDatePicker(
                       context: context,
-                      initialTime: TimeOfDay.fromDateTime(_selectedEndDate),
+                      initialDate: _selectedStartDate,
+                      firstDate: TZDateTime.now(getLocation(_startLocation)),
+                      lastDate: TZDateTime.now(getLocation(_startLocation)).add(Duration(days: 365)),
                     );
 
-                    if (timeOfDay != null) {
+                    if (pickedDate != null) {
+                      final timeOfDay = TimeOfDay.fromDateTime(_selectedStartDate);
+
                       setState(() {
-                        _selectedEndDate = (_selectedEndDate).copyWith(time: timeOfDay);
+                        _selectedStartDate =
+                            TZDateTime.from(pickedDate, getLocation(_startLocation)).copyWith(time: timeOfDay);
                       });
                     }
                   },
-                  child: const Icon(Icons.access_time),
+                  child: const Icon(Icons.calendar_month),
                 ),
               ),
+              if (!_isAllDay) ...[
+                const SizedBox(width: 16),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () async {
+                      final timeOfDay = await showTimePicker(
+                        context: context,
+                        initialTime: TimeOfDay.fromDateTime(_selectedStartDate),
+                      );
+
+                      if (timeOfDay != null) {
+                        setState(() {
+                          _selectedStartDate = _selectedStartDate.copyWith(time: timeOfDay);
+                        });
+                      }
+                    },
+                    child: const Icon(Icons.access_time),
+                  ),
+                ),
+              ],
             ],
-          ],
-        ),
-        if (!isAllDay) ...[
-          const SizedBox(height: 16),
+          ),
+          const SizedBox(height: 8),
+          Text('End date: ${_selectedEndDate.toIso8601String()}'),
+          DropdownButton<String>(
+            value: _endLocation,
+            items: _supportedLocations.map((location) {
+              return DropdownMenuItem<String>(
+                value: location,
+                child: Text(location),
+              );
+            }).toList(),
+            onChanged: (newValue) {
+              if (newValue == null) return;
+              setState(() {
+                _endLocation = newValue;
+                _selectedEndDate = TZDateTime.from(_selectedEndDate, getLocation(newValue));
+              });
+            },
+          ),
+          Row(
+            children: [
+              Expanded(
+                child: ElevatedButton(
+                  onPressed: () async {
+                    final firstDate = TZDateTime.from(_selectedStartDate, getLocation(_endLocation));
+                    final TZDateTime initialDate;
+                    if (_selectedStartDate.isAfter(_selectedEndDate)) {
+                      initialDate = firstDate;
+                    } else {
+                      initialDate = _selectedEndDate;
+                    }
+
+                    final pickedDate = await showDatePicker(
+                      context: context,
+                      initialDate: initialDate,
+                      firstDate: firstDate,
+                      lastDate: firstDate.add(const Duration(days: 365)),
+                    );
+
+                    if (pickedDate != null) {
+                      final timeOfDay = TimeOfDay.fromDateTime(_selectedEndDate);
+
+                      setState(() {
+                        _selectedEndDate =
+                            TZDateTime.from(pickedDate, getLocation(_endLocation)).copyWith(time: timeOfDay);
+                      });
+                    }
+                  },
+                  child: const Icon(Icons.calendar_month),
+                ),
+              ),
+              if (!_isAllDay) ...[
+                const SizedBox(width: 16),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () async {
+                      final timeOfDay = await showTimePicker(
+                        context: context,
+                        initialTime: TimeOfDay.fromDateTime(_selectedEndDate),
+                      );
+
+                      if (timeOfDay != null) {
+                        setState(() {
+                          _selectedEndDate = (_selectedEndDate).copyWith(time: timeOfDay);
+                        });
+                      }
+                    },
+                    child: const Icon(Icons.access_time),
+                  ),
+                ),
+              ],
+            ],
+          ),
+          const SizedBox(height: 8),
+          const Text('Recurrence rule'),
+          DropdownButton<RecurrenceRule?>(
+            value: _recurrenceRule,
+            items: [
+              DropdownMenuItem(value: null, child: Text('None')),
+              ..._recurrenceRules.entries.map((entry) {
+                return DropdownMenuItem<RecurrenceRule>(
+                  value: entry.value,
+                  child: Text(
+                    entry.key,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                );
+              }),
+            ],
+            onChanged: (newValue) {
+              setState(() {
+                _recurrenceRule = newValue;
+              });
+            },
+          ),
+          const SizedBox(height: 8),
           ElevatedButton(
             onPressed: () {
               widget.onSubmit(
-                'Paris - Montreal',
+                _titleController.text,
                 _descriptionController.text,
-                false,
-                TZDateTime(getLocation('Europe/Paris'), 2025, 9, 8, 13, 30),
-                TZDateTime(getLocation('America/Montreal'), 2025, 9, 8, 15, 00),
+                _isAllDay,
+                TZDateTime.from(_selectedStartDate, getLocation('Europe/Paris')),
+                TZDateTime.from(_selectedEndDate, getLocation('Europe/Paris')),
+                _recurrenceRule,
               );
 
               Navigator.of(context).pop();
             },
-            child: const Text('Create event in different timezones'),
+            child: const Text('Create event'),
           ),
         ],
-        const SizedBox(height: 16),
-        ElevatedButton(
-          onPressed: () {
-            widget.onSubmit(
-              _titleController.text,
-              _descriptionController.text,
-              isAllDay,
-              TZDateTime.from(_selectedStartDate, getLocation('Europe/Paris')),
-              TZDateTime.from(_selectedEndDate, getLocation('Europe/Paris')),
-            );
-
-            Navigator.of(context).pop();
-          },
-          child: const Text('Create event'),
-        ),
-      ],
+      ),
     );
   }
 }
 
-extension on DateTime {
-  DateTime copyWith({
+extension on TZDateTime {
+  TZDateTime copyWith({
     required TimeOfDay time,
   }) =>
-      DateTime(
+      TZDateTime(
+        location,
         year,
         month,
         day,

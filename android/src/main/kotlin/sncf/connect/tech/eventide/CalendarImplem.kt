@@ -4,6 +4,7 @@ import android.content.ContentResolver
 import android.content.ContentValues
 import android.net.Uri
 import android.provider.CalendarContract
+import androidx.core.database.getLongOrNull
 import androidx.core.database.getStringOrNull
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
@@ -14,7 +15,9 @@ import kotlinx.coroutines.withContext
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneOffset
+import java.time.ZonedDateTime
 import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlin.time.Duration
@@ -304,13 +307,22 @@ class CalendarImplem(
                                 put(CalendarContract.Events.EVENT_TIMEZONE, "UTC")
                                 put(CalendarContract.Events.ALL_DAY, isAllDay)
 
-                                // FIXME: temporary
-                                put(CalendarContract.Events.DTEND, endDate)
-
                                 if (rRule != null) {
                                     // https://developer.android.com/reference/android/provider/CalendarContract.Events#operations
-                                    //val duration = endDate - startDate
-                                    //put(CalendarContract.Events.DURATION, duration)
+                                    val durationInSeconds = (endDate - startDate) / 1000
+                                    val days = durationInSeconds / (24 * 3600)
+                                    val hours = (durationInSeconds % (24 * 3600)) / 3600
+                                    val minutes = (durationInSeconds % 3600) / 60
+                                    val seconds = durationInSeconds % 60
+
+                                    val rfc2445Duration = "P" +
+                                            (if (days > 0) "${days}D" else "") +
+                                            "T" +
+                                            (if (hours > 0) "${hours}H" else "") +
+                                            (if (minutes > 0) "${minutes}M" else "") +
+                                            (if (seconds > 0) "${seconds}S" else "")
+
+                                    put(CalendarContract.Events.DURATION, rfc2445Duration)
 
                                     // https://stackoverflow.com/a/49515728/24891894
                                     if (!rRule.contains("COUNT=") && !rRule.contains("UNTIL=")) {
@@ -318,7 +330,7 @@ class CalendarImplem(
                                     }
                                     put(CalendarContract.Events.RRULE, rRule.replace("RRULE:", ""))
                                 } else {
-                                    //put(CalendarContract.Events.DTEND, endDate)
+                                    put(CalendarContract.Events.DTEND, endDate)
                                 }
                             }
 
@@ -413,12 +425,14 @@ class CalendarImplem(
                             CalendarContract.Events.DESCRIPTION,
                             CalendarContract.Events.DTSTART,
                             CalendarContract.Events.DTEND,
+                            CalendarContract.Events.DURATION,
                             CalendarContract.Events.EVENT_TIMEZONE,
                             CalendarContract.Events.ALL_DAY,
                             CalendarContract.Events.RRULE,
                         )
                         val selection =
-                            CalendarContract.Events.CALENDAR_ID + " = ? AND " + CalendarContract.Events.DTSTART + " >= ? AND " + CalendarContract.Events.DTEND + " <= ?"
+                            CalendarContract.Events.CALENDAR_ID + " = ? AND " + CalendarContract.Events.DTSTART + " >= ?" + " AND " +
+                                    CalendarContract.Events.DTSTART + " <= ?"
                         val selectionArgs = arrayOf(calendarId, startDate.toString(), endDate.toString())
 
                         val cursor = contentResolver.query(eventContentUri, projection, selection, selectionArgs, null)
@@ -431,6 +445,7 @@ class CalendarImplem(
                                 val description =
                                     c.getString(c.getColumnIndexOrThrow(CalendarContract.Events.DESCRIPTION))
                                 val start = c.getLong(c.getColumnIndexOrThrow(CalendarContract.Events.DTSTART))
+                                val duration = c.getString(c.getColumnIndexOrThrow(CalendarContract.Events.DURATION))
                                 val end = c.getLong(c.getColumnIndexOrThrow(CalendarContract.Events.DTEND))
                                 val isAllDay = c.getInt(c.getColumnIndexOrThrow(CalendarContract.Events.ALL_DAY)) == 1
                                 val rRule = c.getStringOrNull(c.getColumnIndexOrThrow(CalendarContract.Events.RRULE))
@@ -462,18 +477,24 @@ class CalendarImplem(
                                 attendeesLatch.await()
                                 remindersLatch.await()
 
+                                val dtEnd = if (end == 0L) {
+                                    start + rfc2445DurationToMillis(duration)
+                                } else {
+                                    end
+                                }
+
                                 events.add(
                                     Event(
                                         id = id,
                                         calendarId = calendarId,
                                         title = title,
                                         startDate = start,
-                                        endDate = end,
+                                        endDate = dtEnd,
                                         reminders = reminders,
                                         attendees = attendees,
                                         description = description,
                                         isAllDay = isAllDay,
-                                        rRule = rRule
+                                        rRule = "RRULE:$rRule"
                                     )
                                 )
                             }
@@ -505,6 +526,22 @@ class CalendarImplem(
                 )
             }
         }
+    }
+
+    private fun rfc2445DurationToMillis(rfc2445Duration: String): Long {
+        val regex = Regex("P(?:(\\d+)D)?T(?:(\\d+)H)?(?:(\\d+)M)?(?:(\\d+)S)?")
+        val matchResult = regex.matchEntire(rfc2445Duration)
+            ?: throw IllegalArgumentException("Invalid RFC2445 duration format")
+
+        val days = matchResult.groups[1]?.value?.toLong() ?: 0
+        val hours = matchResult.groups[2]?.value?.toLong() ?: 0
+        val minutes = matchResult.groups[3]?.value?.toLong() ?: 0
+        val seconds = matchResult.groups[4]?.value?.toLong() ?: 0
+
+        return TimeUnit.DAYS.toMillis(days) +
+                TimeUnit.HOURS.toMillis(hours) +
+                TimeUnit.MINUTES.toMillis(minutes) +
+                TimeUnit.SECONDS.toMillis(seconds)
     }
 
     override fun deleteEvent(eventId: String, callback: (Result<Unit>) -> Unit) {

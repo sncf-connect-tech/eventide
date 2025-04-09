@@ -11,106 +11,112 @@ class EventList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: SafeArea(
-        child: BlocBuilder<EventListCubit, EventListState>(builder: (context, state) {
-          return CustomScrollView(
-            slivers: [
-              SliverAppBar(
-                pinned: true,
-                title: Text(state.data?.calendar.title ?? ''),
-                actions: [
-                  if (state.data?.calendar.isWritable ?? false)
-                    IconButton(
-                      icon: const Icon(Icons.add),
-                      onPressed: () {
-                        showDialog(
-                          context: context,
-                          builder: (context) {
-                            return AlertDialog(
-                              title: const Text('Create event'),
-                              content: Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                                child: EventForm(
-                                  onSubmit: (title, description, isAllDay, startDate, endDate) {
-                                    BlocProvider.of<EventListCubit>(context).createEvent(
-                                      title: title,
-                                      description: description,
-                                      isAllDay: isAllDay,
-                                      startDate: startDate,
-                                      endDate: endDate,
-                                    );
-                                  },
+    return BlocBuilder<EventListCubit, EventListState>(
+      builder: (context, state) {
+        return Scaffold(
+          body: SafeArea(
+            child: CustomScrollView(
+              slivers: [
+                SliverAppBar(
+                  pinned: true,
+                  title: Text(state.data?.calendar.title ?? ''),
+                ),
+                if (state case Value(:final data?) when data.events.isNotEmpty)
+                  SliverList(
+                    delegate: SliverChildListDelegate([
+                      for (final event in data.events..sort((a, b) => a.id.compareTo(b.id)))
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          child: InkWell(
+                            onTap: () => Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (context) => EventDetails(
+                                  event: event,
+                                  isCalendarWritable: state.data?.calendar.isWritable ?? false,
                                 ),
                               ),
-                            );
-                          },
-                        );
-                      },
-                    ),
-                ],
-              ),
-              if (state case Value(:final data?) when data.events.isNotEmpty)
-                SliverList(
-                  delegate: SliverChildListDelegate([
-                    for (final event in data.events..sort((a, b) => a.id.compareTo(b.id)))
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        child: InkWell(
-                          onTap: () => Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (context) => EventDetails(
-                                event: event,
-                                isCalendarWritable: state.data?.calendar.isWritable ?? false,
-                              ),
                             ),
-                          ),
-                          child: Row(
-                            children: [
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      event.title,
-                                      style: const TextStyle(fontWeight: FontWeight.w700),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                    if (event.description != null)
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
                                       Text(
-                                        event.description!,
+                                        event.title,
+                                        style: const TextStyle(fontWeight: FontWeight.w700),
                                         maxLines: 1,
                                         overflow: TextOverflow.ellipsis,
                                       ),
-                                  ],
+                                      if (event.description != null)
+                                        Text(
+                                          event.description!,
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                    ],
+                                  ),
                                 ),
-                              ),
-                              Expanded(
-                                child: Column(
-                                  children: [
-                                    Text(event.startDate.toFormattedString()),
-                                    Text(event.endDate.toFormattedString()),
-                                  ],
+                                Expanded(
+                                  child: Column(
+                                    children: [
+                                      Text(event.startDate.toFormattedString()),
+                                      Text(event.endDate.toFormattedString()),
+                                    ],
+                                  ),
                                 ),
-                              ),
-                            ],
+                                if (data.calendar.isWritable)
+                                  IconButton(
+                                    icon: const Icon(Icons.delete),
+                                    onPressed: () {
+                                      context.read<EventListCubit>().deleteEvent(event.id);
+                                    },
+                                  ),
+                              ],
+                            ),
                           ),
                         ),
-                      ),
-                  ]),
-                ),
-              if (state case Value(:final data?) when data.events.isEmpty)
-                const SliverToBoxAdapter(
-                  child: Padding(
-                    padding: EdgeInsets.all(16),
-                    child: Text('No events found'),
+                    ]),
                   ),
-                ),
-            ],
-          );
-        }),
-      ),
+                if (state case Value(:final data?) when data.events.isEmpty)
+                  const SliverToBoxAdapter(
+                    child: Padding(
+                      padding: EdgeInsets.all(16),
+                      child: Text('No events found'),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          floatingActionButton: (state.data?.calendar.isWritable ?? false)
+              ? FloatingActionButton(
+                  child: const Icon(Icons.add),
+                  onPressed: () {
+                    showDialog(
+                      context: context,
+                      builder: (context) {
+                        return AlertDialog(
+                          title: const Text('Create event'),
+                          content: EventForm(
+                            onSubmit: (title, description, isAllDay, startDate, endDate, rRule) {
+                              BlocProvider.of<EventListCubit>(context).createEvent(
+                                title: title,
+                                description: description,
+                                isAllDay: isAllDay,
+                                startDate: startDate,
+                                endDate: endDate,
+                                rRule: rRule,
+                              );
+                            },
+                          ),
+                        );
+                      },
+                    );
+                  },
+                )
+              : null,
+        );
+      },
     );
   }
 }

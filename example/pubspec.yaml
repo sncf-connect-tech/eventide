@@ -17,6 +17,7 @@ dependencies:
   value_state: ^2.0.1
   timezone: ^0.10.0
   provider: ^6.1.2
+  rrule: ^0.2.17
 
 dev_dependencies:
   flutter_test:
