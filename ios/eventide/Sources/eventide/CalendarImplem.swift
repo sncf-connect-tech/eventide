@@ -30,12 +30,12 @@ class CalendarImplem: CalendarApi {
     func createCalendar(
         title: String,
         color: Int64,
-        account: Account?,
+        localAccountName: String,
         completion: @escaping (Result<Calendar, Error>) -> Void
     ) {
         permissionHandler.checkCalendarAccessThenExecute { [self] in            
             do {
-                let createdCalendar = try easyEventStore.createCalendar(title: title, color: UIColor(int64: color), account: account)
+                let createdCalendar = try easyEventStore.createCalendar(title: title, color: UIColor(int64: color), localAccountName: localAccountName)
                 completion(.success(createdCalendar))
                 
             } catch {
@@ -56,11 +56,11 @@ class CalendarImplem: CalendarApi {
 
     func retrieveCalendars(
         onlyWritableCalendars: Bool,
-        from account: Account? = nil,
+        fromLocalAccountName accountName: String?,
         completion: @escaping (Result<[Calendar], Error>) -> Void
     ) {
         permissionHandler.checkCalendarAccessThenExecute { [self] in
-            let calendars = easyEventStore.retrieveCalendars(onlyWritable: onlyWritableCalendars, from: account)
+            let calendars = easyEventStore.retrieveCalendars(onlyWritable: onlyWritableCalendars, from: accountName)
             completion(.success(calendars))
             
         } onPermissionRefused: {

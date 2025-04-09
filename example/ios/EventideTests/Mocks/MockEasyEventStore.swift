@@ -15,13 +15,13 @@ class MockEasyEventStore: EasyEventStoreProtocol {
         self.calendars = calendars
     }
     
-    func createCalendar(title: String, color: UIColor, account: Account?) throws -> eventide.Calendar {
+    func createCalendar(title: String, color: UIColor, localAccountName: String) throws -> eventide.Calendar {
         let calendar = MockCalendar(
             id: "id",
             title: title,
             color: color,
             isWritable: true,
-            account: account ?? Account(name: "iCloud", type: "calDAV"),
+            account: Account(name: localAccountName, type: "local"),
             events: []
         )
         
@@ -32,13 +32,13 @@ class MockEasyEventStore: EasyEventStoreProtocol {
     
     func retrieveCalendars(
         onlyWritable: Bool,
-        from account: Account?
+        from localAccountName: String?
     ) -> [eventide.Calendar] {
         return calendars
             .filter { onlyWritable && $0.isWritable || !onlyWritable }
             .filter { calendar in
-                guard let account = account else { return true }
-                return calendar.account.name == account.name && calendar.account.type == account.type
+                guard let localAccountName = localAccountName else { return true }
+                return calendar.account.name == localAccountName
             }
             .map { $0.toCalendar() }
     }

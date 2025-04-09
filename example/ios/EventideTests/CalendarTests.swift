@@ -22,36 +22,13 @@ final class CalendarTests: XCTestCase {
             permissionHandler: PermissionGranted()
         )
         
-        calendarImplem.createCalendar(title: "title", color: 0xFF0000, account: Account(name: "local", type: "local")) { createCalendarResult in
+        calendarImplem.createCalendar(title: "title", color: 0xFF0000, localAccountName: "Test account") { createCalendarResult in
             switch (createCalendarResult) {
             case .success(let calendar):
                 XCTAssert(calendar.title == "title")
                 XCTAssert(calendar.color == 0xFF0000)
-                XCTAssert(mockEasyEventStore.calendars.count == 1)
-                expectation.fulfill()
-            case .failure:
-                XCTFail("Calendar should have been created")
-            }
-        }
-        
-        waitForExpectations(timeout: timeout)
-    }
-    
-    func testCreateCalendar_sourceNotFound_permissionGranted() {
-        let expectation = expectation(description: "Calendar has been created")
-        
-        let mockEasyEventStore = MockEasyEventStore()
-        
-        calendarImplem = CalendarImplem(
-            easyEventStore: mockEasyEventStore,
-            permissionHandler: PermissionGranted()
-        )
-        
-        calendarImplem.createCalendar(title: "title", color: 0xFF0000, account: Account(name: "local", type: "local")) { createCalendarResult in
-            switch (createCalendarResult) {
-            case .success(let calendar):
-                XCTAssert(calendar.title == "title")
-                XCTAssert(calendar.color == 0xFF0000)
+                XCTAssert(calendar.account.name == "Test account")
+                XCTAssert(calendar.account.type == "local")
                 XCTAssert(mockEasyEventStore.calendars.count == 1)
                 expectation.fulfill()
             case .failure:
@@ -91,7 +68,7 @@ final class CalendarTests: XCTestCase {
             permissionHandler: PermissionGranted()
         )
         
-        calendarImplem.retrieveCalendars(onlyWritableCalendars: true) { retrieveCalendarsResult in
+        calendarImplem.retrieveCalendars(onlyWritableCalendars: true, fromLocalAccountName: nil) { retrieveCalendarsResult in
             switch (retrieveCalendarsResult) {
             case .success(let calendars):
                 XCTAssert(calendars.count == 1)
@@ -136,7 +113,7 @@ final class CalendarTests: XCTestCase {
             permissionHandler: PermissionGranted()
         )
         
-        calendarImplem.retrieveCalendars(onlyWritableCalendars: true, from: account1) { retrieveCalendarsResult in
+        calendarImplem.retrieveCalendars(onlyWritableCalendars: true, fromLocalAccountName: account1.name) { retrieveCalendarsResult in
             switch (retrieveCalendarsResult) {
             case .success(let calendars):
                 XCTAssert(calendars.isEmpty)
@@ -180,7 +157,7 @@ final class CalendarTests: XCTestCase {
             permissionHandler: PermissionGranted()
         )
         
-        calendarImplem.retrieveCalendars(onlyWritableCalendars: false, from: account2) { retrieveCalendarsResult in
+        calendarImplem.retrieveCalendars(onlyWritableCalendars: false, fromLocalAccountName: account2.name) { retrieveCalendarsResult in
             switch (retrieveCalendarsResult) {
             case .success(let calendars):
                 XCTAssert(calendars.count == 1)
@@ -223,7 +200,7 @@ final class CalendarTests: XCTestCase {
             permissionHandler: PermissionGranted()
         )
         
-        calendarImplem.retrieveCalendars(onlyWritableCalendars: false) { retrieveCalendarsResult in
+        calendarImplem.retrieveCalendars(onlyWritableCalendars: false, fromLocalAccountName: nil) { retrieveCalendarsResult in
             switch (retrieveCalendarsResult) {
             case .success(let calendars):
                 XCTAssert(calendars.count == 2)
@@ -360,7 +337,7 @@ final class CalendarTests: XCTestCase {
             permissionHandler: PermissionRefused()
         )
         
-        calendarImplem.createCalendar(title: "title", color: 0xFF0000, account: nil) { createCalendarResult in
+        calendarImplem.createCalendar(title: "title", color: 0xFF0000, localAccountName: "Test account") { createCalendarResult in
             switch (createCalendarResult) {
             case .success:
                 XCTFail("Calendar should not have been created")
@@ -388,7 +365,7 @@ final class CalendarTests: XCTestCase {
             permissionHandler: PermissionRefused()
         )
         
-        calendarImplem.retrieveCalendars(onlyWritableCalendars: true) { retrieveCalendarsResult in
+        calendarImplem.retrieveCalendars(onlyWritableCalendars: true, fromLocalAccountName: nil) { retrieveCalendarsResult in
             switch (retrieveCalendarsResult) {
             case .success:
                 XCTFail("Calendars should not have been retrieved")
@@ -455,7 +432,7 @@ final class CalendarTests: XCTestCase {
             permissionHandler: PermissionError()
         )
         
-        calendarImplem.createCalendar(title: "title", color: 0xFF0000, account: nil) { createCalendarResult in
+        calendarImplem.createCalendar(title: "title", color: 0xFF0000, localAccountName: "Test account") { createCalendarResult in
             switch (createCalendarResult) {
             case .success:
                 XCTFail("Calendar should not have been created")
@@ -482,7 +459,7 @@ final class CalendarTests: XCTestCase {
             permissionHandler: PermissionError()
         )
         
-        calendarImplem.retrieveCalendars(onlyWritableCalendars: true) { retrieveCalendarsResult in
+        calendarImplem.retrieveCalendars(onlyWritableCalendars: true, fromLocalAccountName: nil) { retrieveCalendarsResult in
             switch (retrieveCalendarsResult) {
             case .success:
                 XCTFail("Calendars should not have been retrieved")
