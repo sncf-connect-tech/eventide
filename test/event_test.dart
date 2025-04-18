@@ -64,6 +64,7 @@ void main() {
           calendarId: any(named: 'calendarId'),
           description: any(named: 'description'),
           url: any(named: 'url'),
+          rRule: any(named: 'rRule'),
         )).thenAnswer((_) async => event);
 
     // When
@@ -85,6 +86,7 @@ void main() {
           calendarId: any(named: 'calendarId'),
           description: any(named: 'description'),
           url: any(named: 'url'),
+          rRule: any(named: 'rRule'),
         )).called(1);
   });
 
@@ -98,6 +100,7 @@ void main() {
           calendarId: any(named: 'calendarId'),
           description: any(named: 'description'),
           url: any(named: 'url'),
+          rRule: any(named: 'rRule'),
         )).thenThrow(ETGenericException(message: 'API Error'));
 
     // When
@@ -118,6 +121,7 @@ void main() {
           calendarId: any(named: 'calendarId'),
           description: any(named: 'description'),
           url: any(named: 'url'),
+          rRule: any(named: 'rRule'),
         )).called(1);
   });
 
@@ -141,6 +145,7 @@ void main() {
             calendarId: any(named: 'calendarId'),
             description: any(named: 'description'),
             url: any(named: 'url'),
+            rRule: any(named: 'rRule'),
           )).thenAnswer((_) async => event);
       when(() => mockCalendarApi.createReminder(reminder: any(named: 'reminder'), eventId: any(named: 'eventId')))
           .thenAnswer((_) async => event.copyWithReminders(reminders.toNativeList()));
@@ -164,6 +169,7 @@ void main() {
             calendarId: any(named: 'calendarId'),
             description: any(named: 'description'),
             url: any(named: 'url'),
+            rRule: any(named: 'rRule'),
           )).called(1);
       verify(() => mockCalendarApi.createReminder(reminder: 10 * 60, eventId: event.id)).called(1);
       verify(() => mockCalendarApi.createReminder(reminder: 20 * 60, eventId: event.id)).called(1);
@@ -190,6 +196,7 @@ void main() {
             calendarId: any(named: 'calendarId'),
             description: any(named: 'description'),
             url: any(named: 'url'),
+            rRule: any(named: 'rRule'),
           )).thenAnswer((_) async => event);
       when(() => mockCalendarApi.createReminder(reminder: any(named: 'reminder'), eventId: any(named: 'eventId')))
           .thenAnswer((_) async => event.copyWithReminders(reminders.toNativeList()));
@@ -213,6 +220,7 @@ void main() {
             calendarId: any(named: 'calendarId'),
             description: any(named: 'description'),
             url: any(named: 'url'),
+            rRule: any(named: 'rRule'),
           )).called(1);
       verify(() => mockCalendarApi.createReminder(reminder: 10, eventId: event.id)).called(1);
       verify(() => mockCalendarApi.createReminder(reminder: 20, eventId: event.id)).called(1);
@@ -261,6 +269,7 @@ void main() {
           isAllDay: any(named: 'isAllDay'),
           description: any(named: 'description'),
           url: any(named: 'url'),
+          rRule: any(named: 'rRule'),
         )).thenAnswer((_) async => mockEvent);
 
     await eventide.createEvent(
@@ -278,6 +287,7 @@ void main() {
           isAllDay: false,
           description: null,
           url: null,
+          rRule: null,
         )).called(1);
   });
 

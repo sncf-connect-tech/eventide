@@ -43,6 +43,7 @@ abstract class CalendarApi {
     required bool isAllDay,
     required String? description,
     required String? url,
+    required String? rRule,
   });
 
   @async
@@ -115,6 +116,7 @@ final class Event {
   final List<Attendee> attendees;
   final String? description;
   final String? url;
+  final String? rRule;
 
   const Event({
     required this.id,
@@ -127,6 +129,7 @@ final class Event {
     required this.attendees,
     required this.description,
     required this.url,
+    required this.rRule,
   });
 }
 

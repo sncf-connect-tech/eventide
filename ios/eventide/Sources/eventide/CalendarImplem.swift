@@ -103,6 +103,7 @@ class CalendarImplem: CalendarApi {
         isAllDay: Bool,
         description: String?,
         url: String?,
+        rRule: String?,
         completion: @escaping (Result<Event, Error>
     ) -> Void) {
         permissionHandler.checkCalendarAccessThenExecute { [self] in
