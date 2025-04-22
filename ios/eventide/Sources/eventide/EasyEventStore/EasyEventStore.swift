@@ -338,7 +338,8 @@ fileprivate extension EKEvent {
                 )
             } ?? [],
             description: notes,
-            url: url?.absoluteString
+            url: url?.absoluteString,
+            rRule: recurrenceRules?.first?.toRfc5545String()
         )
     }
 }

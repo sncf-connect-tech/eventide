@@ -115,7 +115,8 @@ class CalendarImplem: CalendarApi {
                     endDate: Date(from: endDate),
                     isAllDay: isAllDay,
                     description: description,
-                    url: url
+                    url: url,
+                    rRule: rRule
                 )
                 completion(.success(createdEvent))
                 

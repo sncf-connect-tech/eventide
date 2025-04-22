@@ -55,7 +55,7 @@ final class EventTests: XCTestCase {
                 XCTAssert(event.description == "description")
                 XCTAssert(event.url == "url")
                 XCTAssert(event.isAllDay == false)
-                XCTAssert(event.)
+                XCTAssert(event.rRule == "FREQ=WEEKLY;BYDAY=MO,WE;INTERVAL=2")
                 expectation.fulfill()
             case .failure:
                 XCTFail("Event should have been created")
@@ -93,7 +93,8 @@ final class EventTests: XCTestCase {
             endDate: Date().addingTimeInterval(TimeInterval(10)).millisecondsSince1970,
             isAllDay: false,
             description: "description",
-            url: "url"
+            url: "url",
+            rRule: nil
         ) { createEventResult in
             switch (createEventResult) {
             case .success:
@@ -485,7 +486,8 @@ final class EventTests: XCTestCase {
             endDate: Date().addingTimeInterval(TimeInterval(10)).millisecondsSince1970,
             isAllDay: false,
             description: "description",
-            url: "url"
+            url: "url",
+            rRule: nil
         ) { createEventResult in
             switch (createEventResult) {
             case .success:
@@ -625,7 +627,8 @@ final class EventTests: XCTestCase {
             endDate: Date().addingTimeInterval(TimeInterval(10)).millisecondsSince1970,
             isAllDay: false,
             description: "description",
-            url: "url"
+            url: "url",
+            rRule: nil
         ) { createEventResult in
             switch (createEventResult) {
             case .success:

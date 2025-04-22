@@ -182,4 +182,130 @@ final class EventKitExtensionsTests: XCTestCase {
         XCTAssert(recurrenceRule.daysOfTheWeek!.contains(EKRecurrenceDayOfWeek(.sunday)))
         XCTAssert(recurrenceRule.daysOfTheMonth!.contains(-1))
     }
+    
+    func test_toRfc5545String_daily() {
+        let recurrenceRule = EKRecurrenceRule(
+            recurrenceWith: .daily,
+            interval: 1,
+            daysOfTheWeek: nil,
+            daysOfTheMonth: nil,
+            monthsOfTheYear: nil,
+            weeksOfTheYear: nil,
+            daysOfTheYear: nil,
+            setPositions: nil,
+            end: nil
+        )
+        
+        XCTAssertEqual(recurrenceRule.toRfc5545String(), "RRULE:FREQ=DAILY")
+    }
+
+    func test_toRfc5545String_weekly_withDays() {
+        let daysOfWeek = [
+            EKRecurrenceDayOfWeek(.monday),
+            EKRecurrenceDayOfWeek(.wednesday),
+            EKRecurrenceDayOfWeek(.friday)
+        ]
+        let recurrenceRule = EKRecurrenceRule(
+            recurrenceWith: .weekly,
+            interval: 1,
+            daysOfTheWeek: daysOfWeek,
+            daysOfTheMonth: nil,
+            monthsOfTheYear: nil,
+            weeksOfTheYear: nil,
+            daysOfTheYear: nil,
+            setPositions: nil,
+            end: nil
+        )
+        
+        XCTAssertEqual(recurrenceRule.toRfc5545String(), "RRULE:FREQ=WEEKLY;BYDAY=MO,WE,FR")
+    }
+
+    func test_toRfc5545String_withIntervalAndEndDate() {
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "yyyyMMdd'T'HHmmss'Z'"
+        dateFormatter.timeZone = TimeZone(secondsFromGMT: 0)
+        let endDate = dateFormatter.date(from: "20240101T000000Z")!
+        
+        let recurrenceRule = EKRecurrenceRule(
+            recurrenceWith: .daily,
+            interval: 2,
+            daysOfTheWeek: nil,
+            daysOfTheMonth: nil,
+            monthsOfTheYear: nil,
+            weeksOfTheYear: nil,
+            daysOfTheYear: nil,
+            setPositions: nil,
+            end: EKRecurrenceEnd(end: endDate)
+        )
+        
+        XCTAssertEqual(recurrenceRule.toRfc5545String(), "RRULE:FREQ=DAILY;INTERVAL=2;UNTIL=20240101T000000Z")
+    }
+
+    func test_toRfc5545String_withCount() {
+        let recurrenceRule = EKRecurrenceRule(
+            recurrenceWith: .weekly,
+            interval: 1,
+            daysOfTheWeek: nil,
+            daysOfTheMonth: nil,
+            monthsOfTheYear: nil,
+            weeksOfTheYear: nil,
+            daysOfTheYear: nil,
+            setPositions: nil,
+            end: EKRecurrenceEnd(occurrenceCount: 10)
+        )
+        
+        XCTAssertEqual(recurrenceRule.toRfc5545String(), "RRULE:FREQ=WEEKLY;COUNT=10")
+    }
+
+    func test_toRfc5545String_withDaysOfWeekAndInterval() {
+        let daysOfWeek = [
+            EKRecurrenceDayOfWeek(.monday),
+            EKRecurrenceDayOfWeek(.friday)
+        ]
+        let recurrenceRule = EKRecurrenceRule(
+            recurrenceWith: .weekly,
+            interval: 2,
+            daysOfTheWeek: daysOfWeek,
+            daysOfTheMonth: nil,
+            monthsOfTheYear: nil,
+            weeksOfTheYear: nil,
+            daysOfTheYear: nil,
+            setPositions: nil,
+            end: nil
+        )
+        
+        XCTAssertEqual(recurrenceRule.toRfc5545String(), "RRULE:FREQ=WEEKLY;INTERVAL=2;BYDAY=MO,FR")
+    }
+
+    func test_toRfc5545String_withNegativeDaysOfMonth() {
+        let recurrenceRule = EKRecurrenceRule(
+            recurrenceWith: .monthly,
+            interval: 1,
+            daysOfTheWeek: nil,
+            daysOfTheMonth: [-1],
+            monthsOfTheYear: nil,
+            weeksOfTheYear: nil,
+            daysOfTheYear: nil,
+            setPositions: nil,
+            end: nil
+        )
+        
+        XCTAssertEqual(recurrenceRule.toRfc5545String(), "RRULE:FREQ=MONTHLY;BYMONTHDAY=-1")
+    }
+
+    func test_toRfc5545String_withMultipleMonthsAndDays() {
+        let recurrenceRule = EKRecurrenceRule(
+            recurrenceWith: .yearly,
+            interval: 1,
+            daysOfTheWeek: nil,
+            daysOfTheMonth: [1, 15],
+            monthsOfTheYear: [3, 7],
+            weeksOfTheYear: nil,
+            daysOfTheYear: nil,
+            setPositions: nil,
+            end: nil
+        )
+        
+        XCTAssertEqual(recurrenceRule.toRfc5545String(), "RRULE:FREQ=YEARLY;BYMONTHDAY=1,15;BYMONTH=3,7")
+    }
 }

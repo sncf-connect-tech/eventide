@@ -73,6 +73,67 @@ public extension EKRecurrenceRule {
         )
     }
     
+    func toRfc5545String() -> String? {
+        var rruleString = "RRULE:FREQ="
+
+        switch frequency {
+        case .daily:
+            rruleString += "DAILY"
+        case .weekly:
+            rruleString += "WEEKLY"
+        case .monthly:
+            rruleString += "MONTHLY"
+        case .yearly:
+            rruleString += "YEARLY"
+        @unknown default:
+            return nil
+        }
+
+        if interval > 1 {
+            rruleString += ";INTERVAL=\(interval)"
+        }
+
+        if let daysOfTheWeek = daysOfTheWeek {
+            let dayStrings = daysOfTheWeek.map({
+                switch $0.dayOfTheWeek {
+                case .monday: return "MO"
+                case .tuesday: return "TU"
+                case .wednesday: return "WE"
+                case .thursday: return "TH"
+                case .friday: return "FR"
+                case .saturday: return "SA"
+                case .sunday: return "SU"
+                @unknown default: return ""
+                }
+            })
+            
+            if !dayStrings.isEmpty {
+                rruleString += ";BYDAY=" + dayStrings.joined(separator: ",")
+            }
+        }
+
+        if let daysOfTheMonth = daysOfTheMonth {
+            rruleString += ";BYMONTHDAY=" + daysOfTheMonth.map({ $0.stringValue }).joined(separator: ",")
+        }
+
+        if let monthsOfTheYear = monthsOfTheYear {
+            rruleString += ";BYMONTH=" + monthsOfTheYear.map({ $0.stringValue }).joined(separator: ",")
+        }
+
+        if let end = recurrenceEnd {
+            if let endDate = end.endDate {
+                let dateFormatter = DateFormatter()
+                dateFormatter.dateFormat = "yyyyMMdd'T'HHmmss'Z'"
+                dateFormatter.timeZone = TimeZone(secondsFromGMT: 0)
+                rruleString += ";UNTIL=" + dateFormatter.string(from: endDate)
+            } else if end.occurrenceCount > 0 {
+                rruleString += ";COUNT=\(end.occurrenceCount)"
+            }
+        }
+
+        return rruleString
+    }
+    
     static private func parseInterval(_ intervalString: String) -> Int {
         guard let interval = Int(intervalString), interval > 0 else {
             return 1
