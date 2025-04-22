@@ -103,6 +103,7 @@ class CalendarImplem: CalendarApi {
         isAllDay: Bool,
         description: String?,
         url: String?,
+        rRule: String?,
         completion: @escaping (Result<Event, Error>
     ) -> Void) {
         permissionHandler.checkCalendarAccessThenExecute { [self] in
@@ -114,7 +115,8 @@ class CalendarImplem: CalendarApi {
                     endDate: Date(from: endDate),
                     isAllDay: isAllDay,
                     description: description,
-                    url: url
+                    url: url,
+                    rRule: rRule
                 )
                 completion(.success(createdEvent))
                 

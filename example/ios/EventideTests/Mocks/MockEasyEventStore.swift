@@ -63,7 +63,7 @@ class MockEasyEventStore: EasyEventStoreProtocol {
         calendars.remove(at: index)
     }
     
-    func createEvent(calendarId: String, title: String, startDate: Date, endDate: Date, isAllDay: Bool, description: String?, url: String?) throws -> Event {
+    func createEvent(calendarId: String, title: String, startDate: Date, endDate: Date, isAllDay: Bool, description: String?, url: String?, rRule: String?) throws -> Event {
         guard let mockCalendar = calendars.first(where: { $0.id == calendarId }) else {
             throw PigeonError(
                 code: "NOT_FOUND",
@@ -80,7 +80,8 @@ class MockEasyEventStore: EasyEventStoreProtocol {
             calendarId: mockCalendar.id,
             isAllDay: isAllDay,
             description: description,
-            url: url
+            url: url,
+            rRule: rRule
         )
         
         mockCalendar.events.append(mockEvent)
@@ -225,8 +226,21 @@ class MockEvent {
     let url: String?
     var reminders: [TimeInterval]?
     let attendees: [MockAttendee]?
+    let rRule: String?
     
-    init(id: String, title: String, startDate: Date, endDate: Date, calendarId: String, isAllDay: Bool, description: String?, url: String?, reminders: [TimeInterval]? = nil, attendees: [MockAttendee]? = nil) {
+    init(
+        id: String,
+        title: String,
+        startDate: Date,
+        endDate: Date,
+        calendarId: String,
+        isAllDay: Bool,
+        description: String?,
+        url: String?,
+        reminders: [TimeInterval]? = nil,
+        attendees: [MockAttendee]? = nil,
+        rRule: String? = nil
+    ) {
         self.id = id
         self.title = title
         self.startDate = startDate
@@ -237,6 +251,7 @@ class MockEvent {
         self.url = url
         self.reminders = reminders?.map({ $0 })
         self.attendees = attendees
+        self.rRule = rRule
     }
     
     fileprivate func toEvent() -> Event {
@@ -250,7 +265,8 @@ class MockEvent {
             reminders: reminders?.map({ Int64($0) }) ?? [],
             attendees: attendees?.map { $0.toAttendee() } ?? [],
             description: description,
-            url: url
+            url: url,
+            rRule: rRule
         )
     }
 }

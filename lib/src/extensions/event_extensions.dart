@@ -16,6 +16,7 @@ extension EventToETEvent on Event {
       url: url,
       reminders: reminders.toDurationList(),
       attendees: attendees.toETAttendeeList(),
+      rRule: rRule,
     );
   }
 }
