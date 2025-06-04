@@ -57,7 +57,9 @@ abstract class EventidePlatform extends PlatformInterface {
   });
 
   Future<void> deleteEvent({
+    required String calendarId,
     required String eventId,
+    ETEventSpan span = ETEventSpan.currentEvent,
   });
 
   Future<ETEvent> createReminder({
@@ -359,4 +361,10 @@ enum ETAttendanceStatus {
     required this.iosStatus,
     required this.androidStatus,
   });
+}
+
+enum ETEventSpan {
+  currentEvent,
+  futureEvents,
+  allEvents,
 }

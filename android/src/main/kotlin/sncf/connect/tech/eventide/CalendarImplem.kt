@@ -1,26 +1,19 @@
 package sncf.connect.tech.eventide
 
 import android.content.ContentResolver
+import android.content.ContentUris
 import android.content.ContentValues
+import android.database.Cursor
 import android.net.Uri
 import android.provider.CalendarContract
-import androidx.core.database.getLongOrNull
 import androidx.core.database.getStringOrNull
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.suspendCancellableCoroutine
-import kotlinx.coroutines.withContext
-import java.time.Instant
-import java.time.LocalDateTime
-import java.time.ZoneOffset
-import java.time.ZonedDateTime
+import sncf.connect.tech.eventide.ICalendarFormatter.formatDateTimeForICalendarUtc
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
-import kotlin.coroutines.resume
-import kotlin.coroutines.resumeWithException
-import kotlin.time.Duration
 
 class CalendarImplem(
     private var contentResolver: ContentResolver,
@@ -28,7 +21,8 @@ class CalendarImplem(
     private var calendarContentUri: Uri = CalendarContract.Calendars.CONTENT_URI,
     private var eventContentUri: Uri = CalendarContract.Events.CONTENT_URI,
     private var remindersContentUri: Uri = CalendarContract.Reminders.CONTENT_URI,
-    private var attendeesContentUri: Uri = CalendarContract.Attendees.CONTENT_URI
+    private var attendeesContentUri: Uri = CalendarContract.Attendees.CONTENT_URI,
+    private var instancesContentUri: Uri = CalendarContract.Instances.CONTENT_URI
 ): CalendarApi {
     override fun requestCalendarPermission(callback: (Result<Boolean>) -> Unit) {
         val readLatch = CompletableDeferred<Boolean>()
@@ -420,35 +414,48 @@ class CalendarImplem(
                 CoroutineScope(Dispatchers.IO).launch {
                     try {
                         val projection = arrayOf(
-                            CalendarContract.Events._ID,
-                            CalendarContract.Events.TITLE,
-                            CalendarContract.Events.DESCRIPTION,
-                            CalendarContract.Events.DTSTART,
-                            CalendarContract.Events.DTEND,
-                            CalendarContract.Events.DURATION,
-                            CalendarContract.Events.EVENT_TIMEZONE,
-                            CalendarContract.Events.ALL_DAY,
-                            CalendarContract.Events.RRULE,
+                            CalendarContract.Instances._ID,
+                            CalendarContract.Instances.EVENT_ID,
+                            CalendarContract.Instances.TITLE,
+                            CalendarContract.Instances.DESCRIPTION,
+                            CalendarContract.Instances.BEGIN,
+                            CalendarContract.Instances.END,
+                            CalendarContract.Instances.DURATION,
+                            CalendarContract.Instances.EVENT_TIMEZONE,
+                            CalendarContract.Instances.ALL_DAY,
+                            CalendarContract.Instances.RRULE,
                         )
-                        val selection =
-                            CalendarContract.Events.CALENDAR_ID + " = ? AND " + CalendarContract.Events.DTSTART + " >= ?" + " AND " +
-                                    CalendarContract.Events.DTSTART + " <= ?"
-                        val selectionArgs = arrayOf(calendarId, startDate.toString(), endDate.toString())
 
-                        val cursor = contentResolver.query(eventContentUri, projection, selection, selectionArgs, null)
+                        val builder: Uri.Builder = instancesContentUri.buildUpon()
+                        ContentUris.appendId(builder, startDate)
+                        ContentUris.appendId(builder, endDate)
+
+                        val selection = "${CalendarContract.Instances.CALENDAR_ID} = ?"
+                        val selectionArgs = arrayOf(calendarId)
+                        val sortOrder = CalendarContract.Instances.BEGIN + " ASC"
+
+                        val cursor: Cursor? = contentResolver.query(
+                            builder.build(),
+                            projection,
+                            selection,
+                            selectionArgs,
+                            sortOrder
+                        )
+
                         val events = mutableListOf<Event>()
 
                         cursor?.use { c ->
                             while (c.moveToNext()) {
-                                val id = c.getString(c.getColumnIndexOrThrow(CalendarContract.Events._ID))
-                                val title = c.getString(c.getColumnIndexOrThrow(CalendarContract.Events.TITLE))
+                                val id = c.getString(c.getColumnIndexOrThrow(CalendarContract.Instances._ID))
+                                val originalId = c.getString(c.getColumnIndexOrThrow(CalendarContract.Instances.EVENT_ID))
+                                val title = c.getString(c.getColumnIndexOrThrow(CalendarContract.Instances.TITLE))
                                 val description =
-                                    c.getString(c.getColumnIndexOrThrow(CalendarContract.Events.DESCRIPTION))
-                                val start = c.getLong(c.getColumnIndexOrThrow(CalendarContract.Events.DTSTART))
-                                val duration = c.getString(c.getColumnIndexOrThrow(CalendarContract.Events.DURATION))
-                                val end = c.getLong(c.getColumnIndexOrThrow(CalendarContract.Events.DTEND))
-                                val isAllDay = c.getInt(c.getColumnIndexOrThrow(CalendarContract.Events.ALL_DAY)) == 1
-                                val rRule = c.getStringOrNull(c.getColumnIndexOrThrow(CalendarContract.Events.RRULE))
+                                    c.getString(c.getColumnIndexOrThrow(CalendarContract.Instances.DESCRIPTION))
+                                val start = c.getLong(c.getColumnIndexOrThrow(CalendarContract.Instances.BEGIN))
+                                val duration = c.getString(c.getColumnIndexOrThrow(CalendarContract.Instances.DURATION))
+                                val end = c.getLong(c.getColumnIndexOrThrow(CalendarContract.Instances.END))
+                                val isAllDay = c.getInt(c.getColumnIndexOrThrow(CalendarContract.Instances.ALL_DAY)) == 1
+                                val rRule = c.getStringOrNull(c.getColumnIndexOrThrow(CalendarContract.Instances.RRULE))
 
                                 val attendees = mutableListOf<Attendee>()
                                 val attendeesLatch = CountDownLatch(1)
@@ -494,7 +501,8 @@ class CalendarImplem(
                                         attendees = attendees,
                                         description = description,
                                         isAllDay = isAllDay,
-                                        rRule = "RRULE:$rRule"
+                                        rRule = "RRULE:$rRule",
+                                        originalEventId = originalId
                                     )
                                 )
                             }
@@ -514,7 +522,6 @@ class CalendarImplem(
                         )
                     }
                 }
-
             } else {
                 callback(
                     Result.failure(
@@ -528,80 +535,175 @@ class CalendarImplem(
         }
     }
 
-    private fun rfc2445DurationToMillis(rfc2445Duration: String): Long {
-        val regex = Regex("P(?:(\\d+)D)?T(?:(\\d+)H)?(?:(\\d+)M)?(?:(\\d+)S)?")
-        val matchResult = regex.matchEntire(rfc2445Duration)
-            ?: throw IllegalArgumentException("Invalid RFC2445 duration format")
-
-        val days = matchResult.groups[1]?.value?.toLong() ?: 0
-        val hours = matchResult.groups[2]?.value?.toLong() ?: 0
-        val minutes = matchResult.groups[3]?.value?.toLong() ?: 0
-        val seconds = matchResult.groups[4]?.value?.toLong() ?: 0
-
-        return TimeUnit.DAYS.toMillis(days) +
-                TimeUnit.HOURS.toMillis(hours) +
-                TimeUnit.MINUTES.toMillis(minutes) +
-                TimeUnit.SECONDS.toMillis(seconds)
-    }
-
-    override fun deleteEvent(eventId: String, callback: (Result<Unit>) -> Unit) {
+    override fun deleteEvent(
+        calendarId: String,
+        eventId: String,
+        span: EventSpan,
+        callback: (Result<Unit>) -> Unit
+    ) {
         permissionHandler.requestWritePermission { granted ->
-            if (granted) {
-                CoroutineScope(Dispatchers.IO).launch {
-                    try {
-                        val calendarId = getCalendarId(eventId)
-                        if (isCalendarWritable(calendarId)) {
-                            val selection = CalendarContract.Events._ID + " = ?"
-                            val selectionArgs = arrayOf(eventId)
+            if (!granted) {
+                callback(Result.failure(
+                    FlutterError(
+                        code = "ACCESS_REFUSED",
+                        message = "Calendar access has been refused or has not been given yet"
+                    )
+                ))
+                return@requestWritePermission
+            }
 
-                            val deleted = contentResolver.delete(eventContentUri, selection, selectionArgs)
-                            if (deleted > 0) {
+            CoroutineScope(Dispatchers.IO).launch {
+                try {
+                    if (!isCalendarWritable(calendarId)) {
+                        callback(Result.failure(
+                            FlutterError(
+                                code = "NOT_EDITABLE",
+                                message = "Calendar is not writable"
+                            )
+                        ))
+
+                        return@launch
+                    }
+
+                    when (span) {
+                        EventSpan.CURRENT_EVENT -> {
+                            // Suppression d'une occurrence unique
+                            val instanceCursor = CalendarContract.Instances.query(
+                                contentResolver,
+                                arrayOf(
+                                    CalendarContract.Instances.BEGIN,
+                                    CalendarContract.Instances._ID,
+                                    CalendarContract.Instances.EVENT_ID
+                                ),
+                                Long.MIN_VALUE,
+                                Long.MAX_VALUE
+                            )
+
+                            val values = ContentValues()
+                            var originalEventId: Long? = null
+
+                            while (instanceCursor.moveToNext()) {
+                                val foundEventId = instanceCursor.getString(instanceCursor.getColumnIndexOrThrow(CalendarContract.Instances._ID))
+
+                                if (foundEventId == eventId) {
+                                    val instanceStartDate = instanceCursor.getLong(instanceCursor.getColumnIndexOrThrow(CalendarContract.Instances.BEGIN))
+                                    values.put(CalendarContract.Events.STATUS, CalendarContract.Events.STATUS_CANCELED)
+                                    values.put(CalendarContract.Events.ORIGINAL_INSTANCE_TIME, instanceStartDate)
+
+                                    originalEventId = instanceCursor.getLong(instanceCursor.getColumnIndexOrThrow(CalendarContract.Instances.EVENT_ID))
+                                    break
+                                }
+                            }
+
+                            if (originalEventId == null) {
+                                callback(Result.failure(
+                                    FlutterError(
+                                        code = "NOT_FOUND",
+                                        message = "Failed to retrieve instance for deletion"
+                                    )
+                                ))
+                                return@launch
+                            }
+
+                            val exceptionUriWithId = ContentUris.withAppendedId(CalendarContract.Events.CONTENT_EXCEPTION_URI, originalEventId)
+
+                            if (contentResolver.insert(exceptionUriWithId, values) != null) {
+                                callback(Result.success(Unit))
+                            } else {
+                                callback(
+                                    Result.failure(
+                                        FlutterError(
+                                            code = "GENERIC_ERROR",
+                                            message = "Failed to delete current event occurrence"
+                                        )
+                                    )
+                                )
+                            }
+                        }
+                        EventSpan.FUTURE_EVENTS -> {
+                            val values = ContentValues()
+                            var originalEventId: Long? = null
+
+                            val instanceCursor = CalendarContract.Instances.query(
+                                contentResolver,
+                                arrayOf(
+                                    CalendarContract.Instances._ID,
+                                    CalendarContract.Instances.BEGIN,
+                                    CalendarContract.Instances.EVENT_ID
+                                ),
+                                Long.MIN_VALUE,
+                                Long.MAX_VALUE
+                            )
+
+                            while (instanceCursor.moveToFirst()) {
+                                val foundEventId = instanceCursor.getString(instanceCursor.getColumnIndexOrThrow(CalendarContract.Instances._ID))
+
+                                if (foundEventId == eventId) {
+                                    val instanceStartDate =
+                                        instanceCursor.getLong(instanceCursor.getColumnIndexOrThrow(CalendarContract.Instances.BEGIN))
+                                    values.put(CalendarContract.Events.LAST_DATE, instanceStartDate)
+
+                                    originalEventId =
+                                        instanceCursor.getLong(instanceCursor.getColumnIndexOrThrow(CalendarContract.Instances.EVENT_ID))
+
+                                    break
+                                }
+                            }
+
+                            if (originalEventId == null) {
+                                callback(Result.failure(
+                                    FlutterError(
+                                        code = "NOT_FOUND",
+                                        message = "Failed to retrieve instance for update"
+                                    )
+                                ))
+                                return@launch
+                            }
+
+                            val rowsUpdated = contentResolver.update(
+                                ContentUris.withAppendedId(eventContentUri, originalEventId),
+                                values,
+                                null,
+                                null
+                            )
+
+                            if (rowsUpdated > 0) {
                                 callback(Result.success(Unit))
                             } else {
                                 callback(
                                     Result.failure(
                                         FlutterError(
                                             code = "NOT_FOUND",
-                                            message = "Failed to delete event"
+                                            message = "Failed to update recurring event"
                                         )
                                     )
                                 )
                             }
-                        } else {
-                            callback(
-                                Result.failure(
-                                    FlutterError(
-                                        code = "NOT_EDITABLE",
-                                        message = "Calendar is not writable"
-                                    )
-                                )
-                            )
                         }
-
-                    } catch (e: FlutterError) {
-                        callback(Result.failure(e))
-
-                    } catch (e: Exception) {
-                        callback(
-                            Result.failure(
-                                FlutterError(
-                                    code = "GENERIC_ERROR",
-                                    message = "An error occurred",
-                                    details = e.message
-                                )
-                            )
-                        )
+                        EventSpan.ALL_EVENTS -> {
+                            val uri = ContentUris.withAppendedId(eventContentUri, eventId.toLong())
+                            val deleted = contentResolver.delete(uri, null, null)
+                            if (deleted > 0) {
+                                callback(Result.success(Unit))
+                            } else {
+                                callback(Result.failure(
+                                    FlutterError(
+                                        code = "NOT_FOUND",
+                                        message = "Failed to delete recurring event"
+                                    )
+                                ))
+                            }
+                        }
                     }
-                }
-            } else {
-                callback(
-                    Result.failure(
+                } catch (e: Exception) {
+                    callback(Result.failure(
                         FlutterError(
-                            code = "ACCESS_REFUSED",
-                            message = "Calendar access has been refused or has not been given yet",
+                            code = "GENERIC_ERROR",
+                            message = "An error occurred",
+                            details = e.message
                         )
-                    )
-                )
+                    ))
+                }
             }
         }
     }
@@ -618,7 +720,7 @@ class CalendarImplem(
                         }
                         contentResolver.insert(remindersContentUri, values)
 
-                        retrieveEvent(eventId, callback)
+                        retrieveInstance(eventId, callback)
 
                     } catch (e: Exception) {
                         callback(
@@ -656,7 +758,7 @@ class CalendarImplem(
 
                         val deleted = contentResolver.delete(remindersContentUri, selection, selectionArgs)
                         if (deleted > 0) {
-                            retrieveEvent(eventId, callback)
+                            retrieveInstance(eventId, callback)
                         } else {
                             callback(
                                 Result.failure(
@@ -713,7 +815,7 @@ class CalendarImplem(
                         }
                         contentResolver.insert(attendeesContentUri, values)
 
-                        retrieveEvent(eventId, callback)
+                        retrieveInstance(eventId, callback)
 
                     } catch (e: Exception) {
                         callback(
@@ -755,7 +857,7 @@ class CalendarImplem(
 
                         val deleted = contentResolver.delete(attendeesContentUri, selection, selectionArgs)
                         if (deleted > 0) {
-                            retrieveEvent(eventId, callback)
+                            retrieveInstance(eventId, callback)
                         } else {
                             callback(
                                 Result.failure(
@@ -819,63 +921,47 @@ class CalendarImplem(
         )
     }
 
-    private fun getCalendarId(
-        eventId: String,
-    ): String {
-        val projection = arrayOf(
-            CalendarContract.Events.CALENDAR_ID
-        )
-        val selection = CalendarContract.Events._ID + " = ?"
-        val selectionArgs = arrayOf(eventId)
-
-        val cursor = contentResolver.query(eventContentUri, projection, selection, selectionArgs, null)
-        cursor?.use {
-            if (it.moveToNext()) {
-                return it.getString(it.getColumnIndexOrThrow(CalendarContract.Events.CALENDAR_ID))
-            } else {
-                throw FlutterError(
-                    code = "NOT_FOUND",
-                    message = "Failed to retrieve event"
-                )
-            }
-        }
-
-        throw FlutterError(
-            code = "GENERIC_ERROR",
-            message = "An error occurred"
-        )
-    }
-
-    private fun retrieveEvent(
+    private fun retrieveInstance(
         eventId: String,
         callback: (Result<Event>) -> Unit
     ) {
         try {
             val projection = arrayOf(
-                CalendarContract.Events._ID,
-                CalendarContract.Events.TITLE,
-                CalendarContract.Events.DESCRIPTION,
-                CalendarContract.Events.DTSTART,
-                CalendarContract.Events.DTEND,
-                CalendarContract.Events.EVENT_TIMEZONE,
-                CalendarContract.Events.CALENDAR_ID,
-                CalendarContract.Events.ALL_DAY,
+                CalendarContract.Instances._ID,
+                CalendarContract.Instances.EVENT_ID,
+                CalendarContract.Instances.TITLE,
+                CalendarContract.Instances.DESCRIPTION,
+                CalendarContract.Instances.DTSTART,
+                CalendarContract.Instances.DTEND,
+                CalendarContract.Instances.EVENT_TIMEZONE,
+                CalendarContract.Instances.CALENDAR_ID,
+                CalendarContract.Instances.ALL_DAY,
+                CalendarContract.Instances.RRULE,
             )
-            val selection = CalendarContract.Events._ID + " = ?"
+            val selection = "Instances._id = ?"
             val selectionArgs = arrayOf(eventId)
 
-            val cursor = contentResolver.query(eventContentUri, projection, selection, selectionArgs, null)
+            val startMillis = 0L
+            val endMillis = Long.MAX_VALUE
+
+            val builder: Uri.Builder = instancesContentUri.buildUpon()
+            ContentUris.appendId(builder, startMillis)
+            ContentUris.appendId(builder, endMillis)
+
+            val cursor = contentResolver.query(builder.build(), projection, selection, selectionArgs, null)
             var event: Event? = null
 
             cursor?.use { it ->
                 if (it.moveToNext()) {
-                    val id = it.getString(it.getColumnIndexOrThrow(CalendarContract.Events._ID))
-                    val title = it.getString(it.getColumnIndexOrThrow(CalendarContract.Events.TITLE))
-                    val description = it.getString(it.getColumnIndexOrThrow(CalendarContract.Events.DESCRIPTION))
-                    val isAllDay = it.getInt(it.getColumnIndexOrThrow(CalendarContract.Events.ALL_DAY)) == 1
-                    val startDate = it.getLong(it.getColumnIndexOrThrow(CalendarContract.Events.DTSTART))
-                    val endDate = it.getLong(it.getColumnIndexOrThrow(CalendarContract.Events.DTEND))
-                    val calendarId = it.getString(it.getColumnIndexOrThrow(CalendarContract.Events.CALENDAR_ID))
+                    val id = it.getString(it.getColumnIndexOrThrow(CalendarContract.Instances._ID))
+                    val originalId = it.getString(it.getColumnIndexOrThrow(CalendarContract.Instances.EVENT_ID))
+                    val title = it.getString(it.getColumnIndexOrThrow(CalendarContract.Instances.TITLE))
+                    val description = it.getString(it.getColumnIndexOrThrow(CalendarContract.Instances.DESCRIPTION))
+                    val isAllDay = it.getInt(it.getColumnIndexOrThrow(CalendarContract.Instances.ALL_DAY)) == 1
+                    val startDate = it.getLong(it.getColumnIndexOrThrow(CalendarContract.Instances.DTSTART))
+                    val endDate = it.getLong(it.getColumnIndexOrThrow(CalendarContract.Instances.DTEND))
+                    val calendarId = it.getString(it.getColumnIndexOrThrow(CalendarContract.Instances.CALENDAR_ID))
+                    val rRule = it.getString(it.getColumnIndexOrThrow(CalendarContract.Instances.RRULE))
 
                     val attendees = mutableListOf<Attendee>()
                     val attendeesLatch = CountDownLatch(1)
@@ -906,14 +992,16 @@ class CalendarImplem(
 
                     event = Event(
                         id = id,
+                        originalEventId = originalId,
+                        calendarId = calendarId,
                         title = title,
                         startDate = startDate,
                         endDate = endDate,
-                        calendarId = calendarId,
                         description = description,
                         isAllDay = isAllDay,
                         reminders = reminders,
-                        attendees = attendees
+                        attendees = attendees,
+                        rRule = rRule
                     )
                 }
             }
@@ -923,7 +1011,7 @@ class CalendarImplem(
                     Result.failure(
                         FlutterError(
                             code = "NOT_FOUND",
-                            message = "Failed to retrieve event"
+                            message = "Failed to retrieve event instance"
                         )
                     )
                 )
@@ -931,6 +1019,51 @@ class CalendarImplem(
                 callback(Result.success(event!!))
             }
 
+        } catch (e: Exception) {
+            callback(
+                Result.failure(
+                    FlutterError(
+                        code = "GENERIC_ERROR",
+                        message = "An error occurred",
+                        details = e.message
+                    )
+                )
+            )
+        }
+    }
+
+    private fun retrieveOriginalTimeMillis(
+        eventId: String,
+        callback: (Result<Long>) -> Unit
+    ) {
+        try {
+            val projection = arrayOf(
+                CalendarContract.Events.DTSTART,
+            )
+            val selection = CalendarContract.Events._ID + " = ?"
+            val selectionArgs = arrayOf(eventId)
+
+            val cursor = contentResolver.query(eventContentUri, projection, selection, selectionArgs, null)
+            var startDate: Long? = null
+
+            cursor?.use { it ->
+                if (it.moveToNext()) {
+                    startDate = it.getLong(it.getColumnIndexOrThrow(CalendarContract.Events.DTSTART))
+                }
+            }
+
+            if (startDate == null) {
+                callback(
+                    Result.failure(
+                        FlutterError(
+                            code = "NOT_FOUND",
+                            message = "Failed to retrieve event original timeMillis"
+                        )
+                    )
+                )
+            } else {
+                callback(Result.success(startDate!!))
+            }
 
         } catch (e: Exception) {
             callback(
@@ -1014,6 +1147,102 @@ class CalendarImplem(
 
             callback(Result.success(attendees))
 
+        } catch (e: Exception) {
+            callback(Result.failure(
+                FlutterError(
+                    code = "GENERIC_ERROR",
+                    message = "An error occurred",
+                    details = e.message
+                )
+            ))
+        }
+    }
+
+    private fun rfc2445DurationToMillis(rfc2445Duration: String): Long {
+        val regex = Regex("P(?:(\\d+)D)?T(?:(\\d+)H)?(?:(\\d+)M)?(?:(\\d+)S)?")
+        val matchResult = regex.matchEntire(rfc2445Duration)
+            ?: throw IllegalArgumentException("Invalid RFC2445 duration format")
+
+        val days = matchResult.groups[1]?.value?.toLong() ?: 0
+        val hours = matchResult.groups[2]?.value?.toLong() ?: 0
+        val minutes = matchResult.groups[3]?.value?.toLong() ?: 0
+        val seconds = matchResult.groups[4]?.value?.toLong() ?: 0
+
+        return TimeUnit.DAYS.toMillis(days) +
+                TimeUnit.HOURS.toMillis(hours) +
+                TimeUnit.MINUTES.toMillis(minutes) +
+                TimeUnit.SECONDS.toMillis(seconds)
+    }
+
+    private fun replaceUntilInRRule(rrule: String, newUntil: String): String {
+        val untilRegex = Regex("UNTIL=\\d{8}T\\d{6}Z")
+        return if (untilRegex.containsMatchIn(rrule)) {
+            rrule.replace(untilRegex, "UNTIL=$newUntil")
+        } else {
+            if (rrule.endsWith(";") || rrule.isEmpty()) {
+                "${rrule}UNTIL=$newUntil"
+            } else {
+                "$rrule;UNTIL=$newUntil"
+            }
+        }
+    }
+
+    private fun addExDateToRRule(
+        eventId: String,
+        timestamp: Long,
+        isAllDay: Boolean,
+        callback: (Result<Unit>) -> Unit
+    ) {
+        try {
+            val eventUri = CalendarContract.Events.CONTENT_URI.buildUpon().appendPath(eventId).build()
+            val projection = arrayOf(CalendarContract.Events.RRULE)
+            var rrule: String? = null
+
+            contentResolver.query(eventUri, projection, null, null, null)?.use { cursor ->
+                if (cursor.moveToFirst()) {
+                    rrule = cursor.getString(cursor.getColumnIndexOrThrow(CalendarContract.Events.RRULE))
+                }
+            }
+
+            if (rrule == null) {
+                callback(Result.failure(
+                    FlutterError(
+                        code = "NOT_FOUND",
+                        message = "RRULE not found for the event"
+                    )
+                ))
+                return
+            }
+
+            val exdate = formatDateTimeForICalendarUtc(timestamp, isAllDay)
+            val newRrule = if (rrule!!.contains("EXDATE=")) {
+                rrule!!.replace(Regex("EXDATE=([^;]*)")) { matchResult ->
+                    val existing = matchResult.groupValues[1]
+                    "EXDATE=${existing},$exdate"
+                }
+            } else {
+                if (rrule!!.endsWith(";") || rrule!!.isEmpty()) {
+                    "${rrule}EXDATE=$exdate"
+                } else {
+                    "$rrule;EXDATE=$exdate"
+                }
+            }
+
+            val values = ContentValues().apply {
+                put(CalendarContract.Events.RRULE, newRrule)
+            }
+
+            val rows = contentResolver.update(eventUri, values, null, null)
+            if (rows > 0) {
+                callback(Result.success(Unit))
+            } else {
+                callback(Result.failure(
+                    FlutterError(
+                        code = "UPDATE_FAILED",
+                        message = "Failed to update RRULE with EXDATE"
+                    )
+                ))
+            }
         } catch (e: Exception) {
             callback(Result.failure(
                 FlutterError(

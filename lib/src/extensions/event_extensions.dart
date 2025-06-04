@@ -43,3 +43,19 @@ extension EventListToETEvent on List<Event> {
     return map((e) => e.toETEvent()).toList();
   }
 }
+
+extension ETtoEventSpan on ETEventSpan {
+  EventSpan toEventSpan() => switch (this) {
+        ETEventSpan.currentEvent => EventSpan.currentEvent,
+        ETEventSpan.futureEvents => EventSpan.futureEvents,
+        ETEventSpan.allEvents => EventSpan.allEvents,
+      };
+}
+
+extension EventSpanToET on EventSpan {
+  ETEventSpan toETEventSpan() => switch (this) {
+        EventSpan.currentEvent => ETEventSpan.currentEvent,
+        EventSpan.futureEvents => ETEventSpan.futureEvents,
+        EventSpan.allEvents => ETEventSpan.allEvents,
+      };
+}

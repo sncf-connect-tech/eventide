@@ -29,7 +29,6 @@ abstract class CalendarApi {
   });
 
   @async
-  @SwiftFunction('deleteCalendar(_:)')
   void deleteCalendar({
     required String calendarId,
   });
@@ -54,20 +53,19 @@ abstract class CalendarApi {
   });
 
   @async
-  @SwiftFunction('deleteEvent(withId:)')
   void deleteEvent({
+    required String calendarId,
     required String eventId,
+    required EventSpan span,
   });
 
   @async
-  @SwiftFunction('createReminder(_:forEventId:)')
   Event createReminder({
     required int reminder,
     required String eventId,
   });
 
   @async
-  @SwiftFunction('deleteReminder(_:withEventId:)')
   Event deleteReminder({
     required int reminder,
     required String eventId,
@@ -117,19 +115,21 @@ final class Event {
   final String? description;
   final String? url;
   final String? rRule;
+  final String? originalEventId;
 
   const Event({
     required this.id,
+    required this.calendarId,
     required this.title,
     required this.isAllDay,
     required this.startDate,
     required this.endDate,
-    required this.calendarId,
     required this.reminders,
     required this.attendees,
     required this.description,
     required this.url,
     required this.rRule,
+    required this.originalEventId,
   });
 }
 
@@ -157,4 +157,10 @@ final class Attendee {
     required this.type,
     required this.status,
   });
+}
+
+enum EventSpan {
+  currentEvent,
+  futureEvents,
+  allEvents,
 }

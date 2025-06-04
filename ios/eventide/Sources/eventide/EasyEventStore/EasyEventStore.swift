@@ -149,7 +149,11 @@ final class EasyEventStore: EasyEventStoreProtocol {
         }
     }
     
-    func retrieveEvents(calendarId: String, startDate: Date, endDate: Date) throws -> [Event] {
+    func retrieveEvents(
+        calendarId: String,
+        startDate: Date,
+        endDate: Date
+    ) throws -> [Event] {
         guard let calendar = eventStore.calendar(withIdentifier: calendarId) else {
             throw PigeonError(
                 code: "NOT_FOUND",
@@ -167,7 +171,7 @@ final class EasyEventStore: EasyEventStoreProtocol {
         return eventStore.events(matching: predicate).map { $0.toEvent() }
     }
     
-    func deleteEvent(eventId: String) throws {
+    func deleteEvent(eventId: String, span: EventSpan) throws {
         guard let event = eventStore.event(withIdentifier: eventId) else {
             throw PigeonError(
                 code: "NOT_FOUND",
@@ -185,7 +189,7 @@ final class EasyEventStore: EasyEventStoreProtocol {
         }
             
         do {
-            try eventStore.remove(event, span: .thisEvent)
+            try eventStore.remove(event, span: EKSpan(from: span))
             
         } catch {
             eventStore.reset()

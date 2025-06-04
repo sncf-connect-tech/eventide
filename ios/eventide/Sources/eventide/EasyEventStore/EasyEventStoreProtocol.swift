@@ -28,7 +28,7 @@ protocol EasyEventStoreProtocol {
     
     func retrieveEvents(calendarId: String, startDate: Date, endDate: Date) throws -> [Event]
     
-    func deleteEvent(eventId: String) throws -> Void
+    func deleteEvent(eventId: String, span: EventSpan) throws -> Void
     
     func createReminder(timeInterval: TimeInterval, eventId: String) throws -> Event
     

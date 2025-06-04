@@ -7,6 +7,15 @@
 
 import EventKit
 
+public extension EKSpan {
+    internal init(from span: EventSpan) {
+        switch span {
+        case .currentEvent: self.self = .thisEvent
+        case .futureEvents: self.self = .futureEvents
+        }
+    }
+}
+
 public extension EKRecurrenceRule {
     convenience init?(from rRule: String) {
         let workableRRule: String

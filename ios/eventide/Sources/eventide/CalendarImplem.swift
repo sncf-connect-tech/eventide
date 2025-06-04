@@ -74,7 +74,7 @@ class CalendarImplem: CalendarApi {
         }
     }
     
-    func deleteCalendar(_ calendarId: String, completion: @escaping (Result<Void, any Error>) -> Void) {
+    func deleteCalendar(calendarId: String, completion: @escaping (Result<Void, any Error>) -> Void) {
         permissionHandler.checkCalendarAccessThenExecute { [self] in
             do {
                 try easyEventStore.deleteCalendar(calendarId: calendarId)
@@ -165,10 +165,10 @@ class CalendarImplem: CalendarApi {
         }
     }
     
-    func deleteEvent(withId eventId: String, completion: @escaping (Result<Void, any Error>) -> Void) {
+    func deleteEvent(eventId: String, span: EventSpan, completion: @escaping (Result<Void, any Error>) -> Void) {
         permissionHandler.checkCalendarAccessThenExecute { [self] in
             do {
-                try easyEventStore.deleteEvent(eventId: eventId)
+                try easyEventStore.deleteEvent(eventId: eventId, span: span)
                 completion(.success(()))
                 
             } catch {
@@ -186,7 +186,7 @@ class CalendarImplem: CalendarApi {
         }
     }
     
-    func createReminder(_ reminder: Int64, forEventId eventId: String, completion: @escaping (Result<Event, any Error>) -> Void) {
+    func createReminder(reminder: Int64, eventId: String, completion: @escaping (Result<Event, any Error>) -> Void) {
         permissionHandler.checkCalendarAccessThenExecute { [self] in
             do {
                 let modifiedEvent = try easyEventStore.createReminder(timeInterval: TimeInterval(-reminder), eventId: eventId)
@@ -208,7 +208,7 @@ class CalendarImplem: CalendarApi {
 
     }
     
-    func deleteReminder(_ reminder: Int64, withEventId eventId: String, completion: @escaping (Result<Event, any Error>) -> Void) {
+    func deleteReminder(reminder: Int64, eventId: String, completion: @escaping (Result<Event, any Error>) -> Void) {
         permissionHandler.checkCalendarAccessThenExecute { [self] in
             do {
                 let modifiedEvent = try easyEventStore.deleteReminder(timeInterval: TimeInterval(-reminder), eventId: eventId)

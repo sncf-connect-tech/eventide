@@ -64,6 +64,12 @@ private func nilOrValue<T>(_ value: Any?) -> T? {
   return value as! T?
 }
 
+enum EventSpan: Int {
+  case currentEvent = 0
+  case futureEvents = 1
+  case allEvents = 2
+}
+
 /// Generated class from Pigeon that represents data sent in messages.
 struct Calendar {
   var id: String
@@ -113,6 +119,7 @@ struct Event {
   var description: String? = nil
   var url: String? = nil
   var rRule: String? = nil
+  var originalEventId: String? = nil
 
 
   // swift-format-ignore: AlwaysUseLowerCamelCase
@@ -128,6 +135,7 @@ struct Event {
     let description: String? = nilOrValue(pigeonVar_list[8])
     let url: String? = nilOrValue(pigeonVar_list[9])
     let rRule: String? = nilOrValue(pigeonVar_list[10])
+    let originalEventId: String? = nilOrValue(pigeonVar_list[11])
 
     return Event(
       id: id,
@@ -140,7 +148,8 @@ struct Event {
       attendees: attendees,
       description: description,
       url: url,
-      rRule: rRule
+      rRule: rRule,
+      originalEventId: originalEventId
     )
   }
   func toList() -> [Any?] {
@@ -156,6 +165,7 @@ struct Event {
       description,
       url,
       rRule,
+      originalEventId,
     ]
   }
 }
@@ -224,12 +234,18 @@ private class CalendarApiPigeonCodecReader: FlutterStandardReader {
   override func readValue(ofType type: UInt8) -> Any? {
     switch type {
     case 129:
-      return Calendar.fromList(self.readValue() as! [Any?])
+      let enumResultAsInt: Int? = nilOrValue(self.readValue() as! Int?)
+      if let enumResultAsInt = enumResultAsInt {
+        return EventSpan(rawValue: enumResultAsInt)
+      }
+      return nil
     case 130:
-      return Event.fromList(self.readValue() as! [Any?])
+      return Calendar.fromList(self.readValue() as! [Any?])
     case 131:
-      return Account.fromList(self.readValue() as! [Any?])
+      return Event.fromList(self.readValue() as! [Any?])
     case 132:
+      return Account.fromList(self.readValue() as! [Any?])
+    case 133:
       return Attendee.fromList(self.readValue() as! [Any?])
     default:
       return super.readValue(ofType: type)
@@ -239,17 +255,20 @@ private class CalendarApiPigeonCodecReader: FlutterStandardReader {
 
 private class CalendarApiPigeonCodecWriter: FlutterStandardWriter {
   override func writeValue(_ value: Any) {
-    if let value = value as? Calendar {
+    if let value = value as? EventSpan {
       super.writeByte(129)
-      super.writeValue(value.toList())
-    } else if let value = value as? Event {
+      super.writeValue(value.rawValue)
+    } else if let value = value as? Calendar {
       super.writeByte(130)
       super.writeValue(value.toList())
-    } else if let value = value as? Account {
+    } else if let value = value as? Event {
       super.writeByte(131)
       super.writeValue(value.toList())
-    } else if let value = value as? Attendee {
+    } else if let value = value as? Account {
       super.writeByte(132)
+      super.writeValue(value.toList())
+    } else if let value = value as? Attendee {
+      super.writeByte(133)
       super.writeValue(value.toList())
     } else {
       super.writeValue(value)
@@ -277,12 +296,12 @@ protocol CalendarApi {
   func requestCalendarPermission(completion: @escaping (Result<Bool, Error>) -> Void)
   func createCalendar(title: String, color: Int64, localAccountName: String, completion: @escaping (Result<Calendar, Error>) -> Void)
   func retrieveCalendars(onlyWritableCalendars: Bool, fromLocalAccountName: String?, completion: @escaping (Result<[Calendar], Error>) -> Void)
-  func deleteCalendar(_ calendarId: String, completion: @escaping (Result<Void, Error>) -> Void)
+  func deleteCalendar(calendarId: String, completion: @escaping (Result<Void, Error>) -> Void)
   func createEvent(calendarId: String, title: String, startDate: Int64, endDate: Int64, isAllDay: Bool, description: String?, url: String?, rRule: String?, completion: @escaping (Result<Event, Error>) -> Void)
   func retrieveEvents(calendarId: String, startDate: Int64, endDate: Int64, completion: @escaping (Result<[Event], Error>) -> Void)
-  func deleteEvent(withId eventId: String, completion: @escaping (Result<Void, Error>) -> Void)
-  func createReminder(_ reminder: Int64, forEventId eventId: String, completion: @escaping (Result<Event, Error>) -> Void)
-  func deleteReminder(_ reminder: Int64, withEventId eventId: String, completion: @escaping (Result<Event, Error>) -> Void)
+  func deleteEvent(calendarId: String, eventId: String, span: EventSpan, completion: @escaping (Result<Void, Error>) -> Void)
+  func createReminder(reminder: Int64, eventId: String, completion: @escaping (Result<Event, Error>) -> Void)
+  func deleteReminder(reminder: Int64, eventId: String, completion: @escaping (Result<Event, Error>) -> Void)
   func createAttendee(eventId: String, name: String, email: String, role: Int64, type: Int64, completion: @escaping (Result<Event, Error>) -> Void)
   func deleteAttendee(eventId: String, email: String, completion: @escaping (Result<Event, Error>) -> Void)
 }
@@ -350,7 +369,7 @@ class CalendarApiSetup {
       deleteCalendarChannel.setMessageHandler { message, reply in
         let args = message as! [Any?]
         let calendarIdArg = args[0] as! String
-        api.deleteCalendar(calendarIdArg) { result in
+        api.deleteCalendar(calendarId: calendarIdArg) { result in
           switch result {
           case .success:
             reply(wrapResult(nil))
@@ -409,8 +428,10 @@ class CalendarApiSetup {
     if let api = api {
       deleteEventChannel.setMessageHandler { message, reply in
         let args = message as! [Any?]
-        let eventIdArg = args[0] as! String
-        api.deleteEvent(withId: eventIdArg) { result in
+        let calendarIdArg = args[0] as! String
+        let eventIdArg = args[1] as! String
+        let spanArg = args[2] as! EventSpan
+        api.deleteEvent(calendarId: calendarIdArg, eventId: eventIdArg, span: spanArg) { result in
           switch result {
           case .success:
             reply(wrapResult(nil))
@@ -428,7 +449,7 @@ class CalendarApiSetup {
         let args = message as! [Any?]
         let reminderArg = args[0] as! Int64
         let eventIdArg = args[1] as! String
-        api.createReminder(reminderArg, forEventId: eventIdArg) { result in
+        api.createReminder(reminder: reminderArg, eventId: eventIdArg) { result in
           switch result {
           case .success(let res):
             reply(wrapResult(res))
@@ -446,7 +467,7 @@ class CalendarApiSetup {
         let args = message as! [Any?]
         let reminderArg = args[0] as! Int64
         let eventIdArg = args[1] as! String
-        api.deleteReminder(reminderArg, withEventId: eventIdArg) { result in
+        api.deleteReminder(reminder: reminderArg, eventId: eventIdArg) { result in
           switch result {
           case .success(let res):
             reply(wrapResult(res))

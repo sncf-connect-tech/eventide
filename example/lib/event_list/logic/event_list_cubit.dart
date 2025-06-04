@@ -30,7 +30,7 @@ class EventListCubit extends Cubit<EventListState> {
           startDate: startDate,
           endDate: endDate,
           calendarId: data.calendar.id,
-          rRule: rRule.toString(),
+          rRule: rRule?.toString(),
         );
         return EventValue(
           calendar: data.calendar,
@@ -49,10 +49,10 @@ class EventListCubit extends Cubit<EventListState> {
     }).forEach(emit);
   }
 
-  Future<void> deleteEvent(String eventId) async {
+  Future<void> deleteEvent(String calendarId, String eventId, ETEventSpan span) async {
     if (state case Value(:final data?)) {
       await state.fetchFrom(() async {
-        await _calendarPlugin.deleteEvent(eventId: eventId);
+        await _calendarPlugin.deleteEvent(calendarId: calendarId, eventId: eventId, span: span);
         return EventValue(
           calendar: data.calendar,
           events: [...state.data?.events.where((event) => event.id != eventId) ?? []],

@@ -1,3 +1,4 @@
+import 'package:eventide/eventide.dart';
 import 'package:eventide_example/event_details/ui/event_details.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -69,7 +70,43 @@ class EventList extends StatelessWidget {
                                   IconButton(
                                     icon: const Icon(Icons.delete),
                                     onPressed: () {
-                                      context.read<EventListCubit>().deleteEvent(event.id);
+                                      if (event.rRule != null) {
+                                        showDialog(
+                                          context: context,
+                                          builder: (context) => AlertDialog(
+                                            title: const Text('Delete event'),
+                                            content: const Text(
+                                                'Do you want to delete this event and all future occurrences?'),
+                                            actions: [
+                                              TextButton(
+                                                onPressed: () {
+                                                  Navigator.of(context).pop();
+                                                  context.read<EventListCubit>().deleteEvent(
+                                                      data.calendar.id, event.id, ETEventSpan.currentEvent);
+                                                },
+                                                child: const Text('This event'),
+                                              ),
+                                              TextButton(
+                                                onPressed: () {
+                                                  Navigator.of(context).pop();
+                                                  // Supprimer cet événement et tous les suivants
+                                                  context.read<EventListCubit>().deleteEvent(
+                                                      data.calendar.id, event.id, ETEventSpan.futureEvents);
+                                                },
+                                                child: const Text('All future occurrences'),
+                                              ),
+                                              TextButton(
+                                                onPressed: () => Navigator.of(context).pop(),
+                                                child: const Text('Cancel'),
+                                              ),
+                                            ],
+                                          ),
+                                        );
+                                      } else {
+                                        context
+                                            .read<EventListCubit>()
+                                            .deleteEvent(data.calendar.id, event.id, ETEventSpan.currentEvent);
+                                      }
                                     },
                                   ),
                               ],
