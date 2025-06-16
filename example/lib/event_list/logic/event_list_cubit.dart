@@ -1,6 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:eventide_example/event_list/logic/event_list_state.dart';
 import 'package:eventide/eventide.dart';
+import 'package:rrule/rrule.dart';
 import 'package:timezone/timezone.dart';
 import 'package:value_state/value_state.dart';
 
@@ -18,6 +19,7 @@ class EventListCubit extends Cubit<EventListState> {
     required bool isAllDay,
     required TZDateTime startDate,
     required TZDateTime endDate,
+    required RecurrenceRule? rRule,
   }) async {
     if (state case Value(:final data?)) {
       await state.fetchFrom(() async {
@@ -28,6 +30,7 @@ class EventListCubit extends Cubit<EventListState> {
           startDate: startDate,
           endDate: endDate,
           calendarId: data.calendar.id,
+          rRule: rRule?.toString(),
         );
         return EventValue(
           calendar: data.calendar,
@@ -46,10 +49,10 @@ class EventListCubit extends Cubit<EventListState> {
     }).forEach(emit);
   }
 
-  Future<void> deleteEvent(String eventId) async {
+  Future<void> deleteEvent(String calendarId, String eventId, ETEventSpan span) async {
     if (state case Value(:final data?)) {
       await state.fetchFrom(() async {
-        await _calendarPlugin.deleteEvent(eventId: eventId);
+        await _calendarPlugin.deleteEvent(calendarId: calendarId, eventId: eventId, span: span);
         return EventValue(
           calendar: data.calendar,
           events: [...state.data?.events.where((event) => event.id != eventId) ?? []],

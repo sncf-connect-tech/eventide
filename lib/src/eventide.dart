@@ -130,6 +130,7 @@ class Eventide extends EventidePlatform {
     String? description,
     String? url,
     List<Duration>? reminders,
+    String? rRule,
   }) async {
     try {
       final event = await _calendarApi.createEvent(
@@ -140,6 +141,7 @@ class Eventide extends EventidePlatform {
         isAllDay: isAllDay,
         description: description,
         url: url,
+        rRule: rRule,
       );
 
       if (reminders != null) {
@@ -198,10 +200,12 @@ class Eventide extends EventidePlatform {
   /// Throws a [ETGenericException] if any other error occurs during event deletion.
   @override
   Future<void> deleteEvent({
+    required String calendarId,
     required String eventId,
+    ETEventSpan span = ETEventSpan.currentEvent,
   }) async {
     try {
-      await _calendarApi.deleteEvent(eventId: eventId);
+      await _calendarApi.deleteEvent(calendarId: calendarId, eventId: eventId, span: span.toEventSpan());
     } on PlatformException catch (e) {
       throw e.toETException();
     }

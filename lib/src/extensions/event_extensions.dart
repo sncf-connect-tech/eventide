@@ -16,6 +16,7 @@ extension EventToETEvent on Event {
       url: url,
       reminders: reminders.toDurationList(),
       attendees: attendees.toETAttendeeList(),
+      rRule: rRule,
     );
   }
 }
@@ -41,4 +42,20 @@ extension EventListToETEvent on List<Event> {
   List<ETEvent> toETEventList() {
     return map((e) => e.toETEvent()).toList();
   }
+}
+
+extension ETtoEventSpan on ETEventSpan {
+  EventSpan toEventSpan() => switch (this) {
+        ETEventSpan.currentEvent => EventSpan.currentEvent,
+        ETEventSpan.futureEvents => EventSpan.futureEvents,
+        ETEventSpan.allEvents => EventSpan.allEvents,
+      };
+}
+
+extension EventSpanToET on EventSpan {
+  ETEventSpan toETEventSpan() => switch (this) {
+        EventSpan.currentEvent => ETEventSpan.currentEvent,
+        EventSpan.futureEvents => ETEventSpan.futureEvents,
+        EventSpan.allEvents => ETEventSpan.allEvents,
+      };
 }

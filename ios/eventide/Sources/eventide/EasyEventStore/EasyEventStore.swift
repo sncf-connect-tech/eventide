@@ -94,7 +94,8 @@ final class EasyEventStore: EasyEventStoreProtocol {
         endDate: Date,
         isAllDay: Bool,
         description: String?,
-        url: String?
+        url: String?,
+        rRule: String?
     ) throws -> Event {
         let ekEvent = EKEvent(eventStore: eventStore)
         
@@ -114,6 +115,22 @@ final class EasyEventStore: EasyEventStoreProtocol {
         ekEvent.timeZone = TimeZone(identifier: "UTC")
         ekEvent.isAllDay = isAllDay
         
+        if let rRule = rRule {
+            guard let recurrenceRule = EKRecurrenceRule(from: rRule) else {
+                throw PigeonError(
+                    code: "GENERIC_ERROR",
+                    message: "Unable to parse EKRecurrenceRule from rRule",
+                    details: "rRule must respect RFC5545 format convention"
+                )
+            }
+            
+            if (ekEvent.recurrenceRules == nil) {
+                ekEvent.recurrenceRules = [recurrenceRule]
+            } else {
+                ekEvent.recurrenceRules?.append(recurrenceRule)
+            }
+        }
+        
         if url != nil {
             ekEvent.url = URL(string: url!)
         }
@@ -132,7 +149,11 @@ final class EasyEventStore: EasyEventStoreProtocol {
         }
     }
     
-    func retrieveEvents(calendarId: String, startDate: Date, endDate: Date) throws -> [Event] {
+    func retrieveEvents(
+        calendarId: String,
+        startDate: Date,
+        endDate: Date
+    ) throws -> [Event] {
         guard let calendar = eventStore.calendar(withIdentifier: calendarId) else {
             throw PigeonError(
                 code: "NOT_FOUND",
@@ -150,7 +171,7 @@ final class EasyEventStore: EasyEventStoreProtocol {
         return eventStore.events(matching: predicate).map { $0.toEvent() }
     }
     
-    func deleteEvent(eventId: String) throws {
+    func deleteEvent(eventId: String, span: EventSpan) throws {
         guard let event = eventStore.event(withIdentifier: eventId) else {
             throw PigeonError(
                 code: "NOT_FOUND",
@@ -168,7 +189,7 @@ final class EasyEventStore: EasyEventStoreProtocol {
         }
             
         do {
-            try eventStore.remove(event, span: .thisEvent)
+            try eventStore.remove(event, span: EKSpan(from: span))
             
         } catch {
             eventStore.reset()
@@ -321,7 +342,8 @@ fileprivate extension EKEvent {
                 )
             } ?? [],
             description: notes,
-            url: url?.absoluteString
+            url: url?.absoluteString,
+            rRule: recurrenceRules?.first?.toRfc5545String()
         )
     }
 }

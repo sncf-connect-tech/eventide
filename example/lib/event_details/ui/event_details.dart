@@ -6,6 +6,7 @@ import 'package:eventide_example/event_details/logic/event_details_cubit.dart';
 import 'package:eventide_example/event_details/ui/attendee_form.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:rrule/rrule.dart';
 import 'package:value_state/value_state.dart';
 
 class EventDetails extends StatelessWidget {
@@ -40,6 +41,21 @@ class EventDetails extends StatelessWidget {
                   if (event.description != null) Text(event.description!),
                   Text("${event.startDate.toString()} -> ${event.endDate.toString()}"),
                   if (event.url != null) Text(event.url!),
+                  if (event.rRule != null) ...[
+                    const Divider(),
+                    const Text('Recurrence Rule', style: TextStyle(fontWeight: FontWeight.bold)),
+                    FutureBuilder(
+                      future: RruleL10nEn.create(),
+                      builder: (context, snapshot) {
+                        final l10n = snapshot.data;
+                        if (l10n != null) {
+                          return Text(RecurrenceRule.fromString(event.rRule!).toText(l10n: snapshot.data!));
+                        } else {
+                          return const SizedBox.shrink();
+                        }
+                      },
+                    ),
+                  ],
                   const Divider(),
                   Row(
                     children: [

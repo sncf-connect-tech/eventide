@@ -46,6 +46,18 @@ class FlutterError (
   val details: Any? = null
 ) : Throwable()
 
+enum class EventSpan(val raw: Int) {
+  CURRENT_EVENT(0),
+  FUTURE_EVENTS(1),
+  ALL_EVENTS(2);
+
+  companion object {
+    fun ofRaw(raw: Int): EventSpan? {
+      return values().firstOrNull { it.raw == raw }
+    }
+  }
+}
+
 /** Generated class from Pigeon that represents data sent in messages. */
 data class Calendar (
   val id: String,
@@ -87,7 +99,9 @@ data class Event (
   val reminders: List<Long>,
   val attendees: List<Attendee>,
   val description: String? = null,
-  val url: String? = null
+  val url: String? = null,
+  val rRule: String? = null,
+  val originalEventId: String? = null
 )
  {
   companion object {
@@ -102,7 +116,9 @@ data class Event (
       val attendees = pigeonVar_list[7] as List<Attendee>
       val description = pigeonVar_list[8] as String?
       val url = pigeonVar_list[9] as String?
-      return Event(id, calendarId, title, isAllDay, startDate, endDate, reminders, attendees, description, url)
+      val rRule = pigeonVar_list[10] as String?
+      val originalEventId = pigeonVar_list[11] as String?
+      return Event(id, calendarId, title, isAllDay, startDate, endDate, reminders, attendees, description, url, rRule, originalEventId)
     }
   }
   fun toList(): List<Any?> {
@@ -117,6 +133,8 @@ data class Event (
       attendees,
       description,
       url,
+      rRule,
+      originalEventId,
     )
   }
 }
@@ -175,21 +193,26 @@ private open class CalendarApiPigeonCodec : StandardMessageCodec() {
   override fun readValueOfType(type: Byte, buffer: ByteBuffer): Any? {
     return when (type) {
       129.toByte() -> {
-        return (readValue(buffer) as? List<Any?>)?.let {
-          Calendar.fromList(it)
+        return (readValue(buffer) as Long?)?.let {
+          EventSpan.ofRaw(it.toInt())
         }
       }
       130.toByte() -> {
         return (readValue(buffer) as? List<Any?>)?.let {
-          Event.fromList(it)
+          Calendar.fromList(it)
         }
       }
       131.toByte() -> {
         return (readValue(buffer) as? List<Any?>)?.let {
-          Account.fromList(it)
+          Event.fromList(it)
         }
       }
       132.toByte() -> {
+        return (readValue(buffer) as? List<Any?>)?.let {
+          Account.fromList(it)
+        }
+      }
+      133.toByte() -> {
         return (readValue(buffer) as? List<Any?>)?.let {
           Attendee.fromList(it)
         }
@@ -199,20 +222,24 @@ private open class CalendarApiPigeonCodec : StandardMessageCodec() {
   }
   override fun writeValue(stream: ByteArrayOutputStream, value: Any?)   {
     when (value) {
-      is Calendar -> {
+      is EventSpan -> {
         stream.write(129)
-        writeValue(stream, value.toList())
+        writeValue(stream, value.raw)
       }
-      is Event -> {
+      is Calendar -> {
         stream.write(130)
         writeValue(stream, value.toList())
       }
-      is Account -> {
+      is Event -> {
         stream.write(131)
         writeValue(stream, value.toList())
       }
-      is Attendee -> {
+      is Account -> {
         stream.write(132)
+        writeValue(stream, value.toList())
+      }
+      is Attendee -> {
+        stream.write(133)
         writeValue(stream, value.toList())
       }
       else -> super.writeValue(stream, value)
@@ -227,9 +254,9 @@ interface CalendarApi {
   fun createCalendar(title: String, color: Long, localAccountName: String, callback: (Result<Calendar>) -> Unit)
   fun retrieveCalendars(onlyWritableCalendars: Boolean, fromLocalAccountName: String?, callback: (Result<List<Calendar>>) -> Unit)
   fun deleteCalendar(calendarId: String, callback: (Result<Unit>) -> Unit)
-  fun createEvent(calendarId: String, title: String, startDate: Long, endDate: Long, isAllDay: Boolean, description: String?, url: String?, callback: (Result<Event>) -> Unit)
+  fun createEvent(calendarId: String, title: String, startDate: Long, endDate: Long, isAllDay: Boolean, description: String?, url: String?, rRule: String?, callback: (Result<Event>) -> Unit)
   fun retrieveEvents(calendarId: String, startDate: Long, endDate: Long, callback: (Result<List<Event>>) -> Unit)
-  fun deleteEvent(eventId: String, callback: (Result<Unit>) -> Unit)
+  fun deleteEvent(calendarId: String, eventId: String, span: EventSpan, callback: (Result<Unit>) -> Unit)
   fun createReminder(reminder: Long, eventId: String, callback: (Result<Event>) -> Unit)
   fun deleteReminder(reminder: Long, eventId: String, callback: (Result<Event>) -> Unit)
   fun createAttendee(eventId: String, name: String, email: String, role: Long, type: Long, callback: (Result<Event>) -> Unit)
@@ -336,7 +363,8 @@ interface CalendarApi {
             val isAllDayArg = args[4] as Boolean
             val descriptionArg = args[5] as String?
             val urlArg = args[6] as String?
-            api.createEvent(calendarIdArg, titleArg, startDateArg, endDateArg, isAllDayArg, descriptionArg, urlArg) { result: Result<Event> ->
+            val rRuleArg = args[7] as String?
+            api.createEvent(calendarIdArg, titleArg, startDateArg, endDateArg, isAllDayArg, descriptionArg, urlArg, rRuleArg) { result: Result<Event> ->
               val error = result.exceptionOrNull()
               if (error != null) {
                 reply.reply(wrapError(error))
@@ -377,8 +405,10 @@ interface CalendarApi {
         if (api != null) {
           channel.setMessageHandler { message, reply ->
             val args = message as List<Any?>
-            val eventIdArg = args[0] as String
-            api.deleteEvent(eventIdArg) { result: Result<Unit> ->
+            val calendarIdArg = args[0] as String
+            val eventIdArg = args[1] as String
+            val spanArg = args[2] as EventSpan
+            api.deleteEvent(calendarIdArg, eventIdArg, spanArg) { result: Result<Unit> ->
               val error = result.exceptionOrNull()
               if (error != null) {
                 reply.reply(wrapError(error))
