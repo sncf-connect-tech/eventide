@@ -21,13 +21,13 @@ abstract class EventidePlatform extends PlatformInterface {
     _instance = instance;
   }
 
-  Future<bool> requestCalendarPermission();
-
   Future<ETCalendar> createCalendar({
     required String title,
     required Color color,
     required String localAccountName,
   });
+
+  Future<ETCalendar?> retrieveDefaultCalendar();
 
   Future<List<ETCalendar>> retrieveCalendars({
     bool onlyWritableCalendars = true,

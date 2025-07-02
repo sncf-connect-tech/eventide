@@ -2,7 +2,7 @@ import 'package:eventide/eventide.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:value_state/value_state.dart';
 
-class EventDetailsCubit extends Cubit<Value<ETEvent>> {
+final class EventDetailsCubit extends Cubit<Value<ETEvent>> {
   final Eventide _calendarPlugin;
 
   EventDetailsCubit({

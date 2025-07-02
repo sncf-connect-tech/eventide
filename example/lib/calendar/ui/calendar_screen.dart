@@ -1,143 +1,171 @@
+import 'package:calendar_view/calendar_view.dart';
+import 'package:eventide/eventide.dart';
+import 'package:eventide_example/calendar/logic/calendar_cubit.dart';
+import 'package:eventide_example/event_details/ui/event_details_screen.dart';
+import 'package:eventide_example/calendar/ui/event_form.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:eventide/eventide.dart';
-import 'package:eventide_example/event_list/ui/event_list.dart';
-import 'package:eventide_example/calendar/logic/calendar_cubit.dart';
-import 'package:eventide_example/calendar/ui/calendar_form.dart';
-import 'package:eventide_example/event_list/logic/event_list_cubit.dart';
 import 'package:value_state/value_state.dart';
 
-class CalendarScreen extends StatelessWidget {
+final class CalendarScreen extends StatefulWidget {
   const CalendarScreen({super.key});
 
   @override
+  State<StatefulWidget> createState() => _CalendarScreenState();
+}
+
+final class _CalendarScreenState extends State<CalendarScreen> with SingleTickerProviderStateMixin {
+  late final EventController _controller;
+  late final TabController _tabController;
+  ETCalendar? selectedCalendar;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 3, vsync: this);
+    _controller = EventController();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: BlocBuilder<CalendarCubit, Value<List<ETCalendar>>>(builder: (context, state) {
-        return Stack(
-          children: [
-            CustomScrollView(slivers: [
-              SliverAppBar(
-                pinned: true,
-                title: const Text('Calendar plugin example app'),
-                actions: [
-                  IconButton(
-                    icon: const Icon(Icons.add),
-                    onPressed: () {
-                      showDialog(
-                        context: context,
-                        builder: (context) => AlertDialog(
-                          title: const Text('Create calendar'),
-                          content: Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                            child: CalendarForm(
-                              onSubmit: (title, color) async {
-                                await BlocProvider.of<CalendarCubit>(context)
-                                    .createCalendar(title: title, color: color);
-                              },
-                            ),
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                ],
-              ),
-              if (state case Value(:final data?))
-                SliverList(
-                  delegate: SliverChildListDelegate(
-                    data
-                        .map((calendar) => SizedBox(
-                              height: 50,
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 16),
-                                child: InkWell(
-                                  onTap: () async {
-                                    try {
-                                      await BlocProvider.of<EventListCubit>(context).selectCalendar(calendar);
-                                      if (context.mounted) {
-                                        Navigator.of(context).push(
-                                          MaterialPageRoute(builder: (context) => const EventList()),
-                                        );
-                                      }
-                                    } catch (error) {
-                                      if (context.mounted) {
-                                        ScaffoldMessenger.of(context)
-                                            .showSnackBar(SnackBar(content: Text('Error: ${error.toString()}')));
-                                      }
-                                    }
-                                  },
-                                  child: Row(
-                                    children: [
-                                      Container(
-                                        color: calendar.color,
-                                        width: 16,
-                                        height: 16,
-                                      ),
-                                      const SizedBox(width: 16),
-                                      Expanded(
-                                        child: Text(
-                                          calendar.title,
-                                          maxLines: 3,
-                                          overflow: TextOverflow.fade,
-                                        ),
-                                      ),
-                                      const SizedBox(width: 16),
-                                      if (calendar.isWritable)
-                                        IconButton(
-                                          icon: const Icon(Icons.delete),
-                                          onPressed: () {
-                                            BlocProvider.of<CalendarCubit>(context).deleteCalendar(calendar.id);
-                                          },
-                                        ),
-                                      const SizedBox(width: 16),
-                                      const Icon(Icons.arrow_right),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ))
-                        .toList(),
-                  ),
+    return BlocListener<CalendarCubit, CalendarState>(
+      listener: (context, state) {
+        state.when(failure: (error) {
+          if (error is ETPermissionException) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: const Text(
+                  'Full access denied. Please grant calendar permissions in settings.',
                 ),
-              SliverToBoxAdapter(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    if (state case Value(:final data?) when data.isEmpty) ...[
-                      const Text('No calendars found'),
-                      const SizedBox(height: 16),
-                    ],
-                    if (state case Value(:final error?)) ...[
-                      Text('Error: ${error.toString()}'),
-                      const SizedBox(height: 16),
-                    ],
-                  ],
+                backgroundColor: Colors.orange,
+                action: SnackBarAction(
+                  label: 'Back',
+                  textColor: Colors.white,
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
                 ),
+                duration: const Duration(seconds: 5),
               ),
-            ]),
-            Positioned(
-              right: 16,
-              bottom: 16,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  ElevatedButton(
-                    onPressed: () => BlocProvider.of<CalendarCubit>(context).fetchCalendars(onlyWritable: true),
-                    child: const Text('Writable calendars'),
+            );
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Error: ${error.toString()}'),
+                backgroundColor: Colors.red,
+                duration: const Duration(seconds: 3),
+              ),
+            );
+          }
+        });
+      },
+      child: BlocBuilder<CalendarCubit, CalendarState>(
+        builder: (context, state) {
+          // Clear existing events to prevent duplicates
+          _controller.removeWhere((event) => true);
+
+          state.data?.forEach((calendar, events) {
+            final mappedEvents = events
+                .map((event) => CalendarEventData(
+                      event: event,
+                      title: event.title,
+                      date: event.startDate,
+                      color: calendar.color,
+                      startTime: event.startDate,
+                      endTime: event.endDate,
+                    ))
+                .toList();
+
+            _controller.addAll(mappedEvents);
+          });
+
+          return Scaffold(
+            bottomNavigationBar: BottomAppBar(
+              child: TabBar(
+                controller: _tabController,
+                tabs: [
+                  Tab(
+                    icon: const Icon(Icons.calendar_view_month),
+                    text: 'Month',
                   ),
-                  const SizedBox(height: 8),
-                  ElevatedButton(
-                    onPressed: () => BlocProvider.of<CalendarCubit>(context).fetchCalendars(onlyWritable: false),
-                    child: const Text('All calendars'),
+                  Tab(
+                    icon: const Icon(Icons.calendar_view_week),
+                    text: 'Week',
+                  ),
+                  Tab(
+                    icon: const Icon(Icons.calendar_view_day),
+                    text: 'Day',
                   ),
                 ],
               ),
             ),
-          ],
-        );
-      }),
+            body: TabBarView(
+              controller: _tabController,
+              children: [
+                MonthView(
+                  controller: _controller,
+                  onEventTap: (calendarEventData, date) {
+                    if (state case Value(:final data?)) {
+                      final event = calendarEventData.event;
+                      if (event is ETEvent) {
+                        final relatedCalendar = data.keys.singleWhere((calendar) => calendar.id == event.calendarId);
+
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => EventDetailsScreen(
+                              event: event,
+                              isCalendarWritable: relatedCalendar.isWritable,
+                            ),
+                          ),
+                        );
+                      }
+                    }
+                  },
+                  onDateLongPress: (date) {
+                    showDialog(
+                      context: context,
+                      builder: (context) {
+                        return AlertDialog(
+                          title: const Text('Create event'),
+                          content: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                            child: EventForm(
+                              calendars: [...?state.data?.keys],
+                              onSubmit: (selectedCalendar, title, description, isAllDay, startDate, endDate) async {
+                                await BlocProvider.of<CalendarCubit>(context).createEvent(
+                                  calendar: selectedCalendar,
+                                  title: title,
+                                  description: description,
+                                  isAllDay: isAllDay,
+                                  startDate: startDate,
+                                  endDate: endDate,
+                                );
+                              },
+                            ),
+                          ),
+                        );
+                      },
+                    );
+                  },
+                ),
+                WeekView(
+                  controller: _controller,
+                ),
+                DayView(
+                  controller: _controller,
+                ),
+              ],
+            ),
+          );
+        },
+      ),
     );
   }
 }

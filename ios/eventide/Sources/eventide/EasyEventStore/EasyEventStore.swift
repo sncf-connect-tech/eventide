@@ -44,6 +44,10 @@ final class EasyEventStore: EasyEventStoreProtocol {
         }
     }
     
+    func retrieveDefaultCalendar() -> Calendar? {
+        return eventStore.defaultCalendarForNewEvents?.toCalendar()
+    }
+    
     func retrieveCalendars(
         onlyWritable: Bool,
         from localAccountName: String?

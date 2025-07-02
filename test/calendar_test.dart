@@ -9,7 +9,7 @@ import 'package:eventide/src/extensions/account_extensions.dart';
 import 'package:eventide/src/extensions/calendar_extensions.dart';
 import 'package:eventide/src/extensions/color_extensions.dart';
 
-class _MockCalendarApi extends Mock implements CalendarApi {}
+final class _MockCalendarApi extends Mock implements CalendarApi {}
 
 void main() {
   late _MockCalendarApi mockCalendarApi;

@@ -115,7 +115,7 @@ class EventTests {
             isAllDay = false,
             reminders = emptyList(),
             attendees = emptyList()
-        ), result!!.getOrNull()!!)
+        ), result.getOrNull()!!)
     }
 
     @Test
@@ -141,7 +141,7 @@ class EventTests {
         latch.await()
 
         assertTrue(result!!.isFailure)
-        assertEquals("NOT_EDITABLE", (result!!.exceptionOrNull() as FlutterError).code)
+        assertEquals("NOT_EDITABLE", (result.exceptionOrNull() as FlutterError).code)
     }
 
     @Test
@@ -167,7 +167,7 @@ class EventTests {
         latch.await()
 
         assertTrue(result!!.isFailure)
-        assertEquals("NOT_FOUND", (result!!.exceptionOrNull() as FlutterError).code)
+        assertEquals("NOT_FOUND", (result.exceptionOrNull() as FlutterError).code)
     }
 
     @Test
@@ -188,7 +188,7 @@ class EventTests {
         }
 
         assertTrue(result!!.isFailure)
-        assertEquals("ACCESS_REFUSED", (result!!.exceptionOrNull() as FlutterError).code)
+        assertEquals("ACCESS_REFUSED", (result.exceptionOrNull() as FlutterError).code)
     }
 
     @Test
@@ -215,7 +215,7 @@ class EventTests {
         latch.await()
 
         assertTrue(result!!.isFailure)
-        assertEquals("NOT_FOUND", (result!!.exceptionOrNull() as FlutterError).code)
+        assertEquals("NOT_FOUND", (result.exceptionOrNull() as FlutterError).code)
     }
 
     @Test
@@ -236,7 +236,7 @@ class EventTests {
         latch.await()
 
         assertTrue(result!!.isSuccess)
-        assertEquals(1, result!!.getOrNull()?.size)
+        assertEquals(1, result.getOrNull()?.size)
     }
 
     @Test
@@ -249,7 +249,7 @@ class EventTests {
         }
 
         assertTrue(result!!.isFailure)
-        assertEquals("ACCESS_REFUSED", (result!!.exceptionOrNull() as FlutterError).code)
+        assertEquals("ACCESS_REFUSED", (result.exceptionOrNull() as FlutterError).code)
     }
 
     @Test
@@ -270,7 +270,7 @@ class EventTests {
         latch.await()
 
         assertTrue(result!!.isSuccess)
-        assertTrue(result!!.getOrNull()?.isEmpty()!!)
+        assertTrue(result.getOrNull()?.isEmpty()!!)
     }
 
     @Test
@@ -289,7 +289,7 @@ class EventTests {
         latch.await()
 
         assertTrue(result!!.isFailure)
-        assertEquals("GENERIC_ERROR", (result!!.exceptionOrNull() as FlutterError).code)
+        assertEquals("GENERIC_ERROR", (result.exceptionOrNull() as FlutterError).code)
     }
 
     @Test
@@ -342,7 +342,7 @@ class EventTests {
         latch.await()
 
         assertTrue(result!!.isFailure)
-        assertEquals("GENERIC_ERROR", (result!!.exceptionOrNull() as FlutterError).code)
+        assertEquals("GENERIC_ERROR", (result.exceptionOrNull() as FlutterError).code)
     }
 
     @Test
@@ -363,7 +363,7 @@ class EventTests {
         latch.await()
 
         assertTrue(result!!.isFailure)
-        assertEquals("NOT_FOUND", (result!!.exceptionOrNull() as FlutterError).code)
+        assertEquals("NOT_FOUND", (result.exceptionOrNull() as FlutterError).code)
     }
 
     @Test
@@ -381,6 +381,6 @@ class EventTests {
         latch.await()
 
         assertTrue(result!!.isFailure)
-        assertEquals("NOT_FOUND", (result!!.exceptionOrNull() as FlutterError).code)
+        assertEquals("NOT_FOUND", (result.exceptionOrNull() as FlutterError).code)
     }
 }

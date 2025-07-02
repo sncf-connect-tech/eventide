@@ -10,27 +10,12 @@ import 'package:eventide/src/extensions/color_extensions.dart';
 import 'package:eventide/src/extensions/duration_extensions.dart';
 import 'package:eventide/src/extensions/event_extensions.dart';
 
-class Eventide extends EventidePlatform {
+final class Eventide extends EventidePlatform {
   final CalendarApi _calendarApi;
 
   Eventide({
     @visibleForTesting CalendarApi? calendarApi,
   }) : _calendarApi = calendarApi ?? CalendarApi();
-
-  /// Requests permission to access the calendar.
-  ///
-  /// This method call is only necessary if you want to ask for permission early at runtime,
-  /// as the plugin will automatically request permission when needed.
-  ///
-  /// Returns `true` if permission is granted, `false` otherwise.
-  @override
-  Future<bool> requestCalendarPermission() async {
-    try {
-      return await _calendarApi.requestCalendarPermission();
-    } on PlatformException catch (e) {
-      throw e.toETException();
-    }
-  }
 
   /// Creates a new calendar with the given [title], [color] and [accountName].
   ///
@@ -59,6 +44,29 @@ class Eventide extends EventidePlatform {
         localAccountName: localAccountName,
       );
       return calendar.toETCalendar();
+    } on PlatformException catch (e) {
+      throw e.toETException();
+    }
+  }
+
+  /// Retrieves the default calendar.
+  ///
+  /// Returns the default [ETCalendar].
+  ///
+  /// On iOS, this method will prompt user for write only permission and will return a virtual calendar to insert your event into. Any attempt to use it for reading events will end up with a [ETGenericException].
+  ///
+  /// On Android, this method will return the first calendar found that is writable.
+  ///
+  /// Throws a [ETPermissionException] if the user refuses to grant calendar permissions.
+  ///
+  /// Throws a [ETNotFoundException] if no default calendar is found.
+  ///
+  /// Throws a [ETGenericException] if any other error occurs during calendar retrieval.
+  @override
+  Future<ETCalendar?> retrieveDefaultCalendar() async {
+    try {
+      final calendar = await _calendarApi.retrieveDefaultCalendar();
+      return calendar?.toETCalendar();
     } on PlatformException catch (e) {
       throw e.toETException();
     }
