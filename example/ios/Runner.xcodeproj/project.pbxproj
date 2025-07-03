@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 54;
+	objectVersion = 60;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -19,7 +19,6 @@
 		EA5CD6CF2D8C9A3B004CFD37 /* MockEasyEventStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA3C14952D42D3C80038A047 /* MockEasyEventStore.swift */; };
 		EA8AABCB2D8D884300A1D69B /* ReminderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA8AABCA2D8D884300A1D69B /* ReminderTests.swift */; };
 		EA8AABCD2D8D889600A1D69B /* CalendarTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA8AABCC2D8D889600A1D69B /* CalendarTests.swift */; };
-		EA8AABCF2D8D88D600A1D69B /* PermissionHandlerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA8AABCE2D8D88D600A1D69B /* PermissionHandlerTests.swift */; };
 		EA8AABD12D8D891A00A1D69B /* EventTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA8AABD02D8D891A00A1D69B /* EventTests.swift */; };
 /* End PBXBuildFile section */
 
@@ -65,7 +64,6 @@
 		EA5CD6C22D8C99CA004CFD37 /* EventideTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = EventideTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		EA8AABCA2D8D884300A1D69B /* ReminderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReminderTests.swift; sourceTree = "<group>"; };
 		EA8AABCC2D8D889600A1D69B /* CalendarTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarTests.swift; sourceTree = "<group>"; };
-		EA8AABCE2D8D88D600A1D69B /* PermissionHandlerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PermissionHandlerTests.swift; sourceTree = "<group>"; };
 		EA8AABD02D8D891A00A1D69B /* EventTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventTests.swift; sourceTree = "<group>"; };
 		EAECB9432D395CA3000FAA80 /* UtilsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UtilsTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -149,7 +147,6 @@
 				EA8AABCA2D8D884300A1D69B /* ReminderTests.swift */,
 				EA8AABCC2D8D889600A1D69B /* CalendarTests.swift */,
 				EA8AABD02D8D891A00A1D69B /* EventTests.swift */,
-				EA8AABCE2D8D88D600A1D69B /* PermissionHandlerTests.swift */,
 				EAECB9432D395CA3000FAA80 /* UtilsTests.swift */,
 			);
 			path = EventideTests;
@@ -320,7 +317,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				EA8AABCF2D8D88D600A1D69B /* PermissionHandlerTests.swift in Sources */,
 				EA5CD6CC2D8C99F2004CFD37 /* UtilsTests.swift in Sources */,
 				EA5CD6CF2D8C9A3B004CFD37 /* MockEasyEventStore.swift in Sources */,
 				EA5CD6CE2D8C9A3B004CFD37 /* MockPermissionHandler.swift in Sources */,

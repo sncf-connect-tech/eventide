@@ -270,8 +270,8 @@ class CalendarApiPigeonCodec: FlutterStandardMessageCodec, @unchecked Sendable {
 
 /// Generated protocol from Pigeon that represents a handler of messages from Flutter.
 protocol CalendarApi {
-  func requestCalendarPermission(completion: @escaping (Result<Bool, Error>) -> Void)
   func createCalendar(title: String, color: Int64, localAccountName: String, completion: @escaping (Result<Calendar, Error>) -> Void)
+  func retrieveDefaultCalendar(fromLocalAccountName: String?, completion: @escaping (Result<Calendar?, Error>) -> Void)
   func retrieveCalendars(onlyWritableCalendars: Bool, fromLocalAccountName: String?, completion: @escaping (Result<[Calendar], Error>) -> Void)
   func deleteCalendar(_ calendarId: String, completion: @escaping (Result<Void, Error>) -> Void)
   func createEvent(calendarId: String, title: String, startDate: Int64, endDate: Int64, isAllDay: Bool, description: String?, url: String?, completion: @escaping (Result<Event, Error>) -> Void)
@@ -289,21 +289,6 @@ class CalendarApiSetup {
   /// Sets up an instance of `CalendarApi` to handle messages through the `binaryMessenger`.
   static func setUp(binaryMessenger: FlutterBinaryMessenger, api: CalendarApi?, messageChannelSuffix: String = "") {
     let channelSuffix = messageChannelSuffix.count > 0 ? ".\(messageChannelSuffix)" : ""
-    let requestCalendarPermissionChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.eventide.CalendarApi.requestCalendarPermission\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
-    if let api = api {
-      requestCalendarPermissionChannel.setMessageHandler { _, reply in
-        api.requestCalendarPermission { result in
-          switch result {
-          case .success(let res):
-            reply(wrapResult(res))
-          case .failure(let error):
-            reply(wrapError(error))
-          }
-        }
-      }
-    } else {
-      requestCalendarPermissionChannel.setMessageHandler(nil)
-    }
     let createCalendarChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.eventide.CalendarApi.createCalendar\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
     if let api = api {
       createCalendarChannel.setMessageHandler { message, reply in
@@ -322,6 +307,23 @@ class CalendarApiSetup {
       }
     } else {
       createCalendarChannel.setMessageHandler(nil)
+    }
+    let retrieveDefaultCalendarChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.eventide.CalendarApi.retrieveDefaultCalendar\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
+    if let api = api {
+      retrieveDefaultCalendarChannel.setMessageHandler { message, reply in
+        let args = message as! [Any?]
+        let fromLocalAccountNameArg: String? = nilOrValue(args[0])
+        api.retrieveDefaultCalendar(fromLocalAccountName: fromLocalAccountNameArg) { result in
+          switch result {
+          case .success(let res):
+            reply(wrapResult(res))
+          case .failure(let error):
+            reply(wrapError(error))
+          }
+        }
+      }
+    } else {
+      retrieveDefaultCalendarChannel.setMessageHandler(nil)
     }
     let retrieveCalendarsChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.eventide.CalendarApi.retrieveCalendars\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
     if let api = api {

@@ -8,11 +8,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:value_state/value_state.dart';
 
-class EventDetails extends StatelessWidget {
+final class EventDetailsScreen extends StatelessWidget {
   final ETEvent event;
   final bool isCalendarWritable;
 
-  const EventDetails({
+  const EventDetailsScreen({
     required this.event,
     required this.isCalendarWritable,
     super.key,

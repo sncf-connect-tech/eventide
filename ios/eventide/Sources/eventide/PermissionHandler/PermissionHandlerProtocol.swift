@@ -7,9 +7,15 @@
 
 import Foundation
 
+enum AccessLevel {
+    case writeOnly
+    case fullAccess
+}
+
 protocol PermissionHandlerProtocol {
     func checkCalendarAccessThenExecute(
-        _ permissionsGrantedCallback: @escaping () -> Void,
+        _ accessLevel: AccessLevel,
+        onPermissionGranted permissionsGrantedCallback: @escaping () -> Void,
         onPermissionRefused permissionsRefusedCallback: @escaping () -> Void,
         onPermissionError errorCallback: @escaping (any Error) -> Void
     )

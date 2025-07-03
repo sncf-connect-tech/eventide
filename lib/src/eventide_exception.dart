@@ -10,7 +10,7 @@ abstract class ETException extends PlatformException {
 }
 
 /// An exception thrown when the user refuses to grant calendar permissions.
-class ETPermissionException extends ETException {
+final class ETPermissionException extends ETException {
   ETPermissionException({
     required super.message,
     super.details,
@@ -18,7 +18,7 @@ class ETPermissionException extends ETException {
 }
 
 /// An exception thrown when a calendar/event/reminder is not found.
-class ETNotFoundException extends ETException {
+final class ETNotFoundException extends ETException {
   ETNotFoundException({
     required super.message,
     super.details,
@@ -26,7 +26,7 @@ class ETNotFoundException extends ETException {
 }
 
 /// An exception thrown when the calendar is not editable.
-class ETNotEditableException extends ETException {
+final class ETNotEditableException extends ETException {
   ETNotEditableException({
     required super.message,
     super.details,
@@ -34,14 +34,14 @@ class ETNotEditableException extends ETException {
 }
 
 /// An exception thrown when an unknown plugin error occurs.
-class ETGenericException extends ETException {
+final class ETGenericException extends ETException {
   ETGenericException({
     required super.message,
     super.details,
   }) : super(code: 'GENERIC_ERROR');
 }
 
-class ETNotSupportedByPlatform extends ETException {
+final class ETNotSupportedByPlatform extends ETException {
   ETNotSupportedByPlatform({
     required super.message,
     super.details,

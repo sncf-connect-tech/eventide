@@ -30,6 +30,10 @@ class MockEasyEventStore: EasyEventStoreProtocol {
         return calendar.toCalendar()
     }
     
+    func retrieveDefaultCalendar() -> eventide.Calendar? {
+        return calendars.first?.toCalendar()
+    }
+    
     func retrieveCalendars(
         onlyWritable: Bool,
         from localAccountName: String?

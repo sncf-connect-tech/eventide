@@ -80,11 +80,11 @@ class CalendarTests {
         latch.await()
 
         assertTrue(result!!.isSuccess)
-        assertTrue(result!!.getOrNull()!!.title == "Test Calendar")
-        assertTrue(result!!.getOrNull()!!.color.toInt() == 0x00FF00)
-        assertTrue(result!!.getOrNull()!!.account.name == "Test Account")
-        assertTrue(result!!.getOrNull()!!.account.type == CalendarContract.ACCOUNT_TYPE_LOCAL)
-        assertEquals("1", result!!.getOrNull()?.id)
+        assertTrue(result.getOrNull()!!.title == "Test Calendar")
+        assertTrue(result.getOrNull()!!.color.toInt() == 0x00FF00)
+        assertTrue(result.getOrNull()!!.account.name == "Test Account")
+        assertTrue(result.getOrNull()!!.account.type == CalendarContract.ACCOUNT_TYPE_LOCAL)
+        assertEquals("1", result.getOrNull()?.id)
     }
 
     @Test
@@ -97,7 +97,7 @@ class CalendarTests {
         }
 
         assertTrue(result!!.isFailure)
-        assertEquals("ACCESS_REFUSED", (result!!.exceptionOrNull() as FlutterError).code)
+        assertEquals("ACCESS_REFUSED", (result.exceptionOrNull() as FlutterError).code)
     }
 
     @Test
@@ -116,7 +116,7 @@ class CalendarTests {
         latch.await()
 
         assertTrue(result!!.isFailure)
-        assertEquals("GENERIC_ERROR", (result!!.exceptionOrNull() as FlutterError).code)
+        assertEquals("GENERIC_ERROR", (result.exceptionOrNull() as FlutterError).code)
     }
 
     @Test
@@ -137,7 +137,7 @@ class CalendarTests {
         latch.await()
 
         assertTrue(result!!.isFailure)
-        assertEquals("NOT_FOUND", (result!!.exceptionOrNull() as FlutterError).code)
+        assertEquals("NOT_FOUND", (result.exceptionOrNull() as FlutterError).code)
     }
 
     @Test
@@ -156,18 +156,32 @@ class CalendarTests {
         latch.await()
 
         assertTrue(result!!.isFailure)
-        assertEquals("GENERIC_ERROR", (result!!.exceptionOrNull() as FlutterError).code)
+        assertEquals("GENERIC_ERROR", (result.exceptionOrNull() as FlutterError).code)
     }
 
     @Test
     fun retrieveCalendars_withGrantedPermission_returnsCalendars() = runTest {
         mockPermissionGranted(permissionHandler)
+
         val cursor = mockk<Cursor>(relaxed = true)
         every { contentResolver.query(calendarContentUri, any(), any(), any(), any()) } returns cursor
         every { cursor.moveToNext() } returnsMany listOf(true, true, false)
-        every { cursor.getLong(any()) } returnsMany listOf(0xFF0000, 0xFF0000)
-        every { cursor.getString(any()) } returnsMany listOf("id", "Test Calendar", "Test Account", "Test Account Type", "id2", "Test Calendar2", "Test Account", "Test Account Type")
-        every { cursor.getInt(any()) } returnsMany listOf(CalendarContract.Calendars.CAL_ACCESS_OWNER, CalendarContract.Calendars.CAL_ACCESS_OWNER)
+
+        // Mock column indices
+        every { cursor.getColumnIndexOrThrow(CalendarContract.Calendars._ID) } returns 0
+        every { cursor.getColumnIndexOrThrow(CalendarContract.Calendars.CALENDAR_DISPLAY_NAME) } returns 1
+        every { cursor.getColumnIndexOrThrow(CalendarContract.Calendars.CALENDAR_COLOR) } returns 2
+        every { cursor.getColumnIndexOrThrow(CalendarContract.Calendars.CALENDAR_ACCESS_LEVEL) } returns 3
+        every { cursor.getColumnIndexOrThrow(CalendarContract.Calendars.ACCOUNT_NAME) } returns 4
+        every { cursor.getColumnIndexOrThrow(CalendarContract.Calendars.ACCOUNT_TYPE) } returns 5
+
+        // Mock values for each row and column
+        every { cursor.getString(0) } returnsMany listOf("id", "id2")
+        every { cursor.getString(1) } returnsMany listOf("Test Calendar", "Test Calendar2")
+        every { cursor.getString(4) } returnsMany listOf("Test Account", "Test Account")
+        every { cursor.getString(5) } returnsMany listOf("Test Account Type", "Test Account Type")
+        every { cursor.getLong(2) } returnsMany listOf(0xFF0000, 0xFF0000)
+        every { cursor.getInt(3) } returnsMany listOf(CalendarContract.Calendars.CAL_ACCESS_OWNER, CalendarContract.Calendars.CAL_ACCESS_OWNER)
 
         var result: Result<List<Calendar>>? = null
         val latch = CountDownLatch(1)
@@ -179,21 +193,34 @@ class CalendarTests {
         latch.await()
 
         assertTrue(result!!.isSuccess)
-        assertEquals(2, result!!.getOrNull()?.size)
-        assertEquals("Test Calendar", result!!.getOrNull()?.get(0)?.title)
-        assertEquals("Test Calendar2", result!!.getOrNull()?.get(1)?.title)
+        assertEquals(2, result.getOrNull()?.size)
+        assertEquals("Test Calendar", result.getOrNull()?.get(0)?.title)
+        assertEquals("Test Calendar2", result.getOrNull()?.get(1)?.title)
     }
 
     @Test
     fun retrieveCalendars_withGrantedPermission_returnsOnlyWritableCalendars() = runTest {
         mockPermissionGranted(permissionHandler)
-        
+
         val cursor = mockk<Cursor>(relaxed = true)
         every { contentResolver.query(calendarContentUri, any(), any(), any(), any()) } returns cursor
         every { cursor.moveToNext() } returnsMany listOf(true, true, false)
-        every { cursor.getLong(any()) } returnsMany listOf(0xFF0000, 0xFF0000)
-        every { cursor.getString(any()) } returnsMany listOf("id1", "Test Calendar", "Test Account", "Test Account Type", "id2", "Test Calendar", "Test Account", "Test Account Type")
-        every { cursor.getInt(any()) } returnsMany listOf(CalendarContract.Calendars.CAL_ACCESS_OWNER, CalendarContract.Calendars.CAL_ACCESS_READ)
+
+        // Mock column indices
+        every { cursor.getColumnIndexOrThrow(CalendarContract.Calendars._ID) } returns 0
+        every { cursor.getColumnIndexOrThrow(CalendarContract.Calendars.CALENDAR_DISPLAY_NAME) } returns 1
+        every { cursor.getColumnIndexOrThrow(CalendarContract.Calendars.CALENDAR_COLOR) } returns 2
+        every { cursor.getColumnIndexOrThrow(CalendarContract.Calendars.CALENDAR_ACCESS_LEVEL) } returns 3
+        every { cursor.getColumnIndexOrThrow(CalendarContract.Calendars.ACCOUNT_NAME) } returns 4
+        every { cursor.getColumnIndexOrThrow(CalendarContract.Calendars.ACCOUNT_TYPE) } returns 5
+
+        // Mock values for each row and column
+        every { cursor.getString(0) } returnsMany listOf("id1", "id2")
+        every { cursor.getString(1) } returnsMany listOf("Test Calendar", "Test Calendar")
+        every { cursor.getString(4) } returnsMany listOf("Test Account", "Test Account")
+        every { cursor.getString(5) } returnsMany listOf("Test Account Type", "Test Account Type")
+        every { cursor.getLong(2) } returnsMany listOf(0xFF0000, 0xFF0000)
+        every { cursor.getInt(3) } returnsMany listOf(CalendarContract.Calendars.CAL_ACCESS_OWNER, CalendarContract.Calendars.CAL_ACCESS_READ)
 
         var result: Result<List<Calendar>>? = null
         val latch = CountDownLatch(1)
@@ -205,8 +232,8 @@ class CalendarTests {
         latch.await()
 
         assertTrue(result!!.isSuccess)
-        assertEquals(1, result!!.getOrNull()?.size)
-        assertEquals("Test Calendar", result!!.getOrNull()?.get(0)?.title)
+        assertEquals(1, result.getOrNull()?.size)
+        assertEquals("Test Calendar", result.getOrNull()?.get(0)?.title)
     }
 
     @Test
@@ -239,7 +266,7 @@ class CalendarTests {
         }
 
         assertTrue(result!!.isSuccess)
-        assertTrue(result!!.getOrNull()?.isEmpty()!!)
+        assertTrue(result.getOrNull()?.isEmpty()!!)
     }
 
     @Test
@@ -269,7 +296,7 @@ class CalendarTests {
         }
 
         assertTrue(result!!.isSuccess)
-        assertTrue(result!!.getOrNull()?.isEmpty()!!)
+        assertTrue(result.getOrNull()?.isEmpty()!!)
     }
 
     @Test
@@ -282,7 +309,7 @@ class CalendarTests {
         }
 
         assertTrue(result!!.isFailure)
-        assertEquals("ACCESS_REFUSED", (result!!.exceptionOrNull() as FlutterError).code)
+        assertEquals("ACCESS_REFUSED", (result.exceptionOrNull() as FlutterError).code)
     }
 
     @Test
@@ -303,7 +330,7 @@ class CalendarTests {
         latch.await()
 
         assertTrue(result!!.isSuccess)
-        assertTrue(result!!.getOrNull()?.isEmpty()!!)
+        assertTrue(result.getOrNull()?.isEmpty()!!)
     }
 
     @Test
@@ -322,7 +349,7 @@ class CalendarTests {
         latch.await()
 
         assertTrue(result!!.isFailure)
-        assertEquals("GENERIC_ERROR", (result!!.exceptionOrNull() as FlutterError).code)
+        assertEquals("GENERIC_ERROR", (result.exceptionOrNull() as FlutterError).code)
     }
 
     @Test
@@ -359,7 +386,7 @@ class CalendarTests {
         latch.await()
 
         assertTrue(result!!.isFailure)
-        assertEquals("NOT_EDITABLE", (result!!.exceptionOrNull() as FlutterError).code)
+        assertEquals("NOT_EDITABLE", (result.exceptionOrNull() as FlutterError).code)
     }
 
     @Test
@@ -372,7 +399,7 @@ class CalendarTests {
         }
 
         assertTrue(result!!.isFailure)
-        assertEquals("ACCESS_REFUSED", (result!!.exceptionOrNull() as FlutterError).code)
+        assertEquals("ACCESS_REFUSED", (result.exceptionOrNull() as FlutterError).code)
     }
 
     @Test
@@ -392,7 +419,7 @@ class CalendarTests {
         latch.await()
 
         assertTrue(result!!.isFailure)
-        assertEquals("GENERIC_ERROR", (result!!.exceptionOrNull() as FlutterError).code)
+        assertEquals("GENERIC_ERROR", (result.exceptionOrNull() as FlutterError).code)
     }
 
     @Test
@@ -412,7 +439,7 @@ class CalendarTests {
         latch.await()
 
         assertTrue(result!!.isFailure)
-        assertEquals("GENERIC_ERROR", (result!!.exceptionOrNull() as FlutterError).code)
+        assertEquals("GENERIC_ERROR", (result.exceptionOrNull() as FlutterError).code)
     }
 
     @Test
@@ -432,7 +459,7 @@ class CalendarTests {
         latch.await()
 
         assertTrue(result!!.isFailure)
-        assertEquals("NOT_EDITABLE", (result!!.exceptionOrNull() as FlutterError).code)
+        assertEquals("NOT_EDITABLE", (result.exceptionOrNull() as FlutterError).code)
     }
 
     @Test
@@ -452,6 +479,225 @@ class CalendarTests {
         latch.await()
 
         assertTrue(result!!.isFailure)
-        assertEquals("NOT_FOUND", (result!!.exceptionOrNull() as FlutterError).code)
+        assertEquals("NOT_FOUND", (result.exceptionOrNull() as FlutterError).code)
+    }
+
+    @Test
+    fun retrieveDefaultCalendar_withGrantedPermission_returnsPrimaryCalendar() = runTest {
+        mockPermissionGranted(permissionHandler)
+
+        val cursor = mockk<Cursor>(relaxed = true)
+        every { contentResolver.query(calendarContentUri, any(), any(), any(), any()) } returns cursor
+        every { cursor.moveToNext() } returnsMany listOf(true, false)
+
+        // Mock column indices
+        every { cursor.getColumnIndexOrThrow(CalendarContract.Calendars._ID) } returns 0
+        every { cursor.getColumnIndexOrThrow(CalendarContract.Calendars.CALENDAR_DISPLAY_NAME) } returns 1
+        every { cursor.getColumnIndexOrThrow(CalendarContract.Calendars.CALENDAR_COLOR) } returns 2
+        every { cursor.getColumnIndexOrThrow(CalendarContract.Calendars.CALENDAR_ACCESS_LEVEL) } returns 3
+        every { cursor.getColumnIndexOrThrow(CalendarContract.Calendars.ACCOUNT_NAME) } returns 4
+        every { cursor.getColumnIndexOrThrow(CalendarContract.Calendars.ACCOUNT_TYPE) } returns 5
+        every { cursor.getColumnIndexOrThrow(CalendarContract.Calendars.IS_PRIMARY) } returns 6
+
+        // Mock IS_PRIMARY value
+        every { cursor.getInt(6) } returns 1 // IS_PRIMARY = 1
+
+        // Mock values for each column
+        every { cursor.getString(0) } returns "primary_id"
+        every { cursor.getString(1) } returns "Primary Calendar"
+        every { cursor.getString(4) } returns "Test Account"
+        every { cursor.getString(5) } returns "Test Account Type"
+        every { cursor.getLong(2) } returns 0x00FF00
+        every { cursor.getInt(3) } returns CalendarContract.Calendars.CAL_ACCESS_OWNER
+
+        var result: Result<Calendar?>? = null
+        val latch = CountDownLatch(1)
+        calendarImplem.retrieveDefaultCalendar(null) {
+            result = it
+            latch.countDown()
+        }
+
+        latch.await()
+
+        assertTrue(result!!.isSuccess)
+        assertEquals("primary_id", result.getOrNull()?.id)
+        assertEquals("Primary Calendar", result.getOrNull()?.title)
+        assertEquals("Test Account", result.getOrNull()?.account?.name)
+    }
+
+    @Test
+    fun retrieveDefaultCalendar_withGrantedPermission_andAccountFilter_returnsPrimaryCalendarFromAccount() = runTest {
+        mockPermissionGranted(permissionHandler)
+
+        val cursor = mockk<Cursor>(relaxed = true)
+        every { contentResolver.query(calendarContentUri, any(), any(), any(), any()) } returns cursor
+        every { cursor.moveToNext() } returnsMany listOf(true, false)
+
+        // Mock column indices
+        every { cursor.getColumnIndexOrThrow(CalendarContract.Calendars._ID) } returns 0
+        every { cursor.getColumnIndexOrThrow(CalendarContract.Calendars.CALENDAR_DISPLAY_NAME) } returns 1
+        every { cursor.getColumnIndexOrThrow(CalendarContract.Calendars.CALENDAR_COLOR) } returns 2
+        every { cursor.getColumnIndexOrThrow(CalendarContract.Calendars.CALENDAR_ACCESS_LEVEL) } returns 3
+        every { cursor.getColumnIndexOrThrow(CalendarContract.Calendars.ACCOUNT_NAME) } returns 4
+        every { cursor.getColumnIndexOrThrow(CalendarContract.Calendars.ACCOUNT_TYPE) } returns 5
+        every { cursor.getColumnIndexOrThrow(CalendarContract.Calendars.IS_PRIMARY) } returns 6
+
+        // Mock IS_PRIMARY value
+        every { cursor.getInt(6) } returns 1 // IS_PRIMARY = 1
+
+        // Mock values for each column
+        every { cursor.getString(0) } returns "primary_id"
+        every { cursor.getString(1) } returns "Primary Calendar"
+        every { cursor.getString(4) } returns "Specific Account"
+        every { cursor.getString(5) } returns CalendarContract.ACCOUNT_TYPE_LOCAL
+        every { cursor.getLong(2) } returns 0x00FF00
+        every { cursor.getInt(3) } returns CalendarContract.Calendars.CAL_ACCESS_OWNER
+
+        var result: Result<Calendar?>? = null
+        val latch = CountDownLatch(1)
+        calendarImplem.retrieveDefaultCalendar("Specific Account") {
+            result = it
+            latch.countDown()
+        }
+
+        latch.await()
+
+        val expectedSelection = "${CalendarContract.Calendars.ACCOUNT_NAME} = ? AND ${CalendarContract.Calendars.ACCOUNT_TYPE} = ?"
+        val expectedSelectionArgs = arrayOf("Specific Account", CalendarContract.ACCOUNT_TYPE_LOCAL)
+
+        verify {
+            contentResolver.query(
+                calendarContentUri,
+                any(),
+                expectedSelection,
+                expectedSelectionArgs,
+                any()
+            )
+        }
+
+        assertTrue(result!!.isSuccess)
+        assertEquals("primary_id", result.getOrNull()?.id)
+        assertEquals("Specific Account", result.getOrNull()?.account?.name)
+    }
+
+    @Test
+    fun retrieveDefaultCalendar_withGrantedPermission_andNoPrimaryCalendar_returnsNull() = runTest {
+        mockPermissionGranted(permissionHandler)
+
+        val cursor = mockk<Cursor>(relaxed = true)
+        every { contentResolver.query(calendarContentUri, any(), any(), any(), any()) } returns cursor
+        every { cursor.moveToNext() } returnsMany listOf(true, true, false)
+
+        // Mock column indices
+        every { cursor.getColumnIndexOrThrow(CalendarContract.Calendars.IS_PRIMARY) } returns 6
+
+        // Mock IS_PRIMARY values: both calendars are not primary
+        every { cursor.getInt(6) } returnsMany listOf(0, 0) // IS_PRIMARY = 0 for both calendars
+
+        var result: Result<Calendar?>? = null
+        val latch = CountDownLatch(1)
+        calendarImplem.retrieveDefaultCalendar(null) {
+            result = it
+            latch.countDown()
+        }
+
+        latch.await()
+
+        assertTrue(result!!.isSuccess)
+        assertEquals(null, result.getOrNull())
+    }
+
+    @Test
+    fun retrieveDefaultCalendar_withGrantedPermission_andEmptyCursor_returnsNull() = runTest {
+        mockPermissionGranted(permissionHandler)
+
+        val cursor = mockk<Cursor>(relaxed = true)
+        every { contentResolver.query(calendarContentUri, any(), any(), any(), any()) } returns cursor
+        every { cursor.moveToNext() } returns false
+
+        var result: Result<Calendar?>? = null
+        val latch = CountDownLatch(1)
+        calendarImplem.retrieveDefaultCalendar(null) {
+            result = it
+            latch.countDown()
+        }
+
+        latch.await()
+
+        assertTrue(result!!.isSuccess)
+        assertEquals(null, result.getOrNull())
+    }
+
+    @Test
+    fun retrieveDefaultCalendar_withDeniedPermission_returnsAccessRefusedError() = runTest {
+        mockPermissionDenied(permissionHandler)
+
+        var result: Result<Calendar?>? = null
+        calendarImplem.retrieveDefaultCalendar(null) {
+            result = it
+        }
+
+        assertTrue(result!!.isFailure)
+        assertEquals("ACCESS_REFUSED", (result.exceptionOrNull() as FlutterError).code)
+    }
+
+    @Test
+    fun retrieveDefaultCalendar_withException_returnsGenericError() = runTest {
+        mockPermissionGranted(permissionHandler)
+
+        every { contentResolver.query(calendarContentUri, any(), any(), any(), any()) } throws Exception("Query failed")
+
+        var result: Result<Calendar?>? = null
+        val latch = CountDownLatch(1)
+        calendarImplem.retrieveDefaultCalendar(null) {
+            result = it
+            latch.countDown()
+        }
+
+        latch.await()
+
+        assertTrue(result!!.isFailure)
+        assertEquals("GENERIC_ERROR", (result.exceptionOrNull() as FlutterError).code)
+    }
+
+    @Test
+    fun retrieveDefaultCalendar_withMultipleCalendars_returnsFirstPrimaryFound() = runTest {
+        mockPermissionGranted(permissionHandler)
+
+        val cursor = mockk<Cursor>(relaxed = true)
+        every { contentResolver.query(calendarContentUri, any(), any(), any(), any()) } returns cursor
+        every { cursor.moveToNext() } returnsMany listOf(true, true, true, false)
+
+        every { cursor.getColumnIndexOrThrow(CalendarContract.Calendars._ID) } returns 0
+        every { cursor.getColumnIndexOrThrow(CalendarContract.Calendars.CALENDAR_DISPLAY_NAME) } returns 1
+        every { cursor.getColumnIndexOrThrow(CalendarContract.Calendars.CALENDAR_COLOR) } returns 2
+        every { cursor.getColumnIndexOrThrow(CalendarContract.Calendars.CALENDAR_ACCESS_LEVEL) } returns 3
+        every { cursor.getColumnIndexOrThrow(CalendarContract.Calendars.ACCOUNT_NAME) } returns 4
+        every { cursor.getColumnIndexOrThrow(CalendarContract.Calendars.ACCOUNT_TYPE) } returns 5
+        every { cursor.getColumnIndexOrThrow(CalendarContract.Calendars.IS_PRIMARY) } returns 6
+
+        // Mock IS_PRIMARY values: first calendar is not primary (0), second is primary (1)
+        every { cursor.getInt(6) } returnsMany listOf(0, 1)
+
+        every { cursor.getString(0) } returns "id2"
+        every { cursor.getString(1) } returns "Calendar 2"
+        every { cursor.getString(4) } returns "Account 2"
+        every { cursor.getString(5) } returns "Type 2"
+        every { cursor.getLong(2) } returns 0x00FF00
+        every { cursor.getInt(3) } returns 700 // CAL_ACCESS_OWNER
+
+        var result: Result<Calendar?>? = null
+        val latch = CountDownLatch(1)
+        calendarImplem.retrieveDefaultCalendar(null) {
+            result = it
+            latch.countDown()
+        }
+
+        latch.await()
+
+        assertTrue(result!!.isSuccess)
+        assertEquals("id2", result.getOrNull()?.id) // Should return the first primary calendar found (id2)
+        assertEquals("Calendar 2", result.getOrNull()?.title)
+        assertEquals("Account 2", result.getOrNull()?.account?.name)
     }
 }

@@ -11,6 +11,8 @@ import UIKit
 protocol EasyEventStoreProtocol {
     func createCalendar(title: String, color: UIColor, localAccountName: String) throws -> Calendar
     
+    func retrieveDefaultCalendar() -> Calendar?
+    
     func retrieveCalendars(onlyWritable: Bool, from localAccountName: String?) -> [Calendar]
     
     func deleteCalendar(calendarId: String) throws -> Void

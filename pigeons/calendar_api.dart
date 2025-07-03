@@ -13,13 +13,15 @@ import 'package:pigeon/pigeon.dart';
 @HostApi()
 abstract class CalendarApi {
   @async
-  bool requestCalendarPermission();
-
-  @async
   Calendar createCalendar({
     required String title,
     required int color,
     required String localAccountName,
+  });
+
+  @async
+  Calendar? retrieveDefaultCalendar({
+    String? fromLocalAccountName,
   });
 
   @async

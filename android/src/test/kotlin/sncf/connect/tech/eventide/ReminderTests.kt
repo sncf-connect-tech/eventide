@@ -3,6 +3,7 @@ package sncf.connect.tech.eventide
 import android.content.ContentResolver
 import android.database.Cursor
 import android.net.Uri
+import android.provider.CalendarContract
 import io.mockk.*
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Assertions.*
@@ -49,14 +50,37 @@ class ReminderTests {
         val eventCursor = mockk<Cursor>(relaxed = true)
         every { contentResolver.query(eventContentUri, any(), any(), any(), any()) } returns eventCursor
         every { eventCursor.moveToNext() } returnsMany listOf(true, false)
-        every { eventCursor.getLong(any()) } returns 1L
-        every { eventCursor.getString(any()) } returns "Test Event"
-        every { eventCursor.getLong(any()) } returns 0L
+
+        // Mock column indices for events
+        every { eventCursor.getColumnIndexOrThrow(CalendarContract.Events._ID) } returns 0
+        every { eventCursor.getColumnIndexOrThrow(CalendarContract.Events.TITLE) } returns 1
+        every { eventCursor.getColumnIndexOrThrow(CalendarContract.Events.DESCRIPTION) } returns 2
+        every { eventCursor.getColumnIndexOrThrow(CalendarContract.Events.CALENDAR_ID) } returns 3
+        every { eventCursor.getColumnIndexOrThrow(CalendarContract.Events.DTSTART) } returns 4
+        every { eventCursor.getColumnIndexOrThrow(CalendarContract.Events.DTEND) } returns 5
+        every { eventCursor.getColumnIndexOrThrow(CalendarContract.Events.ALL_DAY) } returns 6
+
+        // Mock values for each column
+        every { eventCursor.getString(0) } returns "1"
+        every { eventCursor.getString(1) } returns "Test Event"
+        every { eventCursor.getString(2) } returns null
+        every { eventCursor.getString(3) } returns "1"
+        every { eventCursor.getLong(4) } returns 0L
+        every { eventCursor.getLong(5) } returns 0L
+        every { eventCursor.getInt(6) } returns 0
 
         val remindersCursor = mockk<Cursor>(relaxed = true)
         every { contentResolver.query(remindersContentUri, any(), any(), any(), any()) } returns remindersCursor
         every { remindersCursor.moveToNext() } returnsMany listOf(true, false)
-        every { remindersCursor.getLong(any()) } returns 10L
+
+        // Mock column indices for reminders
+        every { remindersCursor.getColumnIndexOrThrow(CalendarContract.Reminders._ID) } returns 0
+        every { remindersCursor.getColumnIndexOrThrow(CalendarContract.Reminders.MINUTES) } returns 1
+        every { remindersCursor.getColumnIndexOrThrow(CalendarContract.Reminders.METHOD) } returns 2
+
+        // Mock values for each column
+        every { remindersCursor.getLong(1) } returns 10L
+        every { remindersCursor.getInt(2) } returns 0
 
         var result: Result<Event>? = null
         val latch = CountDownLatch(1)
@@ -116,10 +140,24 @@ class ReminderTests {
         val eventCursor = mockk<Cursor>(relaxed = true)
         every { contentResolver.query(eventContentUri, any(), any(), any(), any()) } returns eventCursor
         every { eventCursor.moveToNext() } returnsMany listOf(true, false)
-        every { eventCursor.getLong(any()) } returns 1L
-        every { eventCursor.getString(any()) } returns "Test Event"
-        every { eventCursor.getLong(any()) } returns 0L
 
+        // Mock column indices for events
+        every { eventCursor.getColumnIndexOrThrow(CalendarContract.Events._ID) } returns 0
+        every { eventCursor.getColumnIndexOrThrow(CalendarContract.Events.TITLE) } returns 1
+        every { eventCursor.getColumnIndexOrThrow(CalendarContract.Events.DESCRIPTION) } returns 2
+        every { eventCursor.getColumnIndexOrThrow(CalendarContract.Events.CALENDAR_ID) } returns 3
+        every { eventCursor.getColumnIndexOrThrow(CalendarContract.Events.DTSTART) } returns 4
+        every { eventCursor.getColumnIndexOrThrow(CalendarContract.Events.DTEND) } returns 5
+        every { eventCursor.getColumnIndexOrThrow(CalendarContract.Events.ALL_DAY) } returns 6
+
+        // Mock values for each column
+        every { eventCursor.getString(0) } returns "1"
+        every { eventCursor.getString(1) } returns "Test Event"
+        every { eventCursor.getString(2) } returns null
+        every { eventCursor.getString(3) } returns "1"
+        every { eventCursor.getLong(4) } returns 0L
+        every { eventCursor.getLong(5) } returns 0L
+        every { eventCursor.getInt(6) } returns 0
 
         val remindersCursor = mockk<Cursor>(relaxed = true)
         every { contentResolver.query(remindersContentUri, any(), any(), any(), any()) } returns remindersCursor

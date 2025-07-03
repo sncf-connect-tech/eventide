@@ -7,7 +7,7 @@ typedef OnAttendeeFormSubmit = void Function(
   ETAttendeeType type,
 );
 
-class AttendeeForm extends StatefulWidget {
+final class AttendeeForm extends StatefulWidget {
   final OnAttendeeFormSubmit onSubmit;
 
   const AttendeeForm({
@@ -19,7 +19,7 @@ class AttendeeForm extends StatefulWidget {
   State<AttendeeForm> createState() => _AttendeeFormState();
 }
 
-class _AttendeeFormState extends State<AttendeeForm> {
+final class _AttendeeFormState extends State<AttendeeForm> {
   late final TextEditingController _nameController;
   late final TextEditingController _emailController;
   ETAttendeeType _attendeeType = ETAttendeeType.unknown;

@@ -223,8 +223,8 @@ private open class CalendarApiPigeonCodec : StandardMessageCodec() {
 
 /** Generated interface from Pigeon that represents a handler of messages from Flutter. */
 interface CalendarApi {
-  fun requestCalendarPermission(callback: (Result<Boolean>) -> Unit)
   fun createCalendar(title: String, color: Long, localAccountName: String, callback: (Result<Calendar>) -> Unit)
+  fun retrieveDefaultCalendar(fromLocalAccountName: String?, callback: (Result<Calendar?>) -> Unit)
   fun retrieveCalendars(onlyWritableCalendars: Boolean, fromLocalAccountName: String?, callback: (Result<List<Calendar>>) -> Unit)
   fun deleteCalendar(calendarId: String, callback: (Result<Unit>) -> Unit)
   fun createEvent(calendarId: String, title: String, startDate: Long, endDate: Long, isAllDay: Boolean, description: String?, url: String?, callback: (Result<Event>) -> Unit)
@@ -245,10 +245,14 @@ interface CalendarApi {
     fun setUp(binaryMessenger: BinaryMessenger, api: CalendarApi?, messageChannelSuffix: String = "") {
       val separatedMessageChannelSuffix = if (messageChannelSuffix.isNotEmpty()) ".$messageChannelSuffix" else ""
       run {
-        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.eventide.CalendarApi.requestCalendarPermission$separatedMessageChannelSuffix", codec)
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.eventide.CalendarApi.createCalendar$separatedMessageChannelSuffix", codec)
         if (api != null) {
-          channel.setMessageHandler { _, reply ->
-            api.requestCalendarPermission{ result: Result<Boolean> ->
+          channel.setMessageHandler { message, reply ->
+            val args = message as List<Any?>
+            val titleArg = args[0] as String
+            val colorArg = args[1] as Long
+            val localAccountNameArg = args[2] as String
+            api.createCalendar(titleArg, colorArg, localAccountNameArg) { result: Result<Calendar> ->
               val error = result.exceptionOrNull()
               if (error != null) {
                 reply.reply(wrapError(error))
@@ -263,14 +267,12 @@ interface CalendarApi {
         }
       }
       run {
-        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.eventide.CalendarApi.createCalendar$separatedMessageChannelSuffix", codec)
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.eventide.CalendarApi.retrieveDefaultCalendar$separatedMessageChannelSuffix", codec)
         if (api != null) {
           channel.setMessageHandler { message, reply ->
             val args = message as List<Any?>
-            val titleArg = args[0] as String
-            val colorArg = args[1] as Long
-            val localAccountNameArg = args[2] as String
-            api.createCalendar(titleArg, colorArg, localAccountNameArg) { result: Result<Calendar> ->
+            val fromLocalAccountNameArg = args[0] as String?
+            api.retrieveDefaultCalendar(fromLocalAccountNameArg) { result: Result<Calendar?> ->
               val error = result.exceptionOrNull()
               if (error != null) {
                 reply.reply(wrapError(error))
