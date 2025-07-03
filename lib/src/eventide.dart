@@ -10,7 +10,7 @@ import 'package:eventide/src/extensions/color_extensions.dart';
 import 'package:eventide/src/extensions/duration_extensions.dart';
 import 'package:eventide/src/extensions/event_extensions.dart';
 
-final class Eventide extends EventidePlatform {
+class Eventide extends EventidePlatform {
   final CalendarApi _calendarApi;
 
   Eventide({
