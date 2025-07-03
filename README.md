@@ -6,7 +6,26 @@ Eventide provides a easy-to-use flutter interface to access & modify native devi
 
 ---
 
-### 🔥 Features
+## 📋 Table of Contents
+
+- [Features](#-features)
+- [Getting Started](#-getting-started)
+- [Quick Start](#-quick-start)
+- [API Reference](#-api-reference)
+  - [Calendars](#calendars)
+  - [Events](#events)
+  - [Reminders](#reminders)
+  - [Attendees](#attendees)
+  - [Accounts](#accounts)
+- [Platform-Specific Features](#-platform-specific-features)
+- [Exception Handling](#-exception-handling)
+- [License](#license)
+- [Feedback](#feedback)
+
+---
+
+## 🔥 Features
+
 |    | Eventide |
 ---- | --------------------------------
 :white_check_mark: | Automatic permission handling
@@ -18,19 +37,30 @@ Eventide provides a easy-to-use flutter interface to access & modify native devi
 :white_check_mark: | Attendees
 :construction: | Streams
 
-NOTE: Eventide handles timezones as UTC. Make sure the right data is feed to the plugin with a [timezone aware DateTime class](https://pub.dev/packages/timezone).
+> **Note:** Eventide handles timezones as UTC. Make sure the right data is feed to the plugin with a [timezone aware DateTime class](https://pub.dev/packages/timezone).
 
 ---
 
-### 🔨 Getting Started
+## 🔨 Getting Started
+
+### Installation
+
+Add Eventide to your `pubspec.yaml`:
+
+```yaml
+dependencies:
+  eventide: ^0.7.0
+```
+
+### Platform Setup
 
 #### Android
 
-Nothing to add on your side. All is already declared in eventide's AndroidManifest.xml
+Nothing to add on your side. All permissions are already declared in eventide's AndroidManifest.xml
 
 #### iOS
 
-To read/write calendar data, your app must include the following permissions in its info.plist file.
+To read/write calendar data, your app must include the following permissions in its `info.plist` file:
 
 ```xml
 <key>NSCalendarsUsageDescription</key>
@@ -43,62 +73,276 @@ To read/write calendar data, your app must include the following permissions in 
 
 ---
 
-### 🚀 Quick start
+## 🚀 Quick Start
 
 ```dart
 import 'package:eventide/eventide.dart';
 
 final eventide = Eventide();
 
+// Create a calendar
 final calendar = await eventide.createCalendar(
-    title: 'Work',
-    color: Colors.red,
-    localAccountName: "My Company",
+  title: 'Work',
+  color: Colors.red,
+  localAccountName: "My Company",
 );
 
+// Create an event with reminders
 final event = await eventide.createEvent(
-    calendarId: calendar.id,
-    title: 'Meeting',
-    startDate: DateTime.now(),
-    endDate: DateTime.now().add(Duration(hours: 1)),
-    reminders: [
-        const Duration(hours: 1)
-        const Duration(minutes: 15),
-    ],
+  calendarId: calendar.id,
+  title: 'Meeting',
+  startDate: DateTime.now(),
+  endDate: DateTime.now().add(Duration(hours: 1)),
+  reminders: [
+    const Duration(hours: 1),
+    const Duration(minutes: 15),
+  ],
 );
 
+// Delete a reminder
 final updatedEvent = await eventide.deleteReminder(
-    durationBeforeEvent: Duration(minutes: 15),
-    eventId: event.id,
+  durationBeforeEvent: Duration(minutes: 15),
+  eventId: event.id,
 );
 ```
 
-You can find more in the example app.
+You can find more examples in the [example app](./example).
 
 ---
 
-### 🧑🏻 Attendees
+## 📚 API Reference
 
-#### Creation & deletion
+### Calendars
 
-⚠️ Please note that attendees edition is only supported by Android, due to iOS EventKit API limitations. Attendees are still retrievable through events on both iOS & Android.
+#### Create Calendar
 
 ```dart
-final eventWithAttendee = await eventide.createAttendee(
-    eventId: event.id,
-    name: 'John Doe',
-    email: 'john.doe@gmail.com',
-    type: ETAttendeeType.requiredPerson,
-);
+Future<ETCalendar> createCalendar({
+  required String title,
+  required Color color,
+  required String localAccountName,
+})
+```
 
-final eventWithoutAttendee = await eventide.deleteAttendee(
-    eventId: event.id,
-    attendee: eventWithAttendee.attendees.first,
+Creates a new calendar with the specified title, color, and account name.
+
+```dart
+final calendar = await eventide.createCalendar(
+  title: 'Personal',
+  color: Colors.blue,
+  localAccountName: 'My App',
 );
 ```
 
-#### Retrieval
-##### Common attendees types mapping table
+#### Retrieve Calendars
+
+```dart
+Future<List<ETCalendar>> retrieveCalendars({
+  bool onlyWritableCalendars = true,
+  String? fromLocalAccountName,
+})
+```
+
+Retrieves a list of calendars, optionally filtered by account name and writability.
+
+```dart
+// Get all writable calendars
+final calendars = await eventide.retrieveCalendars();
+
+// Get calendars from specific account
+final myCalendars = await eventide.retrieveCalendars(
+  fromLocalAccountName: 'My App',
+);
+```
+
+#### Retrieve Default Calendar
+
+```dart
+Future<ETCalendar?> retrieveDefaultCalendar()
+```
+
+Retrieves the default calendar. On iOS 17+, this prompts for write-only access.
+
+```dart
+final defaultCalendar = await eventide.retrieveDefaultCalendar();
+```
+
+#### Delete Calendar
+
+```dart
+Future<void> deleteCalendar({
+  required String calendarId,
+})
+```
+
+Deletes a calendar by its ID.
+
+```dart
+await eventide.deleteCalendar(calendarId: calendar.id);
+```
+
+### Events
+
+#### Create Event
+
+```dart
+Future<ETEvent> createEvent({
+  required String calendarId,
+  required String title,
+  required DateTime startDate,
+  required DateTime endDate,
+  bool isAllDay = false,
+  String? description,
+  String? url,
+  List<Duration>? reminders,
+})
+```
+
+Creates a new event in the specified calendar.
+
+```dart
+final event = await eventide.createEvent(
+  calendarId: calendar.id,
+  title: 'Team Meeting',
+  startDate: DateTime.now(),
+  endDate: DateTime.now().add(Duration(hours: 1)),
+  description: 'Weekly team sync',
+  isAllDay: false,
+  reminders: [Duration(minutes: 15)],
+);
+```
+
+#### Retrieve Events
+
+```dart
+Future<List<ETEvent>> retrieveEvents({
+  required String calendarId,
+  DateTime? startDate,
+  DateTime? endDate,
+})
+```
+
+Retrieves events from a calendar within the specified date range.
+
+```dart
+final events = await eventide.retrieveEvents(
+  calendarId: calendar.id,
+  startDate: DateTime.now().subtract(Duration(days: 7)),
+  endDate: DateTime.now().add(Duration(days: 7)),
+);
+```
+
+#### Delete Event
+
+```dart
+Future<void> deleteEvent({
+  required String eventId,
+})
+```
+
+Deletes an event by its ID.
+
+```dart
+await eventide.deleteEvent(eventId: event.id);
+```
+
+### Reminders
+
+#### Create Reminder
+
+```dart
+Future<ETEvent> createReminder({
+  required String eventId,
+  required Duration durationBeforeEvent,
+})
+```
+
+Adds a reminder to an existing event.
+
+```dart
+final updatedEvent = await eventide.createReminder(
+  eventId: event.id,
+  durationBeforeEvent: Duration(minutes: 30),
+);
+```
+
+#### Delete Reminder
+
+```dart
+Future<ETEvent> deleteReminder({
+  required String eventId,
+  required Duration durationBeforeEvent,
+})
+```
+
+Removes a specific reminder from an event.
+
+```dart
+final updatedEvent = await eventide.deleteReminder(
+  eventId: event.id,
+  durationBeforeEvent: Duration(minutes: 30),
+);
+```
+
+> **Note:** Reminders with durations in seconds are not supported on Android due to API limitations.
+
+### Attendees
+
+⚠️ **Platform Limitation:** Attendee creation and deletion are only supported on Android due to iOS EventKit API restrictions. However, attendees can be retrieved on both platforms.
+
+#### Create Attendee (Android Only)
+
+```dart
+Future<ETEvent> createAttendee({
+  required String eventId,
+  required String name,
+  required String email,
+  required ETAttendeeType type,
+})
+```
+
+Adds an attendee to an event.
+
+```dart
+final eventWithAttendee = await eventide.createAttendee(
+  eventId: event.id,
+  name: 'John Doe',
+  email: 'john.doe@gmail.com',
+  type: ETAttendeeType.requiredPerson,
+);
+```
+
+#### Delete Attendee (Android Only)
+
+```dart
+Future<ETEvent> deleteAttendee({
+  required String eventId,
+  required ETAttendee attendee,
+})
+```
+
+Removes an attendee from an event.
+
+```dart
+final eventWithoutAttendee = await eventide.deleteAttendee(
+  eventId: event.id,
+  attendee: eventWithAttendee.attendees.first,
+);
+```
+
+#### Attendee Types
+
+Available `ETAttendeeType` values:
+
+- `ETAttendeeType.unknown`
+- `ETAttendeeType.requiredPerson`
+- `ETAttendeeType.optionalPerson`
+- `ETAttendeeType.resource`
+- `ETAttendeeType.organizer`
+
+##### Platform Mapping Tables
+
+###### Common attendees types mapping
 iOS and Android attendee APIs are quite different and thus required some conversion logic. Here's the mapping table that eventide currently supports:
 
 |  ETAttendeeType            | iOS (EKParticipantType)   | iOS (EKParticipantRole)   | Android (ATTENDEE_TYPE)   | Android (ATTENDEE_RELATIONSHIP)   |
@@ -109,7 +353,7 @@ iOS and Android attendee APIs are quite different and thus required some convers
 |  resource                  | resource                  | required                  | TYPE_RESOURCE             | RELATIONSHIP_ATTENDEE             |
 |  organizer                 | person                    | chair                     | TYPE_REQUIRED             | RELATIONSHIP_ORGANIZER            |
 
-##### Platform specific attendees types mapping table
+###### Platform specific attendees types mapping
 Platform specific values will be treated as follow when fetched from existing system calendar:
 
 | ETAttendeeType            | iOS (EKParticipantType)   | iOS (EKParticipantRole)   | Android (ATTENDEE_TYPE)   | Android (ATTENDEE_RELATIONSHIP)   |
@@ -120,49 +364,152 @@ Platform specific values will be treated as follow when fetched from existing sy
 | requiredPerson            |                           |                           | TYPE_REQUIRED             | RELATIONSHIP_PERFORMER            |
 | requiredPerson            |                           |                           | TYPE_REQUIRED             | RELATIONSHIP_SPEAKER              |
 
----
+### Accounts
 
-### 📒 Accounts
+A calendar belongs to an account, such as a Google account or a local on-device account. You must provide a `localAccountName` when creating a calendar with Eventide.
 
-A calendar belongs to an account, such as a Google account or a local on-device account.
-
-You must provide a `localAccountName` when creating a calendar with eventide.
+#### Creating Calendars with Accounts
 
 ```dart
 const myAppCalendarIdentifier = "My Company";
 
 await eventide.createCalendar(
-    title: 'Personal',
-    color: Colors.blue,
-    localAccountName: myAppCalendarIdentifier,
+  title: 'Personal',
+  color: Colors.blue,
+  localAccountName: myAppCalendarIdentifier,
 );
 
 await eventide.createCalendar(
-    title: 'Work',
-    color: Colors.red,
-    localAccountName: myAppCalendarIdentifier,
+  title: 'Work',
+  color: Colors.red,
+  localAccountName: myAppCalendarIdentifier,
 );
 ```
 
-You can filter by `localAccountName` to retrieve only calendars that have been created by your app.
+#### Filtering by Account
 
 ```dart
 final myCompanyCalendars = await eventide.retrieveCalendars(
-    onlyWritableCalendars: true,
-    fromAccountName: myAppCalendarIdentifier
+  onlyWritableCalendars: true,
+  fromLocalAccountName: myAppCalendarIdentifier,
 );
 ```
 
-User might need to allow your custom account on their calendar app to display your calendars & events.
+> **Note:** Users might need to allow your custom account in their calendar app to display your calendars & events.
 
 ![Google Calendar App > Parameters > Manage accounts](./.github/documentation/manageaccounts.png)
 
 ---
 
-### License
+## 🔧 Platform-Specific Features
+
+### iOS Write-Only Access
+
+As of iOS 17, Apple introduced a new write-only access permission for calendar data, providing users with more granular control over app permissions. This feature allows apps to add events to calendars without being able to read existing calendar data.
+
+#### How it works
+
+When you call `retrieveDefaultCalendar()` on iOS 17+, the system will prompt the user for write-only access if full access hasn't been granted. This returns a special virtual calendar that can only be used for creating events.
+
+```dart
+// Will prompt user for write only access on iOS 17+
+final defaultCalendar = await eventide.retrieveDefaultCalendar();
+
+if (defaultCalendar != null) {
+  // You can create events in this calendar
+  final event = await eventide.createEvent(
+    calendarId: defaultCalendar.id,
+    title: 'New Meeting',
+    startDate: DateTime.now(),
+    endDate: DateTime.now().add(Duration(hours: 1)),
+  );
+  
+  print('Event created: ${event.title}');
+}
+```
+
+#### Important limitations
+
+⚠️ **Key restrictions when using write-only access:**
+
+- **No reading capabilities**: Attempting to retrieve events from a write-only calendar will throw an `ETGenericException`
+- **Virtual calendar**: The returned calendar is a virtual representation and doesn't correspond to a real user calendar
+- **Create only**: You can only create new events, not modify or read existing ones
+
+```dart
+// ❌ This will fail with write-only access
+try {
+  final events = await eventide.retrieveEvents(
+    calendarId: defaultCalendar.id,
+  );
+} catch (e) {
+  // Will throw ETGenericException on iOS with write-only access
+  print('Cannot read events with write-only access: $e');
+}
+
+// ✅ This works with write-only access
+final newEvent = await eventide.createEvent(
+  calendarId: defaultCalendar.id,
+  title: 'Team Meeting',
+  startDate: DateTime.now().add(Duration(days: 1)),
+  endDate: DateTime.now().add(Duration(days: 1, hours: 1)),
+  description: 'Weekly team sync',
+  reminders: [Duration(minutes: 15)],
+);
+```
+
+#### Permission handling
+
+The system will automatically handle the permission flow:
+
+1. First call to `retrieveDefaultCalendar()` → Shows write-only permission prompt
+2. User grants write-only access → Returns virtual calendar for event creation
+3. User denies access → Throws `ETPermissionException`
+
+#### Best practices
+
+- Always check if the returned calendar is not null before using it
+- Handle `ETGenericException` when attempting operations that require read access
+- Consider offering full calendar access for apps that need to read existing events
+- Use write-only access for apps that only need to add events (like booking confirmations, reminders, etc.)
+
+---
+
+## ⚠️ Exception Handling
+
+Eventide provides custom exceptions for better error handling:
+
+### Exception Types
+
+- **`ETPermissionException`**: User denied calendar permissions
+- **`ETNotFoundException`**: Calendar or event not found
+- **`ETNotEditableException`**: Calendar is not editable
+- **`ETGenericException`**: General errors during operations
+
+### Example Usage
+
+```dart
+try {
+  final calendar = await eventide.createCalendar(
+    title: 'My Calendar',
+    color: Colors.blue,
+    localAccountName: 'My App',
+  );
+} on ETPermissionException catch (e) {
+  print('Permission denied: ${e.message}');
+} on ETGenericException catch (e) {
+  print('Error creating calendar: ${e.message}');
+} catch (e) {
+  print('Unexpected error: $e');
+}
+```
+
+---
+
+## License
 
 Copyright © 2025 SNCF Connect & Tech. This project is licensed under the MIT License - see the LICENSE file for details.
 
-### Feedback
+## Feedback
 
 Please file any issues, bugs or feature requests as an issue on the [Github page](https://github.com/sncf-connect-tech/eventide/issues).
