@@ -49,7 +49,7 @@ Add Eventide to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  eventide: ^0.7.0
+  eventide: ^0.8.0
 ```
 
 ### Platform Setup
