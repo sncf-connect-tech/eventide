@@ -1,3 +1,6 @@
+## 0.8.1
+* **Removed final clause** on Eventide class because it prevented it from being mocked
+
 ## 0.8.0
 * **iOS 17 Support**: Added support for iOS 17 write-only calendar access
 * **Permission Enhancement**: `retrieveDefaultCalendar()` now prompts for write-only access on iOS 17+
