@@ -1,6 +1,9 @@
 name: CI
 
-on: push
+on:
+  push:
+    branches: [main]
+  pull_request:
 
 env:
   FLUTTER_MINIMUM_VERSION: 3.27.0
@@ -10,12 +13,14 @@ env:
   IPHONE_OS_VERSION: 18.2
 
 jobs:
+  # Détection des changements pour optimiser l'exécution des jobs
   changes:
     runs-on: ubuntu-latest
     outputs:
       flutter: ${{ steps.changes.outputs.flutter }}
-      ios: ${{ steps.changes.outputs.ios }}
       android: ${{ steps.changes.outputs.android }}
+      ios: ${{ steps.changes.outputs.ios }}
+      ci: ${{ steps.changes.outputs.ci }}
     steps:
       - uses: actions/checkout@v4
       - uses: dorny/paths-filter@v3
@@ -28,20 +33,23 @@ jobs:
               - 'pubspec.yaml'
               - 'analysis_options.yaml'
               - 'pigeons/**'
-              - '.github/workflows/ci.yaml'
-            ios:
-              - 'ios/**'
-              - 'example/ios/**'
-              - '.github/workflows/ci.yaml'
             android:
               - 'android/**'
-              - 'example/android/**'
-              - '.github/workflows/ci.yaml'
+              - 'lib/**'
+              - 'pubspec.yaml'
+              - 'pigeons/**'
+            ios:
+              - 'ios/**'
+              - 'lib/**'
+              - 'pubspec.yaml'
+              - 'pigeons/**'
+            ci:
+              - '.github/workflows/**'
 
   flutter-tests:
     runs-on: ubuntu-latest
     needs: changes
-    if: ${{ needs.changes.outputs.flutter == 'true' }}
+    if: ${{ needs.changes.outputs.flutter == 'true' || needs.changes.outputs.ci == 'true' }}
 
     steps:
       - uses: actions/checkout@v4
@@ -74,7 +82,7 @@ jobs:
   flutter-minimum-version-tests:
     runs-on: ubuntu-latest
     needs: changes
-    if: ${{ needs.changes.outputs.flutter == 'true' }}
+    if: ${{ needs.changes.outputs.flutter == 'true' || needs.changes.outputs.ci == 'true' }}
 
     steps:
       - uses: actions/checkout@v4
@@ -96,7 +104,7 @@ jobs:
   ios-tests:
     runs-on: macos-latest
     needs: changes
-    if: ${{ needs.changes.outputs.ios == 'true' }}
+    if: ${{ needs.changes.outputs.ios == 'true' || needs.changes.outputs.ci == 'true' }}
 
     steps:
       - uses: actions/checkout@v4
@@ -137,7 +145,7 @@ jobs:
   android-tests:
     runs-on: ubuntu-latest
     needs: changes
-    if: ${{ needs.changes.outputs.android == 'true' }}
+    if: ${{ needs.changes.outputs.android == 'true' || needs.changes.outputs.ci == 'true' }}
 
     steps:
       - uses: actions/checkout@v4
@@ -168,34 +176,50 @@ jobs:
   upload-coverage:
     runs-on: ubuntu-latest
     needs: [changes, flutter-tests, ios-tests, android-tests]
-    if: |
-      always() && (
-        (needs.changes.outputs.flutter == 'true' && needs.flutter-tests.result == 'success') ||
-        (needs.changes.outputs.ios == 'true' && needs.ios-tests.result == 'success') ||
-        (needs.changes.outputs.android == 'true' && needs.android-tests.result == 'success')
-      )
+    if: always() && (needs.flutter-tests.result == 'success' || needs.ios-tests.result == 'success' || needs.android-tests.result == 'success')
     steps:
       - name: Download flutter coverage report
         uses: actions/download-artifact@v4
+        if: needs.flutter-tests.result == 'success'
         with:
           name: flutter-coverage
           path: coverage
 
       - name: Download ios coverage report
         uses: actions/download-artifact@v4
+        if: needs.ios-tests.result == 'success'
         with:
           name: ios-coverage
           path: build/reports
 
       - name: Download android coverage report
         uses: actions/download-artifact@v4
+        if: needs.android-tests.result == 'success'
         with:
           name: android-coverage
           path: android/build/reports/
 
+      - name: Prepare coverage files list
+        id: coverage-files
+        run: |
+          files=""
+          if [ -f "coverage/lcov.info" ]; then
+            files="$files,coverage/lcov.info"
+          fi
+          if [ -f "build/reports/ios-coverage.xml" ]; then
+            files="$files,build/reports/ios-coverage.xml"
+          fi
+          if [ -f "android/build/reports/jacocoTestReport.xml" ]; then
+            files="$files,android/build/reports/jacocoTestReport.xml"
+          fi
+          # Supprime la virgule initiale
+          files=${files#,}
+          echo "files=$files" >> $GITHUB_OUTPUT
+
       - name: Upload combined coverage report to Codecov
         uses: codecov/codecov-action@v5
+        if: steps.coverage-files.outputs.files != ''
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           fail_ci_if_error: true
-          files: coverage/lcov.info,build/reports/ios-coverage.xml,android/build/reports/jacocoTestReport.xml
+          files: ${{ steps.coverage-files.outputs.files }}
