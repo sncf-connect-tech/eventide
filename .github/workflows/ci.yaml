@@ -1,6 +1,9 @@
 name: CI
 
-on: push
+on: 
+  push:
+    branches: [main]
+  pull_request:
 
 env:
   FLUTTER_MINIMUM_VERSION: 3.27.0
@@ -39,14 +42,7 @@ jobs:
               - 'android/**'
               - 'example/android/**'
               - '.github/workflows/ci.yaml'
-      - name: Debug changes
-        run: |
-          echo "Flutter changes: ${{ steps.changes.outputs.flutter }}"
-          echo "iOS changes: ${{ steps.changes.outputs.ios }}"
-          echo "Android changes: ${{ steps.changes.outputs.android }}"
-          echo "Changed files:"
-          git diff --name-only HEAD~1 HEAD || echo "No previous commit to compare"
-
+  
   flutter-tests:
     runs-on: ubuntu-latest
     needs: changes
@@ -178,7 +174,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [changes, flutter-tests, ios-tests, android-tests]
     if: |
-      always() && (
+      !cancelled() && (
         (needs.changes.outputs.flutter == 'true' && needs.flutter-tests.result == 'success') ||
         (needs.changes.outputs.ios == 'true' && needs.ios-tests.result == 'success') ||
         (needs.changes.outputs.android == 'true' && needs.android-tests.result == 'success')
