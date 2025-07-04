@@ -48,6 +48,8 @@ final class ETNotSupportedByPlatform extends ETException {
   }) : super(code: 'PLATFORM_DOES_NOT_SUPPORT');
 }
 
+class D {}
+
 extension PlatformExceptionToETCalendarException on PlatformException {
   /// Converts a [PlatformException] to a [ETException].
   ETException toETException() {
