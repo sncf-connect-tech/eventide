@@ -176,26 +176,46 @@ jobs:
       )
     steps:
       - name: Download flutter coverage report
+        if: needs.changes.outputs.flutter == 'true' && needs.flutter-tests.result == 'success'
         uses: actions/download-artifact@v4
         with:
           name: flutter-coverage
           path: coverage
 
       - name: Download ios coverage report
+        if: needs.changes.outputs.ios == 'true' && needs.ios-tests.result == 'success'
         uses: actions/download-artifact@v4
         with:
           name: ios-coverage
           path: build/reports
 
       - name: Download android coverage report
+        if: needs.changes.outputs.android == 'true' && needs.android-tests.result == 'success'
         uses: actions/download-artifact@v4
         with:
           name: android-coverage
           path: android/build/reports/
+
+      - name: Prepare coverage files list
+        id: coverage-files
+        run: |
+          files=""
+          if [ "${{ needs.changes.outputs.flutter }}" == "true" ] && [ "${{ needs.flutter-tests.result }}" == "success" ]; then
+            files="${files}coverage/lcov.info,"
+          fi
+          if [ "${{ needs.changes.outputs.ios }}" == "true" ] && [ "${{ needs.ios-tests.result }}" == "success" ]; then
+            files="${files}build/reports/ios-coverage.xml,"
+          fi
+          if [ "${{ needs.changes.outputs.android }}" == "true" ] && [ "${{ needs.android-tests.result }}" == "success" ]; then
+            files="${files}android/build/reports/jacocoTestReport.xml,"
+          fi
+          # Remove trailing comma
+          files=${files%,}
+          echo "files=$files" >> $GITHUB_OUTPUT
 
       - name: Upload combined coverage report to Codecov
         uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           fail_ci_if_error: true
-          files: coverage/lcov.info,build/reports/ios-coverage.xml,android/build/reports/jacocoTestReport.xml
+          files: ${{ steps.coverage-files.outputs.files }}
