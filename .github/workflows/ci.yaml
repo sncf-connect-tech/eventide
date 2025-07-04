@@ -35,14 +35,10 @@ jobs:
               - 'pigeons/**'
             android:
               - 'android/**'
-              - 'lib/**'
-              - 'pubspec.yaml'
-              - 'pigeons/**'
+              - 'example/android/**'
             ios:
               - 'ios/**'
-              - 'lib/**'
-              - 'pubspec.yaml'
-              - 'pigeons/**'
+              - 'example/ios/**'
             ci:
               - '.github/workflows/**'
 
