@@ -47,7 +47,7 @@ Eventide provides a easy-to-use flutter interface to access & modify native devi
 
 #### Android
 
-Nothing to add on your side. All permissions are already declared in eventide's AndroidManifest.xml
+Nothing to add on your side. All permissions are already declared in eventide's `AndroidManifest.xml`
 
 #### iOS
 
