@@ -30,10 +30,6 @@ class MockEasyEventStore: EasyEventStoreProtocol {
         return calendar.toCalendar()
     }
     
-    func retrieveDefaultCalendar() -> eventide.Calendar? {
-        return calendars.first?.toCalendar()
-    }
-    
     func retrieveCalendars(
         onlyWritable: Bool,
         from localAccountName: String?
@@ -88,6 +84,23 @@ class MockEasyEventStore: EasyEventStoreProtocol {
         )
         
         mockCalendar.events.append(mockEvent)
+        
+        return mockEvent.toEvent()
+    }
+    
+    func createEvent(title: String, startDate: Date, endDate: Date, isAllDay: Bool, description: String?, url: String?) throws -> Event {
+        let mockEvent = MockEvent(
+            id: String(calendars.first!.events.count),
+            title: title,
+            startDate: startDate,
+            endDate: endDate,
+            calendarId: calendars.first!.id,
+            isAllDay: isAllDay,
+            description: description,
+            url: url
+        )
+        
+        calendars.first!.events.append(mockEvent)
         
         return mockEvent.toEvent()
     }

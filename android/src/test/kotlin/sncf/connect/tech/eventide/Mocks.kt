@@ -74,6 +74,10 @@ fun mockPermissionGranted(permissionHandler: PermissionHandler) {
     every { permissionHandler.requestReadPermission(any()) } answers {
         firstArg<(Boolean) -> Unit>().invoke(true)
     }
+
+    every { permissionHandler.requestReadAndWritePermissions(any()) } answers {
+        firstArg<(Boolean) -> Unit>().invoke(true)
+    }
 }
 
 fun mockPermissionDenied(permissionHandler: PermissionHandler) {
@@ -84,4 +88,34 @@ fun mockPermissionDenied(permissionHandler: PermissionHandler) {
     every { permissionHandler.requestReadPermission(any()) } answers {
         firstArg<(Boolean) -> Unit>().invoke(false)
     }
+
+    every { permissionHandler.requestReadAndWritePermissions(any()) } answers {
+        firstArg<(Boolean) -> Unit>().invoke(false)
+    }
+}
+
+fun mockPrimaryCalendarFound(contentResolver: ContentResolver, calendarContentUri: Uri, calendarId: String = "1") {
+    val cursor = mockk<Cursor>(relaxed = true)
+    every { contentResolver.query(calendarContentUri, any(), any(), any(), any()) } returns cursor
+    every { cursor.moveToNext() } returns true
+    every { cursor.getColumnIndexOrThrow(CalendarContract.Calendars._ID) } returns 0
+    every { cursor.getColumnIndexOrThrow(CalendarContract.Calendars.CALENDAR_ACCESS_LEVEL) } returns 1
+    every { cursor.getString(0) } returns calendarId
+    every { cursor.getInt(1) } returns CalendarContract.Calendars.CAL_ACCESS_CONTRIBUTOR
+}
+
+fun mockPrimaryCalendarNotWritable(contentResolver: ContentResolver, calendarContentUri: Uri) {
+    val cursor = mockk<Cursor>(relaxed = true)
+    every { contentResolver.query(calendarContentUri, any(), any(), any(), any()) } returns cursor
+    every { cursor.moveToNext() } returns true
+    every { cursor.getColumnIndexOrThrow(CalendarContract.Calendars._ID) } returns 0
+    every { cursor.getColumnIndexOrThrow(CalendarContract.Calendars.CALENDAR_ACCESS_LEVEL) } returns 1
+    every { cursor.getString(0) } returns "1"
+    every { cursor.getInt(1) } returns CalendarContract.Calendars.CAL_ACCESS_READ
+}
+
+fun mockPrimaryCalendarNotFound(contentResolver: ContentResolver, calendarContentUri: Uri) {
+    val cursor = mockk<Cursor>(relaxed = true)
+    every { contentResolver.query(calendarContentUri, any(), any(), any(), any()) } returns cursor
+    every { cursor.moveToNext() } returns false
 }

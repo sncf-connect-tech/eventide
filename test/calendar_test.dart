@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -147,90 +146,6 @@ void main() {
     // Then
     expect(call, throwsException);
     verify(() => mockCalendarApi.deleteCalendar(calendarId: '1')).called(1);
-  });
-
-  test('retrieveDefaultCalendar returns an ETCalendar when calendar is found', () async {
-    // Given
-    const etAccount = ETAccount(name: 'Default Account', type: 'Local');
-    final calendar = Calendar(
-      id: 'default-1',
-      title: 'Default Calendar',
-      color: Colors.blue.toValue(),
-      isWritable: true,
-      account: etAccount.toAccount(),
-    );
-
-    when(() => mockCalendarApi.retrieveDefaultCalendar()).thenAnswer((_) async => calendar);
-
-    // When
-    final result = await eventide.retrieveDefaultCalendar();
-
-    // Then
-    expect(result, equals(calendar.toETCalendar()));
-    verify(() => mockCalendarApi.retrieveDefaultCalendar()).called(1);
-  });
-
-  test('retrieveDefaultCalendar returns null when no default calendar is found', () async {
-    // Given
-    when(() => mockCalendarApi.retrieveDefaultCalendar()).thenAnswer((_) async => null);
-
-    // When
-    final result = await eventide.retrieveDefaultCalendar();
-
-    // Then
-    expect(result, isNull);
-    verify(() => mockCalendarApi.retrieveDefaultCalendar()).called(1);
-  });
-
-  test('retrieveDefaultCalendar throws ETPermissionException when user refuses calendar permissions', () async {
-    // Given
-    when(() => mockCalendarApi.retrieveDefaultCalendar()).thenThrow(
-      PlatformException(
-        code: 'ACCESS_REFUSED',
-        message: 'Calendar permission denied',
-      ),
-    );
-
-    // When
-    Future<ETCalendar?> call() => eventide.retrieveDefaultCalendar();
-
-    // Then
-    expect(call, throwsA(isA<ETPermissionException>()));
-    verify(() => mockCalendarApi.retrieveDefaultCalendar()).called(1);
-  });
-
-  test('retrieveDefaultCalendar throws ETNotFoundException when no default calendar is found', () async {
-    // Given
-    when(() => mockCalendarApi.retrieveDefaultCalendar()).thenThrow(
-      PlatformException(
-        code: 'NOT_FOUND',
-        message: 'No default calendar found',
-      ),
-    );
-
-    // When
-    Future<ETCalendar?> call() => eventide.retrieveDefaultCalendar();
-
-    // Then
-    expect(call, throwsA(isA<ETNotFoundException>()));
-    verify(() => mockCalendarApi.retrieveDefaultCalendar()).called(1);
-  });
-
-  test('retrieveDefaultCalendar throws ETGenericException for any other error', () async {
-    // Given
-    when(() => mockCalendarApi.retrieveDefaultCalendar()).thenThrow(
-      PlatformException(
-        code: 'UNKNOWN_ERROR',
-        message: 'An unknown error occurred',
-      ),
-    );
-
-    // When
-    Future<ETCalendar?> call() => eventide.retrieveDefaultCalendar();
-
-    // Then
-    expect(call, throwsA(isA<ETGenericException>()));
-    verify(() => mockCalendarApi.retrieveDefaultCalendar()).called(1);
   });
 
   group('CalendarToETCalendar tests', () {

@@ -20,11 +20,6 @@ abstract class CalendarApi {
   });
 
   @async
-  Calendar? retrieveDefaultCalendar({
-    String? fromLocalAccountName,
-  });
-
-  @async
   List<Calendar> retrieveCalendars({
     required bool onlyWritableCalendars,
     required String? fromLocalAccountName,
@@ -39,6 +34,16 @@ abstract class CalendarApi {
   @async
   Event createEvent({
     required String calendarId,
+    required String title,
+    required int startDate,
+    required int endDate,
+    required bool isAllDay,
+    required String? description,
+    required String? url,
+  });
+
+  @async
+  Event createEventInDefaultCalendar({
     required String title,
     required int startDate,
     required int endDate,
