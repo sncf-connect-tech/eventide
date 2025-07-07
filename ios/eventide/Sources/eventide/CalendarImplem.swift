@@ -44,22 +44,6 @@ class CalendarImplem: CalendarApi {
 
     }
     
-    func retrieveDefaultCalendar(fromLocalAccountName: String?, completion: @escaping (Result<Calendar?, any Error>) -> Void) {
-        permissionHandler.checkCalendarAccessThenExecute(.writeOnly) { [self] in
-            let calendar = easyEventStore.retrieveDefaultCalendar()
-            completion(.success(calendar))
-            
-        } onPermissionRefused: {
-            completion(.failure(PigeonError(
-                code: "ACCESS_REFUSED",
-                message: "Calendar access has been refused or has not been given yet",
-                details: nil
-            )))
-        } onPermissionError: { error in
-            completion(.failure(error))
-        }
-    }
-
     func retrieveCalendars(
         onlyWritableCalendars: Bool,
         fromLocalAccountName accountName: String?,
@@ -137,6 +121,35 @@ class CalendarImplem: CalendarApi {
         } onPermissionError: { error in
             completion(.failure(error))
         }
+    }
+    
+    func createEventInDefaultCalendar(title: String, startDate: Int64, endDate: Int64, isAllDay: Bool, description: String?, url: String?, completion: @escaping (Result<Event, any Error>) -> Void) {
+        permissionHandler.checkCalendarAccessThenExecute(.writeOnly) { [self] in
+            do {
+                let createdEvent = try easyEventStore.createEvent(
+                    title: title,
+                    startDate: Date(from: startDate),
+                    endDate: Date(from: endDate),
+                    isAllDay: isAllDay,
+                    description: description,
+                    url: url
+                )
+                completion(.success(createdEvent))
+                
+            } catch {
+                completion(.failure(error))
+            }
+            
+        } onPermissionRefused: {
+            completion(.failure(PigeonError(
+                code: "ACCESS_REFUSED",
+                message: "Calendar access has been refused or has not been given yet",
+                details: nil
+            )))
+        } onPermissionError: { error in
+            completion(.failure(error))
+        }
+
     }
     
     func retrieveEvents(

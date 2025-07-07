@@ -27,8 +27,6 @@ abstract class EventidePlatform extends PlatformInterface {
     required String localAccountName,
   });
 
-  Future<ETCalendar?> retrieveDefaultCalendar();
-
   Future<List<ETCalendar>> retrieveCalendars({
     bool onlyWritableCalendars = true,
     String? fromLocalAccountName,
@@ -43,6 +41,17 @@ abstract class EventidePlatform extends PlatformInterface {
     required String title,
     required DateTime startDate,
     required DateTime endDate,
+    bool isAllDay = false,
+    String? description,
+    String? url,
+    List<Duration>? reminders,
+  });
+
+  Future<ETEvent> createEventInDefaultCalendar({
+    required String title,
+    required DateTime startDate,
+    required DateTime endDate,
+    bool isAllDay = false,
     String? description,
     String? url,
     List<Duration>? reminders,

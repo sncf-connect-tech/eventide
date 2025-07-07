@@ -36,24 +36,15 @@ final class CalendarCubit extends Cubit<CalendarState> {
     required TZDateTime endDate,
   }) async {
     await state.fetchFrom(() async {
-      final calendar = await _eventide.retrieveDefaultCalendar();
-
-      if (calendar == null) {
-        throw Exception('No default calendar found');
-      }
-
-      final event = await _eventide.createEvent(
+      await _eventide.createEventInDefaultCalendar(
         title: title,
         description: description,
         isAllDay: isAllDay,
         startDate: startDate,
         endDate: endDate,
-        calendarId: calendar.id,
       );
 
-      return {
-        calendar: [event]
-      };
+      return {};
     }).forEach(emit);
   }
 

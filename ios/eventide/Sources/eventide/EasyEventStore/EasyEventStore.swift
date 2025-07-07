@@ -44,10 +44,6 @@ final class EasyEventStore: EasyEventStoreProtocol {
         }
     }
     
-    func retrieveDefaultCalendar() -> Calendar? {
-        return eventStore.defaultCalendarForNewEvents?.toCalendar()
-    }
-    
     func retrieveCalendars(
         onlyWritable: Bool,
         from localAccountName: String?
@@ -111,6 +107,35 @@ final class EasyEventStore: EasyEventStoreProtocol {
         }
 
         ekEvent.calendar = ekCalendar
+        ekEvent.title = title
+        ekEvent.notes = description
+        ekEvent.startDate = startDate
+        ekEvent.endDate = endDate
+        ekEvent.timeZone = TimeZone(identifier: "UTC")
+        ekEvent.isAllDay = isAllDay
+        
+        if url != nil {
+            ekEvent.url = URL(string: url!)
+        }
+        
+        do {
+            try eventStore.save(ekEvent, span: EKSpan.thisEvent, commit: true)
+            return ekEvent.toEvent()
+            
+        } catch {
+            eventStore.reset()
+            throw PigeonError(
+                code: "GENERIC_ERROR",
+                message: "Event not created",
+                details: nil
+            )
+        }
+    }
+    
+    func createEvent(title: String, startDate: Date, endDate: Date, isAllDay: Bool, description: String?, url: String?) throws -> Event {
+        let ekEvent = EKEvent(eventStore: eventStore)
+       
+        ekEvent.calendar = eventStore.defaultCalendarForNewEvents
         ekEvent.title = title
         ekEvent.notes = description
         ekEvent.startDate = startDate

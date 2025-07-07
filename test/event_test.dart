@@ -121,6 +121,124 @@ void main() {
         )).called(1);
   });
 
+  test('createEventInDefaultCalendar returns an ETEvent', () async {
+    // Given
+    final event = Event(
+      id: '1',
+      title: 'Test Event',
+      isAllDay: false,
+      startDate: startDate.millisecondsSinceEpoch,
+      endDate: endDate.add(const Duration(hours: 1)).millisecondsSinceEpoch,
+      calendarId: 'default',
+      description: 'Test Description',
+      url: 'http://test.com',
+      reminders: [],
+      attendees: [],
+    );
+
+    when(() => mockCalendarApi.createEventInDefaultCalendar(
+          title: any(named: 'title'),
+          isAllDay: any(named: 'isAllDay'),
+          startDate: any(named: 'startDate'),
+          endDate: any(named: 'endDate'),
+          description: any(named: 'description'),
+          url: any(named: 'url'),
+        )).thenAnswer((_) async => event);
+
+    // When
+    final result = await eventide.createEventInDefaultCalendar(
+      title: 'Test Event',
+      startDate: startDate,
+      endDate: endDate,
+      description: 'Test Description',
+      url: 'http://test.com',
+    );
+
+    // Then
+    expect(result, event.toETEvent());
+    verify(() => mockCalendarApi.createEventInDefaultCalendar(
+          title: 'Test Event',
+          isAllDay: false,
+          startDate: startDate.millisecondsSinceEpoch,
+          endDate: endDate.millisecondsSinceEpoch,
+          description: 'Test Description',
+          url: 'http://test.com',
+        )).called(1);
+  });
+
+  test('createEventInDefaultCalendar with all day event returns an ETEvent', () async {
+    // Given
+    final event = Event(
+      id: '1',
+      title: 'All Day Event',
+      isAllDay: true,
+      startDate: startDate.millisecondsSinceEpoch,
+      endDate: endDate.add(const Duration(hours: 1)).millisecondsSinceEpoch,
+      calendarId: 'default',
+      reminders: [],
+      attendees: [],
+    );
+
+    when(() => mockCalendarApi.createEventInDefaultCalendar(
+          title: any(named: 'title'),
+          isAllDay: any(named: 'isAllDay'),
+          startDate: any(named: 'startDate'),
+          endDate: any(named: 'endDate'),
+          description: any(named: 'description'),
+          url: any(named: 'url'),
+        )).thenAnswer((_) async => event);
+
+    // When
+    final result = await eventide.createEventInDefaultCalendar(
+      title: 'All Day Event',
+      startDate: startDate,
+      endDate: endDate,
+      isAllDay: true,
+    );
+
+    // Then
+    expect(result, event.toETEvent());
+    expect(result.isAllDay, true);
+    verify(() => mockCalendarApi.createEventInDefaultCalendar(
+          title: 'All Day Event',
+          isAllDay: true,
+          startDate: startDate.millisecondsSinceEpoch,
+          endDate: endDate.millisecondsSinceEpoch,
+          description: null,
+          url: null,
+        )).called(1);
+  });
+
+  test('createEventInDefaultCalendar throws an exception when API fails', () async {
+    // Given
+    when(() => mockCalendarApi.createEventInDefaultCalendar(
+          title: any(named: 'title'),
+          isAllDay: any(named: 'isAllDay'),
+          startDate: any(named: 'startDate'),
+          endDate: any(named: 'endDate'),
+          description: any(named: 'description'),
+          url: any(named: 'url'),
+        )).thenThrow(ETGenericException(message: 'API Error'));
+
+    // When
+    Future<ETEvent> call() => eventide.createEventInDefaultCalendar(
+          title: 'Test Event',
+          startDate: startDate,
+          endDate: endDate,
+        );
+
+    // Then
+    expect(call, throwsException);
+    verify(() => mockCalendarApi.createEventInDefaultCalendar(
+          title: 'Test Event',
+          isAllDay: false,
+          startDate: startDate.millisecondsSinceEpoch,
+          endDate: endDate.millisecondsSinceEpoch,
+          description: null,
+          url: null,
+        )).called(1);
+  });
+
   group('iOS tests', () {
     setUpAll(() {
       debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
@@ -130,15 +248,25 @@ void main() {
       debugDefaultTargetPlatformOverride = null;
     });
 
-    test('createEvent with reminders returns an ECEvent with reminders', () async {
+    test('createEventInDefaultCalendar with reminders returns an ETEvent with reminders', () async {
       // Given
       const reminders = [Duration(minutes: 10), Duration(minutes: 20)];
-      when(() => mockCalendarApi.createEvent(
+      final event = Event(
+        id: '1',
+        title: 'Test Event',
+        isAllDay: false,
+        startDate: startDate.millisecondsSinceEpoch,
+        endDate: endDate.add(const Duration(hours: 1)).millisecondsSinceEpoch,
+        calendarId: 'default',
+        reminders: [],
+        attendees: [],
+      );
+
+      when(() => mockCalendarApi.createEventInDefaultCalendar(
             title: any(named: 'title'),
             isAllDay: any(named: 'isAllDay'),
             startDate: any(named: 'startDate'),
             endDate: any(named: 'endDate'),
-            calendarId: any(named: 'calendarId'),
             description: any(named: 'description'),
             url: any(named: 'url'),
           )).thenAnswer((_) async => event);
@@ -146,24 +274,22 @@ void main() {
           .thenAnswer((_) async => event.copyWithReminders(reminders.toNativeList()));
 
       // When
-      final result = await eventide.createEvent(
+      final result = await eventide.createEventInDefaultCalendar(
         title: 'Test Event',
         startDate: startDate,
         endDate: endDate,
-        calendarId: '1',
         reminders: reminders,
       );
 
       // Then
       expect(result.reminders, equals(reminders));
-      verify(() => mockCalendarApi.createEvent(
-            title: any(named: 'title'),
-            isAllDay: any(named: 'isAllDay'),
-            startDate: any(named: 'startDate'),
-            endDate: any(named: 'endDate'),
-            calendarId: any(named: 'calendarId'),
-            description: any(named: 'description'),
-            url: any(named: 'url'),
+      verify(() => mockCalendarApi.createEventInDefaultCalendar(
+            title: 'Test Event',
+            isAllDay: false,
+            startDate: startDate.millisecondsSinceEpoch,
+            endDate: endDate.millisecondsSinceEpoch,
+            description: null,
+            url: null,
           )).called(1);
       verify(() => mockCalendarApi.createReminder(reminder: 10 * 60, eventId: event.id)).called(1);
       verify(() => mockCalendarApi.createReminder(reminder: 20 * 60, eventId: event.id)).called(1);
@@ -213,6 +339,53 @@ void main() {
             calendarId: any(named: 'calendarId'),
             description: any(named: 'description'),
             url: any(named: 'url'),
+          )).called(1);
+      verify(() => mockCalendarApi.createReminder(reminder: 10, eventId: event.id)).called(1);
+      verify(() => mockCalendarApi.createReminder(reminder: 20, eventId: event.id)).called(1);
+    });
+
+    test('createEventInDefaultCalendar with reminders returns an ETEvent with reminders', () async {
+      // Given
+      const reminders = [Duration(minutes: 10), Duration(minutes: 20)];
+      final event = Event(
+        id: '1',
+        title: 'Test Event',
+        isAllDay: false,
+        startDate: startDate.millisecondsSinceEpoch,
+        endDate: endDate.add(const Duration(hours: 1)).millisecondsSinceEpoch,
+        calendarId: 'default',
+        reminders: [],
+        attendees: [],
+      );
+
+      when(() => mockCalendarApi.createEventInDefaultCalendar(
+            title: any(named: 'title'),
+            isAllDay: any(named: 'isAllDay'),
+            startDate: any(named: 'startDate'),
+            endDate: any(named: 'endDate'),
+            description: any(named: 'description'),
+            url: any(named: 'url'),
+          )).thenAnswer((_) async => event);
+      when(() => mockCalendarApi.createReminder(reminder: any(named: 'reminder'), eventId: any(named: 'eventId')))
+          .thenAnswer((_) async => event.copyWithReminders(reminders.toNativeList()));
+
+      // When
+      final result = await eventide.createEventInDefaultCalendar(
+        title: 'Test Event',
+        startDate: startDate,
+        endDate: endDate,
+        reminders: reminders,
+      );
+
+      // Then
+      expect(result.reminders, equals(reminders));
+      verify(() => mockCalendarApi.createEventInDefaultCalendar(
+            title: 'Test Event',
+            isAllDay: false,
+            startDate: startDate.millisecondsSinceEpoch,
+            endDate: endDate.millisecondsSinceEpoch,
+            description: null,
+            url: null,
           )).called(1);
       verify(() => mockCalendarApi.createReminder(reminder: 10, eventId: event.id)).called(1);
       verify(() => mockCalendarApi.createReminder(reminder: 20, eventId: event.id)).called(1);

@@ -100,21 +100,6 @@ final class PermissionChoiceScreen extends StatelessWidget {
                     final eventide = context.read<Eventide>();
 
                     try {
-                      // Retrieve the default calendar for write-only access
-                      final defaultCalendar = await eventide.retrieveDefaultCalendar();
-
-                      if (defaultCalendar == null) {
-                        if (context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('No default calendar found'),
-                              backgroundColor: Colors.red,
-                            ),
-                          );
-                        }
-                        return;
-                      }
-
                       if (context.mounted) {
                         showDialog(
                           context: context,
@@ -123,16 +108,15 @@ final class PermissionChoiceScreen extends StatelessWidget {
                             content: Padding(
                               padding: const EdgeInsets.symmetric(horizontal: 16.0),
                               child: EventForm(
-                                calendars: [defaultCalendar],
-                                onSubmit: (selectedCalendar, title, description, isAllDay, startDate, endDate) async {
+                                calendars: [],
+                                onSubmit: (_, title, description, isAllDay, startDate, endDate) async {
                                   try {
-                                    await eventide.createEvent(
+                                    await eventide.createEventInDefaultCalendar(
                                       title: title,
                                       description: description,
                                       isAllDay: isAllDay,
                                       startDate: startDate,
                                       endDate: endDate,
-                                      calendarId: selectedCalendar.id,
                                     );
 
                                     if (context.mounted) {

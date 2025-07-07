@@ -1,3 +1,8 @@
+## 0.9.0
+* **Removed retrieveDefaultCalendar** because it did not make sense to return a virtual calendar on iOS (error-prone)
+* **Created createEventInDefaultCalendar** instead to directly create an event and prompt write-only access on iOS 17+
+* **Created .pubignore file** to remove example app and other useless files from being published
+
 ## 0.8.1
 * **Removed final clause** on Eventide class because it prevented it from being mocked
 

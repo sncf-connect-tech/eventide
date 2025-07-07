@@ -49,29 +49,6 @@ class Eventide extends EventidePlatform {
     }
   }
 
-  /// Retrieves the default calendar.
-  ///
-  /// Returns the default [ETCalendar].
-  ///
-  /// On iOS, this method will prompt user for write only permission and will return a virtual calendar to insert your event into. Any attempt to use it for reading events will end up with a [ETGenericException].
-  ///
-  /// On Android, this method will return the first calendar found that is writable.
-  ///
-  /// Throws a [ETPermissionException] if the user refuses to grant calendar permissions.
-  ///
-  /// Throws a [ETNotFoundException] if no default calendar is found.
-  ///
-  /// Throws a [ETGenericException] if any other error occurs during calendar retrieval.
-  @override
-  Future<ETCalendar?> retrieveDefaultCalendar() async {
-    try {
-      final calendar = await _calendarApi.retrieveDefaultCalendar();
-      return calendar?.toETCalendar();
-    } on PlatformException catch (e) {
-      throw e.toETException();
-    }
-  }
-
   /// Retrieves a list of calendars.
   /// If [onlyWritableCalendars] is `true`, only writable calendars are returned.
   ///
@@ -142,6 +119,56 @@ class Eventide extends EventidePlatform {
     try {
       final event = await _calendarApi.createEvent(
         calendarId: calendarId,
+        title: title,
+        startDate: startDate.millisecondsSinceEpoch,
+        endDate: endDate.millisecondsSinceEpoch,
+        isAllDay: isAllDay,
+        description: description,
+        url: url,
+      );
+
+      if (reminders != null) {
+        for (final reminder in reminders) {
+          await _calendarApi.createReminder(
+            reminder: reminder.toNativeDuration(),
+            eventId: event.id,
+          );
+        }
+      }
+
+      return event.toETEvent().copyWithReminders(reminders);
+    } on PlatformException catch (e) {
+      throw e.toETException();
+    }
+  }
+
+  /// Creates a new event in the default calendar with the given [title], [startDate], [endDate].
+  /// Optionally, you can provide a [description], [url], and a list of [reminders] duration.
+  ///
+  /// On iOS, this method will prompt user for write only permission and will insert your event in user's default calendar.
+  ///
+  /// / /!\ Note that a [Duration] in seconds will not be supported by Android for API limitations.
+  ///
+  /// Returns the created [ETEvent].
+  ///
+  /// Throws a [ETPermissionException] if the user refuses to grant calendar permissions.
+  ///
+  /// Throws a [ETNotFoundException] if the default calendar is not found or if the created event id is not found.
+  ///
+  /// Throws a [ETGenericException] if any other error occurs during event creation.
+  ///
+  @override
+  Future<ETEvent> createEventInDefaultCalendar({
+    required String title,
+    required DateTime startDate,
+    required DateTime endDate,
+    bool isAllDay = false,
+    String? description,
+    String? url,
+    List<Duration>? reminders,
+  }) async {
+    try {
+      final event = await _calendarApi.createEventInDefaultCalendar(
         title: title,
         startDate: startDate.millisecondsSinceEpoch,
         endDate: endDate.millisecondsSinceEpoch,

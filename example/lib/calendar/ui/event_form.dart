@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:timezone/timezone.dart';
 
 typedef OnEventFormSubmit = void Function(
-  ETCalendar selectedCalendar,
+  ETCalendar? selectedCalendar,
   String title,
   String description,
   bool isAllDay,
@@ -65,29 +65,31 @@ final class _EventFormState extends State<EventForm> {
               labelText: 'Event description',
             ),
           ),
-          const SizedBox(height: 16),
-          DropdownMenu<ETCalendar>(
-            label: Text('Calendar :'),
-            dropdownMenuEntries: widget.calendars.map((calendar) {
-              return DropdownMenuEntry(
-                value: calendar,
-                label: calendar.title,
-                leadingIcon: Container(
-                  width: 16,
-                  height: 16,
-                  decoration: BoxDecoration(
-                    color: calendar.color,
-                    borderRadius: BorderRadius.circular(2),
+          if (widget.calendars.isNotEmpty) ...[
+            const SizedBox(height: 16),
+            DropdownMenu<ETCalendar>(
+              label: Text('Calendar :'),
+              dropdownMenuEntries: widget.calendars.map((calendar) {
+                return DropdownMenuEntry(
+                  value: calendar,
+                  label: calendar.title,
+                  leadingIcon: Container(
+                    width: 16,
+                    height: 16,
+                    decoration: BoxDecoration(
+                      color: calendar.color,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
                   ),
-                ),
-              );
-            }).toList(),
-            onSelected: (ETCalendar? value) {
-              setState(() {
-                _selectedCalendar = value;
-              });
-            },
-          ),
+                );
+              }).toList(),
+              onSelected: (ETCalendar? value) {
+                setState(() {
+                  _selectedCalendar = value;
+                });
+              },
+            ),
+          ],
           const SizedBox(height: 16),
           Row(
             children: [
@@ -202,18 +204,16 @@ final class _EventFormState extends State<EventForm> {
           ),
           const SizedBox(height: 16),
           ElevatedButton(
-            onPressed: _selectedCalendar != null
+            onPressed: widget.calendars.isEmpty || _selectedCalendar != null
                 ? () {
                     widget.onSubmit(
-                      _selectedCalendar!,
+                      _selectedCalendar,
                       _titleController.text,
                       _descriptionController.text,
                       isAllDay,
                       TZDateTime.from(_selectedStartDate, getLocation('Europe/Paris')),
                       TZDateTime.from(_selectedEndDate, getLocation('Europe/Paris')),
                     );
-
-                    Navigator.of(context).pop();
                   }
                 : null,
             child: const Text('Create event'),
@@ -221,18 +221,16 @@ final class _EventFormState extends State<EventForm> {
           if (!isAllDay) ...[
             const SizedBox(height: 16),
             ElevatedButton(
-              onPressed: _selectedCalendar != null
+              onPressed: widget.calendars.isEmpty || _selectedCalendar != null
                   ? () {
                       widget.onSubmit(
-                        _selectedCalendar!,
+                        _selectedCalendar,
                         'Paris - Montreal',
                         _descriptionController.text,
                         false,
                         TZDateTime(getLocation('Europe/Paris'), 2025, 9, 8, 13, 30, 0),
                         TZDateTime(getLocation('America/Montreal'), 2025, 9, 8, 15, 0, 0),
                       );
-
-                      Navigator.of(context).pop();
                     }
                   : null,
               child: const Text('Create event in different timezones'),

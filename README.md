@@ -43,15 +43,6 @@ Eventide provides a easy-to-use flutter interface to access & modify native devi
 
 ## 🔨 Getting Started
 
-### Installation
-
-Add Eventide to your `pubspec.yaml`:
-
-```yaml
-dependencies:
-  eventide: ^0.8.1
-```
-
 ### Platform Setup
 
 #### Android
@@ -87,7 +78,7 @@ final calendar = await eventide.createCalendar(
   localAccountName: "My Company",
 );
 
-// Create an event with reminders
+// Create an event in a specific calendar with reminders
 final event = await eventide.createEvent(
   calendarId: calendar.id,
   title: 'Meeting',
@@ -95,6 +86,16 @@ final event = await eventide.createEvent(
   endDate: DateTime.now().add(Duration(hours: 1)),
   reminders: [
     const Duration(hours: 1),
+    const Duration(minutes: 15),
+  ],
+);
+
+// Create an event in the default calendar (iOS write-only access)
+final defaultEvent = await eventide.createEventInDefaultCalendar(
+  title: 'Important Meeting',
+  startDate: DateTime.now().add(Duration(days: 1)),
+  endDate: DateTime.now().add(Duration(days: 1, hours: 1)),
+  reminders: [
     const Duration(minutes: 15),
   ],
 );
@@ -155,18 +156,6 @@ final myCalendars = await eventide.retrieveCalendars(
 );
 ```
 
-#### Retrieve Default Calendar
-
-```dart
-Future<ETCalendar?> retrieveDefaultCalendar()
-```
-
-Retrieves the default calendar. On iOS 17+, this prompts for write-only access.
-
-```dart
-final defaultCalendar = await eventide.retrieveDefaultCalendar();
-```
-
 #### Delete Calendar
 
 ```dart
@@ -206,6 +195,33 @@ final event = await eventide.createEvent(
   title: 'Team Meeting',
   startDate: DateTime.now(),
   endDate: DateTime.now().add(Duration(hours: 1)),
+  description: 'Weekly team sync',
+  isAllDay: false,
+  reminders: [Duration(minutes: 15)],
+);
+```
+
+#### Create Event in Default Calendar
+
+```dart
+Future<ETEvent> createEventInDefaultCalendar({
+  required String title,
+  required DateTime startDate,
+  required DateTime endDate,
+  bool isAllDay = false,
+  String? description,
+  String? url,
+  List<Duration>? reminders,
+})
+```
+
+Creates a new event in the default calendar. On iOS, this method will prompt the user for write-only permission and insert the event in the user's default calendar.
+
+```dart
+final event = await eventide.createEventInDefaultCalendar(
+  title: 'Important Meeting',
+  startDate: DateTime.now().add(Duration(days: 1)),
+  endDate: DateTime.now().add(Duration(days: 1, hours: 1)),
   description: 'Weekly team sync',
   isAllDay: false,
   reminders: [Duration(minutes: 15)],
@@ -409,47 +425,43 @@ As of iOS 17, Apple introduced a new write-only access permission for calendar d
 
 #### How it works
 
-When you call `retrieveDefaultCalendar()` on iOS 17+, the system will prompt the user for write-only access if full access hasn't been granted. This returns a special virtual calendar that can only be used for creating events.
+When you call `createEventInDefaultCalendar()` on iOS 17+, the system will prompt the user for write-only access if full access hasn't been granted. This method directly creates an event in the user's default calendar without requiring you to retrieve the calendar first.
 
 ```dart
 // Will prompt user for write only access on iOS 17+
-final defaultCalendar = await eventide.retrieveDefaultCalendar();
+final event = await eventide.createEventInDefaultCalendar(
+  title: 'New Meeting',
+  startDate: DateTime.now(),
+  endDate: DateTime.now().add(Duration(hours: 1)),
+  description: 'Weekly team sync',
+  reminders: [Duration(minutes: 15)],
+);
 
-if (defaultCalendar != null) {
-  // You can create events in this calendar
-  final event = await eventide.createEvent(
-    calendarId: defaultCalendar.id,
-    title: 'New Meeting',
-    startDate: DateTime.now(),
-    endDate: DateTime.now().add(Duration(hours: 1)),
-  );
-  
-  print('Event created: ${event.title}');
-}
+print('Event created: ${event.title}');
 ```
 
 #### Important limitations
 
 ⚠️ **Key restrictions when using write-only access:**
 
-- **No reading capabilities**: Attempting to retrieve events from a write-only calendar will throw an `ETGenericException`
-- **Virtual calendar**: The returned calendar is a virtual representation and doesn't correspond to a real user calendar
+- **No reading capabilities**: You cannot retrieve events from calendars when using write-only access
 - **Create only**: You can only create new events, not modify or read existing ones
+- **No calendar enumeration**: You cannot list or retrieve calendar information
 
 ```dart
 // ❌ This will fail with write-only access
 try {
+  final calendars = await eventide.retrieveCalendars();
   final events = await eventide.retrieveEvents(
-    calendarId: defaultCalendar.id,
+    calendarId: calendars.first.id,
   );
 } catch (e) {
-  // Will throw ETGenericException on iOS with write-only access
-  print('Cannot read events with write-only access: $e');
+  // Will throw ETPermissionException on iOS with write-only access
+  print('Cannot read calendars/events with write-only access: $e');
 }
 
 // ✅ This works with write-only access
-final newEvent = await eventide.createEvent(
-  calendarId: defaultCalendar.id,
+final newEvent = await eventide.createEventInDefaultCalendar(
   title: 'Team Meeting',
   startDate: DateTime.now().add(Duration(days: 1)),
   endDate: DateTime.now().add(Duration(days: 1, hours: 1)),
@@ -462,16 +474,16 @@ final newEvent = await eventide.createEvent(
 
 The system will automatically handle the permission flow:
 
-1. First call to `retrieveDefaultCalendar()` → Shows write-only permission prompt
-2. User grants write-only access → Returns virtual calendar for event creation
+1. First call to `createEventInDefaultCalendar()` → Shows write-only permission prompt
+2. User grants write-only access → Creates event in default calendar
 3. User denies access → Throws `ETPermissionException`
 
 #### Best practices
 
-- Always check if the returned calendar is not null before using it
-- Handle `ETGenericException` when attempting operations that require read access
+- Handle `ETPermissionException` when attempting operations that require read access
 - Consider offering full calendar access for apps that need to read existing events
 - Use write-only access for apps that only need to add events (like booking confirmations, reminders, etc.)
+- Use `createEventInDefaultCalendar()` for simple event creation without calendar management
 
 ---
 

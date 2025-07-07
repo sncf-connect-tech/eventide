@@ -139,14 +139,39 @@ final class _CalendarScreenState extends State<CalendarScreen> with SingleTicker
                             child: EventForm(
                               calendars: [...?state.data?.keys],
                               onSubmit: (selectedCalendar, title, description, isAllDay, startDate, endDate) async {
-                                await BlocProvider.of<CalendarCubit>(context).createEvent(
-                                  calendar: selectedCalendar,
-                                  title: title,
-                                  description: description,
-                                  isAllDay: isAllDay,
-                                  startDate: startDate,
-                                  endDate: endDate,
-                                );
+                                if (selectedCalendar == null) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text('Please select a calendar.'),
+                                      backgroundColor: Colors.red,
+                                    ),
+                                  );
+                                  return;
+                                }
+                                try {
+                                  await BlocProvider.of<CalendarCubit>(context).createEvent(
+                                    calendar: selectedCalendar,
+                                    title: title,
+                                    description: description,
+                                    isAllDay: isAllDay,
+                                    startDate: startDate,
+                                    endDate: endDate,
+                                  );
+
+                                  if (context.mounted) {
+                                    Navigator.of(context).pop();
+                                  }
+                                } catch (e) {
+                                  if (context.mounted) {
+                                    Navigator.of(context).pop();
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text('Error creating event: $e'),
+                                        backgroundColor: Colors.red,
+                                      ),
+                                    );
+                                  }
+                                }
                               },
                             ),
                           ),
