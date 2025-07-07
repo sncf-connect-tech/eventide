@@ -51,16 +51,28 @@ Nothing to add on your side. All permissions are already declared in eventide's 
 
 #### iOS
 
-To read/write calendar data, your app must include the following permissions in its `info.plist` file:
+The following are the lines you need to add to your `info.plist` file:
 
+##### Versions below iOS 17
 ```xml
 <key>NSCalendarsUsageDescription</key>
 <string>We need access to your calendar to add information about your trip.</string>
-<key>NSCalendarsFullAccessUsageDescription</key>
-<string>We need access to your calendar to add information about your trip.</string>
+```
+Starting iOS 17+, it depends whether you want full or write-only access from your user.
+
+##### Write-only
+```xml
 <key>NSCalendarsWriteOnlyAccessUsageDescription</key>
 <string>We need access to your calendar to add information about your trip.</string>
 ```
+
+##### Full access
+```xml
+<key>NSCalendarsFullAccessUsageDescription</key>
+<string>We need access to your calendar to add information about your trip.</string>
+```
+
+Note that write-only AND full access will result on your app asking for both.
 
 ---
 
