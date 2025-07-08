@@ -103,7 +103,7 @@ final event = await eventide.createEvent(
 );
 
 // Create an event in the default calendar (iOS write-only access)
-final defaultEvent = await eventide.createEventInDefaultCalendar(
+await eventide.createEventInDefaultCalendar(
   title: 'Important Meeting',
   startDate: DateTime.now().add(Duration(days: 1)),
   endDate: DateTime.now().add(Duration(days: 1, hours: 1)),
@@ -230,7 +230,7 @@ Future<ETEvent> createEventInDefaultCalendar({
 Creates a new event in the default calendar. On iOS, this method will prompt the user for write-only permission and insert the event in the user's default calendar.
 
 ```dart
-final event = await eventide.createEventInDefaultCalendar(
+await eventide.createEventInDefaultCalendar(
   title: 'Important Meeting',
   startDate: DateTime.now().add(Duration(days: 1)),
   endDate: DateTime.now().add(Duration(days: 1, hours: 1)),
