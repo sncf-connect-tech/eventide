@@ -51,9 +51,13 @@ final class CalendarCubit extends Cubit<CalendarState> {
         calendarId: calendar.id,
       );
 
-      return {
-        calendar: [event]
-      };
+      // TODO: Update this part to correctly update the state after event creation
+      // Since createEvent now returns void, we need to refetch the events for the calendar
+      // or update the local state optimistically.
+      // For now, let's just reload the full content as a simple approach.
+      await loadFullContent();
+
+      return state.dataOrThrow;
     }).forEach(emit);
   }
 
@@ -64,22 +68,24 @@ final class CalendarCubit extends Cubit<CalendarState> {
     required bool isAllDay,
     required TZDateTime startDate,
     required TZDateTime endDate,
+    List<Duration>? reminders,
   }) async {
-    if (state case Value(:final data?)) {
-      await state.fetchFrom(() async {
-        final event = await _eventide.createEvent(
-          title: title,
-          description: description,
-          isAllDay: isAllDay,
-          startDate: startDate,
-          endDate: endDate,
-          calendarId: calendar.id,
-        );
-
-        return {
-          calendar: [...data[calendar] ?? [], event]
-        };
-      }).forEach(emit);
-    }
+    await state.fetchFrom(() async {
+      await _eventide.createEvent(
+        title: title,
+        description: description,
+        isAllDay: isAllDay,
+        startDate: startDate,
+        endDate: endDate,
+        calendarId: calendar.id,
+        reminders: reminders,
+      );
+      // TODO: Update this part to correctly update the state after event creation
+      // Since createEvent now returns void, we need to refetch the events for the calendar
+      // or update the local state optimistically.
+      // For now, let's just reload the full content as a simple approach.
+      await loadFullContent();
+      return state.dataOrThrow;
+    }).forEach(emit);
   }
 }

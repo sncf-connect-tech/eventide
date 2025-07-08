@@ -11,14 +11,6 @@ final class EventDetailsCubit extends Cubit<Value<ETEvent>> {
   })  : _calendarPlugin = calendarPlugin,
         super(Value.success(selectedEvent));
 
-  Future<void> createReminder(Duration durationBeforeEvent) async {
-    if (state case Value(:final data?)) {
-      await state.fetchFrom(() async {
-        return await _calendarPlugin.createReminder(eventId: data.id, durationBeforeEvent: durationBeforeEvent);
-      }).forEach(emit);
-    }
-  }
-
   Future<void> deleteReminder(Duration durationBeforeEvent) async {
     if (state case Value(:final data?)) {
       await state.fetchFrom(() async {

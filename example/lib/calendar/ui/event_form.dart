@@ -9,6 +9,7 @@ typedef OnEventFormSubmit = void Function(
   bool isAllDay,
   TZDateTime startDate,
   TZDateTime endDate,
+  List<Duration>? reminders,
 );
 
 final class EventForm extends StatefulWidget {
@@ -32,6 +33,8 @@ final class _EventFormState extends State<EventForm> {
   DateTime _selectedStartDate = DateTime.now();
   DateTime _selectedEndDate = DateTime.now().add(const Duration(hours: 1));
   bool isAllDay = false;
+  final List<Duration> _reminders = [];
+  final TextEditingController _reminderController = TextEditingController();
 
   @override
   void initState() {
@@ -44,6 +47,7 @@ final class _EventFormState extends State<EventForm> {
   void dispose() {
     _titleController.dispose();
     _descriptionController.dispose();
+    _reminderController.dispose();
     super.dispose();
   }
 
@@ -99,6 +103,31 @@ final class _EventFormState extends State<EventForm> {
                     isAllDay = value;
                   }),
                 ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Text('Reminders (in minutes): ${_reminders.map((d) => d.inMinutes).join(', ')}'),
+          Row(
+            children: [
+              Expanded(
+                child: TextFormField(
+                  controller: _reminderController,
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(labelText: 'Add reminder (minutes)'),
+                ),
+              ),
+              IconButton(
+                icon: const Icon(Icons.add),
+                onPressed: () {
+                  final minutes = int.tryParse(_reminderController.text);
+                  if (minutes != null) {
+                    setState(() {
+                      _reminders.add(Duration(minutes: minutes));
+                      _reminderController.clear();
+                    });
+                  }
+                },
               ),
             ],
           ),
@@ -211,6 +240,7 @@ final class _EventFormState extends State<EventForm> {
                       isAllDay,
                       TZDateTime.from(_selectedStartDate, getLocation('Europe/Paris')),
                       TZDateTime.from(_selectedEndDate, getLocation('Europe/Paris')),
+                      _reminders.isEmpty ? null : _reminders,
                     );
 
                     Navigator.of(context).pop();
@@ -230,6 +260,7 @@ final class _EventFormState extends State<EventForm> {
                         false,
                         TZDateTime(getLocation('Europe/Paris'), 2025, 9, 8, 13, 30, 0),
                         TZDateTime(getLocation('America/Montreal'), 2025, 9, 8, 15, 0, 0),
+                        _reminders.isEmpty ? null : _reminders,
                       );
 
                       Navigator.of(context).pop();

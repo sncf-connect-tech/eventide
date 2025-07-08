@@ -64,10 +64,11 @@ void main() {
           calendarId: any(named: 'calendarId'),
           description: any(named: 'description'),
           url: any(named: 'url'),
-        )).thenAnswer((_) async => event);
+          reminders: any(named: 'reminders'),
+        )).thenAnswer((_) async {});
 
     // When
-    final result = await eventide.createEvent(
+    await eventide.createEvent(
       title: 'Test Event',
       isAllDay: true,
       startDate: startDate,
@@ -76,15 +77,15 @@ void main() {
     );
 
     // Then
-    expect(result, event.toETEvent());
     verify(() => mockCalendarApi.createEvent(
-          title: any(named: 'title'),
-          isAllDay: any(named: 'isAllDay'),
-          startDate: any(named: 'startDate'),
-          endDate: any(named: 'endDate'),
-          calendarId: any(named: 'calendarId'),
-          description: any(named: 'description'),
-          url: any(named: 'url'),
+          title: 'Test Event',
+          isAllDay: true,
+          startDate: startDate.millisecondsSinceEpoch,
+          endDate: endDate.millisecondsSinceEpoch,
+          calendarId: '',
+          description: null,
+          url: null,
+          reminders: null,
         )).called(1);
   });
 
@@ -98,10 +99,11 @@ void main() {
           calendarId: any(named: 'calendarId'),
           description: any(named: 'description'),
           url: any(named: 'url'),
+          reminders: any(named: 'reminders'),
         )).thenThrow(ETGenericException(message: 'API Error'));
 
     // When
-    Future<ETEvent> call() => eventide.createEvent(
+    Future<void> call() => eventide.createEvent(
           title: 'Test Event',
           startDate: startDate,
           endDate: endDate,
@@ -112,12 +114,13 @@ void main() {
     expect(call, throwsException);
     verify(() => mockCalendarApi.createEvent(
           title: any(named: 'title'),
-          isAllDay: any(named: 'isAllDay'),
-          startDate: any(named: 'startDate'),
-          endDate: any(named: 'endDate'),
-          calendarId: any(named: 'calendarId'),
-          description: any(named: 'description'),
-          url: any(named: 'url'),
+          isAllDay: false,
+          startDate: startDate.millisecondsSinceEpoch,
+          endDate: endDate.millisecondsSinceEpoch,
+          calendarId: '',
+          description: null,
+          url: null,
+          reminders: null,
         )).called(1);
   });
 
@@ -130,9 +133,10 @@ void main() {
       debugDefaultTargetPlatformOverride = null;
     });
 
-    test('createEvent with reminders returns an ECEvent with reminders', () async {
+    test('createEvent with reminders', () async {
       // Given
       const reminders = [Duration(minutes: 10), Duration(minutes: 20)];
+      final nativeReminders = reminders.map((d) => d.toNativeDuration()).toList();
       when(() => mockCalendarApi.createEvent(
             title: any(named: 'title'),
             isAllDay: any(named: 'isAllDay'),
@@ -141,12 +145,11 @@ void main() {
             calendarId: any(named: 'calendarId'),
             description: any(named: 'description'),
             url: any(named: 'url'),
-          )).thenAnswer((_) async => event);
-      when(() => mockCalendarApi.createReminder(reminder: any(named: 'reminder'), eventId: any(named: 'eventId')))
-          .thenAnswer((_) async => event.copyWithReminders(reminders.toNativeList()));
+            reminders: any(named: 'reminders'),
+          )).thenAnswer((_) async {});
 
       // When
-      final result = await eventide.createEvent(
+      await eventide.createEvent(
         title: 'Test Event',
         startDate: startDate,
         endDate: endDate,
@@ -155,18 +158,16 @@ void main() {
       );
 
       // Then
-      expect(result.reminders, equals(reminders));
       verify(() => mockCalendarApi.createEvent(
-            title: any(named: 'title'),
-            isAllDay: any(named: 'isAllDay'),
-            startDate: any(named: 'startDate'),
-            endDate: any(named: 'endDate'),
-            calendarId: any(named: 'calendarId'),
-            description: any(named: 'description'),
-            url: any(named: 'url'),
+            title: 'Test Event',
+            isAllDay: false,
+            startDate: startDate.millisecondsSinceEpoch,
+            endDate: endDate.millisecondsSinceEpoch,
+            calendarId: '1',
+            description: null,
+            url: null,
+            reminders: nativeReminders,
           )).called(1);
-      verify(() => mockCalendarApi.createReminder(reminder: 10 * 60, eventId: event.id)).called(1);
-      verify(() => mockCalendarApi.createReminder(reminder: 20 * 60, eventId: event.id)).called(1);
     });
   });
 
@@ -179,9 +180,10 @@ void main() {
       debugDefaultTargetPlatformOverride = null;
     });
 
-    test('createEvent with reminders returns an ECEvent with reminders', () async {
+    test('createEvent with reminders', () async {
       // Given
       const reminders = [Duration(minutes: 10), Duration(minutes: 20)];
+      final nativeReminders = reminders.map((d) => d.toNativeDuration()).toList();
       when(() => mockCalendarApi.createEvent(
             title: any(named: 'title'),
             isAllDay: any(named: 'isAllDay'),
@@ -190,12 +192,11 @@ void main() {
             calendarId: any(named: 'calendarId'),
             description: any(named: 'description'),
             url: any(named: 'url'),
-          )).thenAnswer((_) async => event);
-      when(() => mockCalendarApi.createReminder(reminder: any(named: 'reminder'), eventId: any(named: 'eventId')))
-          .thenAnswer((_) async => event.copyWithReminders(reminders.toNativeList()));
+            reminders: any(named: 'reminders'),
+          )).thenAnswer((_) async {});
 
       // When
-      final result = await eventide.createEvent(
+      await eventide.createEvent(
         title: 'Test Event',
         startDate: startDate,
         endDate: endDate,
@@ -204,18 +205,16 @@ void main() {
       );
 
       // Then
-      expect(result.reminders, equals(reminders));
       verify(() => mockCalendarApi.createEvent(
-            title: any(named: 'title'),
-            isAllDay: any(named: 'isAllDay'),
-            startDate: any(named: 'startDate'),
-            endDate: any(named: 'endDate'),
-            calendarId: any(named: 'calendarId'),
-            description: any(named: 'description'),
-            url: any(named: 'url'),
+            title: 'Test Event',
+            isAllDay: false,
+            startDate: startDate.millisecondsSinceEpoch,
+            endDate: endDate.millisecondsSinceEpoch,
+            calendarId: '1',
+            description: null,
+            url: null,
+            reminders: nativeReminders,
           )).called(1);
-      verify(() => mockCalendarApi.createReminder(reminder: 10, eventId: event.id)).called(1);
-      verify(() => mockCalendarApi.createReminder(reminder: 20, eventId: event.id)).called(1);
     });
   });
 
@@ -225,7 +224,7 @@ void main() {
     when(() => mockCalendarApi.retrieveEvents(
         calendarId: any(named: 'calendarId'),
         startDate: any(named: 'startDate'),
-        endDate: any(named: 'endDate'))).thenAnswer((_) async => [event.copyWithReminders(reminders.toNativeList())]);
+          endDate: any(named: 'endDate'))).thenAnswer((_) async => [event.copyWithReminders(reminders.map((d) => d.toNativeDuration()).toList())]);
 
     // When
     final result = await eventide.retrieveEvents(calendarId: '1');
@@ -242,17 +241,6 @@ void main() {
     final utcParisDeparture = parisDeparture.toUtc();
     final utcMontrealArrival = montrealArrival.toUtc();
 
-    final mockEvent = Event(
-      id: '1',
-      title: 'Paris - Montréal',
-      isAllDay: false,
-      startDate: utcParisDeparture.millisecondsSinceEpoch,
-      endDate: utcMontrealArrival.millisecondsSinceEpoch,
-      calendarId: '1',
-      reminders: [],
-      attendees: [],
-    );
-
     when(() => mockCalendarApi.createEvent(
           calendarId: any(named: 'calendarId'),
           title: any(named: 'title'),
@@ -261,7 +249,8 @@ void main() {
           isAllDay: any(named: 'isAllDay'),
           description: any(named: 'description'),
           url: any(named: 'url'),
-        )).thenAnswer((_) async => mockEvent);
+          reminders: any(named: 'reminders'),
+        )).thenAnswer((_) async {});
 
     await eventide.createEvent(
       title: 'Paris - Montréal',
@@ -278,6 +267,7 @@ void main() {
           isAllDay: false,
           description: null,
           url: null,
+          reminders: null,
         )).called(1);
   });
 
@@ -327,39 +317,4 @@ void main() {
       expect(etEvents.first.id, '1');
     });
   });
-
-  group('ETEventCopy tests', () {
-    test('ETEvent copyWithReminders', () {
-      final etEvent = ETEvent(
-        id: '1',
-        title: 'Test Event',
-        isAllDay: false,
-        startDate: DateTime(2023, 10, 1),
-        endDate: DateTime(2023, 10, 2),
-        calendarId: '1',
-        description: 'Test Description',
-        url: 'http://test.com',
-        reminders: [Duration(minutes: 10)],
-      );
-      final copiedEvent = etEvent.copyWithReminders([Duration(minutes: 20)]);
-      expect(copiedEvent.reminders, [Duration(minutes: 20)]);
-    });
-  });
-}
-
-extension on Event {
-  Event copyWithReminders(List<int> reminders) {
-    return Event(
-      id: id,
-      title: title,
-      isAllDay: isAllDay,
-      startDate: startDate,
-      endDate: endDate,
-      calendarId: calendarId,
-      description: description,
-      url: url,
-      reminders: reminders,
-      attendees: [],
-    );
-  }
 }

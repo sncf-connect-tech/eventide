@@ -109,20 +109,22 @@ class CalendarImplem: CalendarApi {
         isAllDay: Bool,
         description: String?,
         url: String?,
-        completion: @escaping (Result<Event, Error>
+        reminders: [Int64]?,
+        completion: @escaping (Result<Void, Error>
     ) -> Void) {
         permissionHandler.checkCalendarAccessThenExecute(.writeOnly) { [self] in
             do {
-                let createdEvent = try easyEventStore.createEvent(
+                try easyEventStore.createEvent(
                     calendarId: calendarId,
                     title: title,
                     startDate: Date(from: startDate),
                     endDate: Date(from: endDate),
                     isAllDay: isAllDay,
                     description: description,
-                    url: url
+                    url: url,
+                    reminders: reminders
                 )
-                completion(.success(createdEvent))
+                completion(.success(()))
                 
             } catch {
                 completion(.failure(error))
@@ -188,28 +190,6 @@ class CalendarImplem: CalendarApi {
         } onPermissionError: { error in
             completion(.failure(error))
         }
-    }
-    
-    func createReminder(_ reminder: Int64, forEventId eventId: String, completion: @escaping (Result<Event, any Error>) -> Void) {
-        permissionHandler.checkCalendarAccessThenExecute(.fullAccess) { [self] in
-            do {
-                let modifiedEvent = try easyEventStore.createReminder(timeInterval: TimeInterval(-reminder), eventId: eventId)
-                completion(.success(modifiedEvent))
-                
-            } catch {
-                completion(.failure(error))
-            }
-            
-        } onPermissionRefused: {
-            completion(.failure(PigeonError(
-                code: "ACCESS_REFUSED",
-                message: "Calendar access has been refused or has not been given yet",
-                details: nil
-            )))
-        } onPermissionError: { error in
-            completion(.failure(error))
-        }
-
     }
     
     func deleteReminder(_ reminder: Int64, withEventId eventId: String, completion: @escaping (Result<Event, any Error>) -> Void) {

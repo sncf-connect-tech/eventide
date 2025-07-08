@@ -129,7 +129,7 @@ class Eventide extends EventidePlatform {
   ///
   /// Throws a [ETGenericException] if any other error occurs during event creation.
   @override
-  Future<ETEvent> createEvent({
+  Future<void> createEvent({
     required String calendarId,
     required String title,
     required DateTime startDate,
@@ -140,7 +140,7 @@ class Eventide extends EventidePlatform {
     List<Duration>? reminders,
   }) async {
     try {
-      final event = await _calendarApi.createEvent(
+      await _calendarApi.createEvent(
         calendarId: calendarId,
         title: title,
         startDate: startDate.millisecondsSinceEpoch,
@@ -148,18 +148,8 @@ class Eventide extends EventidePlatform {
         isAllDay: isAllDay,
         description: description,
         url: url,
+        reminders: reminders?.map((d) => d.toNativeDuration()).toList(),
       );
-
-      if (reminders != null) {
-        for (final reminder in reminders) {
-          await _calendarApi.createReminder(
-            reminder: reminder.toNativeDuration(),
-            eventId: event.id,
-          );
-        }
-      }
-
-      return event.toETEvent().copyWithReminders(reminders);
     } on PlatformException catch (e) {
       throw e.toETException();
     }
@@ -224,21 +214,6 @@ class Eventide extends EventidePlatform {
   /// Throws a [ETNotFoundException] if the event with the given [eventId] is not found.
   ///
   /// Throws a [ETGenericException] if any other error occurs during reminder creation.
-  @override
-  Future<ETEvent> createReminder({
-    required String eventId,
-    required Duration durationBeforeEvent,
-  }) async {
-    try {
-      final updatedEvent = await _calendarApi.createReminder(
-        reminder: durationBeforeEvent.toNativeDuration(),
-        eventId: eventId,
-      );
-      return updatedEvent.toETEvent();
-    } on PlatformException catch (e) {
-      throw e.toETException();
-    }
-  }
 
   /// Deletes the reminder with the given [durationBeforeEvent] for the event with the given [eventId].
   ///

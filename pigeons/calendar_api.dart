@@ -37,7 +37,7 @@ abstract class CalendarApi {
   });
 
   @async
-  Event createEvent({
+  void createEvent({
     required String calendarId,
     required String title,
     required int startDate,
@@ -45,6 +45,7 @@ abstract class CalendarApi {
     required bool isAllDay,
     required String? description,
     required String? url,
+    List<int>? reminders,
   });
 
   @async
@@ -57,13 +58,6 @@ abstract class CalendarApi {
   @async
   @SwiftFunction('deleteEvent(withId:)')
   void deleteEvent({
-    required String eventId,
-  });
-
-  @async
-  @SwiftFunction('createReminder(_:forEventId:)')
-  Event createReminder({
-    required int reminder,
     required String eventId,
   });
 

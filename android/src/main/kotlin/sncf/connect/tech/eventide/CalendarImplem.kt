@@ -349,7 +349,8 @@ class CalendarImplem(
         isAllDay: Boolean,
         description: String?,
         url: String?,
-        callback: (Result<Event>) -> Unit
+        reminders: List<Long>?,
+        callback: (Result<Unit>) -> Unit
     ) {
         permissionHandler.requestWritePermission { granted ->
             if (!granted) {
@@ -381,18 +382,15 @@ class CalendarImplem(
                         if (eventUri != null) {
                             val eventId = eventUri.lastPathSegment
                             if (eventId != null) {
-                                val event = Event(
-                                    id = eventId,
-                                    title = title,
-                                    startDate = startDate,
-                                    endDate = endDate,
-                                    calendarId = calendarId,
-                                    description = description,
-                                    isAllDay = isAllDay,
-                                    reminders = emptyList(),
-                                    attendees = emptyList(),
-                                )
-                                callback(Result.success(event))
+                                reminders?.forEach { reminder ->
+                                    val reminderValues = ContentValues().apply {
+                                        put(CalendarContract.Reminders.EVENT_ID, eventId)
+                                        put(CalendarContract.Reminders.MINUTES, reminder)
+                                        put(CalendarContract.Reminders.METHOD, CalendarContract.Reminders.METHOD_ALERT)
+                                    }
+                                    contentResolver.insert(remindersContentUri, reminderValues)
+                                }
+                                callback(Result.success(Unit))
                             } else {
                                 callback(
                                     Result.failure(
@@ -597,46 +595,6 @@ class CalendarImplem(
 
                 } catch (e: FlutterError) {
                     callback(Result.failure(e))
-
-                } catch (e: Exception) {
-                    callback(
-                        Result.failure(
-                            FlutterError(
-                                code = "GENERIC_ERROR",
-                                message = "An error occurred",
-                                details = e.message
-                            )
-                        )
-                    )
-                }
-            }
-        }
-    }
-
-    override fun createReminder(reminder: Long, eventId: String, callback: (Result<Event>) -> Unit) {
-        permissionHandler.requestWritePermission { granted ->
-            if (!granted) {
-                callback(
-                    Result.failure(
-                        FlutterError(
-                            code = "ACCESS_REFUSED",
-                            message = "Calendar access has been refused or has not been given yet",
-                        )
-                    )
-                )
-                return@requestWritePermission
-            }
-
-            CoroutineScope(Dispatchers.IO).launch {
-                try {
-                    val values = ContentValues().apply {
-                        put(CalendarContract.Reminders.EVENT_ID, eventId)
-                        put(CalendarContract.Reminders.MINUTES, reminder)
-                        put(CalendarContract.Reminders.METHOD, CalendarContract.Reminders.METHOD_ALERT)
-                    }
-                    contentResolver.insert(remindersContentUri, values)
-
-                    retrieveEvent(eventId, callback)
 
                 } catch (e: Exception) {
                     callback(

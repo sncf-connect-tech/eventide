@@ -98,8 +98,9 @@ final class EasyEventStore: EasyEventStoreProtocol {
         endDate: Date,
         isAllDay: Bool,
         description: String?,
-        url: String?
-    ) throws -> Event {
+        url: String?,
+        reminders: [Int64]?
+    ) throws {
         let ekEvent = EKEvent(eventStore: eventStore)
         
         guard let ekCalendar = eventStore.calendar(withIdentifier: calendarId) else {
@@ -122,9 +123,14 @@ final class EasyEventStore: EasyEventStoreProtocol {
             ekEvent.url = URL(string: url!)
         }
         
+        if let reminders = reminders {
+            reminders.forEach { reminder in
+                ekEvent.addAlarm(EKAlarm(relativeOffset: TimeInterval(-reminder)))
+            }
+        }
+
         do {
             try eventStore.save(ekEvent, span: EKSpan.thisEvent, commit: true)
-            return ekEvent.toEvent()
             
         } catch {
             eventStore.reset()
@@ -173,36 +179,6 @@ final class EasyEventStore: EasyEventStoreProtocol {
             
         do {
             try eventStore.remove(event, span: .thisEvent)
-            
-        } catch {
-            eventStore.reset()
-            throw PigeonError(
-                code: "GENERIC_ERROR",
-                message: "An error occurred",
-                details: error.localizedDescription
-            )
-        }
-    }
-    
-    func createReminder(timeInterval: TimeInterval, eventId: String) throws -> Event {
-        guard let ekEvent = eventStore.event(withIdentifier: eventId) else {
-            throw PigeonError(
-                code: "NOT_FOUND",
-                message: "Event not found",
-                details: "The provided event.id is certainly incorrect"
-            )
-        }
-        
-        let ekAlarm = EKAlarm(relativeOffset: timeInterval)
-        if (ekEvent.alarms == nil) {
-            ekEvent.alarms = [ekAlarm]
-        } else {
-            ekEvent.alarms!.append(ekAlarm)
-        }
-
-        do {
-            try eventStore.save(ekEvent, span: EKSpan.thisEvent, commit: true)
-            return ekEvent.toEvent()
             
         } catch {
             eventStore.reset()
