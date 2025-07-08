@@ -160,9 +160,9 @@ jobs:
         run: flutter pub get
 
       - name: Build and test
-        working-directory: ./android # Ajout du répertoire de travail
+        working-directory: ./android
         run: |
-          ./gradlew testDebugUnitTest
+          ./gradlew testDebugUnitTest --warning-mode all
 
       - name: Upload coverage report as artifact
         uses: actions/upload-artifact@v4
