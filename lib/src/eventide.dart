@@ -150,7 +150,7 @@ class Eventide extends EventidePlatform {
   /// Throws a [ETGenericException] if any other error occurs during event creation.
   ///
   @override
-  Future<ETEvent> createEventInDefaultCalendar({
+  Future<void> createEventInDefaultCalendar({
     required String title,
     required DateTime startDate,
     required DateTime endDate,
@@ -160,7 +160,7 @@ class Eventide extends EventidePlatform {
     List<Duration>? reminders,
   }) async {
     try {
-      final event = await _calendarApi.createEventInDefaultCalendar(
+      await _calendarApi.createEventInDefaultCalendar(
         title: title,
         startDate: startDate.millisecondsSinceEpoch,
         endDate: endDate.millisecondsSinceEpoch,
@@ -169,8 +169,6 @@ class Eventide extends EventidePlatform {
         url: url,
         reminders: reminders?.map((e) => e.toNativeDuration()).toList(),
       );
-
-      return event.toETEvent().copyWithReminders(reminders);
     } on PlatformException catch (e) {
       throw e.toETException();
     }

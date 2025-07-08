@@ -132,7 +132,7 @@ class CalendarImplem: CalendarApi {
         description: String?,
         url: String?,
         reminders: [Int64]?,
-        completion: @escaping (Result<Event, any Error>) -> Void
+        completion: @escaping (Result<Void, any Error>) -> Void
     ) {
         permissionHandler.checkCalendarAccessThenExecute(.writeOnly) { [self] in
             do {
@@ -145,7 +145,7 @@ class CalendarImplem: CalendarApi {
                     url: url,
                     timeIntervals: reminders?.compactMap { TimeInterval(-$0) }
                 )
-                completion(.success(createdEvent))
+                completion(.success(()))
                 
             } catch {
                 completion(.failure(error))

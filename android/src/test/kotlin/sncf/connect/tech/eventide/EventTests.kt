@@ -402,7 +402,7 @@ class EventTests {
         val startMilli = Instant.now().toEpochMilli()
         val endMilli = Instant.now().toEpochMilli()
 
-        var result: Result<Event>? = null
+        var result: Result<Unit>? = null
         val latch = CountDownLatch(1)
         calendarImplem.createEventInDefaultCalendar(
             title = "Test Event",
@@ -420,24 +420,13 @@ class EventTests {
         latch.await()
 
         assertTrue(result!!.isSuccess)
-        assertEquals(Event(
-            id = "1",
-            title = "Test Event",
-            startDate = startMilli,
-            endDate = endMilli,
-            calendarId = "1",
-            description = "Description",
-            isAllDay = false,
-            reminders = emptyList(),
-            attendees = emptyList()
-        ), result.getOrNull()!!)
     }
 
     @Test
     fun createEventInDefaultCalendar_withDeniedPermissions_returnsAccessRefusedError() = runTest {
         mockPermissionDenied(permissionHandler)
 
-        var result: Result<Event>? = null
+        var result: Result<Unit>? = null
         calendarImplem.createEventInDefaultCalendar(
             title = "Test Event",
             startDate = Instant.now().toEpochMilli(),
@@ -459,7 +448,7 @@ class EventTests {
         mockPermissionGranted(permissionHandler)
         mockPrimaryCalendarNotFound(contentResolver, calendarContentUri)
 
-        var result: Result<Event>? = null
+        var result: Result<Unit>? = null
         val latch = CountDownLatch(1)
         calendarImplem.createEventInDefaultCalendar(
             title = "Test Event",
@@ -485,7 +474,7 @@ class EventTests {
         mockPermissionGranted(permissionHandler)
         mockPrimaryCalendarNotWritable(contentResolver, calendarContentUri)
 
-        var result: Result<Event>? = null
+        var result: Result<Unit>? = null
         val latch = CountDownLatch(1)
         calendarImplem.createEventInDefaultCalendar(
             title = "Test Event",
@@ -513,7 +502,7 @@ class EventTests {
 
         every { contentResolver.insert(any(), any()) } returns null
 
-        var result: Result<Event>? = null
+        var result: Result<Unit>? = null
         val latch = CountDownLatch(1)
         calendarImplem.createEventInDefaultCalendar(
             title = "Test Event",
@@ -543,7 +532,7 @@ class EventTests {
         every { contentResolver.insert(any(), any()) } returns uri
         every { uri.lastPathSegment } returns null
 
-        var result: Result<Event>? = null
+        var result: Result<Unit>? = null
         val latch = CountDownLatch(1)
         calendarImplem.createEventInDefaultCalendar(
             title = "Test Event",
@@ -570,7 +559,7 @@ class EventTests {
 
         every { contentResolver.query(calendarContentUri, any(), any(), any(), any()) } throws Exception("Calendar query failed")
 
-        var result: Result<Event>? = null
+        var result: Result<Unit>? = null
         val latch = CountDownLatch(1)
         calendarImplem.createEventInDefaultCalendar(
             title = "Test Event",
@@ -603,7 +592,7 @@ class EventTests {
         val startMilli = Instant.now().toEpochMilli()
         val endMilli = Instant.now().toEpochMilli()
 
-        var result: Result<Event>? = null
+        var result: Result<Unit>? = null
         val latch = CountDownLatch(1)
         calendarImplem.createEventInDefaultCalendar(
             title = "All Day Event",
@@ -621,10 +610,5 @@ class EventTests {
         latch.await()
 
         assertTrue(result!!.isSuccess)
-        val event = result.getOrNull()!!
-        assertEquals("All Day Event", event.title)
-        assertEquals(true, event.isAllDay)
-        assertEquals("All day description", event.description)
-        assertEquals("1", event.calendarId)
     }
 }

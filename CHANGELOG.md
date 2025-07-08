@@ -1,3 +1,6 @@
+## 0.10.0
+* **Changed signature of createEventInDefaultCalendar** to not return the created event as the event will not be editable
+
 ## 0.9.1
 * **Fix** double (write-only and full) permission prompt issue on iOS by creating reminders in the same method channel as the event creation
 * **Fix** permission issue on Android by binding PermissionHandler as a RequestPermissionsResultListener

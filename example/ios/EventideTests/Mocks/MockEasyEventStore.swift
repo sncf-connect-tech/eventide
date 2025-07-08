@@ -89,7 +89,7 @@ class MockEasyEventStore: EasyEventStoreProtocol {
         return mockEvent.toEvent()
     }
     
-    func createEvent(title: String, startDate: Date, endDate: Date, isAllDay: Bool, description: String?, url: String?, timeIntervals: [TimeInterval]?) throws -> Event {
+    func createEvent(title: String, startDate: Date, endDate: Date, isAllDay: Bool, description: String?, url: String?, timeIntervals: [TimeInterval]?) throws {
         let mockEvent = MockEvent(
             id: String(calendars.first!.events.count),
             title: title,
@@ -103,8 +103,6 @@ class MockEasyEventStore: EasyEventStoreProtocol {
         )
         
         calendars.first!.events.append(mockEvent)
-        
-        return mockEvent.toEvent()
     }
     
     func retrieveEvents(calendarId: String, startDate: Date, endDate: Date) throws -> [Event] {
