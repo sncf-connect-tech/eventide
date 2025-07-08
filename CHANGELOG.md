@@ -1,3 +1,8 @@
+## 0.9.1
+* **Fix** double (write-only and full) permission prompt issue on iOS by creating reminders in the same method channel as the event creation
+* **Fix** permission issue on Android by binding PermissionHandler as a RequestPermissionsResultListener
+* **Improved docs**
+
 ## 0.9.0
 * **Removed retrieveDefaultCalendar** because it did not make sense to return a virtual calendar on iOS (error-prone)
 * **Created createEventInDefaultCalendar** instead to directly create an event and prompt write-only access on iOS 17+
