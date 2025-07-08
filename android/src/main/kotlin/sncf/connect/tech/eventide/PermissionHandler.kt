@@ -20,13 +20,18 @@ open class PermissionHandler(private val activity: Activity): RequestPermissions
 
         if (hasRead && hasWrite) {
             callback(true)
-        } else {
-            val permissionsToRequest = mutableListOf<String>()
-            if (!hasRead) permissionsToRequest.add(READ_CALENDAR)
-            if (!hasWrite) permissionsToRequest.add(WRITE_CALENDAR)
-
+        } else if (!hasRead && !hasWrite) {
+            // Les deux permissions manquent - demander les deux
             permissionCallback = callback
-            ActivityCompat.requestPermissions(activity, permissionsToRequest.toTypedArray(), requestCode)
+            ActivityCompat.requestPermissions(activity, arrayOf(READ_CALENDAR, WRITE_CALENDAR), requestCode)
+        } else if (!hasRead) {
+            // Seule la permission de lecture manque
+            permissionCallback = callback
+            ActivityCompat.requestPermissions(activity, arrayOf(READ_CALENDAR), requestCode)
+        } else {
+            // Seule la permission d'écriture manque
+            permissionCallback = callback
+            ActivityCompat.requestPermissions(activity, arrayOf(WRITE_CALENDAR), requestCode)
         }
     }
 

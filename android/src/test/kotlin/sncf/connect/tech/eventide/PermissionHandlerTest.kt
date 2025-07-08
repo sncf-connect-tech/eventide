@@ -332,4 +332,80 @@ class PermissionHandlerTest {
     assertTrue(result)
     assertFalse(permissionGranted)
   }
+
+  @Test
+  fun requestReadAndWritePermissions_singleReadPermissionGranted() {
+    val activity: Activity = mockk<Activity>(relaxed = true)
+    val permissionHandler = PermissionHandler(activity)
+
+    every { ActivityCompat.checkSelfPermission(activity, READ_CALENDAR) } returns PackageManager.PERMISSION_DENIED
+    every { ActivityCompat.checkSelfPermission(activity, WRITE_CALENDAR) } returns PackageManager.PERMISSION_GRANTED
+
+    var permissionGranted = false
+    permissionHandler.requestReadAndWritePermissions { granted ->
+      permissionGranted = granted
+    }
+
+    val result = permissionHandler.onRequestPermissionsResult(requestCode, arrayOf(READ_CALENDAR), intArrayOf(PackageManager.PERMISSION_GRANTED))
+
+    assertTrue(result)
+    assertTrue(permissionGranted)
+  }
+
+  @Test
+  fun requestReadAndWritePermissions_singleReadPermissionDenied() {
+    val activity: Activity = mockk<Activity>(relaxed = true)
+    val permissionHandler = PermissionHandler(activity)
+
+    every { ActivityCompat.checkSelfPermission(activity, READ_CALENDAR) } returns PackageManager.PERMISSION_DENIED
+    every { ActivityCompat.checkSelfPermission(activity, WRITE_CALENDAR) } returns PackageManager.PERMISSION_GRANTED
+
+    var permissionGranted = false
+    permissionHandler.requestReadAndWritePermissions { granted ->
+      permissionGranted = granted
+    }
+
+    val result = permissionHandler.onRequestPermissionsResult(requestCode, arrayOf(READ_CALENDAR), intArrayOf(PackageManager.PERMISSION_DENIED))
+
+    assertTrue(result)
+    assertFalse(permissionGranted)
+  }
+
+  @Test
+  fun requestReadAndWritePermissions_singleWritePermissionGranted() {
+    val activity: Activity = mockk<Activity>(relaxed = true)
+    val permissionHandler = PermissionHandler(activity)
+
+    every { ActivityCompat.checkSelfPermission(activity, READ_CALENDAR) } returns PackageManager.PERMISSION_GRANTED
+    every { ActivityCompat.checkSelfPermission(activity, WRITE_CALENDAR) } returns PackageManager.PERMISSION_DENIED
+
+    var permissionGranted = false
+    permissionHandler.requestReadAndWritePermissions { granted ->
+      permissionGranted = granted
+    }
+
+    val result = permissionHandler.onRequestPermissionsResult(requestCode, arrayOf(WRITE_CALENDAR), intArrayOf(PackageManager.PERMISSION_GRANTED))
+
+    assertTrue(result)
+    assertTrue(permissionGranted)
+  }
+
+  @Test
+  fun requestReadAndWritePermissions_singleWritePermissionDenied() {
+    val activity: Activity = mockk<Activity>(relaxed = true)
+    val permissionHandler = PermissionHandler(activity)
+
+    every { ActivityCompat.checkSelfPermission(activity, READ_CALENDAR) } returns PackageManager.PERMISSION_GRANTED
+    every { ActivityCompat.checkSelfPermission(activity, WRITE_CALENDAR) } returns PackageManager.PERMISSION_DENIED
+
+    var permissionGranted = false
+    permissionHandler.requestReadAndWritePermissions { granted ->
+      permissionGranted = granted
+    }
+
+    val result = permissionHandler.onRequestPermissionsResult(requestCode, arrayOf(WRITE_CALENDAR), intArrayOf(PackageManager.PERMISSION_DENIED))
+
+    assertTrue(result)
+    assertFalse(permissionGranted)
+  }
 }

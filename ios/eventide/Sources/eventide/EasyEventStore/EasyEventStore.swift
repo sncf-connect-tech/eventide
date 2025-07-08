@@ -94,7 +94,8 @@ final class EasyEventStore: EasyEventStoreProtocol {
         endDate: Date,
         isAllDay: Bool,
         description: String?,
-        url: String?
+        url: String?,
+        timeIntervals: [TimeInterval]?
     ) throws -> Event {
         let ekEvent = EKEvent(eventStore: eventStore)
         
@@ -113,6 +114,7 @@ final class EasyEventStore: EasyEventStoreProtocol {
         ekEvent.endDate = endDate
         ekEvent.timeZone = TimeZone(identifier: "UTC")
         ekEvent.isAllDay = isAllDay
+        ekEvent.alarms = timeIntervals?.compactMap({ EKAlarm(relativeOffset: $0) })
         
         if url != nil {
             ekEvent.url = URL(string: url!)
@@ -132,7 +134,15 @@ final class EasyEventStore: EasyEventStoreProtocol {
         }
     }
     
-    func createEvent(title: String, startDate: Date, endDate: Date, isAllDay: Bool, description: String?, url: String?) throws -> Event {
+    func createEvent(
+        title: String,
+        startDate: Date,
+        endDate: Date,
+        isAllDay: Bool,
+        description: String?,
+        url: String?,
+        timeIntervals: [TimeInterval]?
+    ) throws -> Event {
         let ekEvent = EKEvent(eventStore: eventStore)
        
         ekEvent.calendar = eventStore.defaultCalendarForNewEvents
@@ -142,6 +152,7 @@ final class EasyEventStore: EasyEventStoreProtocol {
         ekEvent.endDate = endDate
         ekEvent.timeZone = TimeZone(identifier: "UTC")
         ekEvent.isAllDay = isAllDay
+        ekEvent.alarms = timeIntervals?.compactMap({ EKAlarm(relativeOffset: $0) })
         
         if url != nil {
             ekEvent.url = URL(string: url!)

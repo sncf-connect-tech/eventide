@@ -43,7 +43,8 @@ final class EventTests: XCTestCase {
             endDate: endDate,
             isAllDay: false,
             description: "description",
-            url: "url"
+            url: "url",
+            reminders: []
         ) { createEventResult in
             switch (createEventResult) {
             case .success(let event):
@@ -91,7 +92,8 @@ final class EventTests: XCTestCase {
             endDate: Date().addingTimeInterval(TimeInterval(10)).millisecondsSince1970,
             isAllDay: false,
             description: "description",
-            url: "url"
+            url: "url",
+            reminders: []
         ) { createEventResult in
             switch (createEventResult) {
             case .success:
@@ -483,7 +485,8 @@ final class EventTests: XCTestCase {
             endDate: Date().addingTimeInterval(TimeInterval(10)).millisecondsSince1970,
             isAllDay: false,
             description: "description",
-            url: "url"
+            url: "url",
+            reminders: []
         ) { createEventResult in
             switch (createEventResult) {
             case .success:
@@ -623,7 +626,8 @@ final class EventTests: XCTestCase {
             endDate: Date().addingTimeInterval(TimeInterval(10)).millisecondsSince1970,
             isAllDay: false,
             description: "description",
-            url: "url"
+            url: "url",
+            reminders: []
         ) { createEventResult in
             switch (createEventResult) {
             case .success:

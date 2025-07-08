@@ -7,6 +7,7 @@ import io.flutter.plugin.common.BinaryMessenger
 
 class EventidePlugin: FlutterPlugin, ActivityAware {
   private lateinit var binaryMessenger: BinaryMessenger
+  private var permissionHandler: PermissionHandler? = null
 
   override fun onAttachedToEngine(flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
     binaryMessenger = flutterPluginBinding.binaryMessenger
@@ -19,8 +20,9 @@ class EventidePlugin: FlutterPlugin, ActivityAware {
   override fun onAttachedToActivity(binding: ActivityPluginBinding) {
     val activity = binding.activity
     val contentResolver = activity.contentResolver
-    val permissionHandler = PermissionHandler(activity)
-    val calendarImplem = CalendarImplem(contentResolver, permissionHandler)
+    permissionHandler = PermissionHandler(activity)
+    binding.addRequestPermissionsResultListener(permissionHandler!!)
+    val calendarImplem = CalendarImplem(contentResolver, permissionHandler!!)
     CalendarApi.setUp(binaryMessenger, calendarImplem)
   }
 
@@ -31,12 +33,14 @@ class EventidePlugin: FlutterPlugin, ActivityAware {
   override fun onReattachedToActivityForConfigChanges(binding: ActivityPluginBinding) {
     val activity = binding.activity
     val contentResolver = activity.contentResolver
-    val permissionHandler = PermissionHandler(activity)
-    val calendarImplem = CalendarImplem(contentResolver, permissionHandler)
+    permissionHandler = PermissionHandler(activity)
+    binding.addRequestPermissionsResultListener(permissionHandler!!)
+    val calendarImplem = CalendarImplem(contentResolver, permissionHandler!!)
     CalendarApi.setUp(binaryMessenger, calendarImplem)
   }
 
   override fun onDetachedFromActivity() {
+    permissionHandler = null
     CalendarApi.setUp(binaryMessenger, null)
   }
 }

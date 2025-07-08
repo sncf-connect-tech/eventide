@@ -40,6 +40,7 @@ abstract class CalendarApi {
     required bool isAllDay,
     required String? description,
     required String? url,
+    required List<int>? reminders,
   });
 
   @async
@@ -50,6 +51,7 @@ abstract class CalendarApi {
     required bool isAllDay,
     required String? description,
     required String? url,
+    required List<int>? reminders,
   });
 
   @async

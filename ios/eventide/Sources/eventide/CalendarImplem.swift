@@ -93,8 +93,8 @@ class CalendarImplem: CalendarApi {
         isAllDay: Bool,
         description: String?,
         url: String?,
-        completion: @escaping (Result<Event, Error>
-    ) -> Void) {
+        reminders: [Int64]?,
+        completion: @escaping (Result<Event, Error>) -> Void) {
         permissionHandler.checkCalendarAccessThenExecute(.writeOnly) { [self] in
             do {
                 let createdEvent = try easyEventStore.createEvent(
@@ -104,7 +104,8 @@ class CalendarImplem: CalendarApi {
                     endDate: Date(from: endDate),
                     isAllDay: isAllDay,
                     description: description,
-                    url: url
+                    url: url,
+                    timeIntervals: reminders?.compactMap { TimeInterval(-$0) }
                 )
                 completion(.success(createdEvent))
                 
@@ -123,7 +124,16 @@ class CalendarImplem: CalendarApi {
         }
     }
     
-    func createEventInDefaultCalendar(title: String, startDate: Int64, endDate: Int64, isAllDay: Bool, description: String?, url: String?, completion: @escaping (Result<Event, any Error>) -> Void) {
+    func createEventInDefaultCalendar(
+        title: String,
+        startDate: Int64,
+        endDate: Int64,
+        isAllDay: Bool,
+        description: String?,
+        url: String?,
+        reminders: [Int64]?,
+        completion: @escaping (Result<Event, any Error>) -> Void
+    ) {
         permissionHandler.checkCalendarAccessThenExecute(.writeOnly) { [self] in
             do {
                 let createdEvent = try easyEventStore.createEvent(
@@ -132,7 +142,8 @@ class CalendarImplem: CalendarApi {
                     endDate: Date(from: endDate),
                     isAllDay: isAllDay,
                     description: description,
-                    url: url
+                    url: url,
+                    timeIntervals: reminders?.compactMap { TimeInterval(-$0) }
                 )
                 completion(.success(createdEvent))
                 

@@ -42,6 +42,10 @@ final class CalendarCubit extends Cubit<CalendarState> {
         isAllDay: isAllDay,
         startDate: startDate,
         endDate: endDate,
+        reminders: [
+          Duration(hours: 1),
+          Duration(minutes: 10),
+        ],
       );
 
       return {};
@@ -65,6 +69,10 @@ final class CalendarCubit extends Cubit<CalendarState> {
           startDate: startDate,
           endDate: endDate,
           calendarId: calendar.id,
+          reminders: [
+            Duration(hours: 1),
+            Duration(minutes: 10),
+          ],
         );
 
         return {

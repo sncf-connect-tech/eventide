@@ -47,7 +47,7 @@ abstract class EventidePlatform extends PlatformInterface {
     List<Duration>? reminders,
   });
 
-  Future<ETEvent> createEventInDefaultCalendar({
+  Future<void> createEventInDefaultCalendar({
     required String title,
     required DateTime startDate,
     required DateTime endDate,

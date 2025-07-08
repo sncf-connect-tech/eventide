@@ -428,6 +428,7 @@ class CalendarApi {
     required bool isAllDay,
     required String? description,
     required String? url,
+    required List<int>? reminders,
   }) async {
     final String pigeonVar_channelName =
         'dev.flutter.pigeon.eventide.CalendarApi.createEvent$pigeonVar_messageChannelSuffix';
@@ -437,7 +438,7 @@ class CalendarApi {
       binaryMessenger: pigeonVar_binaryMessenger,
     );
     final Future<Object?> pigeonVar_sendFuture =
-        pigeonVar_channel.send(<Object?>[calendarId, title, startDate, endDate, isAllDay, description, url]);
+        pigeonVar_channel.send(<Object?>[calendarId, title, startDate, endDate, isAllDay, description, url, reminders]);
     final List<Object?>? pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
     if (pigeonVar_replyList == null) {
       throw _createConnectionError(pigeonVar_channelName);
@@ -464,6 +465,7 @@ class CalendarApi {
     required bool isAllDay,
     required String? description,
     required String? url,
+    required List<int>? reminders,
   }) async {
     final String pigeonVar_channelName =
         'dev.flutter.pigeon.eventide.CalendarApi.createEventInDefaultCalendar$pigeonVar_messageChannelSuffix';
@@ -473,7 +475,7 @@ class CalendarApi {
       binaryMessenger: pigeonVar_binaryMessenger,
     );
     final Future<Object?> pigeonVar_sendFuture =
-        pigeonVar_channel.send(<Object?>[title, startDate, endDate, isAllDay, description, url]);
+        pigeonVar_channel.send(<Object?>[title, startDate, endDate, isAllDay, description, url, reminders]);
     final List<Object?>? pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
     if (pigeonVar_replyList == null) {
       throw _createConnectionError(pigeonVar_channelName);

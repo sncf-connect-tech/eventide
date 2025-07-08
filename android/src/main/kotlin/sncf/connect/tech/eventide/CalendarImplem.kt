@@ -260,6 +260,7 @@ class CalendarImplem(
         isAllDay: Boolean,
         description: String?,
         url: String?,
+        reminders: List<Long>?,
         callback: (Result<Event>) -> Unit
     ) {
         permissionHandler.requestWritePermission { granted ->
@@ -291,6 +292,21 @@ class CalendarImplem(
                         val eventUri = contentResolver.insert(eventContentUri, eventValues)
                         if (eventUri != null) {
                             val eventId = eventUri.lastPathSegment
+
+                            if (reminders != null) {
+                                val remindersLatch = CountDownLatch(reminders.size)
+                                reminders.forEach { reminder ->
+                                    val reminderValues = ContentValues().apply {
+                                        put(CalendarContract.Reminders.EVENT_ID, eventId)
+                                        put(CalendarContract.Reminders.MINUTES, reminder)
+                                        put(CalendarContract.Reminders.METHOD, CalendarContract.Reminders.METHOD_ALERT)
+                                    }
+                                    contentResolver.insert(remindersContentUri, reminderValues)
+                                    remindersLatch.countDown()
+                                }
+                                remindersLatch.await()
+                            }
+
                             if (eventId != null) {
                                 val event = Event(
                                     id = eventId,
@@ -300,7 +316,7 @@ class CalendarImplem(
                                     calendarId = calendarId,
                                     description = description,
                                     isAllDay = isAllDay,
-                                    reminders = emptyList(),
+                                    reminders = reminders ?: emptyList(),
                                     attendees = emptyList(),
                                 )
                                 callback(Result.success(event))
@@ -360,6 +376,7 @@ class CalendarImplem(
         isAllDay: Boolean,
         description: String?,
         url: String?,
+        reminders: List<Long>?,
         callback: (Result<Event>) -> Unit
     ) {
         permissionHandler.requestReadAndWritePermissions { granted ->
@@ -424,6 +441,21 @@ class CalendarImplem(
                     val eventUri = contentResolver.insert(eventContentUri, eventValues)
                     if (eventUri != null) {
                         val eventId = eventUri.lastPathSegment
+
+                        if (reminders != null) {
+                            val remindersLatch = CountDownLatch(reminders.size)
+                            reminders.forEach { reminder ->
+                                val reminderValues = ContentValues().apply {
+                                    put(CalendarContract.Reminders.EVENT_ID, eventId)
+                                    put(CalendarContract.Reminders.MINUTES, reminder)
+                                    put(CalendarContract.Reminders.METHOD, CalendarContract.Reminders.METHOD_ALERT)
+                                }
+                                contentResolver.insert(remindersContentUri, reminderValues)
+                                remindersLatch.countDown()
+                            }
+                            remindersLatch.await()
+                        }
+
                         if (eventId != null) {
                             val event = Event(
                                 id = eventId,
@@ -433,7 +465,7 @@ class CalendarImplem(
                                 calendarId = primaryCalendarId,
                                 description = description,
                                 isAllDay = isAllDay,
-                                reminders = emptyList(),
+                                reminders = reminders ?: emptyList(),
                                 attendees = emptyList(),
                             )
                             callback(Result.success(event))

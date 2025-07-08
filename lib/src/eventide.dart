@@ -125,16 +125,8 @@ class Eventide extends EventidePlatform {
         isAllDay: isAllDay,
         description: description,
         url: url,
+        reminders: reminders?.map((e) => e.toNativeDuration()).toList(),
       );
-
-      if (reminders != null) {
-        for (final reminder in reminders) {
-          await _calendarApi.createReminder(
-            reminder: reminder.toNativeDuration(),
-            eventId: event.id,
-          );
-        }
-      }
 
       return event.toETEvent().copyWithReminders(reminders);
     } on PlatformException catch (e) {
@@ -175,16 +167,8 @@ class Eventide extends EventidePlatform {
         isAllDay: isAllDay,
         description: description,
         url: url,
+        reminders: reminders?.map((e) => e.toNativeDuration()).toList(),
       );
-
-      if (reminders != null) {
-        for (final reminder in reminders) {
-          await _calendarApi.createReminder(
-            reminder: reminder.toNativeDuration(),
-            eventId: event.id,
-          );
-        }
-      }
 
       return event.toETEvent().copyWithReminders(reminders);
     } on PlatformException catch (e) {
