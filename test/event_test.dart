@@ -64,6 +64,7 @@ void main() {
           calendarId: any(named: 'calendarId'),
           description: any(named: 'description'),
           url: any(named: 'url'),
+          reminders: any(named: 'reminders'),
         )).thenAnswer((_) async => event);
 
     // When
@@ -85,6 +86,7 @@ void main() {
           calendarId: any(named: 'calendarId'),
           description: any(named: 'description'),
           url: any(named: 'url'),
+          reminders: any(named: 'reminders'),
         )).called(1);
   });
 
@@ -98,6 +100,7 @@ void main() {
           calendarId: any(named: 'calendarId'),
           description: any(named: 'description'),
           url: any(named: 'url'),
+          reminders: any(named: 'reminders'),
         )).thenThrow(ETGenericException(message: 'API Error'));
 
     // When
@@ -118,6 +121,7 @@ void main() {
           calendarId: any(named: 'calendarId'),
           description: any(named: 'description'),
           url: any(named: 'url'),
+          reminders: any(named: 'reminders'),
         )).called(1);
   });
 
@@ -143,6 +147,7 @@ void main() {
           endDate: any(named: 'endDate'),
           description: any(named: 'description'),
           url: any(named: 'url'),
+          reminders: any(named: 'reminders'),
         )).thenAnswer((_) async => event);
 
     // When
@@ -163,6 +168,7 @@ void main() {
           endDate: endDate.millisecondsSinceEpoch,
           description: 'Test Description',
           url: 'http://test.com',
+          reminders: null,
         )).called(1);
   });
 
@@ -186,6 +192,7 @@ void main() {
           endDate: any(named: 'endDate'),
           description: any(named: 'description'),
           url: any(named: 'url'),
+          reminders: any(named: 'reminders'),
         )).thenAnswer((_) async => event);
 
     // When
@@ -206,6 +213,7 @@ void main() {
           endDate: endDate.millisecondsSinceEpoch,
           description: null,
           url: null,
+          reminders: null,
         )).called(1);
   });
 
@@ -218,6 +226,7 @@ void main() {
           endDate: any(named: 'endDate'),
           description: any(named: 'description'),
           url: any(named: 'url'),
+          reminders: any(named: 'reminders'),
         )).thenThrow(ETGenericException(message: 'API Error'));
 
     // When
@@ -236,6 +245,7 @@ void main() {
           endDate: endDate.millisecondsSinceEpoch,
           description: null,
           url: null,
+          reminders: null,
         )).called(1);
   });
 
@@ -269,6 +279,7 @@ void main() {
             endDate: any(named: 'endDate'),
             description: any(named: 'description'),
             url: any(named: 'url'),
+            reminders: any(named: 'reminders'),
           )).thenAnswer((_) async => event);
       when(() => mockCalendarApi.createReminder(reminder: any(named: 'reminder'), eventId: any(named: 'eventId')))
           .thenAnswer((_) async => event.copyWithReminders(reminders.toNativeList()));
@@ -290,9 +301,8 @@ void main() {
             endDate: endDate.millisecondsSinceEpoch,
             description: null,
             url: null,
+            reminders: [10 * 60, 20 * 60],
           )).called(1);
-      verify(() => mockCalendarApi.createReminder(reminder: 10 * 60, eventId: event.id)).called(1);
-      verify(() => mockCalendarApi.createReminder(reminder: 20 * 60, eventId: event.id)).called(1);
     });
   });
 
@@ -305,7 +315,7 @@ void main() {
       debugDefaultTargetPlatformOverride = null;
     });
 
-    test('createEvent with reminders returns an ECEvent with reminders', () async {
+    test('createEvent with reminders returns an ETEvent with reminders', () async {
       // Given
       const reminders = [Duration(minutes: 10), Duration(minutes: 20)];
       when(() => mockCalendarApi.createEvent(
@@ -316,16 +326,17 @@ void main() {
             calendarId: any(named: 'calendarId'),
             description: any(named: 'description'),
             url: any(named: 'url'),
+            reminders: any(named: 'reminders'),
           )).thenAnswer((_) async => event);
       when(() => mockCalendarApi.createReminder(reminder: any(named: 'reminder'), eventId: any(named: 'eventId')))
           .thenAnswer((_) async => event.copyWithReminders(reminders.toNativeList()));
 
       // When
       final result = await eventide.createEvent(
+        calendarId: '1',
         title: 'Test Event',
         startDate: startDate,
         endDate: endDate,
-        calendarId: '1',
         reminders: reminders,
       );
 
@@ -339,9 +350,8 @@ void main() {
             calendarId: any(named: 'calendarId'),
             description: any(named: 'description'),
             url: any(named: 'url'),
+            reminders: [10, 20],
           )).called(1);
-      verify(() => mockCalendarApi.createReminder(reminder: 10, eventId: event.id)).called(1);
-      verify(() => mockCalendarApi.createReminder(reminder: 20, eventId: event.id)).called(1);
     });
 
     test('createEventInDefaultCalendar with reminders returns an ETEvent with reminders', () async {
@@ -365,6 +375,7 @@ void main() {
             endDate: any(named: 'endDate'),
             description: any(named: 'description'),
             url: any(named: 'url'),
+            reminders: any(named: 'reminders'),
           )).thenAnswer((_) async => event);
       when(() => mockCalendarApi.createReminder(reminder: any(named: 'reminder'), eventId: any(named: 'eventId')))
           .thenAnswer((_) async => event.copyWithReminders(reminders.toNativeList()));
@@ -386,9 +397,8 @@ void main() {
             endDate: endDate.millisecondsSinceEpoch,
             description: null,
             url: null,
+            reminders: [10, 20],
           )).called(1);
-      verify(() => mockCalendarApi.createReminder(reminder: 10, eventId: event.id)).called(1);
-      verify(() => mockCalendarApi.createReminder(reminder: 20, eventId: event.id)).called(1);
     });
   });
 
@@ -434,6 +444,7 @@ void main() {
           isAllDay: any(named: 'isAllDay'),
           description: any(named: 'description'),
           url: any(named: 'url'),
+          reminders: any(named: 'reminders'),
         )).thenAnswer((_) async => mockEvent);
 
     await eventide.createEvent(
@@ -451,6 +462,7 @@ void main() {
           isAllDay: false,
           description: null,
           url: null,
+          reminders: null,
         )).called(1);
   });
 

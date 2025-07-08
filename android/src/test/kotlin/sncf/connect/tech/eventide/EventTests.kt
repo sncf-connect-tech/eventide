@@ -96,7 +96,8 @@ class EventTests {
             calendarId = "1",
             description = "Description",
             isAllDay = false,
-            url = null
+            url = null,
+            reminders = null
         ) {
             result = it
             latch.countDown()
@@ -132,7 +133,8 @@ class EventTests {
             calendarId = "1",
             description = "Description",
             isAllDay = false,
-            url = null
+            url = null,
+            reminders = null
         ) {
             result = it
             latch.countDown()
@@ -158,7 +160,8 @@ class EventTests {
             calendarId = "1",
             description = "Description",
             isAllDay = false,
-            url = null
+            url = null,
+            reminders = null
         ) {
             result = it
             latch.countDown()
@@ -182,7 +185,8 @@ class EventTests {
             calendarId = "1",
             description = "Description",
             isAllDay = false,
-            url = null
+            url = null,
+            reminders = null
         ) {
             result = it
         }
@@ -206,7 +210,9 @@ class EventTests {
             calendarId = "1",
             description = "Description",
             isAllDay = false,
-            url = null
+            url = null,
+            reminders = null
+
         ) {
             result = it
             latch.countDown()
@@ -404,7 +410,8 @@ class EventTests {
             endDate = endMilli,
             isAllDay = false,
             description = "Description",
-            url = null
+            url = null,
+            reminders = null
         ) {
             result = it
             latch.countDown()
@@ -437,7 +444,8 @@ class EventTests {
             endDate = Instant.now().toEpochMilli(),
             isAllDay = false,
             description = "Description",
-            url = null
+            url = null,
+            reminders = null
         ) {
             result = it
         }
@@ -459,7 +467,8 @@ class EventTests {
             endDate = Instant.now().toEpochMilli(),
             isAllDay = false,
             description = "Description",
-            url = null
+            url = null,
+            reminders = null
         ) {
             result = it
             latch.countDown()
@@ -484,7 +493,8 @@ class EventTests {
             endDate = Instant.now().toEpochMilli(),
             isAllDay = false,
             description = "Description",
-            url = null
+            url = null,
+            reminders = null
         ) {
             result = it
             latch.countDown()
@@ -511,7 +521,8 @@ class EventTests {
             endDate = Instant.now().toEpochMilli(),
             isAllDay = false,
             description = "Description",
-            url = null
+            url = null,
+            reminders = null
         ) {
             result = it
             latch.countDown()
@@ -540,7 +551,8 @@ class EventTests {
             endDate = Instant.now().toEpochMilli(),
             isAllDay = false,
             description = "Description",
-            url = null
+            url = null,
+            reminders = null
         ) {
             result = it
             latch.countDown()
@@ -566,7 +578,8 @@ class EventTests {
             endDate = Instant.now().toEpochMilli(),
             isAllDay = false,
             description = "Description",
-            url = null
+            url = null,
+            reminders = null
         ) {
             result = it
             latch.countDown()
@@ -598,7 +611,8 @@ class EventTests {
             endDate = endMilli,
             isAllDay = true,
             description = "All day description",
-            url = "https://example.com"
+            url = "https://example.com",
+            reminders = null
         ) {
             result = it
             latch.countDown()

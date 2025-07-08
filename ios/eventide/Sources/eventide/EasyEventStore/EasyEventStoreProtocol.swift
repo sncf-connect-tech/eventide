@@ -15,9 +15,9 @@ protocol EasyEventStoreProtocol {
     
     func deleteCalendar(calendarId: String) throws -> Void
     
-    func createEvent(calendarId: String, title: String, startDate: Date, endDate: Date, isAllDay: Bool, description: String?, url: String?) throws -> Event
+    func createEvent(calendarId: String, title: String, startDate: Date, endDate: Date, isAllDay: Bool, description: String?, url: String?, timeIntervals: [TimeInterval]?) throws -> Event
     
-    func createEvent(title: String, startDate: Date, endDate: Date, isAllDay: Bool, description: String?, url: String?) throws -> Event
+    func createEvent(title: String, startDate: Date, endDate: Date, isAllDay: Bool, description: String?, url: String?, timeIntervals: [TimeInterval]?) throws -> Event
     
     func retrieveEvents(calendarId: String, startDate: Date, endDate: Date) throws -> [Event]
     

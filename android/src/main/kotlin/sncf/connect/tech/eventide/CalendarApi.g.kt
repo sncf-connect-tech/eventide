@@ -298,8 +298,8 @@ interface CalendarApi {
   fun createCalendar(title: String, color: Long, localAccountName: String, callback: (Result<Calendar>) -> Unit)
   fun retrieveCalendars(onlyWritableCalendars: Boolean, fromLocalAccountName: String?, callback: (Result<List<Calendar>>) -> Unit)
   fun deleteCalendar(calendarId: String, callback: (Result<Unit>) -> Unit)
-  fun createEvent(calendarId: String, title: String, startDate: Long, endDate: Long, isAllDay: Boolean, description: String?, url: String?, callback: (Result<Event>) -> Unit)
-  fun createEventInDefaultCalendar(title: String, startDate: Long, endDate: Long, isAllDay: Boolean, description: String?, url: String?, callback: (Result<Event>) -> Unit)
+  fun createEvent(calendarId: String, title: String, startDate: Long, endDate: Long, isAllDay: Boolean, description: String?, url: String?, reminders: List<Long>?, callback: (Result<Event>) -> Unit)
+  fun createEventInDefaultCalendar(title: String, startDate: Long, endDate: Long, isAllDay: Boolean, description: String?, url: String?, reminders: List<Long>?, callback: (Result<Event>) -> Unit)
   fun retrieveEvents(calendarId: String, startDate: Long, endDate: Long, callback: (Result<List<Event>>) -> Unit)
   fun deleteEvent(eventId: String, callback: (Result<Unit>) -> Unit)
   fun createReminder(reminder: Long, eventId: String, callback: (Result<Event>) -> Unit)
@@ -390,7 +390,8 @@ interface CalendarApi {
             val isAllDayArg = args[4] as Boolean
             val descriptionArg = args[5] as String?
             val urlArg = args[6] as String?
-            api.createEvent(calendarIdArg, titleArg, startDateArg, endDateArg, isAllDayArg, descriptionArg, urlArg) { result: Result<Event> ->
+            val remindersArg = args[7] as List<Long>?
+            api.createEvent(calendarIdArg, titleArg, startDateArg, endDateArg, isAllDayArg, descriptionArg, urlArg, remindersArg) { result: Result<Event> ->
               val error = result.exceptionOrNull()
               if (error != null) {
                 reply.reply(CalendarApiPigeonUtils.wrapError(error))
@@ -415,7 +416,8 @@ interface CalendarApi {
             val isAllDayArg = args[3] as Boolean
             val descriptionArg = args[4] as String?
             val urlArg = args[5] as String?
-            api.createEventInDefaultCalendar(titleArg, startDateArg, endDateArg, isAllDayArg, descriptionArg, urlArg) { result: Result<Event> ->
+            val remindersArg = args[6] as List<Long>?
+            api.createEventInDefaultCalendar(titleArg, startDateArg, endDateArg, isAllDayArg, descriptionArg, urlArg, remindersArg) { result: Result<Event> ->
               val error = result.exceptionOrNull()
               if (error != null) {
                 reply.reply(CalendarApiPigeonUtils.wrapError(error))
