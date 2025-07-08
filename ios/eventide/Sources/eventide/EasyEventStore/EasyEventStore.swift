@@ -142,7 +142,7 @@ final class EasyEventStore: EasyEventStoreProtocol {
         description: String?,
         url: String?,
         timeIntervals: [TimeInterval]?
-    ) throws -> Event {
+    ) throws {
         let ekEvent = EKEvent(eventStore: eventStore)
        
         ekEvent.calendar = eventStore.defaultCalendarForNewEvents
@@ -160,7 +160,6 @@ final class EasyEventStore: EasyEventStoreProtocol {
         
         do {
             try eventStore.save(ekEvent, span: EKSpan.thisEvent, commit: true)
-            return ekEvent.toEvent()
             
         } catch {
             eventStore.reset()

@@ -216,7 +216,7 @@ final event = await eventide.createEvent(
 #### Create Event in Default Calendar
 
 ```dart
-Future<ETEvent> createEventInDefaultCalendar({
+Future<void> createEventInDefaultCalendar({
   required String title,
   required DateTime startDate,
   required DateTime endDate,
@@ -441,7 +441,7 @@ When you call `createEventInDefaultCalendar()` on iOS 17+, the system will promp
 
 ```dart
 // Will prompt user for write only access on iOS 17+
-final event = await eventide.createEventInDefaultCalendar(
+await eventide.createEventInDefaultCalendar(
   title: 'New Meeting',
   startDate: DateTime.now(),
   endDate: DateTime.now().add(Duration(hours: 1)),
@@ -473,7 +473,7 @@ try {
 }
 
 // ✅ This works with write-only access
-final newEvent = await eventide.createEventInDefaultCalendar(
+await eventide.createEventInDefaultCalendar(
   title: 'Team Meeting',
   startDate: DateTime.now().add(Duration(days: 1)),
   endDate: DateTime.now().add(Duration(days: 1, hours: 1)),

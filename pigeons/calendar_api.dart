@@ -44,7 +44,7 @@ abstract class CalendarApi {
   });
 
   @async
-  Event createEventInDefaultCalendar({
+  void createEventInDefaultCalendar({
     required String title,
     required int startDate,
     required int endDate,

@@ -377,7 +377,7 @@ class CalendarImplem(
         description: String?,
         url: String?,
         reminders: List<Long>?,
-        callback: (Result<Event>) -> Unit
+        callback: (Result<Unit>) -> Unit
     ) {
         permissionHandler.requestReadAndWritePermissions { granted ->
             if (!granted) {
@@ -457,18 +457,7 @@ class CalendarImplem(
                         }
 
                         if (eventId != null) {
-                            val event = Event(
-                                id = eventId,
-                                title = title,
-                                startDate = startDate,
-                                endDate = endDate,
-                                calendarId = primaryCalendarId,
-                                description = description,
-                                isAllDay = isAllDay,
-                                reminders = reminders ?: emptyList(),
-                                attendees = emptyList(),
-                            )
-                            callback(Result.success(event))
+                            callback(Result.success(Unit))
                         } else {
                             callback(
                                 Result.failure(

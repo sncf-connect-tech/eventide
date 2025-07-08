@@ -151,7 +151,7 @@ void main() {
         )).thenAnswer((_) async => event);
 
     // When
-    final result = await eventide.createEventInDefaultCalendar(
+    await eventide.createEventInDefaultCalendar(
       title: 'Test Event',
       startDate: startDate,
       endDate: endDate,
@@ -160,7 +160,6 @@ void main() {
     );
 
     // Then
-    expect(result, event.toETEvent());
     verify(() => mockCalendarApi.createEventInDefaultCalendar(
           title: 'Test Event',
           isAllDay: false,
@@ -196,7 +195,7 @@ void main() {
         )).thenAnswer((_) async => event);
 
     // When
-    final result = await eventide.createEventInDefaultCalendar(
+    await eventide.createEventInDefaultCalendar(
       title: 'All Day Event',
       startDate: startDate,
       endDate: endDate,
@@ -204,8 +203,6 @@ void main() {
     );
 
     // Then
-    expect(result, event.toETEvent());
-    expect(result.isAllDay, true);
     verify(() => mockCalendarApi.createEventInDefaultCalendar(
           title: 'All Day Event',
           isAllDay: true,
@@ -230,7 +227,7 @@ void main() {
         )).thenThrow(ETGenericException(message: 'API Error'));
 
     // When
-    Future<ETEvent> call() => eventide.createEventInDefaultCalendar(
+    Future<void> call() => eventide.createEventInDefaultCalendar(
           title: 'Test Event',
           startDate: startDate,
           endDate: endDate,
@@ -285,7 +282,7 @@ void main() {
           .thenAnswer((_) async => event.copyWithReminders(reminders.toNativeList()));
 
       // When
-      final result = await eventide.createEventInDefaultCalendar(
+      await eventide.createEventInDefaultCalendar(
         title: 'Test Event',
         startDate: startDate,
         endDate: endDate,
@@ -293,7 +290,6 @@ void main() {
       );
 
       // Then
-      expect(result.reminders, equals(reminders));
       verify(() => mockCalendarApi.createEventInDefaultCalendar(
             title: 'Test Event',
             isAllDay: false,
@@ -381,7 +377,7 @@ void main() {
           .thenAnswer((_) async => event.copyWithReminders(reminders.toNativeList()));
 
       // When
-      final result = await eventide.createEventInDefaultCalendar(
+      await eventide.createEventInDefaultCalendar(
         title: 'Test Event',
         startDate: startDate,
         endDate: endDate,
@@ -389,7 +385,6 @@ void main() {
       );
 
       // Then
-      expect(result.reminders, equals(reminders));
       verify(() => mockCalendarApi.createEventInDefaultCalendar(
             title: 'Test Event',
             isAllDay: false,
