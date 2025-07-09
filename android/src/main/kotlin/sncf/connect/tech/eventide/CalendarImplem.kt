@@ -399,24 +399,23 @@ class CalendarImplem(
                         CalendarContract.Calendars.IS_PRIMARY,
                         CalendarContract.Calendars.CALENDAR_ACCESS_LEVEL
                     )
-                    val selection = CalendarContract.Calendars.IS_PRIMARY + " = ?"
-                    val selectionArgs = arrayOf("1")
 
-                    val cursor = contentResolver.query(calendarContentUri, projection, selection, selectionArgs, null)
-                    var primaryCalendarId: String? = null
+                    val cursor = contentResolver.query(calendarContentUri, projection, null, null, null)
+                    var eligibleCalendars: Map<String, Boolean> = emptyMap()
 
                     cursor?.use { c ->
-                        if (c.moveToNext()) {
+                        while (c.moveToNext()) {
                             val id = c.getString(c.getColumnIndexOrThrow(CalendarContract.Calendars._ID))
                             val accessLevel = c.getInt(c.getColumnIndexOrThrow(CalendarContract.Calendars.CALENDAR_ACCESS_LEVEL))
+                            val isPrimary = c.getInt(c.getColumnIndexOrThrow(CalendarContract.Calendars.IS_PRIMARY)) == 1
 
                             if (accessLevel >= CalendarContract.Calendars.CAL_ACCESS_CONTRIBUTOR) {
-                                primaryCalendarId = id
+                                eligibleCalendars = eligibleCalendars + (id to isPrimary)
                             }
                         }
                     }
 
-                    if (primaryCalendarId == null) {
+                    if (eligibleCalendars.isEmpty()) {
                         callback(
                             Result.failure(
                                 FlutterError(
@@ -428,8 +427,11 @@ class CalendarImplem(
                         return@launch
                     }
 
+                    val calendarId = eligibleCalendars.entries.firstOrNull { it.value }?.key
+                        ?: eligibleCalendars.entries.first().key // Fallback to the first writable calendar if no primary found
+
                     val eventValues = ContentValues().apply {
-                        put(CalendarContract.Events.CALENDAR_ID, primaryCalendarId)
+                        put(CalendarContract.Events.CALENDAR_ID, calendarId)
                         put(CalendarContract.Events.TITLE, title)
                         put(CalendarContract.Events.DESCRIPTION, description)
                         put(CalendarContract.Events.DTSTART, startDate)
