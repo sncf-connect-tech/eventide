@@ -120,8 +120,8 @@ class Eventide extends EventidePlatform {
       final event = await _calendarApi.createEvent(
         calendarId: calendarId,
         title: title,
-        startDate: startDate.millisecondsSinceEpoch,
-        endDate: endDate.millisecondsSinceEpoch,
+        startDate: startDate.toUtc().millisecondsSinceEpoch,
+        endDate: endDate.toUtc().millisecondsSinceEpoch,
         isAllDay: isAllDay,
         description: description,
         url: url,
@@ -162,8 +162,8 @@ class Eventide extends EventidePlatform {
     try {
       await _calendarApi.createEventInDefaultCalendar(
         title: title,
-        startDate: startDate.millisecondsSinceEpoch,
-        endDate: endDate.millisecondsSinceEpoch,
+        startDate: startDate.toUtc().millisecondsSinceEpoch,
+        endDate: endDate.toUtc().millisecondsSinceEpoch,
         isAllDay: isAllDay,
         description: description,
         url: url,
@@ -191,8 +191,8 @@ class Eventide extends EventidePlatform {
     DateTime? endDate,
   }) async {
     try {
-      final start = startDate ?? DateTime.now().add(const Duration(days: -3));
-      final end = endDate ?? DateTime.now().add(const Duration(days: 7));
+      final start = (startDate ?? DateTime.now()).toUtc().add(const Duration(days: -3));
+      final end = (endDate ?? DateTime.now()).toUtc().add(const Duration(days: 7));
       final events = await _calendarApi.retrieveEvents(
         calendarId: calendarId,
         startDate: start.millisecondsSinceEpoch,
