@@ -1,3 +1,6 @@
+## 0.10.1
+* **Fixed DateTime UTC handling** in `createEvent()`, `createEventInDefaultCalendar()` and `retrieveEvents()` by systemically calling `dateTime.toUtc()`
+
 ## 0.10.0
 * **Changed signature of createEventInDefaultCalendar** to not return the created event as the event will not be editable
 
