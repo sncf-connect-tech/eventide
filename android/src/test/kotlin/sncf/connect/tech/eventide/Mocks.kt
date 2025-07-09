@@ -97,25 +97,71 @@ fun mockPermissionDenied(permissionHandler: PermissionHandler) {
 fun mockPrimaryCalendarFound(contentResolver: ContentResolver, calendarContentUri: Uri, calendarId: String = "1") {
     val cursor = mockk<Cursor>(relaxed = true)
     every { contentResolver.query(calendarContentUri, any(), any(), any(), any()) } returns cursor
-    every { cursor.moveToNext() } returns true
+    every { cursor.moveToNext() } returnsMany listOf(true, false)
     every { cursor.getColumnIndexOrThrow(CalendarContract.Calendars._ID) } returns 0
-    every { cursor.getColumnIndexOrThrow(CalendarContract.Calendars.CALENDAR_ACCESS_LEVEL) } returns 1
+    every { cursor.getColumnIndexOrThrow(CalendarContract.Calendars.IS_PRIMARY) } returns 1
+    every { cursor.getColumnIndexOrThrow(CalendarContract.Calendars.CALENDAR_ACCESS_LEVEL) } returns 2
     every { cursor.getString(0) } returns calendarId
-    every { cursor.getInt(1) } returns CalendarContract.Calendars.CAL_ACCESS_CONTRIBUTOR
+    every { cursor.getInt(1) } returns 1 // IS_PRIMARY = true
+    every { cursor.getInt(2) } returns CalendarContract.Calendars.CAL_ACCESS_CONTRIBUTOR
 }
 
 fun mockPrimaryCalendarNotWritable(contentResolver: ContentResolver, calendarContentUri: Uri) {
     val cursor = mockk<Cursor>(relaxed = true)
     every { contentResolver.query(calendarContentUri, any(), any(), any(), any()) } returns cursor
-    every { cursor.moveToNext() } returns true
+    every { cursor.moveToNext() } returnsMany listOf(true, false)
     every { cursor.getColumnIndexOrThrow(CalendarContract.Calendars._ID) } returns 0
-    every { cursor.getColumnIndexOrThrow(CalendarContract.Calendars.CALENDAR_ACCESS_LEVEL) } returns 1
+    every { cursor.getColumnIndexOrThrow(CalendarContract.Calendars.IS_PRIMARY) } returns 1
+    every { cursor.getColumnIndexOrThrow(CalendarContract.Calendars.CALENDAR_ACCESS_LEVEL) } returns 2
     every { cursor.getString(0) } returns "1"
-    every { cursor.getInt(1) } returns CalendarContract.Calendars.CAL_ACCESS_READ
+    every { cursor.getInt(1) } returns 1 // IS_PRIMARY = true
+    every { cursor.getInt(2) } returns CalendarContract.Calendars.CAL_ACCESS_READ // Not writable
 }
 
 fun mockPrimaryCalendarNotFound(contentResolver: ContentResolver, calendarContentUri: Uri) {
     val cursor = mockk<Cursor>(relaxed = true)
     every { contentResolver.query(calendarContentUri, any(), any(), any(), any()) } returns cursor
     every { cursor.moveToNext() } returns false
+}
+
+fun mockMultiplePrimaryCalendars(contentResolver: ContentResolver, calendarContentUri: Uri) {
+    val cursor = mockk<Cursor>(relaxed = true)
+    every { contentResolver.query(calendarContentUri, any(), any(), any(), any()) } returns cursor
+    every { cursor.moveToNext() } returnsMany listOf(true, true, true, false)
+    every { cursor.getColumnIndexOrThrow(CalendarContract.Calendars._ID) } returns 0
+    every { cursor.getColumnIndexOrThrow(CalendarContract.Calendars.IS_PRIMARY) } returns 1
+    every { cursor.getColumnIndexOrThrow(CalendarContract.Calendars.CALENDAR_ACCESS_LEVEL) } returns 2
+
+    // Mock multiple primary calendars
+    every { cursor.getString(0) } returnsMany listOf("1", "2", "3")
+    every { cursor.getInt(1) } returnsMany listOf(1, 1, 0) // First two are primary
+    every { cursor.getInt(2) } returns CalendarContract.Calendars.CAL_ACCESS_CONTRIBUTOR
+}
+
+fun mockNoPrimaryCalendarButWritableExists(contentResolver: ContentResolver, calendarContentUri: Uri) {
+    val cursor = mockk<Cursor>(relaxed = true)
+    every { contentResolver.query(calendarContentUri, any(), any(), any(), any()) } returns cursor
+    every { cursor.moveToNext() } returnsMany listOf(true, true, false)
+    every { cursor.getColumnIndexOrThrow(CalendarContract.Calendars._ID) } returns 0
+    every { cursor.getColumnIndexOrThrow(CalendarContract.Calendars.IS_PRIMARY) } returns 1
+    every { cursor.getColumnIndexOrThrow(CalendarContract.Calendars.CALENDAR_ACCESS_LEVEL) } returns 2
+
+    // Mock calendars with no primary but writable calendars exist
+    every { cursor.getString(0) } returnsMany listOf("1", "2")
+    every { cursor.getInt(1) } returns 0 // IS_PRIMARY = false for both
+    every { cursor.getInt(2) } returns CalendarContract.Calendars.CAL_ACCESS_CONTRIBUTOR
+}
+
+fun mockNoWritableCalendarsAtAll(contentResolver: ContentResolver, calendarContentUri: Uri) {
+    val cursor = mockk<Cursor>(relaxed = true)
+    every { contentResolver.query(calendarContentUri, any(), any(), any(), any()) } returns cursor
+    every { cursor.moveToNext() } returnsMany listOf(true, false)
+    every { cursor.getColumnIndexOrThrow(CalendarContract.Calendars._ID) } returns 0
+    every { cursor.getColumnIndexOrThrow(CalendarContract.Calendars.IS_PRIMARY) } returns 1
+    every { cursor.getColumnIndexOrThrow(CalendarContract.Calendars.CALENDAR_ACCESS_LEVEL) } returns 2
+
+    // Mock calendar that exists but is not writable
+    every { cursor.getString(0) } returns "1"
+    every { cursor.getInt(1) } returns 1 // IS_PRIMARY = true
+    every { cursor.getInt(2) } returns CalendarContract.Calendars.CAL_ACCESS_READ // Not writable
 }

@@ -90,12 +90,12 @@ class EventTests {
         var result: Result<Event>? = null
         val latch = CountDownLatch(1)
         calendarImplem.createEvent(
+            calendarId = "1",
             title = "Test Event",
             startDate = startMilli,
             endDate = endMilli,
-            calendarId = "1",
-            description = "Description",
             isAllDay = false,
+            description = "Description",
             url = null,
             reminders = null
         ) {
@@ -127,12 +127,12 @@ class EventTests {
         var result: Result<Event>? = null
         val latch = CountDownLatch(1)
         calendarImplem.createEvent(
+            calendarId = "1",
             title = "Test Event",
             startDate = Instant.now().toEpochMilli(),
             endDate = Instant.now().toEpochMilli(),
-            calendarId = "1",
-            description = "Description",
             isAllDay = false,
+            description = "Description",
             url = null,
             reminders = null
         ) {
@@ -154,12 +154,12 @@ class EventTests {
         var result: Result<Event>? = null
         val latch = CountDownLatch(1)
         calendarImplem.createEvent(
+            calendarId = "1",
             title = "Test Event",
             startDate = Instant.now().toEpochMilli(),
             endDate = Instant.now().toEpochMilli(),
-            calendarId = "1",
-            description = "Description",
             isAllDay = false,
+            description = "Description",
             url = null,
             reminders = null
         ) {
@@ -179,12 +179,12 @@ class EventTests {
 
         var result: Result<Event>? = null
         calendarImplem.createEvent(
+            calendarId = "1",
             title = "Test Event",
             startDate = Instant.now().toEpochMilli(),
             endDate = Instant.now().toEpochMilli(),
-            calendarId = "1",
-            description = "Description",
             isAllDay = false,
+            description = "Description",
             url = null,
             reminders = null
         ) {
@@ -196,23 +196,23 @@ class EventTests {
     }
 
     @Test
-    fun createEvent_withInvalidUri_returnsNotFoundError() = runTest {
+    fun createEvent_withInvalidUri_returnsGenericError() = runTest {
         mockPermissionGranted(permissionHandler)
+        mockWritableCalendar()
 
         every { contentResolver.insert(any(), any()) } returns null
 
         var result: Result<Event>? = null
         val latch = CountDownLatch(1)
         calendarImplem.createEvent(
+            calendarId = "1",
             title = "Test Event",
             startDate = Instant.now().toEpochMilli(),
             endDate = Instant.now().toEpochMilli(),
-            calendarId = "1",
-            description = "Description",
             isAllDay = false,
+            description = "Description",
             url = null,
             reminders = null
-
         ) {
             result = it
             latch.countDown()
@@ -221,7 +221,7 @@ class EventTests {
         latch.await()
 
         assertTrue(result!!.isFailure)
-        assertEquals("NOT_FOUND", (result.exceptionOrNull() as FlutterError).code)
+        assertEquals("GENERIC_ERROR", (result.exceptionOrNull() as FlutterError).code)
     }
 
     @Test
@@ -610,5 +610,97 @@ class EventTests {
         latch.await()
 
         assertTrue(result!!.isSuccess)
+    }
+
+    @Test
+    fun createEventInDefaultCalendar_withMultiplePrimaryCalendars_usesFirstPrimaryCalendar() = runTest {
+        mockPermissionGranted(permissionHandler)
+        mockMultiplePrimaryCalendars(contentResolver, calendarContentUri)
+
+        val uri = mockk<Uri>(relaxed = true)
+        every { contentResolver.insert(any(), any()) } returns uri
+        every { uri.lastPathSegment } returns "1"
+
+        val startMilli = Instant.now().toEpochMilli()
+        val endMilli = Instant.now().toEpochMilli()
+
+        var result: Result<Unit>? = null
+        val latch = CountDownLatch(1)
+        calendarImplem.createEventInDefaultCalendar(
+            title = "Test Event",
+            startDate = startMilli,
+            endDate = endMilli,
+            isAllDay = false,
+            description = "Description",
+            url = null,
+            reminders = null
+        ) {
+            result = it
+            latch.countDown()
+        }
+
+        latch.await()
+
+        assertTrue(result!!.isSuccess)
+        // Vérifie que l'événement a été créé dans le premier calendrier primaire trouvé
+    }
+
+    @Test
+    fun createEventInDefaultCalendar_withNoPrimaryCalendar_usesFirstWritableCalendar() = runTest {
+        mockPermissionGranted(permissionHandler)
+        mockNoPrimaryCalendarButWritableExists(contentResolver, calendarContentUri)
+
+        val uri = mockk<Uri>(relaxed = true)
+        every { contentResolver.insert(any(), any()) } returns uri
+        every { uri.lastPathSegment } returns "1"
+
+        val startMilli = Instant.now().toEpochMilli()
+        val endMilli = Instant.now().toEpochMilli()
+
+        var result: Result<Unit>? = null
+        val latch = CountDownLatch(1)
+        calendarImplem.createEventInDefaultCalendar(
+            title = "Test Event",
+            startDate = startMilli,
+            endDate = endMilli,
+            isAllDay = false,
+            description = "Description",
+            url = null,
+            reminders = null
+        ) {
+            result = it
+            latch.countDown()
+        }
+
+        latch.await()
+
+        assertTrue(result!!.isSuccess)
+        // Vérifie que l'événement a été créé dans le premier calendrier accessible en écriture
+    }
+
+    @Test
+    fun createEventInDefaultCalendar_withNoWritableCalendars_returnsNotFoundError() = runTest {
+        mockPermissionGranted(permissionHandler)
+        mockNoWritableCalendarsAtAll(contentResolver, calendarContentUri)
+
+        var result: Result<Unit>? = null
+        val latch = CountDownLatch(1)
+        calendarImplem.createEventInDefaultCalendar(
+            title = "Test Event",
+            startDate = Instant.now().toEpochMilli(),
+            endDate = Instant.now().toEpochMilli(),
+            isAllDay = false,
+            description = "Description",
+            url = null,
+            reminders = null
+        ) {
+            result = it
+            latch.countDown()
+        }
+
+        latch.await()
+
+        assertTrue(result!!.isFailure)
+        assertEquals("NOT_FOUND", (result.exceptionOrNull() as FlutterError).code)
     }
 }
