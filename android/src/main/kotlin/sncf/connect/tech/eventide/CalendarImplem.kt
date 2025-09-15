@@ -993,7 +993,7 @@ class CalendarImplem(
                     )
                 )
             } else {
-                callback(Result.success(event))
+                callback(Result.success(event!!))
             }
 
 
