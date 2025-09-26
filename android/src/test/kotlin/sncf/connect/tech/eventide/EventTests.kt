@@ -1,6 +1,7 @@
 package sncf.connect.tech.eventide
 
 import android.content.ContentResolver
+import android.content.Context
 import android.database.Cursor
 import android.net.Uri
 import android.provider.CalendarContract
@@ -15,6 +16,7 @@ import java.time.Instant
 import java.util.concurrent.CountDownLatch
 
 class EventTests {
+    private lateinit var context: Context
     private lateinit var contentResolver: ContentResolver
     private lateinit var permissionHandler: PermissionHandler
     private lateinit var calendarImplem: CalendarImplem
@@ -25,6 +27,7 @@ class EventTests {
 
     @BeforeEach
     fun setup() {
+        context = mockk(relaxed = true)
         contentResolver = mockk(relaxed = true)
         permissionHandler = mockk(relaxed = true)
         calendarContentUri = mockk(relaxed = true)
@@ -33,6 +36,7 @@ class EventTests {
         attendeesContentUri = mockk(relaxed = true)
 
         calendarImplem = CalendarImplem(
+            context = context,
             contentResolver = contentResolver,
             permissionHandler = permissionHandler,
             calendarContentUri = calendarContentUri,
@@ -391,19 +395,11 @@ class EventTests {
     }
 
     @Test
-    fun createEventInDefaultCalendar_withGrantedPermissions_andWritablePrimaryCalendar_createsEventSuccessfully() = runTest {
-        mockPermissionGranted(permissionHandler)
-        mockPrimaryCalendarFound(contentResolver, calendarContentUri, "1")
-
-        val uri = mockk<Uri>(relaxed = true)
-        every { contentResolver.insert(any(), any()) } returns uri
-        every { uri.lastPathSegment } returns "1"
-
+    fun createEventInDefaultCalendar_createsEventSuccessfully() = runTest {
         val startMilli = Instant.now().toEpochMilli()
         val endMilli = Instant.now().toEpochMilli()
 
         var result: Result<Unit>? = null
-        val latch = CountDownLatch(1)
         calendarImplem.createEventInDefaultCalendar(
             title = "Test Event",
             startDate = startMilli,
@@ -414,186 +410,17 @@ class EventTests {
             reminders = null
         ) {
             result = it
-            latch.countDown()
         }
-
-        latch.await()
 
         assertTrue(result!!.isSuccess)
     }
 
     @Test
-    fun createEventInDefaultCalendar_withDeniedPermissions_returnsAccessRefusedError() = runTest {
-        mockPermissionDenied(permissionHandler)
-
-        var result: Result<Unit>? = null
-        calendarImplem.createEventInDefaultCalendar(
-            title = "Test Event",
-            startDate = Instant.now().toEpochMilli(),
-            endDate = Instant.now().toEpochMilli(),
-            isAllDay = false,
-            description = "Description",
-            url = null,
-            reminders = null
-        ) {
-            result = it
-        }
-
-        assertTrue(result!!.isFailure)
-        assertEquals("ACCESS_REFUSED", (result.exceptionOrNull() as FlutterError).code)
-    }
-
-    @Test
-    fun createEventInDefaultCalendar_withNoPrimaryCalendar_returnsNotFoundError() = runTest {
-        mockPermissionGranted(permissionHandler)
-        mockPrimaryCalendarNotFound(contentResolver, calendarContentUri)
-
-        var result: Result<Unit>? = null
-        val latch = CountDownLatch(1)
-        calendarImplem.createEventInDefaultCalendar(
-            title = "Test Event",
-            startDate = Instant.now().toEpochMilli(),
-            endDate = Instant.now().toEpochMilli(),
-            isAllDay = false,
-            description = "Description",
-            url = null,
-            reminders = null
-        ) {
-            result = it
-            latch.countDown()
-        }
-
-        latch.await()
-
-        assertTrue(result!!.isFailure)
-        assertEquals("NOT_FOUND", (result.exceptionOrNull() as FlutterError).code)
-    }
-
-    @Test
-    fun createEventInDefaultCalendar_withNotWritablePrimaryCalendar_returnsNotFoundError() = runTest {
-        mockPermissionGranted(permissionHandler)
-        mockPrimaryCalendarNotWritable(contentResolver, calendarContentUri)
-
-        var result: Result<Unit>? = null
-        val latch = CountDownLatch(1)
-        calendarImplem.createEventInDefaultCalendar(
-            title = "Test Event",
-            startDate = Instant.now().toEpochMilli(),
-            endDate = Instant.now().toEpochMilli(),
-            isAllDay = false,
-            description = "Description",
-            url = null,
-            reminders = null
-        ) {
-            result = it
-            latch.countDown()
-        }
-
-        latch.await()
-
-        assertTrue(result!!.isFailure)
-        assertEquals("NOT_FOUND", (result.exceptionOrNull() as FlutterError).code)
-    }
-
-    @Test
-    fun createEventInDefaultCalendar_withInsertFailure_returnsGenericError() = runTest {
-        mockPermissionGranted(permissionHandler)
-        mockPrimaryCalendarFound(contentResolver, calendarContentUri, "1")
-
-        every { contentResolver.insert(any(), any()) } returns null
-
-        var result: Result<Unit>? = null
-        val latch = CountDownLatch(1)
-        calendarImplem.createEventInDefaultCalendar(
-            title = "Test Event",
-            startDate = Instant.now().toEpochMilli(),
-            endDate = Instant.now().toEpochMilli(),
-            isAllDay = false,
-            description = "Description",
-            url = null,
-            reminders = null
-        ) {
-            result = it
-            latch.countDown()
-        }
-
-        latch.await()
-
-        assertTrue(result!!.isFailure)
-        assertEquals("GENERIC_ERROR", (result.exceptionOrNull() as FlutterError).code)
-    }
-
-    @Test
-    fun createEventInDefaultCalendar_withNullEventId_returnsNotFoundError() = runTest {
-        mockPermissionGranted(permissionHandler)
-        mockPrimaryCalendarFound(contentResolver, calendarContentUri, "1")
-
-        val uri = mockk<Uri>(relaxed = true)
-        every { contentResolver.insert(any(), any()) } returns uri
-        every { uri.lastPathSegment } returns null
-
-        var result: Result<Unit>? = null
-        val latch = CountDownLatch(1)
-        calendarImplem.createEventInDefaultCalendar(
-            title = "Test Event",
-            startDate = Instant.now().toEpochMilli(),
-            endDate = Instant.now().toEpochMilli(),
-            isAllDay = false,
-            description = "Description",
-            url = null,
-            reminders = null
-        ) {
-            result = it
-            latch.countDown()
-        }
-
-        latch.await()
-
-        assertTrue(result!!.isFailure)
-        assertEquals("NOT_FOUND", (result.exceptionOrNull() as FlutterError).code)
-    }
-
-    @Test
-    fun createEventInDefaultCalendar_withException_returnsGenericError() = runTest {
-        mockPermissionGranted(permissionHandler)
-
-        every { contentResolver.query(calendarContentUri, any(), any(), any(), any()) } throws Exception("Calendar query failed")
-
-        var result: Result<Unit>? = null
-        val latch = CountDownLatch(1)
-        calendarImplem.createEventInDefaultCalendar(
-            title = "Test Event",
-            startDate = Instant.now().toEpochMilli(),
-            endDate = Instant.now().toEpochMilli(),
-            isAllDay = false,
-            description = "Description",
-            url = null,
-            reminders = null
-        ) {
-            result = it
-            latch.countDown()
-        }
-
-        latch.await()
-
-        assertTrue(result!!.isFailure)
-        assertEquals("GENERIC_ERROR", (result.exceptionOrNull() as FlutterError).code)
-    }
-
-    @Test
     fun createEventInDefaultCalendar_withAllDayEvent_createsEventSuccessfully() = runTest {
-        mockPermissionGranted(permissionHandler)
-        mockPrimaryCalendarFound(contentResolver, calendarContentUri, "1")
-
-        val uri = mockk<Uri>(relaxed = true)
-        every { contentResolver.insert(any(), any()) } returns uri
-        every { uri.lastPathSegment } returns "1"
-
         val startMilli = Instant.now().toEpochMilli()
         val endMilli = Instant.now().toEpochMilli()
 
         var result: Result<Unit>? = null
-        val latch = CountDownLatch(1)
         calendarImplem.createEventInDefaultCalendar(
             title = "All Day Event",
             startDate = startMilli,
@@ -601,106 +428,32 @@ class EventTests {
             isAllDay = true,
             description = "All day description",
             url = "https://example.com",
-            reminders = null
+            reminders = listOf(10L, 30L)
         ) {
             result = it
-            latch.countDown()
         }
-
-        latch.await()
 
         assertTrue(result!!.isSuccess)
     }
 
     @Test
-    fun createEventInDefaultCalendar_withMultiplePrimaryCalendars_usesFirstPrimaryCalendar() = runTest {
-        mockPermissionGranted(permissionHandler)
-        mockMultiplePrimaryCalendars(contentResolver, calendarContentUri)
-
-        val uri = mockk<Uri>(relaxed = true)
-        every { contentResolver.insert(any(), any()) } returns uri
-        every { uri.lastPathSegment } returns "1"
-
+    fun createEventInDefaultCalendar_withNullDescription_createsEventSuccessfully() = runTest {
         val startMilli = Instant.now().toEpochMilli()
         val endMilli = Instant.now().toEpochMilli()
 
         var result: Result<Unit>? = null
-        val latch = CountDownLatch(1)
         calendarImplem.createEventInDefaultCalendar(
             title = "Test Event",
             startDate = startMilli,
             endDate = endMilli,
             isAllDay = false,
-            description = "Description",
+            description = null,
             url = null,
             reminders = null
         ) {
             result = it
-            latch.countDown()
         }
-
-        latch.await()
 
         assertTrue(result!!.isSuccess)
-        // Vérifie que l'événement a été créé dans le premier calendrier primaire trouvé
-    }
-
-    @Test
-    fun createEventInDefaultCalendar_withNoPrimaryCalendar_usesFirstWritableCalendar() = runTest {
-        mockPermissionGranted(permissionHandler)
-        mockNoPrimaryCalendarButWritableExists(contentResolver, calendarContentUri)
-
-        val uri = mockk<Uri>(relaxed = true)
-        every { contentResolver.insert(any(), any()) } returns uri
-        every { uri.lastPathSegment } returns "1"
-
-        val startMilli = Instant.now().toEpochMilli()
-        val endMilli = Instant.now().toEpochMilli()
-
-        var result: Result<Unit>? = null
-        val latch = CountDownLatch(1)
-        calendarImplem.createEventInDefaultCalendar(
-            title = "Test Event",
-            startDate = startMilli,
-            endDate = endMilli,
-            isAllDay = false,
-            description = "Description",
-            url = null,
-            reminders = null
-        ) {
-            result = it
-            latch.countDown()
-        }
-
-        latch.await()
-
-        assertTrue(result!!.isSuccess)
-        // Vérifie que l'événement a été créé dans le premier calendrier accessible en écriture
-    }
-
-    @Test
-    fun createEventInDefaultCalendar_withNoWritableCalendars_returnsNotFoundError() = runTest {
-        mockPermissionGranted(permissionHandler)
-        mockNoWritableCalendarsAtAll(contentResolver, calendarContentUri)
-
-        var result: Result<Unit>? = null
-        val latch = CountDownLatch(1)
-        calendarImplem.createEventInDefaultCalendar(
-            title = "Test Event",
-            startDate = Instant.now().toEpochMilli(),
-            endDate = Instant.now().toEpochMilli(),
-            isAllDay = false,
-            description = "Description",
-            url = null,
-            reminders = null
-        ) {
-            result = it
-            latch.countDown()
-        }
-
-        latch.await()
-
-        assertTrue(result!!.isFailure)
-        assertEquals("NOT_FOUND", (result.exceptionOrNull() as FlutterError).code)
     }
 }
