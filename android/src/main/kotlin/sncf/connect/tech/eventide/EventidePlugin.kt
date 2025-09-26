@@ -22,7 +22,7 @@ class EventidePlugin: FlutterPlugin, ActivityAware {
     val contentResolver = activity.contentResolver
     permissionHandler = PermissionHandler(activity)
     binding.addRequestPermissionsResultListener(permissionHandler!!)
-    val calendarImplem = CalendarImplem(contentResolver, permissionHandler!!)
+    val calendarImplem = CalendarImplem(activity, contentResolver, permissionHandler!!)
     CalendarApi.setUp(binaryMessenger, calendarImplem)
   }
 
@@ -35,7 +35,7 @@ class EventidePlugin: FlutterPlugin, ActivityAware {
     val contentResolver = activity.contentResolver
     permissionHandler = PermissionHandler(activity)
     binding.addRequestPermissionsResultListener(permissionHandler!!)
-    val calendarImplem = CalendarImplem(contentResolver, permissionHandler!!)
+    val calendarImplem = CalendarImplem(activity, contentResolver, permissionHandler!!)
     CalendarApi.setUp(binaryMessenger, calendarImplem)
   }
 

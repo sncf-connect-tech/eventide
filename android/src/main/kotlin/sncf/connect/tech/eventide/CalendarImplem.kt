@@ -2,14 +2,18 @@ package sncf.connect.tech.eventide
 
 import android.content.ContentResolver
 import android.content.ContentValues
+import android.content.Context
+import android.content.Intent
 import android.net.Uri
 import android.provider.CalendarContract
+import androidx.core.content.ContextCompat.startActivity
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.util.concurrent.CountDownLatch
 
 class CalendarImplem(
+    private var context: Context,
     private var contentResolver: ContentResolver,
     private var permissionHandler: PermissionHandler,
     private var calendarContentUri: Uri = CalendarContract.Calendars.CONTENT_URI,
@@ -379,121 +383,15 @@ class CalendarImplem(
         reminders: List<Long>?,
         callback: (Result<Unit>) -> Unit
     ) {
-        permissionHandler.requestReadAndWritePermissions { granted ->
-            if (!granted) {
-                callback(
-                    Result.failure(
-                        FlutterError(
-                            code = "ACCESS_REFUSED",
-                            message = "Calendar access has been refused or has not been given yet",
-                        )
-                    )
-                )
-                return@requestReadAndWritePermissions
-            }
+        val intent = Intent(Intent.ACTION_INSERT)
+        intent.setData(eventContentUri)
+        intent.putExtra(CalendarContract.EXTRA_EVENT_BEGIN_TIME, startDate)
+        intent.putExtra(CalendarContract.EXTRA_EVENT_END_TIME, endDate)
+        intent.putExtra(CalendarContract.Events.TITLE, title)
+        intent.putExtra(CalendarContract.Events.DESCRIPTION, description)
 
-            CoroutineScope(Dispatchers.IO).launch {
-                try {
-                    val projection = arrayOf(
-                        CalendarContract.Calendars._ID,
-                        CalendarContract.Calendars.IS_PRIMARY,
-                        CalendarContract.Calendars.CALENDAR_ACCESS_LEVEL
-                    )
-
-                    val cursor = contentResolver.query(calendarContentUri, projection, null, null, null)
-                    var eligibleCalendars: Map<String, Boolean> = emptyMap()
-
-                    cursor?.use { c ->
-                        while (c.moveToNext()) {
-                            val id = c.getString(c.getColumnIndexOrThrow(CalendarContract.Calendars._ID))
-                            val accessLevel = c.getInt(c.getColumnIndexOrThrow(CalendarContract.Calendars.CALENDAR_ACCESS_LEVEL))
-                            val isPrimary = c.getInt(c.getColumnIndexOrThrow(CalendarContract.Calendars.IS_PRIMARY))
-
-                            if (accessLevel >= CalendarContract.Calendars.CAL_ACCESS_CONTRIBUTOR) {
-                                eligibleCalendars = eligibleCalendars + (id to isPrimary.toBoolean())
-                            }
-                        }
-                    }
-
-                    if (eligibleCalendars.isEmpty()) {
-                        callback(
-                            Result.failure(
-                                FlutterError(
-                                    code = "NOT_FOUND",
-                                    message = "No writable primary calendar found"
-                                )
-                            )
-                        )
-                        return@launch
-                    }
-
-                    val calendarId = eligibleCalendars.entries.firstOrNull { it.value }?.key
-                        ?: eligibleCalendars.entries.first().key // Fallback to the first writable calendar if no primary found
-
-                    val eventValues = ContentValues().apply {
-                        put(CalendarContract.Events.CALENDAR_ID, calendarId)
-                        put(CalendarContract.Events.TITLE, title)
-                        put(CalendarContract.Events.DESCRIPTION, description)
-                        put(CalendarContract.Events.DTSTART, startDate)
-                        put(CalendarContract.Events.DTEND, endDate)
-                        put(CalendarContract.Events.EVENT_TIMEZONE, "UTC")
-                        put(CalendarContract.Events.ALL_DAY, isAllDay.toInt())
-                    }
-
-                    val eventUri = contentResolver.insert(eventContentUri, eventValues)
-                    if (eventUri != null) {
-                        val eventId = eventUri.lastPathSegment
-
-                        if (reminders != null) {
-                            val remindersLatch = CountDownLatch(reminders.size)
-                            reminders.forEach { reminder ->
-                                val reminderValues = ContentValues().apply {
-                                    put(CalendarContract.Reminders.EVENT_ID, eventId)
-                                    put(CalendarContract.Reminders.MINUTES, reminder)
-                                    put(CalendarContract.Reminders.METHOD, CalendarContract.Reminders.METHOD_ALERT)
-                                }
-                                contentResolver.insert(remindersContentUri, reminderValues)
-                                remindersLatch.countDown()
-                            }
-                            remindersLatch.await()
-                        }
-
-                        if (eventId != null) {
-                            callback(Result.success(Unit))
-                        } else {
-                            callback(
-                                Result.failure(
-                                    FlutterError(
-                                        code = "NOT_FOUND",
-                                        message = "Failed to retrieve event ID"
-                                    )
-                                )
-                            )
-                        }
-                    } else {
-                        callback(
-                            Result.failure(
-                                FlutterError(
-                                    code = "GENERIC_ERROR",
-                                    message = "Failed to create event"
-                                )
-                            )
-                        )
-                    }
-
-                } catch (e: Exception) {
-                    callback(
-                        Result.failure(
-                            FlutterError(
-                                code = "GENERIC_ERROR",
-                                message = "An error occurred",
-                                details = e.message
-                            )
-                        )
-                    )
-                }
-            }
-        }
+        startActivity(context, intent, null)
+        callback(Result.success(Unit))
     }
 
     override fun retrieveEvents(
@@ -1088,6 +986,75 @@ class CalendarImplem(
                 )
             ))
         }
+    }
+
+    /**
+     * Finds the default calendar using sequential logic:
+     * 1. User's Primary Calendar (OWNER_ACCOUNT = ACCOUNT_NAME)
+     * 2. Primary Google Account (com.google)
+     * 3. Local "On Device" Calendar
+     * 4. First visible and synchronizable calendar
+     */
+    private fun findDefaultCalendar(): String? {
+        val projection = arrayOf(
+            CalendarContract.Calendars._ID,
+            CalendarContract.Calendars.ACCOUNT_NAME,
+            CalendarContract.Calendars.ACCOUNT_TYPE,
+            CalendarContract.Calendars.OWNER_ACCOUNT,
+            CalendarContract.Calendars.VISIBLE,
+            CalendarContract.Calendars.SYNC_EVENTS,
+            CalendarContract.Calendars.CALENDAR_ACCESS_LEVEL
+        )
+
+        val cursor = contentResolver.query(
+            calendarContentUri,
+            projection,
+            null,
+            null,
+            CalendarContract.Calendars._ID + " ASC"
+        )
+
+        var userOwnedCalendar: String? = null
+        var googlePrimaryCalendar: String? = null
+        var localCalendar: String? = null
+        var firstVisibleCalendar: String? = null
+
+        cursor?.use { c ->
+            while (c.moveToNext()) {
+                val id = c.getString(c.getColumnIndexOrThrow(CalendarContract.Calendars._ID))
+                val accountName = c.getString(c.getColumnIndexOrThrow(CalendarContract.Calendars.ACCOUNT_NAME))
+                val accountType = c.getString(c.getColumnIndexOrThrow(CalendarContract.Calendars.ACCOUNT_TYPE))
+                val ownerAccount = c.getString(c.getColumnIndexOrThrow(CalendarContract.Calendars.OWNER_ACCOUNT))
+                val isVisible = c.getInt(c.getColumnIndexOrThrow(CalendarContract.Calendars.VISIBLE)).toBoolean()
+                val syncEvents = c.getInt(c.getColumnIndexOrThrow(CalendarContract.Calendars.SYNC_EVENTS)).toBoolean()
+                val accessLevel = c.getInt(c.getColumnIndexOrThrow(CalendarContract.Calendars.CALENDAR_ACCESS_LEVEL))
+
+                if (!isVisible || accessLevel < CalendarContract.Calendars.CAL_ACCESS_CONTRIBUTOR) {
+                    continue
+                }
+
+                if (userOwnedCalendar == null && ownerAccount == accountName && syncEvents && !ownerAccount.isNullOrEmpty()) {
+                    userOwnedCalendar = id
+                }
+
+                if (googlePrimaryCalendar == null && accountType == "com.google" && isVisible) {
+                    googlePrimaryCalendar = id
+                }
+
+                if (localCalendar == null && accountType == CalendarContract.ACCOUNT_TYPE_LOCAL && isVisible) {
+                    localCalendar = id
+                }
+
+                if (firstVisibleCalendar == null && isVisible && syncEvents) {
+                    firstVisibleCalendar = id
+                }
+            }
+        }
+
+        return userOwnedCalendar
+            ?: googlePrimaryCalendar
+            ?: localCalendar
+            ?: firstVisibleCalendar
     }
 }
 
