@@ -286,7 +286,7 @@ class CalendarImplem(
                             put(CalendarContract.Events.DTSTART, startDate)
                             put(CalendarContract.Events.DTEND, endDate)
                             put(CalendarContract.Events.EVENT_TIMEZONE, "UTC")
-                            put(CalendarContract.Events.ALL_DAY, isAllDay)
+                            put(CalendarContract.Events.ALL_DAY, isAllDay.toInt())
                         }
 
                         val eventUri = contentResolver.insert(eventContentUri, eventValues)
@@ -407,10 +407,10 @@ class CalendarImplem(
                         while (c.moveToNext()) {
                             val id = c.getString(c.getColumnIndexOrThrow(CalendarContract.Calendars._ID))
                             val accessLevel = c.getInt(c.getColumnIndexOrThrow(CalendarContract.Calendars.CALENDAR_ACCESS_LEVEL))
-                            val isPrimary = c.getInt(c.getColumnIndexOrThrow(CalendarContract.Calendars.IS_PRIMARY)) == 1
+                            val isPrimary = c.getInt(c.getColumnIndexOrThrow(CalendarContract.Calendars.IS_PRIMARY))
 
                             if (accessLevel >= CalendarContract.Calendars.CAL_ACCESS_CONTRIBUTOR) {
-                                eligibleCalendars = eligibleCalendars + (id to isPrimary)
+                                eligibleCalendars = eligibleCalendars + (id to isPrimary.toBoolean())
                             }
                         }
                     }
@@ -437,7 +437,7 @@ class CalendarImplem(
                         put(CalendarContract.Events.DTSTART, startDate)
                         put(CalendarContract.Events.DTEND, endDate)
                         put(CalendarContract.Events.EVENT_TIMEZONE, "UTC")
-                        put(CalendarContract.Events.ALL_DAY, isAllDay)
+                        put(CalendarContract.Events.ALL_DAY, isAllDay.toInt())
                     }
 
                     val eventUri = contentResolver.insert(eventContentUri, eventValues)
@@ -541,7 +541,7 @@ class CalendarImplem(
                                 c.getString(c.getColumnIndexOrThrow(CalendarContract.Events.DESCRIPTION))
                             val start = c.getLong(c.getColumnIndexOrThrow(CalendarContract.Events.DTSTART))
                             val end = c.getLong(c.getColumnIndexOrThrow(CalendarContract.Events.DTEND))
-                            val isAllDay = c.getInt(c.getColumnIndexOrThrow(CalendarContract.Events.ALL_DAY)) == 1
+                            val isAllDay = c.getInt(c.getColumnIndexOrThrow(CalendarContract.Events.ALL_DAY)).toBoolean()
 
                             val attendees = mutableListOf<Attendee>()
                             val attendeesLatch = CountDownLatch(1)
@@ -937,7 +937,7 @@ class CalendarImplem(
                     val id = it.getString(it.getColumnIndexOrThrow(CalendarContract.Events._ID))
                     val title = it.getString(it.getColumnIndexOrThrow(CalendarContract.Events.TITLE))
                     val description = it.getString(it.getColumnIndexOrThrow(CalendarContract.Events.DESCRIPTION))
-                    val isAllDay = it.getInt(it.getColumnIndexOrThrow(CalendarContract.Events.ALL_DAY)) == 1
+                    val isAllDay = it.getInt(it.getColumnIndexOrThrow(CalendarContract.Events.ALL_DAY)).toBoolean()
                     val startDate = it.getLong(it.getColumnIndexOrThrow(CalendarContract.Events.DTSTART))
                     val endDate = it.getLong(it.getColumnIndexOrThrow(CalendarContract.Events.DTEND))
                     val calendarId = it.getString(it.getColumnIndexOrThrow(CalendarContract.Events.CALENDAR_ID))
@@ -1090,3 +1090,7 @@ class CalendarImplem(
         }
     }
 }
+
+private fun Boolean.toInt() = if (this) 1 else 0
+
+private fun Int.toBoolean() = this != 0
