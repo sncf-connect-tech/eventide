@@ -14,10 +14,12 @@ typedef OnEventFormSubmit = void Function(
 final class EventForm extends StatefulWidget {
   final List<ETCalendar> calendars;
   final OnEventFormSubmit onSubmit;
+  final DateTime? initialDate;
 
   const EventForm({
     required this.calendars,
     required this.onSubmit,
+    this.initialDate,
     super.key,
   });
 
@@ -38,6 +40,14 @@ final class _EventFormState extends State<EventForm> {
     super.initState();
     _titleController = TextEditingController();
     _descriptionController = TextEditingController();
+
+    if (widget.initialDate != null) {
+      _selectedStartDate = widget.initialDate!;
+      _selectedEndDate = widget.initialDate!.add(const Duration(hours: 1));
+    } else {
+      _selectedStartDate = DateTime.now();
+      _selectedEndDate = DateTime.now().add(const Duration(hours: 1));
+    }
   }
 
   @override

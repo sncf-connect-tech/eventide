@@ -1,6 +1,6 @@
 import 'package:eventide/eventide.dart';
-import 'package:eventide_example/calendar/ui/calendar_screen.dart';
-import 'package:eventide_example/calendar/ui/event_form.dart';
+import 'package:eventide_example/calendar/ui/views/calendar_screen.dart';
+import 'package:eventide_example/calendar/ui/components/event_form.dart';
 import 'package:eventide_example/calendar/logic/calendar_cubit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -50,7 +50,7 @@ final class PermissionChoiceScreen extends StatelessWidget {
                 child: ElevatedButton.icon(
                   onPressed: () async {
                     try {
-                      await Navigator.of(context).push(
+                      await Navigator.of(context).pushReplacement(
                         MaterialPageRoute(
                           builder: (context) => BlocProvider(
                             create: (context) => CalendarCubit(
