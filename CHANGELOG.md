@@ -1,3 +1,14 @@
+## 0.11.0-beta.1
+* **Breaking Change - Android Permissions:** Removed default calendar permissions from eventide's `AndroidManifest.xml`. Apps must now declare needed permissions based on their usage:
+  * `android.permission.READ_CALENDAR` for reading calendars/events
+  * `android.permission.WRITE_CALENDAR` for creating/modifying calendars/events
+  * No permissions required for `createEventInDefaultCalendar()` (uses system Intent)
+* **Android Enhancement:** `createEventInDefaultCalendar()` now uses system Intent to open calendar app directly (no permissions needed)
+* **Privacy-First Approach:** Enhanced documentation emphasizing user privacy and minimal permission requests
+* **Android Bug Fix:** Fixed `allDay` attribute Boolean to Int cast in event creation
+* **CI/CD Improvements:** Removed conditional CI jobs for better workflow reliability
+* **Documentation:** Updated README with comprehensive privacy-first guidelines and permission requirements
+
 ## 0.10.2
 * **Android fix:** `createEventInDefaultCalendar()` did not retrieve any default calendar when there was multiple primary calendars. Now also returns any writable calendar when there is no primary calendars
 

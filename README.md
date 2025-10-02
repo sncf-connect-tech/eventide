@@ -47,7 +47,21 @@ Eventide provides a easy-to-use flutter interface to access & modify native devi
 
 #### Android
 
-Nothing to add on your side. All permissions are already declared in eventide's `AndroidManifest.xml`
+Add the following permissions to your `android/app/src/main/AndroidManifest.xml` based on the features you need:
+
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"...>
+    <!-- For reading calendars and events -->
+    <uses-permission android:name="android.permission.READ_CALENDAR" />
+    
+    <!-- For creating, modifying, or deleting calendars and events -->
+    <uses-permission android:name="android.permission.WRITE_CALENDAR" />
+    ...
+</manifest>
+```
+
+**Note:** `createEventInDefaultCalendar()` does not require any permissions as it uses the system calendar app. This privacy-first approach ensures your app doesn't need to access user's calendar data directly.
 
 #### iOS
 
@@ -227,7 +241,9 @@ Future<void> createEventInDefaultCalendar({
 })
 ```
 
-Creates a new event in the default calendar. On iOS, this method will prompt the user for write-only permission and insert the event in the user's default calendar.
+Creates a new event in the default calendar
+- On iOS, this method will prompt the user for write-only permission and insert the event in the user's default calendar.
+- On Android, this method opens the system calendar app for the user to create the event (no permissions required).
 
 ```dart
 await eventide.createEventInDefaultCalendar(
@@ -431,6 +447,19 @@ final myCompanyCalendars = await eventide.retrieveCalendars(
 
 ## 🔧 Platform-Specific Features
 
+### Privacy-First Approach
+
+Eventide is designed with user privacy as a core principle. We believe users should have granular control over their calendar data and only grant the minimum permissions necessary for your app to function.
+
+**Our privacy-focused design:**
+
+- **Minimal permissions**: Only request the permissions your app actually needs
+- **User choice**: Support both write-only and full access modes on iOS 17+
+- **System delegation**: On Android, `createEventInDefaultCalendar()` delegates to the system calendar app, ensuring no direct data access
+- **Transparency**: Clear documentation about what each method requires and accesses
+
+This approach ensures users maintain control over their personal calendar data while still enabling powerful calendar integration for your app.
+
 ### iOS Write-Only Access
 
 As of iOS 17, Apple introduced a new write-only access permission for calendar data, providing users with more granular control over app permissions. This feature allows apps to add events to calendars without being able to read existing calendar data.
@@ -484,7 +513,7 @@ await eventide.createEventInDefaultCalendar(
 
 #### Permission handling
 
-The system will automatically handle the permission flow:
+The system will automatically handle the permission flow. Example for iOS:
 
 1. First call to `createEventInDefaultCalendar()` → Shows write-only permission prompt
 2. User grants write-only access → Creates event in default calendar
@@ -492,10 +521,12 @@ The system will automatically handle the permission flow:
 
 #### Best practices
 
+- **Respect user privacy**: Only request full calendar access when absolutely necessary
 - Handle `ETPermissionException` when attempting operations that require read access
 - Consider offering full calendar access for apps that need to read existing events
 - Use write-only access for apps that only need to add events (like booking confirmations, reminders, etc.)
 - Use `createEventInDefaultCalendar()` for simple event creation without calendar management
+- **Privacy-first design**: Start with minimal permissions and only escalate when needed
 
 ---
 
