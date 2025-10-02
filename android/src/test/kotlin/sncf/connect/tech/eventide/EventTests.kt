@@ -7,6 +7,7 @@ import android.net.Uri
 import android.provider.CalendarContract
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.verify
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -19,6 +20,7 @@ class EventTests {
     private lateinit var context: Context
     private lateinit var contentResolver: ContentResolver
     private lateinit var permissionHandler: PermissionHandler
+    private lateinit var activityManager: CalendarActivityManager
     private lateinit var calendarImplem: CalendarImplem
     private lateinit var calendarContentUri: Uri
     private lateinit var eventContentUri: Uri
@@ -30,15 +32,16 @@ class EventTests {
         context = mockk(relaxed = true)
         contentResolver = mockk(relaxed = true)
         permissionHandler = mockk(relaxed = true)
+        activityManager = mockk(relaxed = true)
         calendarContentUri = mockk(relaxed = true)
         eventContentUri = mockk(relaxed = true)
         remindersContentUri = mockk(relaxed = true)
         attendeesContentUri = mockk(relaxed = true)
 
         calendarImplem = CalendarImplem(
-            context = context,
             contentResolver = contentResolver,
             permissionHandler = permissionHandler,
+            activityManager = activityManager,
             calendarContentUri = calendarContentUri,
             eventContentUri = eventContentUri,
             remindersContentUri = remindersContentUri,
@@ -455,5 +458,151 @@ class EventTests {
         }
 
         assertTrue(result!!.isSuccess)
+    }
+
+    @Test
+    fun createEventThroughNativePlatform_withAllParameters_callsActivityManagerAndReturnsSuccess() = runTest {
+        val startMilli = Instant.now().toEpochMilli()
+        val endMilli = Instant.now().toEpochMilli()
+
+        var result: Result<Unit>? = null
+        calendarImplem.createEventThroughNativePlatform(
+            title = "Test Event",
+            startDate = startMilli,
+            endDate = endMilli,
+            isAllDay = false,
+            description = "Test Description",
+            url = "https://example.com",
+            reminders = emptyList()
+        ) {
+            result = it
+        }
+
+        verify {
+            activityManager.startCreateEventActivity(
+                eventContentUri = eventContentUri,
+                title = "Test Event",
+                startDate = startMilli,
+                endDate = endMilli,
+                isAllDay = false,
+                description = "Test Description"
+            )
+        }
+
+        assertTrue(result!!.isSuccess)
+    }
+
+    @Test
+    fun createEventThroughNativePlatform_withAllDayEvent_callsActivityManagerWithCorrectParameters() = runTest {
+        val startMilli = Instant.now().toEpochMilli()
+        val endMilli = Instant.now().toEpochMilli()
+
+        var result: Result<Unit>? = null
+        calendarImplem.createEventThroughNativePlatform(
+            title = "All Day Event",
+            startDate = startMilli,
+            endDate = endMilli,
+            isAllDay = true,
+            description = "All day description",
+            url = null,
+            reminders = emptyList()
+        ) {
+            result = it
+        }
+
+        verify {
+            activityManager.startCreateEventActivity(
+                eventContentUri = eventContentUri,
+                title = "All Day Event",
+                startDate = startMilli,
+                endDate = endMilli,
+                isAllDay = true,
+                description = "All day description"
+            )
+        }
+
+        assertTrue(result!!.isSuccess)
+    }
+
+    @Test
+    fun createEventThroughNativePlatform_withNullValues_callsActivityManagerWithNullParameters() = runTest {
+        var result: Result<Unit>? = null
+        calendarImplem.createEventThroughNativePlatform(
+            title = null,
+            startDate = null,
+            endDate = null,
+            isAllDay = null,
+            description = null,
+            url = null,
+            reminders = null
+        ) {
+            result = it
+        }
+
+        verify {
+            activityManager.startCreateEventActivity(
+                eventContentUri = eventContentUri,
+                title = null,
+                startDate = null,
+                endDate = null,
+                isAllDay = null,
+                description = null
+            )
+        }
+
+        assertTrue(result!!.isSuccess)
+    }
+
+    @Test
+    fun createEventThroughNativePlatform_withMinimalParameters_callsActivityManagerSuccessfully() = runTest {
+        var result: Result<Unit>? = null
+        calendarImplem.createEventThroughNativePlatform(
+            title = "Minimal Event",
+            startDate = 1000L,
+            endDate = 2000L,
+            isAllDay = false,
+            description = null,
+            url = null,
+            reminders = null
+        ) {
+            result = it
+        }
+
+        verify {
+            activityManager.startCreateEventActivity(
+                eventContentUri = eventContentUri,
+                title = "Minimal Event",
+                startDate = 1000L,
+                endDate = 2000L,
+                isAllDay = false,
+                description = null
+            )
+        }
+
+        assertTrue(result!!.isSuccess)
+    }
+
+    @Test
+    fun createEventThroughNativePlatform_alwaysReturnsSuccessRegardlessOfActivityManagerBehavior() = runTest {
+        every {
+            activityManager.startCreateEventActivity(any(), any(), any(), any(), any(), any())
+        } throws RuntimeException("Activity Manager Error")
+
+        var result: Result<Unit>? = null
+        calendarImplem.createEventThroughNativePlatform(
+            title = "Test Event",
+            startDate = 1000L,
+            endDate = 2000L,
+            isAllDay = false,
+            description = "Test",
+            url = null,
+            reminders = null
+        ) {
+            result = it
+        }
+
+        assertTrue(result!!.isFailure)
+        assertEquals("GENERIC_ERROR", (result.exceptionOrNull() as FlutterError).code)
+        assertTrue((result.exceptionOrNull() as FlutterError).message!!.contains("Failed to start calendar activity"))
     }
 }

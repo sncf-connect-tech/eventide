@@ -50,15 +50,26 @@ void main() {
       expect(etException.message, 'Unknown error');
     });
 
-    test('Converts PlatformException to ETNotSupportedByPlatform', () {
+    test('Converts PlatformException to ETUserCanceledException', () {
       final platformException = PlatformException(
-        code: 'PLATFORM_DOES_NOT_SUPPORT',
-        message: 'platform does not support this feature',
+        code: 'USER_CANCELED',
+        message: 'User canceled the event creation',
       );
       final etException = platformException.toETException();
-      expect(etException, isA<ETNotSupportedByPlatform>());
-      expect(etException.code, 'PLATFORM_DOES_NOT_SUPPORT');
-      expect(etException.message, 'platform does not support this feature');
+      expect(etException, isA<ETUserCanceledException>());
+      expect(etException.code, 'USER_CANCELED');
+      expect(etException.message, 'User canceled the event creation');
+    });
+
+    test('Converts PlatformException to ETPresentationException', () {
+      final platformException = PlatformException(
+        code: 'PRESENTATION_ERROR',
+        message: 'Cannot present event creation view',
+      );
+      final etException = platformException.toETException();
+      expect(etException, isA<ETPresentationException>());
+      expect(etException.code, 'PRESENTATION_ERROR');
+      expect(etException.message, 'Cannot present event creation view');
     });
   });
 }

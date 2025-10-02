@@ -2,24 +2,21 @@ package sncf.connect.tech.eventide
 
 import android.content.ContentResolver
 import android.content.ContentValues
-import android.content.Context
-import android.content.Intent
 import android.net.Uri
 import android.provider.CalendarContract
-import androidx.core.content.ContextCompat.startActivity
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.util.concurrent.CountDownLatch
 
 class CalendarImplem(
-    private var context: Context,
     private var contentResolver: ContentResolver,
     private var permissionHandler: PermissionHandler,
+    private val activityManager: CalendarActivityManager,
     private var calendarContentUri: Uri = CalendarContract.Calendars.CONTENT_URI,
     private var eventContentUri: Uri = CalendarContract.Events.CONTENT_URI,
     private var remindersContentUri: Uri = CalendarContract.Reminders.CONTENT_URI,
-    private var attendeesContentUri: Uri = CalendarContract.Attendees.CONTENT_URI
+    private var attendeesContentUri: Uri = CalendarContract.Attendees.CONTENT_URI,
 ): CalendarApi {
     override fun createCalendar(
         title: String,
@@ -383,15 +380,46 @@ class CalendarImplem(
         reminders: List<Long>?,
         callback: (Result<Unit>) -> Unit
     ) {
-        val intent = Intent(Intent.ACTION_INSERT)
-        intent.setData(eventContentUri)
-        intent.putExtra(CalendarContract.EXTRA_EVENT_BEGIN_TIME, startDate)
-        intent.putExtra(CalendarContract.EXTRA_EVENT_END_TIME, endDate)
-        intent.putExtra(CalendarContract.Events.TITLE, title)
-        intent.putExtra(CalendarContract.Events.DESCRIPTION, description)
-
-        startActivity(context, intent, null)
+        activityManager.startCreateEventActivity(
+            eventContentUri = eventContentUri,
+            title = title,
+            startDate = startDate,
+            endDate = endDate,
+            isAllDay = isAllDay,
+            description = description,
+        )
         callback(Result.success(Unit))
+    }
+
+    override fun createEventThroughNativePlatform(
+        title: String?,
+        startDate: Long?,
+        endDate: Long?,
+        isAllDay: Boolean?,
+        description: String?,
+        url: String?,
+        reminders: List<Long>?,
+        callback: (Result<Unit>) -> Unit
+    ) {
+        try {
+            activityManager.startCreateEventActivity(
+                eventContentUri = eventContentUri,
+                title = title,
+                startDate = startDate,
+                endDate = endDate,
+                isAllDay = isAllDay,
+                description = description,
+            )
+            callback(Result.success(Unit))
+        } catch (e: Exception) {
+            callback(Result.failure(
+                FlutterError(
+                    code = "GENERIC_ERROR",
+                    message = "Failed to start calendar activity: ${e.message}",
+                    details = e.toString()
+                )
+            ))
+        }
     }
 
     override fun retrieveEvents(
@@ -986,75 +1014,6 @@ class CalendarImplem(
                 )
             ))
         }
-    }
-
-    /**
-     * Finds the default calendar using sequential logic:
-     * 1. User's Primary Calendar (OWNER_ACCOUNT = ACCOUNT_NAME)
-     * 2. Primary Google Account (com.google)
-     * 3. Local "On Device" Calendar
-     * 4. First visible and synchronizable calendar
-     */
-    private fun findDefaultCalendar(): String? {
-        val projection = arrayOf(
-            CalendarContract.Calendars._ID,
-            CalendarContract.Calendars.ACCOUNT_NAME,
-            CalendarContract.Calendars.ACCOUNT_TYPE,
-            CalendarContract.Calendars.OWNER_ACCOUNT,
-            CalendarContract.Calendars.VISIBLE,
-            CalendarContract.Calendars.SYNC_EVENTS,
-            CalendarContract.Calendars.CALENDAR_ACCESS_LEVEL
-        )
-
-        val cursor = contentResolver.query(
-            calendarContentUri,
-            projection,
-            null,
-            null,
-            CalendarContract.Calendars._ID + " ASC"
-        )
-
-        var userOwnedCalendar: String? = null
-        var googlePrimaryCalendar: String? = null
-        var localCalendar: String? = null
-        var firstVisibleCalendar: String? = null
-
-        cursor?.use { c ->
-            while (c.moveToNext()) {
-                val id = c.getString(c.getColumnIndexOrThrow(CalendarContract.Calendars._ID))
-                val accountName = c.getString(c.getColumnIndexOrThrow(CalendarContract.Calendars.ACCOUNT_NAME))
-                val accountType = c.getString(c.getColumnIndexOrThrow(CalendarContract.Calendars.ACCOUNT_TYPE))
-                val ownerAccount = c.getString(c.getColumnIndexOrThrow(CalendarContract.Calendars.OWNER_ACCOUNT))
-                val isVisible = c.getInt(c.getColumnIndexOrThrow(CalendarContract.Calendars.VISIBLE)).toBoolean()
-                val syncEvents = c.getInt(c.getColumnIndexOrThrow(CalendarContract.Calendars.SYNC_EVENTS)).toBoolean()
-                val accessLevel = c.getInt(c.getColumnIndexOrThrow(CalendarContract.Calendars.CALENDAR_ACCESS_LEVEL))
-
-                if (!isVisible || accessLevel < CalendarContract.Calendars.CAL_ACCESS_CONTRIBUTOR) {
-                    continue
-                }
-
-                if (userOwnedCalendar == null && ownerAccount == accountName && syncEvents && !ownerAccount.isNullOrEmpty()) {
-                    userOwnedCalendar = id
-                }
-
-                if (googlePrimaryCalendar == null && accountType == "com.google" && isVisible) {
-                    googlePrimaryCalendar = id
-                }
-
-                if (localCalendar == null && accountType == CalendarContract.ACCOUNT_TYPE_LOCAL && isVisible) {
-                    localCalendar = id
-                }
-
-                if (firstVisibleCalendar == null && isVisible && syncEvents) {
-                    firstVisibleCalendar = id
-                }
-            }
-        }
-
-        return userOwnedCalendar
-            ?: googlePrimaryCalendar
-            ?: localCalendar
-            ?: firstVisibleCalendar
     }
 }
 

@@ -397,6 +397,133 @@ void main() {
     });
   });
 
+  test('createEventThroughNativePlatform creates event with all parameters', () async {
+    // Given
+    when(() => mockCalendarApi.createEventThroughNativePlatform(
+          title: any(named: 'title'),
+          isAllDay: any(named: 'isAllDay'),
+          startDate: any(named: 'startDate'),
+          endDate: any(named: 'endDate'),
+          description: any(named: 'description'),
+          url: any(named: 'url'),
+          reminders: any(named: 'reminders'),
+        )).thenAnswer((_) async {});
+
+    // When
+    await eventide.createEventThroughNativePlatform(
+      title: 'Test Event',
+      startDate: startDate,
+      endDate: endDate,
+      isAllDay: false,
+      description: 'Test Description',
+      url: 'http://test.com',
+      reminders: [Duration(minutes: 10)],
+    );
+
+    // Then
+    verify(() => mockCalendarApi.createEventThroughNativePlatform(
+          title: 'Test Event',
+          isAllDay: false,
+          startDate: startDate.millisecondsSinceEpoch,
+          endDate: endDate.millisecondsSinceEpoch,
+          description: 'Test Description',
+          url: 'http://test.com',
+          reminders: [10],
+        )).called(1);
+  });
+
+  test('createEventThroughNativePlatform creates event with minimal parameters', () async {
+    // Given
+    when(() => mockCalendarApi.createEventThroughNativePlatform(
+          title: any(named: 'title'),
+          isAllDay: any(named: 'isAllDay'),
+          startDate: any(named: 'startDate'),
+          endDate: any(named: 'endDate'),
+          description: any(named: 'description'),
+          url: any(named: 'url'),
+          reminders: any(named: 'reminders'),
+        )).thenAnswer((_) async {});
+
+    // When
+    await eventide.createEventThroughNativePlatform();
+
+    // Then
+    verify(() => mockCalendarApi.createEventThroughNativePlatform(
+          title: null,
+          isAllDay: null,
+          startDate: null,
+          endDate: null,
+          description: null,
+          url: null,
+          reminders: null,
+        )).called(1);
+  });
+
+  test('createEventThroughNativePlatform throws ETPresentationException when API fails with presentation error',
+      () async {
+    // Given
+    when(() => mockCalendarApi.createEventThroughNativePlatform(
+          title: any(named: 'title'),
+          isAllDay: any(named: 'isAllDay'),
+          startDate: any(named: 'startDate'),
+          endDate: any(named: 'endDate'),
+          description: any(named: 'description'),
+          url: any(named: 'url'),
+          reminders: any(named: 'reminders'),
+        )).thenThrow(ETPresentationException(message: 'Presentation Error'));
+
+    // When
+    Future<void> call() => eventide.createEventThroughNativePlatform(
+          title: 'Test Event',
+          startDate: startDate,
+          endDate: endDate,
+        );
+
+    // Then
+    expect(call, throwsException);
+    verify(() => mockCalendarApi.createEventThroughNativePlatform(
+          title: 'Test Event',
+          isAllDay: null,
+          startDate: startDate.millisecondsSinceEpoch,
+          endDate: endDate.millisecondsSinceEpoch,
+          description: null,
+          url: null,
+          reminders: null,
+        )).called(1);
+  });
+
+  test('createEventThroughNativePlatform throws ETUserCanceledException when user cancels', () async {
+    // Given
+    when(() => mockCalendarApi.createEventThroughNativePlatform(
+          title: any(named: 'title'),
+          isAllDay: any(named: 'isAllDay'),
+          startDate: any(named: 'startDate'),
+          endDate: any(named: 'endDate'),
+          description: any(named: 'description'),
+          url: any(named: 'url'),
+          reminders: any(named: 'reminders'),
+        )).thenThrow(ETUserCanceledException(message: 'User Cancelled'));
+
+    // When
+    Future<void> call() => eventide.createEventThroughNativePlatform(
+          title: 'Test Event',
+          startDate: startDate,
+          endDate: endDate,
+        );
+
+    // Then
+    expect(call, throwsException);
+    verify(() => mockCalendarApi.createEventThroughNativePlatform(
+          title: 'Test Event',
+          isAllDay: null,
+          startDate: startDate.millisecondsSinceEpoch,
+          endDate: endDate.millisecondsSinceEpoch,
+          description: null,
+          url: null,
+          reminders: null,
+        )).called(1);
+  });
+
   test('retrieveEvents returns a list of ETEvents with reminders', () async {
     // Given
     const reminders = [Duration(minutes: 10), Duration(minutes: 20)];

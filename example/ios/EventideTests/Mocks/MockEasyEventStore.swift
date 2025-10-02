@@ -105,6 +105,10 @@ class MockEasyEventStore: EasyEventStoreProtocol {
         calendars.first!.events.append(mockEvent)
     }
     
+    func presentEventCreationViewController(title: String?, startDate: Date?, endDate: Date?, isAllDay: Bool?, description: String?, url: String?, timeIntervals: [TimeInterval]?, completion: @escaping (Result<Void, any Error>) -> Void) {
+        completion(.success(()))
+    }
+    
     func retrieveEvents(calendarId: String, startDate: Date, endDate: Date) throws -> [Event] {
         guard let mockCalendar = calendars.first(where: { $0.id == calendarId }) else {
             throw PigeonError(
@@ -295,5 +299,55 @@ class MockAttendee {
             role: role,
             status: status
         )
+    }
+}
+
+// MARK: - Specialized Mocks for Native Platform Testing
+
+/// Mock that simulates user canceling the native event creation
+class MockEasyEventStoreCanceled: MockEasyEventStore {
+    override func presentEventCreationViewController(title: String?, startDate: Date?, endDate: Date?, isAllDay: Bool?, description: String?, url: String?, timeIntervals: [TimeInterval]?, completion: @escaping (Result<Void, any Error>) -> Void) {
+        // Simulate user cancellation
+        completion(.failure(PigeonError(
+            code: "USER_CANCELED",
+            message: "User canceled event creation",
+            details: nil
+        )))
+    }
+}
+
+/// Mock that simulates presentation error
+class MockEasyEventStorePresentationError: MockEasyEventStore {
+    override func presentEventCreationViewController(title: String?, startDate: Date?, endDate: Date?, isAllDay: Bool?, description: String?, url: String?, timeIntervals: [TimeInterval]?, completion: @escaping (Result<Void, any Error>) -> Void) {
+        // Simulate presentation error
+        completion(.failure(PigeonError(
+            code: "PRESENTATION_ERROR",
+            message: "Unable to present event creation view",
+            details: nil
+        )))
+    }
+}
+
+/// Mock that simulates event deletion during creation
+class MockEasyEventStoreEventDeleted: MockEasyEventStore {
+    override func presentEventCreationViewController(title: String?, startDate: Date?, endDate: Date?, isAllDay: Bool?, description: String?, url: String?, timeIntervals: [TimeInterval]?, completion: @escaping (Result<Void, any Error>) -> Void) {
+        // Simulate event deletion
+        completion(.failure(PigeonError(
+            code: "EVENT_DELETED",
+            message: "Event was deleted",
+            details: nil
+        )))
+    }
+}
+
+/// Mock that simulates unknown action
+class MockEasyEventStoreUnknownAction: MockEasyEventStore {
+    override func presentEventCreationViewController(title: String?, startDate: Date?, endDate: Date?, isAllDay: Bool?, description: String?, url: String?, timeIntervals: [TimeInterval]?, completion: @escaping (Result<Void, any Error>) -> Void) {
+        // Simulate unknown action
+        completion(.failure(PigeonError(
+            code: "GENERIC_ERROR",
+            message: "Unknown action from event edit controller",
+            details: nil
+        )))
     }
 }

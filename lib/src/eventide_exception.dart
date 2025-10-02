@@ -41,11 +41,20 @@ final class ETGenericException extends ETException {
   }) : super(code: 'GENERIC_ERROR');
 }
 
-final class ETNotSupportedByPlatform extends ETException {
-  ETNotSupportedByPlatform({
+/// An exception thrown when the user cancels event creation in the native platform.
+final class ETUserCanceledException extends ETException {
+  ETUserCanceledException({
     required super.message,
     super.details,
-  }) : super(code: 'PLATFORM_DOES_NOT_SUPPORT');
+  }) : super(code: 'USER_CANCELED');
+}
+
+/// An exception thrown when the event creation view cannot be presented.
+final class ETPresentationException extends ETException {
+  ETPresentationException({
+    required super.message,
+    super.details,
+  }) : super(code: 'PRESENTATION_ERROR');
 }
 
 extension PlatformExceptionToETCalendarException on PlatformException {
@@ -64,7 +73,11 @@ extension PlatformExceptionToETCalendarException on PlatformException {
           message: message,
           details: details,
         ),
-      'PLATFORM_DOES_NOT_SUPPORT' => ETNotSupportedByPlatform(
+      'USER_CANCELED' => ETUserCanceledException(
+          message: message,
+          details: details,
+        ),
+      'PRESENTATION_ERROR' => ETPresentationException(
           message: message,
           details: details,
         ),

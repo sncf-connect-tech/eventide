@@ -171,6 +171,77 @@ final class PermissionChoiceScreen extends StatelessWidget {
                 ),
               ),
 
+              const SizedBox(height: 16),
+
+              // Native platform event creation (no permissions needed upfront)
+              SizedBox(
+                width: double.infinity,
+                height: 60,
+                child: ElevatedButton.icon(
+                  onPressed: () async {
+                    final eventide = context.read<Eventide>();
+
+                    try {
+                      await eventide.createEventThroughNativePlatform(
+                        title: 'Native Platform Event',
+                        startDate: DateTime.now().add(const Duration(hours: 1)),
+                        endDate: DateTime.now().add(const Duration(hours: 2)),
+                        description: 'Event created through native UI',
+                        reminders: [const Duration(minutes: 15)],
+                      );
+
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Event created successfully through native UI!'),
+                            backgroundColor: Colors.green,
+                          ),
+                        );
+                      }
+                    } on ETUserCanceledException {
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Event creation was canceled by user'),
+                            backgroundColor: Colors.orange,
+                          ),
+                        );
+                      }
+                    } on ETPresentationException {
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Could not present native event creation UI'),
+                            backgroundColor: Colors.red,
+                          ),
+                        );
+                      }
+                    } catch (e) {
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Error creating event: $e'),
+                            backgroundColor: Colors.red,
+                          ),
+                        );
+                      }
+                    }
+                  },
+                  icon: const Icon(Icons.smartphone),
+                  label: const Text(
+                    'Native Platform UI\n(No permissions needed)',
+                    textAlign: TextAlign.center,
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.purple,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                ),
+              ),
+
               const SizedBox(height: 32),
 
               const Card(
@@ -187,8 +258,10 @@ final class PermissionChoiceScreen extends StatelessWidget {
                       SizedBox(height: 8),
                       Text(
                         '• Full Access: Allows reading existing calendars and events, plus creating new ones\n'
-                        '• Write Only: Only allows creating events in the default calendar, no reading access\n\n'
+                        '• Write Only: Only allows creating events in the default calendar, no reading access\n'
+                        '• Native Platform UI: Uses the device\'s native event creation interface (iOS/Android)\n\n'
                         'Note: The Write Only scenario is specific to iOS. '
+                        'The Native Platform UI handles permissions automatically and lets users choose the calendar. '
                         'Android typically requires full read/write access for calendar operations.',
                         textAlign: TextAlign.center,
                         style: TextStyle(fontSize: 12),
