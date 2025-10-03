@@ -3,7 +3,7 @@ import 'dart:math';
 
 import 'package:eventide/eventide.dart';
 import 'package:eventide_example/event_details/logic/event_details_cubit.dart';
-import 'package:eventide_example/event_details/ui/attendee_form.dart';
+import 'package:eventide_example/event_details/ui/components/attendee_form.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:value_state/value_state.dart';
