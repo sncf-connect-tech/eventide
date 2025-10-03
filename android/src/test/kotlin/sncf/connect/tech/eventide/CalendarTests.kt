@@ -1,6 +1,7 @@
 package sncf.connect.tech.eventide
 
 import android.content.ContentResolver
+import android.content.Context
 import android.database.Cursor
 import android.net.Uri
 import android.provider.CalendarContract
@@ -15,6 +16,7 @@ import org.junit.jupiter.api.Test
 import java.util.concurrent.CountDownLatch
 
 class CalendarTests {
+    private lateinit var context: Context
     private lateinit var contentResolver: ContentResolver
     private lateinit var permissionHandler: PermissionHandler
     private lateinit var calendarImplem: CalendarImplem
@@ -25,6 +27,7 @@ class CalendarTests {
 
     @BeforeEach
     fun setup() {
+        context = mockk(relaxed = true)
         contentResolver = mockk(relaxed = true)
         permissionHandler = mockk(relaxed = true)
         calendarContentUri = mockk(relaxed = true)
@@ -33,6 +36,7 @@ class CalendarTests {
         attendeesContentUri = mockk(relaxed = true)
 
         calendarImplem = CalendarImplem(
+            context = context,
             contentResolver = contentResolver,
             permissionHandler = permissionHandler,
             calendarContentUri = calendarContentUri,
