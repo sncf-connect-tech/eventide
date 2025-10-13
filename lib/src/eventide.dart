@@ -319,6 +319,8 @@ class Eventide extends EventidePlatform {
 
   /// Creates a new attendee with the given [name], [email], and [type] for the event with the given [eventId].
   ///
+  /// Throws a [ETNotSupportedByPlatform] if the method is called on iOS. Make sure you handle it.
+  ///
   /// Throws a [ETPermissionException] if the user refuses to grant calendar permissions.
   ///
   /// Throws a [ETNotFoundException] if the event with the given [eventId] is not found.
@@ -346,6 +348,8 @@ class Eventide extends EventidePlatform {
   }
 
   /// Deletes the attendee with the given [attendee] for the event with the given [eventId].
+  ///
+  /// Throws a [ETNotSupportedByPlatform] if the method is called on iOS. Make sure you handle it.
   ///
   /// Throws a [ETPermissionException] if the user refuses to grant calendar permissions.
   ///

@@ -41,6 +41,14 @@ final class ETGenericException extends ETException {
   }) : super(code: 'GENERIC_ERROR');
 }
 
+/// An exception thrown when the requested operation is not supported by the platform.
+final class ETNotSupportedByPlatform extends ETException {
+  ETNotSupportedByPlatform({
+    required super.message,
+    super.details,
+  }) : super(code: 'NOT_SUPPORTED_BY_PLATFORM');
+}
+
 /// An exception thrown when the user cancels event creation in the native platform.
 final class ETUserCanceledException extends ETException {
   ETUserCanceledException({
@@ -70,6 +78,10 @@ extension PlatformExceptionToETCalendarException on PlatformException {
           details: details,
         ),
       'NOT_EDITABLE' => ETNotEditableException(
+          message: message,
+          details: details,
+        ),
+      'NOT_SUPPORTED_BY_PLATFORM' => ETNotSupportedByPlatform(
           message: message,
           details: details,
         ),
