@@ -55,6 +55,17 @@ abstract class CalendarApi {
   });
 
   @async
+  void createEventThroughNativePlatform({
+    String? title,
+    int? startDate,
+    int? endDate,
+    bool? isAllDay,
+    String? description,
+    String? url,
+    List<int>? reminders,
+  });
+
+  @async
   List<Event> retrieveEvents({
     required String calendarId,
     required int startDate,

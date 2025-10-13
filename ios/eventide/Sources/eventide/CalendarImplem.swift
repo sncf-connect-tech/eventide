@@ -163,6 +163,29 @@ class CalendarImplem: CalendarApi {
 
     }
     
+    func createEventThroughNativePlatform(
+        title: String?,
+        startDate: Int64?,
+        endDate: Int64?,
+        isAllDay: Bool?,
+        description: String?,
+        url: String?,
+        reminders: [Int64]?,
+        completion: @escaping (Result<Void, any Error>) -> Void
+    ) {
+        easyEventStore.presentEventCreationViewController(
+            title: title,
+            startDate: startDate != nil ? Date(from: startDate!) : nil,
+            endDate: endDate != nil ? Date(from: endDate!) : nil,
+            isAllDay: isAllDay,
+            description: description,
+            url: url,
+            timeIntervals: reminders?.compactMap { TimeInterval(-$0) }
+        ) { result in
+            completion(result)
+        }
+    }
+    
     func retrieveEvents(
         calendarId: String,
         startDate: Int64,

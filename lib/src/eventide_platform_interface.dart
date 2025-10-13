@@ -57,6 +57,16 @@ abstract class EventidePlatform extends PlatformInterface {
     List<Duration>? reminders,
   });
 
+  Future<void> createEventThroughNativePlatform({
+    String? title,
+    DateTime? startDate,
+    DateTime? endDate,
+    bool? isAllDay,
+    String? description,
+    String? url,
+    List<Duration>? reminders,
+  });
+
   Future<List<ETEvent>> retrieveEvents({
     required String calendarId,
     DateTime? startDate,

@@ -149,6 +149,8 @@ class Eventide extends EventidePlatform {
   ///
   /// Throws a [ETGenericException] if any other error occurs during event creation.
   ///
+  /// Not that this is a fire and forget method on Android. It will not wait the event creation to be done to return, so nothing will happen after this method call.
+  /// It is the same Android native implementation as [createEventThroughNativePlatform].
   @override
   Future<void> createEventInDefaultCalendar({
     required String title,
@@ -164,6 +166,49 @@ class Eventide extends EventidePlatform {
         title: title,
         startDate: startDate.toUtc().millisecondsSinceEpoch,
         endDate: endDate.toUtc().millisecondsSinceEpoch,
+        isAllDay: isAllDay,
+        description: description,
+        url: url,
+        reminders: reminders?.map((e) => e.toNativeDuration()).toList(),
+      );
+    } on PlatformException catch (e) {
+      throw e.toETException();
+    }
+  }
+
+  /// Creates a new event through the native platform's event creation UI with optional [title], [startDate], [endDate], [description], [url], and a list of [reminders] duration.
+  ///
+  /// /!\ Note that a [Duration] in seconds will not be supported by Android for API limitations.
+  ///
+  /// This method does not guarantee that an event will be created, as the user may cancel the operation.
+  /// If the user creates an event, it will be added to the selected calendar.
+  /// If the user cancels the operation, no event will be created.
+  ///
+  /// Throws a [ETPresentationException] if there is an error presenting the native event creation UI.
+  ///
+  /// Throws a [ETUserCanceledException] if the user cancels the event creation.
+  ///
+  /// Throws a [ETEventDeletedException] if the event is deleted during the creation
+  ///
+  /// Throws a [ETGenericException] if any other error occurs during event creation.
+  ///
+  /// Not that this is a fire and forget method on Android. It will not wait the event creation to be done to return, so nothing will happen after this method call.
+  /// It is the same Android native implementation as [createEventInDefaultCalendar].
+  @override
+  Future<void> createEventThroughNativePlatform({
+    String? title,
+    DateTime? startDate,
+    DateTime? endDate,
+    bool? isAllDay,
+    String? description,
+    String? url,
+    List<Duration>? reminders,
+  }) async {
+    try {
+      await _calendarApi.createEventThroughNativePlatform(
+        title: title,
+        startDate: startDate?.toUtc().millisecondsSinceEpoch,
+        endDate: endDate?.toUtc().millisecondsSinceEpoch,
         isAllDay: isAllDay,
         description: description,
         url: url,
@@ -279,8 +324,6 @@ class Eventide extends EventidePlatform {
   /// Throws a [ETNotFoundException] if the event with the given [eventId] is not found.
   ///
   /// Throws a [ETGenericException] if any other error occurs during attendee creation.
-  ///
-  /// ⚠️ Throws a [ETNotSupportedByPlatform] if this method is called from iOS.
   @override
   Future<ETEvent> createAttendee({
     required String eventId,
@@ -309,8 +352,6 @@ class Eventide extends EventidePlatform {
   /// Throws a [ETNotFoundException] if the event with the given [eventId] is not found.
   ///
   /// Throws a [ETGenericException] if any other error occurs during attendee deletion.
-  ///
-  /// ⚠️ Throws a [ETNotSupportedByPlatform] if this method is called from iOS.
   @override
   Future<ETEvent> deleteAttendee({
     required String eventId,

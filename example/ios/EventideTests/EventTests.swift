@@ -735,4 +735,228 @@ final class EventTests: XCTestCase {
         
         waitForExpectations(timeout: timeout)
     }
+    
+    // MARK: - Native Platform Event Creation Tests
+    
+    func testCreateEventThroughNativePlatform_userSaves() {
+        let expectation = expectation(description: "Event creation through native platform succeeded")
+        
+        let mockEasyEventStore = MockEasyEventStore(
+            calendars: [
+                MockCalendar(
+                    id: "1",
+                    title: "Test Calendar",
+                    color: UIColor.blue,
+                    isWritable: true,
+                    account: Account(name: "local", type: "local"),
+                    events: []
+                )
+            ]
+        )
+        
+        calendarImplem = CalendarImplem(
+            easyEventStore: mockEasyEventStore,
+            permissionHandler: PermissionGranted()
+        )
+        
+        calendarImplem.createEventThroughNativePlatform(
+            title: "Native Event",
+            startDate: Date().millisecondsSince1970,
+            endDate: Date().addingTimeInterval(3600).millisecondsSince1970,
+            isAllDay: false,
+            description: "Created through native UI",
+            url: "https://example.com",
+            reminders: [900] // 15 minutes
+        ) { result in
+            switch result {
+            case .success:
+                // Success means user saved the event
+                expectation.fulfill()
+            case .failure(let error):
+                XCTFail("Event creation should have succeeded, but failed with: \(error)")
+            }
+        }
+        
+        waitForExpectations(timeout: timeout)
+    }
+    
+    func testCreateEventThroughNativePlatform_userCancels() {
+        let expectation = expectation(description: "Event creation through native platform was canceled")
+        
+        // Create a mock that simulates user cancellation
+        let mockEasyEventStore = MockEasyEventStoreCanceled()
+        
+        calendarImplem = CalendarImplem(
+            easyEventStore: mockEasyEventStore,
+            permissionHandler: PermissionGranted()
+        )
+        
+        calendarImplem.createEventThroughNativePlatform(
+            title: "Native Event",
+            startDate: Date().millisecondsSince1970,
+            endDate: Date().addingTimeInterval(3600).millisecondsSince1970,
+            isAllDay: false,
+            description: "This should be canceled",
+            url: nil,
+            reminders: nil
+        ) { result in
+            switch result {
+            case .success:
+                XCTFail("Event creation should have been canceled")
+            case .failure(let error):
+                // Check that it's the right type of error
+                if let pigeonError = error as? PigeonError {
+                    XCTAssertEqual(pigeonError.code, "USER_CANCELED")
+                    XCTAssertEqual(pigeonError.message, "User canceled event creation")
+                    expectation.fulfill()
+                } else {
+                    XCTFail("Expected PigeonError with USER_CANCELED code")
+                }
+            }
+        }
+        
+        waitForExpectations(timeout: timeout)
+    }
+    
+    func testCreateEventThroughNativePlatform_presentationError() {
+        let expectation = expectation(description: "Event creation through native platform failed to present")
+        
+        // Create a mock that simulates presentation error
+        let mockEasyEventStore = MockEasyEventStorePresentationError()
+        
+        calendarImplem = CalendarImplem(
+            easyEventStore: mockEasyEventStore,
+            permissionHandler: PermissionGranted()
+        )
+        
+        calendarImplem.createEventThroughNativePlatform(
+            title: "Native Event",
+            startDate: nil,
+            endDate: nil,
+            isAllDay: nil,
+            description: nil,
+            url: nil,
+            reminders: nil
+        ) { result in
+            switch result {
+            case .success:
+                XCTFail("Event creation should have failed with presentation error")
+            case .failure(let error):
+                // Check that it's the right type of error
+                if let pigeonError = error as? PigeonError {
+                    XCTAssertEqual(pigeonError.code, "PRESENTATION_ERROR")
+                    XCTAssertEqual(pigeonError.message, "Unable to present event creation view")
+                    expectation.fulfill()
+                } else {
+                    XCTFail("Expected PigeonError with PRESENTATION_ERROR code")
+                }
+            }
+        }
+        
+        waitForExpectations(timeout: timeout)
+    }
+    
+    func testCreateEventThroughNativePlatform_noPermissionsRequired() {
+        let expectation = expectation(description: "Event creation through native platform works without permissions")
+        
+        let mockEasyEventStore = MockEasyEventStore()
+        
+        // Use PermissionRefused to prove that no permissions are checked
+        calendarImplem = CalendarImplem(
+            easyEventStore: mockEasyEventStore,
+            permissionHandler: PermissionRefused()
+        )
+        
+        calendarImplem.createEventThroughNativePlatform(
+            title: "No Permissions Event",
+            startDate: Date().millisecondsSince1970,
+            endDate: Date().addingTimeInterval(3600).millisecondsSince1970,
+            isAllDay: true,
+            description: "This should work even without permissions",
+            url: nil,
+            reminders: [300, 600] // 5 and 10 minutes
+        ) { result in
+            switch result {
+            case .success:
+                // Success proves that no permission check was performed
+                expectation.fulfill()
+            case .failure(let error):
+                XCTFail("Event creation should have succeeded without permission check, but failed with: \(error)")
+            }
+        }
+        
+        waitForExpectations(timeout: timeout)
+    }
+    
+    func testCreateEventThroughNativePlatform_eventDeleted() {
+        let expectation = expectation(description: "Event creation through native platform - event deleted")
+        
+        let mockEasyEventStore = MockEasyEventStoreEventDeleted()
+        
+        calendarImplem = CalendarImplem(
+            easyEventStore: mockEasyEventStore,
+            permissionHandler: PermissionGranted()
+        )
+        
+        calendarImplem.createEventThroughNativePlatform(
+            title: "Event to be deleted",
+            startDate: Date().millisecondsSince1970,
+            endDate: Date().addingTimeInterval(3600).millisecondsSince1970,
+            isAllDay: false,
+            description: nil,
+            url: nil,
+            reminders: nil
+        ) { result in
+            switch result {
+            case .success:
+                XCTFail("Event creation should have failed with event deleted")
+            case .failure(let error):
+                if let pigeonError = error as? PigeonError {
+                    XCTAssertEqual(pigeonError.code, "EVENT_DELETED")
+                    XCTAssertEqual(pigeonError.message, "Event was deleted")
+                    expectation.fulfill()
+                } else {
+                    XCTFail("Expected PigeonError with EVENT_DELETED code")
+                }
+            }
+        }
+        
+        waitForExpectations(timeout: timeout)
+    }
+    
+    func testCreateEventThroughNativePlatform_unknownAction() {
+        let expectation = expectation(description: "Event creation through native platform - unknown action")
+        
+        let mockEasyEventStore = MockEasyEventStoreUnknownAction()
+        
+        calendarImplem = CalendarImplem(
+            easyEventStore: mockEasyEventStore,
+            permissionHandler: PermissionGranted()
+        )
+        
+        calendarImplem.createEventThroughNativePlatform(
+            title: "Unknown action event",
+            startDate: nil,
+            endDate: nil,
+            isAllDay: nil,
+            description: nil,
+            url: nil,
+            reminders: nil
+        ) { result in
+            switch result {
+            case .success:
+                XCTFail("Event creation should have failed with unknown action")
+            case .failure(let error):
+                if let pigeonError = error as? PigeonError {
+                    XCTAssertEqual(pigeonError.code, "GENERIC_ERROR")
+                    XCTAssertEqual(pigeonError.message, "Unknown action from event edit controller")
+                    expectation.fulfill()
+                } else {
+                    XCTFail("Expected PigeonError with GENERIC_ERROR code")
+                }
+            }
+        }
+        
+        waitForExpectations(timeout: timeout)
+    }
 }

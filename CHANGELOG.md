@@ -1,3 +1,22 @@
+## 1.0.0
+* **Breaking Change - Android Permissions:** Removed default calendar permissions from eventide's `AndroidManifest.xml`. Apps must now declare needed permissions based on their usage:
+  * `android.permission.READ_CALENDAR` for reading calendars/events
+  * `android.permission.WRITE_CALENDAR` for creating/modifying calendars/events
+  * No permissions required for `createEventInDefaultCalendar()` or `createEventThroughNativePlatform()` (use system Intent)
+* **Android Enhancement:** `createEventInDefaultCalendar()` now uses system Intent to open calendar app directly (no permissions needed)
+* **New Method:** Added `createEventThroughNativePlatform()` for platform-native event creation
+  * iOS: Opens native event creation modal with write-only permission support
+  * Android: Uses system calendar app (identical behavior to `createEventInDefaultCalendar()`)
+  * All parameters optional for maximum flexibility
+  * No permissions required in AndroidManifest.xml or Info.plist
+* **Enhanced Exception Handling:** Added new specific exception types:
+  * `ETUserCanceledException`: User canceled event creation in native platform
+  * `ETPresentationException`: Event creation view cannot be presented
+* **Removed Exception:** Removed unused `ETNotSupportedByPlatform` exception
+* **Privacy-First Approach:** Enhanced documentation emphasizing user privacy and minimal permission requests
+* **Android Bug Fix:** Fixed `allDay` attribute Boolean to Int cast in event creation
+* **CI/CD Improvements:** Removed conditional CI jobs for better workflow reliability
+
 ## 0.10.2
 * **Android fix:** `createEventInDefaultCalendar()` did not retrieve any default calendar when there was multiple primary calendars. Now also returns any writable calendar when there is no primary calendars
 

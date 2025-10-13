@@ -10,9 +10,11 @@ import UIKit
 
 final class EasyEventStore: EasyEventStoreProtocol {
     private let eventStore: EKEventStore
+    private let eventEditManager: EventEditViewControllerManager
     
     init(eventStore: EKEventStore) {
         self.eventStore = eventStore
+        self.eventEditManager = EventEditViewControllerManager(eventStore: eventStore)
     }
     
     func createCalendar(title: String, color: UIColor, localAccountName: String) throws -> Calendar {
@@ -169,6 +171,28 @@ final class EasyEventStore: EasyEventStoreProtocol {
                 details: nil
             )
         }
+    }
+    
+    func presentEventCreationViewController(
+        title: String?,
+        startDate: Date?,
+        endDate: Date?,
+        isAllDay: Bool?,
+        description: String?,
+        url: String?,
+        timeIntervals: [TimeInterval]?,
+        completion: @escaping (Result<Void, Error>) -> Void
+    ) {
+        eventEditManager.presentEventEditViewController(
+            title: title,
+            startDate: startDate,
+            endDate: endDate,
+            isAllDay: isAllDay,
+            description: description,
+            url: url,
+            timeIntervals: timeIntervals,
+            completion: completion
+        )
     }
     
     func retrieveEvents(calendarId: String, startDate: Date, endDate: Date) throws -> [Event] {
