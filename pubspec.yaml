@@ -10,9 +10,9 @@ topics:
   - eventide
 
 workspace:
-  - example/full-permission
-  - example/write-only
-  - example/native-only
+  - example/apps/full-permission
+  - example/apps/write-only
+  - example/apps/native-only
 
 keywords:
   - flutter
