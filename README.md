@@ -142,7 +142,7 @@ final updatedEvent = await eventide.deleteReminder(
 );
 ```
 
-You can find more examples in the [example app](./example).
+You can find more examples in the [examples app](./example/apps).
 
 ---
 
