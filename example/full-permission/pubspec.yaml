@@ -1,9 +1,10 @@
 name: eventide_example_full_permission
 description: "Demonstrates how to use the eventide plugin."
 publish_to: 'none'
+resolution: workspace
 
 environment:
-  sdk: '>=3.3.1 <4.0.0'
+  sdk: '>=3.6.0 <4.0.0'
 
 dependencies:
   flutter:
