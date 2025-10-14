@@ -1,6 +1,7 @@
-## 1.x.x
+## 1.0.0+1
 * **Restored ETNotSupportedByPlatform** as it was thrown by `createAttendee()` and `removeAttendee()` methods on iOS.
 * **Splitted example app** into 3 "use-case" apps
+* **Quickstart example** for pub.dev
 
 ## 1.0.0
 * **Breaking Change - Android Permissions:** Removed default calendar permissions from eventide's `AndroidManifest.xml`. Apps must now declare needed permissions based on their usage:
