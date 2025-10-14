@@ -9,6 +9,11 @@ topics:
   - native
   - eventide
 
+workspace:
+  - example/apps/full-permission
+  - example/apps/write-only
+  - example/apps/native-only
+
 keywords:
   - flutter
   - calendar

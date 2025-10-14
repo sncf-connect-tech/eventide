@@ -1,0 +1,24 @@
+name: eventide_example_write_only
+description: "Demonstrates how to use the eventide plugin."
+publish_to: 'none'
+resolution: workspace
+
+environment:
+  sdk: '>=3.6.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  eventide:
+    path: ../../../
+  cupertino_icons: ^1.0.6
+  timezone: ^0.10.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+flutter:
+  uses-material-design: true
