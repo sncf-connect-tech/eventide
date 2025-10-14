@@ -56,11 +56,11 @@ final class AttendeeTests: XCTestCase {
                 XCTFail("Attendee creation should fail on iOS platform")
             case .failure(let error):
                 if let pigeonError = error as? PigeonError {
-                    XCTAssertEqual(pigeonError.code, "INCOMPATIBLE_PLATFORM")
+                    XCTAssertEqual(pigeonError.code, "NOT_SUPPORTED_BY_PLATFORM")
                     XCTAssertEqual(pigeonError.message, "Platform does not handle this method")
                     XCTAssertEqual(pigeonError.details as? String, "EventKit API does not support attendee addition")
                 } else {
-                    XCTFail("Expected PigeonError with INCOMPATIBLE_PLATFORM code")
+                    XCTFail("Expected PigeonError with NOT_SUPPORTED_BY_PLATFORM code")
                 }
                 expectation.fulfill()
             }
@@ -91,7 +91,7 @@ final class AttendeeTests: XCTestCase {
                 XCTFail("Attendee creation should fail due to platform incompatibility")
             case .failure(let error):
                 if let pigeonError = error as? PigeonError {
-                    XCTAssertEqual(pigeonError.code, "INCOMPATIBLE_PLATFORM")
+                    XCTAssertEqual(pigeonError.code, "NOT_SUPPORTED_BY_PLATFORM")
                 } else {
                     XCTFail("Expected PigeonError")
                 }
@@ -143,11 +143,11 @@ final class AttendeeTests: XCTestCase {
                 XCTFail("Attendee deletion should fail on iOS platform")
             case .failure(let error):
                 if let pigeonError = error as? PigeonError {
-                    XCTAssertEqual(pigeonError.code, "INCOMPATIBLE_PLATFORM")
+                    XCTAssertEqual(pigeonError.code, "NOT_SUPPORTED_BY_PLATFORM")
                     XCTAssertEqual(pigeonError.message, "Platform does not handle this method")
                     XCTAssertEqual(pigeonError.details as? String, "EventKit API does not support attendee deletion")
                 } else {
-                    XCTFail("Expected PigeonError with INCOMPATIBLE_PLATFORM code")
+                    XCTFail("Expected PigeonError with NOT_SUPPORTED_BY_PLATFORM code")
                 }
                 expectation.fulfill()
             }
@@ -175,7 +175,7 @@ final class AttendeeTests: XCTestCase {
                 XCTFail("Attendee deletion should fail due to platform incompatibility")
             case .failure(let error):
                 if let pigeonError = error as? PigeonError {
-                    XCTAssertEqual(pigeonError.code, "INCOMPATIBLE_PLATFORM")
+                    XCTAssertEqual(pigeonError.code, "NOT_SUPPORTED_BY_PLATFORM")
                 } else {
                     XCTFail("Expected PigeonError")
                 }

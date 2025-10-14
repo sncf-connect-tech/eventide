@@ -292,7 +292,7 @@ class CalendarImplem: CalendarApi {
         /// https://developer.apple.com/documentation/eventkit/ekparticipant#overview
         completion(.failure(
             PigeonError(
-                code: "INCOMPATIBLE_PLATFORM",
+                code: "NOT_SUPPORTED_BY_PLATFORM",
                 message: "Platform does not handle this method",
                 details: "EventKit API does not support attendee addition"
             )
@@ -308,7 +308,7 @@ class CalendarImplem: CalendarApi {
         /// https://developer.apple.com/documentation/eventkit/ekparticipant#overview
         completion(.failure(
             PigeonError(
-                code: "INCOMPATIBLE_PLATFORM",
+                code: "NOT_SUPPORTED_BY_PLATFORM",
                 message: "Platform does not handle this method",
                 details: "EventKit API does not support attendee deletion"
             )

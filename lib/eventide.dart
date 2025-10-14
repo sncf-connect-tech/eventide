@@ -10,5 +10,6 @@ export 'src/eventide_exception.dart'
         ETNotEditableException,
         ETNotFoundException,
         ETGenericException,
+        ETNotSupportedByPlatform,
         ETUserCanceledException,
         ETPresentationException;

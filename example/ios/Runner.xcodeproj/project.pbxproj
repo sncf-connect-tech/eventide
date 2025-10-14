@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 54;
+	objectVersion = 60;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -20,6 +20,7 @@
 		EA8AABCB2D8D884300A1D69B /* ReminderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA8AABCA2D8D884300A1D69B /* ReminderTests.swift */; };
 		EA8AABCD2D8D889600A1D69B /* CalendarTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA8AABCC2D8D889600A1D69B /* CalendarTests.swift */; };
 		EA8AABD12D8D891A00A1D69B /* EventTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA8AABD02D8D891A00A1D69B /* EventTests.swift */; };
+		EAD7A2722E9E3B5200ED8FE9 /* AttendeeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAD7A2712E9E3B5200ED8FE9 /* AttendeeTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -51,6 +52,7 @@
 		3B3967151E833CAA004F5970 /* AppFrameworkInfo.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = AppFrameworkInfo.plist; path = Flutter/AppFrameworkInfo.plist; sourceTree = "<group>"; };
 		74858FAD1ED2DC5600515810 /* Runner-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Runner-Bridging-Header.h"; sourceTree = "<group>"; };
 		74858FAE1ED2DC5600515810 /* AppDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		78E0A7A72DC9AD7400C4905E /* FlutterGeneratedPluginSwiftPackage */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = FlutterGeneratedPluginSwiftPackage; path = Flutter/ephemeral/Packages/FlutterGeneratedPluginSwiftPackage; sourceTree = "<group>"; };
 		7AFA3C8E1D35360C0083082E /* Release.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = Release.xcconfig; path = Flutter/Release.xcconfig; sourceTree = "<group>"; };
 		9740EEB21CF90195004384FC /* Debug.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; name = Debug.xcconfig; path = Flutter/Debug.xcconfig; sourceTree = "<group>"; };
 		9740EEB31CF90195004384FC /* Generated.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; name = Generated.xcconfig; path = Flutter/Generated.xcconfig; sourceTree = "<group>"; };
@@ -65,8 +67,8 @@
 		EA8AABCA2D8D884300A1D69B /* ReminderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReminderTests.swift; sourceTree = "<group>"; };
 		EA8AABCC2D8D889600A1D69B /* CalendarTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarTests.swift; sourceTree = "<group>"; };
 		EA8AABD02D8D891A00A1D69B /* EventTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventTests.swift; sourceTree = "<group>"; };
+		EAD7A2712E9E3B5200ED8FE9 /* AttendeeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AttendeeTests.swift; sourceTree = "<group>"; };
 		EAECB9432D395CA3000FAA80 /* UtilsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UtilsTests.swift; sourceTree = "<group>"; };
-		78E0A7A72DC9AD7400C4905E /* FlutterGeneratedPluginSwiftPackage */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = FlutterGeneratedPluginSwiftPackage; path = Flutter/ephemeral/Packages/FlutterGeneratedPluginSwiftPackage; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -146,6 +148,7 @@
 			isa = PBXGroup;
 			children = (
 				EA5CD6D02D8C9A4C004CFD37 /* Mocks */,
+				EAD7A2712E9E3B5200ED8FE9 /* AttendeeTests.swift */,
 				EA8AABCA2D8D884300A1D69B /* ReminderTests.swift */,
 				EA8AABCC2D8D889600A1D69B /* CalendarTests.swift */,
 				EA8AABD02D8D891A00A1D69B /* EventTests.swift */,
@@ -323,6 +326,7 @@
 				EA5CD6CF2D8C9A3B004CFD37 /* MockEasyEventStore.swift in Sources */,
 				EA5CD6CE2D8C9A3B004CFD37 /* MockPermissionHandler.swift in Sources */,
 				EA8AABCB2D8D884300A1D69B /* ReminderTests.swift in Sources */,
+				EAD7A2722E9E3B5200ED8FE9 /* AttendeeTests.swift in Sources */,
 				EA8AABD12D8D891A00A1D69B /* EventTests.swift in Sources */,
 				EA8AABCD2D8D889600A1D69B /* CalendarTests.swift in Sources */,
 			);

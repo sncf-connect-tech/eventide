@@ -39,6 +39,17 @@ void main() {
       expect(etException.message, 'Not editable');
     });
 
+    test('Converts PlatformException to ETNotSupportedByPlatform', () {
+      final platformException = PlatformException(
+        code: 'NOT_SUPPORTED_BY_PLATFORM',
+        message: 'Not supported by platform',
+      );
+      final etException = platformException.toETException();
+      expect(etException, isA<ETNotSupportedByPlatform>());
+      expect(etException.code, 'NOT_SUPPORTED_BY_PLATFORM');
+      expect(etException.message, 'Not supported by platform');
+    });
+
     test('Converts PlatformException to ETGenericException', () {
       final platformException = PlatformException(
         code: 'UNKNOWN_ERROR',
