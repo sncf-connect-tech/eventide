@@ -1,3 +1,6 @@
+## 1.0.1
+* **Restored example app** as it was not appearing on pub.dev. Put the more complex examples in new `example/more-complex/` folder.
+
 ## 1.0.0+1
 * **Restored ETNotSupportedByPlatform** as it was thrown by `createAttendee()` and `removeAttendee()` methods on iOS.
 * **Splitted example app** into 3 "use-case" apps

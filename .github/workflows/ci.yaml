@@ -79,13 +79,13 @@ jobs:
           brew install xcresultparser
           flutter config --enable-swift-package-manager
           flutter pub get
-          cd example/apps/full-permission/ios
+          cd example/ios
           flutter build ios --config-only
           cd ../..
 
       - name: Run tests
         run: |
-          xcodebuild test -workspace ./example/apps/full-permission/ios/Runner.xcworkspace \
+          xcodebuild test -workspace ./example/ios/Runner.xcworkspace \
             -scheme EventideTests \
             -destination "platform=iOS Simulator,name=${{ env.IPHONE_NAME }},OS=${{ env.IPHONE_OS_VERSION }}" \
             -resultBundlePath build/reports/EventideTests.xcresult \
@@ -124,7 +124,7 @@ jobs:
 
       - name: Build and test
         run: |
-          ./example/apps/full-permission/android/gradlew testDebugUnitTest -p ./example/apps/full-permission/android/
+          ./example/android/gradlew testDebugUnitTest -p ./example/android/
 
       - name: Upload coverage report as artifact
         uses: actions/upload-artifact@v4
