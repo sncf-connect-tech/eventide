@@ -1,3 +1,11 @@
+## 1.0.2
+* **Android URL Support:** Added comprehensive URL handling for event creation and retrieval. Android Calendar API lacks native URL field support, so implemented intelligent description/URL merging system that preserves both fields while maintaining compatibility with existing calendar apps
+* **Enhanced Native-Only Example App:** Added prefill parameters toggle to demonstrate `createEventThroughNativePlatform()` flexibility
+  * New configuration switch to enable/disable parameter pre-population
+  * Demonstrates both empty form (no parameters) and prefilled form usage patterns
+  * Dynamic UI that adapts button text and success messages based on toggle state
+  * Improved user experience for testing different API usage scenarios
+
 ## 1.0.1
 * **Restored example app** as it was not appearing on pub.dev. Put the more complex examples in new `example/more-complex/` folder.
 

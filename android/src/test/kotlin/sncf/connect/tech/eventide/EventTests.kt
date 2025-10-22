@@ -485,7 +485,7 @@ class EventTests {
                 startDate = startMilli,
                 endDate = endMilli,
                 isAllDay = false,
-                description = "Test Description"
+                description = "Test Description\n\nhttps://example.com"
             )
         }
 
