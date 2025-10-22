@@ -280,10 +280,12 @@ class CalendarImplem(
             CoroutineScope(Dispatchers.IO).launch {
                 try {
                     if (isCalendarWritable(calendarId)) {
+                        val mergedDescription = DescriptionUrlHelper.mergeDescriptionAndUrl(description, url)
+
                         val eventValues = ContentValues().apply {
                             put(CalendarContract.Events.CALENDAR_ID, calendarId)
                             put(CalendarContract.Events.TITLE, title)
-                            put(CalendarContract.Events.DESCRIPTION, description)
+                            put(CalendarContract.Events.DESCRIPTION, mergedDescription)
                             put(CalendarContract.Events.DTSTART, startDate)
                             put(CalendarContract.Events.DTEND, endDate)
                             put(CalendarContract.Events.EVENT_TIMEZONE, "UTC")
@@ -316,6 +318,7 @@ class CalendarImplem(
                                     endDate = endDate,
                                     calendarId = calendarId,
                                     description = description,
+                                    url = url,
                                     isAllDay = isAllDay,
                                     reminders = reminders ?: emptyList(),
                                     attendees = emptyList(),
@@ -380,13 +383,14 @@ class CalendarImplem(
         reminders: List<Long>?,
         callback: (Result<Unit>) -> Unit
     ) {
+        val mergedDescription = DescriptionUrlHelper.mergeDescriptionAndUrl(description, url)
         activityManager.startCreateEventActivity(
             eventContentUri = eventContentUri,
             title = title,
             startDate = startDate,
             endDate = endDate,
             isAllDay = isAllDay,
-            description = description,
+            description = mergedDescription,
         )
         callback(Result.success(Unit))
     }
@@ -402,13 +406,14 @@ class CalendarImplem(
         callback: (Result<Unit>) -> Unit
     ) {
         try {
+            val mergedDescription = DescriptionUrlHelper.mergeDescriptionAndUrl(description, url)
             activityManager.startCreateEventActivity(
                 eventContentUri = eventContentUri,
                 title = title,
                 startDate = startDate,
                 endDate = endDate,
                 isAllDay = isAllDay,
-                description = description,
+                description = mergedDescription,
             )
             callback(Result.success(Unit))
         } catch (e: Exception) {
@@ -463,8 +468,9 @@ class CalendarImplem(
                         while (c.moveToNext()) {
                             val id = c.getString(c.getColumnIndexOrThrow(CalendarContract.Events._ID))
                             val title = c.getString(c.getColumnIndexOrThrow(CalendarContract.Events.TITLE))
-                            val description =
+                            val storedDescription =
                                 c.getString(c.getColumnIndexOrThrow(CalendarContract.Events.DESCRIPTION))
+                            val (parsedDescription, parsedUrl) = DescriptionUrlHelper.splitDescriptionAndUrl(storedDescription)
                             val start = c.getLong(c.getColumnIndexOrThrow(CalendarContract.Events.DTSTART))
                             val end = c.getLong(c.getColumnIndexOrThrow(CalendarContract.Events.DTEND))
                             val isAllDay = c.getInt(c.getColumnIndexOrThrow(CalendarContract.Events.ALL_DAY)).toBoolean()
@@ -503,7 +509,8 @@ class CalendarImplem(
                                     startDate = start,
                                     endDate = end,
                                     calendarId = calendarId,
-                                    description = description,
+                                    description = parsedDescription,
+                                    url = parsedUrl,
                                     isAllDay = isAllDay,
                                     reminders = reminders,
                                     attendees = attendees
@@ -862,7 +869,8 @@ class CalendarImplem(
                 if (it.moveToNext()) {
                     val id = it.getString(it.getColumnIndexOrThrow(CalendarContract.Events._ID))
                     val title = it.getString(it.getColumnIndexOrThrow(CalendarContract.Events.TITLE))
-                    val description = it.getString(it.getColumnIndexOrThrow(CalendarContract.Events.DESCRIPTION))
+                    val storedDescription = it.getString(it.getColumnIndexOrThrow(CalendarContract.Events.DESCRIPTION))
+                    val (parsedDescription, parsedUrl) = DescriptionUrlHelper.splitDescriptionAndUrl(storedDescription)
                     val isAllDay = it.getInt(it.getColumnIndexOrThrow(CalendarContract.Events.ALL_DAY)).toBoolean()
                     val startDate = it.getLong(it.getColumnIndexOrThrow(CalendarContract.Events.DTSTART))
                     val endDate = it.getLong(it.getColumnIndexOrThrow(CalendarContract.Events.DTEND))
@@ -901,7 +909,8 @@ class CalendarImplem(
                         startDate = startDate,
                         endDate = endDate,
                         calendarId = calendarId,
-                        description = description,
+                        description = parsedDescription,
+                        url = parsedUrl,
                         isAllDay = isAllDay,
                         reminders = reminders,
                         attendees = attendees
@@ -1020,3 +1029,4 @@ class CalendarImplem(
 private fun Boolean.toInt() = if (this) 1 else 0
 
 private fun Int.toBoolean() = this != 0
+

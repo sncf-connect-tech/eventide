@@ -1,3 +1,4 @@
+// ignore_for_file: deprecated_member_use
 import 'package:eventide/eventide.dart';
 import 'package:flutter/material.dart';
 
@@ -22,10 +23,16 @@ final class MyApp extends StatelessWidget {
   }
 }
 
-class NativeOnlyDemoPage extends StatelessWidget {
-  final Eventide eventide = Eventide();
+class NativeOnlyDemoPage extends StatefulWidget {
+  const NativeOnlyDemoPage({super.key});
 
-  NativeOnlyDemoPage({super.key});
+  @override
+  State<NativeOnlyDemoPage> createState() => _NativeOnlyDemoPageState();
+}
+
+class _NativeOnlyDemoPageState extends State<NativeOnlyDemoPage> {
+  final Eventide eventide = Eventide();
+  bool _prefillParameters = false;
 
   @override
   Widget build(BuildContext context) {
@@ -118,6 +125,35 @@ class NativeOnlyDemoPage extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 24),
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Configuration:',
+                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
+                      ),
+                      const SizedBox(height: 12),
+                      SwitchListTile(
+                        title: const Text('Prefill Parameters'),
+                        subtitle: const Text('Pre-populate the form with sample values'),
+                        value: _prefillParameters,
+                        onChanged: (bool value) {
+                          setState(() {
+                            _prefillParameters = value;
+                          });
+                        },
+                        activeColor: Colors.purple,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 24),
               Center(
                 child: SizedBox(
                   width: double.infinity,
@@ -125,9 +161,10 @@ class NativeOnlyDemoPage extends StatelessWidget {
                   child: ElevatedButton.icon(
                     onPressed: () => _createEventThroughNativeUI(context),
                     icon: const Icon(Icons.smartphone, size: 28),
-                    label: const Text(
-                      'Open Native Event Creator',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    label: Text(
+                      _prefillParameters ? 'Open with Prefilled Parameters' : 'Open Native Event Creator',
+                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      textAlign: TextAlign.center,
                     ),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.purple,
@@ -160,6 +197,7 @@ class NativeOnlyDemoPage extends StatelessWidget {
                       _buildSimpleFeature('✅ Works on both iOS and Android'),
                       _buildSimpleFeature('🎨 Matches system UI design'),
                       _buildSimpleFeature('⚡ Instant access, no setup required'),
+                      _buildSimpleFeature('⚙️ Optional parameters: empty form or prefilled'),
                     ],
                   ),
                 ),
@@ -209,12 +247,30 @@ class NativeOnlyDemoPage extends StatelessWidget {
 
   void _createEventThroughNativeUI(BuildContext context) async {
     try {
-      await eventide.createEventThroughNativePlatform();
+      if (_prefillParameters) {
+        final now = DateTime.now();
+        await eventide.createEventThroughNativePlatform(
+          title: 'Sample Event',
+          startDate: now.add(const Duration(hours: 1)),
+          endDate: now.add(const Duration(hours: 2)),
+          isAllDay: false,
+          description: 'This is an event created from the Eventide app with prefilled parameters.',
+          url: 'https://example.com',
+          reminders: [
+            const Duration(minutes: 15),
+            const Duration(minutes: 5),
+          ],
+        );
+      } else {
+        await eventide.createEventThroughNativePlatform();
+      }
 
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Event created successfully through native UI!'),
+          SnackBar(
+            content: Text(_prefillParameters
+                ? 'Event with prefilled parameters created successfully!'
+                : 'Native interface opened with empty form!'),
             backgroundColor: Colors.green,
             behavior: SnackBarBehavior.floating,
           ),
