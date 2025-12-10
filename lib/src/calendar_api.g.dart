@@ -100,6 +100,7 @@ class Event {
     required this.attendees,
     this.description,
     this.url,
+    this.location,
   });
 
   String id;
@@ -122,6 +123,8 @@ class Event {
 
   String? url;
 
+  String? location;
+
   List<Object?> _toList() {
     return <Object?>[
       id,
@@ -134,6 +137,7 @@ class Event {
       attendees,
       description,
       url,
+      location,
     ];
   }
 
@@ -154,6 +158,7 @@ class Event {
       attendees: (result[7] as List<Object?>?)!.cast<Attendee>(),
       description: result[8] as String?,
       url: result[9] as String?,
+      location: result[10] as String?,
     );
   }
 
@@ -459,6 +464,7 @@ class CalendarApi {
     required bool isAllDay,
     required String? description,
     required String? url,
+    required String? location,
     required List<int>? reminders,
   }) async {
     final String pigeonVar_channelName =
@@ -468,8 +474,8 @@ class CalendarApi {
       pigeonChannelCodec,
       binaryMessenger: pigeonVar_binaryMessenger,
     );
-    final Future<Object?> pigeonVar_sendFuture =
-        pigeonVar_channel.send(<Object?>[calendarId, title, startDate, endDate, isAllDay, description, url, reminders]);
+    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel
+        .send(<Object?>[calendarId, title, startDate, endDate, isAllDay, description, url, location, reminders]);
     final List<Object?>? pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
     if (pigeonVar_replyList == null) {
       throw _createConnectionError(pigeonVar_channelName);
@@ -496,6 +502,7 @@ class CalendarApi {
     required bool isAllDay,
     required String? description,
     required String? url,
+    required String? location,
     required List<int>? reminders,
   }) async {
     final String pigeonVar_channelName =
@@ -506,7 +513,7 @@ class CalendarApi {
       binaryMessenger: pigeonVar_binaryMessenger,
     );
     final Future<Object?> pigeonVar_sendFuture =
-        pigeonVar_channel.send(<Object?>[title, startDate, endDate, isAllDay, description, url, reminders]);
+        pigeonVar_channel.send(<Object?>[title, startDate, endDate, isAllDay, description, url, location, reminders]);
     final List<Object?>? pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
     if (pigeonVar_replyList == null) {
       throw _createConnectionError(pigeonVar_channelName);
@@ -528,6 +535,7 @@ class CalendarApi {
     bool? isAllDay,
     String? description,
     String? url,
+    String? location,
     List<int>? reminders,
   }) async {
     final String pigeonVar_channelName =
@@ -538,7 +546,7 @@ class CalendarApi {
       binaryMessenger: pigeonVar_binaryMessenger,
     );
     final Future<Object?> pigeonVar_sendFuture =
-        pigeonVar_channel.send(<Object?>[title, startDate, endDate, isAllDay, description, url, reminders]);
+        pigeonVar_channel.send(<Object?>[title, startDate, endDate, isAllDay, description, url, location, reminders]);
     final List<Object?>? pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
     if (pigeonVar_replyList == null) {
       throw _createConnectionError(pigeonVar_channelName);

@@ -15,6 +15,7 @@ class CalendarActivityManager(private val context: Context) {
         endDate: Long? = null,
         isAllDay: Boolean?,
         description: String? = null,
+        location: String? = null,
     ) {
         val intent = Intent(Intent.ACTION_INSERT)
         intent.setDataAndType(eventContentUri, "vnd.android.cursor.dir/event")
@@ -22,6 +23,7 @@ class CalendarActivityManager(private val context: Context) {
         intent.putExtra(CalendarContract.EXTRA_EVENT_END_TIME, endDate)
         intent.putExtra(CalendarContract.Events.TITLE, title)
         intent.putExtra(CalendarContract.Events.DESCRIPTION, description)
+        intent.putExtra(CalendarContract.Events.EVENT_LOCATION, location)
         intent.putExtra(CalendarContract.Events.EVENT_TIMEZONE, "UTC")
         intent.putExtra(CalendarContract.Events.ALL_DAY, isAllDay.toInt())
 

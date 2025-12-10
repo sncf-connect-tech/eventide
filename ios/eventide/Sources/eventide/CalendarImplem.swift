@@ -109,6 +109,7 @@ class CalendarImplem: CalendarApi {
         isAllDay: Bool,
         description: String?,
         url: String?,
+        location: String?,
         reminders: [Int64]?,
         completion: @escaping (Result<Event, Error>) -> Void) {
         permissionHandler.checkCalendarAccessThenExecute(.writeOnly) { [self] in
@@ -121,14 +122,15 @@ class CalendarImplem: CalendarApi {
                     isAllDay: isAllDay,
                     description: description,
                     url: url,
+                    location: location,
                     timeIntervals: reminders?.compactMap { TimeInterval(-$0) }
                 )
                 completion(.success(createdEvent))
-                
+
             } catch {
                 completion(.failure(error))
             }
-            
+
         } onPermissionRefused: {
             completion(.failure(PigeonError(
                 code: "ACCESS_REFUSED",
@@ -147,6 +149,7 @@ class CalendarImplem: CalendarApi {
         isAllDay: Bool,
         description: String?,
         url: String?,
+        location: String?,
         reminders: [Int64]?,
         completion: @escaping (Result<Void, any Error>) -> Void
     ) {
@@ -159,14 +162,15 @@ class CalendarImplem: CalendarApi {
                     isAllDay: isAllDay,
                     description: description,
                     url: url,
+                    location: location,
                     timeIntervals: reminders?.compactMap { TimeInterval(-$0) }
                 )
                 completion(.success(()))
-                
+
             } catch {
                 completion(.failure(error))
             }
-            
+
         } onPermissionRefused: {
             completion(.failure(PigeonError(
                 code: "ACCESS_REFUSED",
@@ -186,6 +190,7 @@ class CalendarImplem: CalendarApi {
         isAllDay: Bool?,
         description: String?,
         url: String?,
+        location: String?,
         reminders: [Int64]?,
         completion: @escaping (Result<Void, any Error>) -> Void
     ) {
@@ -196,6 +201,7 @@ class CalendarImplem: CalendarApi {
             isAllDay: isAllDay,
             description: description,
             url: url,
+            location: location,
             timeIntervals: reminders?.compactMap { TimeInterval(-$0) }
         ) { result in
             completion(result)

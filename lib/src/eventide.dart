@@ -118,7 +118,7 @@ class Eventide extends EventidePlatform {
   }
 
   /// Creates a new event with the given [title], [startDate], [endDate], and [calendarId].
-  /// Optionally, you can provide a [description], [url], and a list of [reminders] duration.
+  /// Optionally, you can provide a [description], [url], [location], and a list of [reminders] duration.
   ///
   /// /!\ Note that a [Duration] in seconds will not be supported by Android for API limitations.
   ///
@@ -138,6 +138,7 @@ class Eventide extends EventidePlatform {
     bool isAllDay = false,
     String? description,
     String? url,
+    String? location,
     List<Duration>? reminders,
   }) async {
     try {
@@ -149,6 +150,7 @@ class Eventide extends EventidePlatform {
         isAllDay: isAllDay,
         description: description,
         url: url,
+        location: location,
         reminders: reminders?.map((e) => e.toNativeDuration()).toList(),
       );
 
@@ -159,7 +161,7 @@ class Eventide extends EventidePlatform {
   }
 
   /// Creates a new event in the default calendar with the given [title], [startDate], [endDate].
-  /// Optionally, you can provide a [description], [url], and a list of [reminders] duration.
+  /// Optionally, you can provide a [description], [url], [location], and a list of [reminders] duration.
   ///
   /// On iOS, this method will prompt user for write only permission and will insert your event in user's default calendar.
   ///
@@ -183,6 +185,7 @@ class Eventide extends EventidePlatform {
     bool isAllDay = false,
     String? description,
     String? url,
+    String? location,
     List<Duration>? reminders,
   }) async {
     try {
@@ -193,6 +196,7 @@ class Eventide extends EventidePlatform {
         isAllDay: isAllDay,
         description: description,
         url: url,
+        location: location,
         reminders: reminders?.map((e) => e.toNativeDuration()).toList(),
       );
     } on PlatformException catch (e) {
@@ -200,7 +204,7 @@ class Eventide extends EventidePlatform {
     }
   }
 
-  /// Creates a new event through the native platform's event creation UI with optional [title], [startDate], [endDate], [description], [url], and a list of [reminders] duration.
+  /// Creates a new event through the native platform's event creation UI with optional [title], [startDate], [endDate], [description], [url], [location], and a list of [reminders] duration.
   ///
   /// /!\ Note that a [Duration] in seconds will not be supported by Android for API limitations.
   ///
@@ -226,6 +230,7 @@ class Eventide extends EventidePlatform {
     bool? isAllDay,
     String? description,
     String? url,
+    String? location,
     List<Duration>? reminders,
   }) async {
     try {
@@ -236,6 +241,7 @@ class Eventide extends EventidePlatform {
         isAllDay: isAllDay,
         description: description,
         url: url,
+        location: location,
         reminders: reminders?.map((e) => e.toNativeDuration()).toList(),
       );
     } on PlatformException catch (e) {

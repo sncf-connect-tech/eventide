@@ -115,10 +115,11 @@ final class EasyEventStore: EasyEventStoreProtocol {
         isAllDay: Bool,
         description: String?,
         url: String?,
+        location: String?,
         timeIntervals: [TimeInterval]?
     ) throws -> Event {
         let ekEvent = EKEvent(eventStore: eventStore)
-        
+
         guard let ekCalendar = eventStore.calendar(withIdentifier: calendarId) else {
             throw PigeonError(
                 code: "NOT_FOUND",
@@ -135,15 +136,16 @@ final class EasyEventStore: EasyEventStoreProtocol {
         ekEvent.timeZone = TimeZone(identifier: "UTC")
         ekEvent.isAllDay = isAllDay
         ekEvent.alarms = timeIntervals?.compactMap({ EKAlarm(relativeOffset: $0) })
-        
+        ekEvent.location = location
+
         if url != nil {
             ekEvent.url = URL(string: url!)
         }
-        
+
         do {
             try eventStore.save(ekEvent, span: EKSpan.thisEvent, commit: true)
             return ekEvent.toEvent()
-            
+
         } catch {
             eventStore.reset()
             throw PigeonError(
@@ -161,10 +163,11 @@ final class EasyEventStore: EasyEventStoreProtocol {
         isAllDay: Bool,
         description: String?,
         url: String?,
+        location: String?,
         timeIntervals: [TimeInterval]?
     ) throws {
         let ekEvent = EKEvent(eventStore: eventStore)
-       
+
         ekEvent.calendar = eventStore.defaultCalendarForNewEvents
         ekEvent.title = title
         ekEvent.notes = description
@@ -173,14 +176,15 @@ final class EasyEventStore: EasyEventStoreProtocol {
         ekEvent.timeZone = TimeZone(identifier: "UTC")
         ekEvent.isAllDay = isAllDay
         ekEvent.alarms = timeIntervals?.compactMap({ EKAlarm(relativeOffset: $0) })
-        
+        ekEvent.location = location
+
         if url != nil {
             ekEvent.url = URL(string: url!)
         }
-        
+
         do {
             try eventStore.save(ekEvent, span: EKSpan.thisEvent, commit: true)
-            
+
         } catch {
             eventStore.reset()
             throw PigeonError(
@@ -198,6 +202,7 @@ final class EasyEventStore: EasyEventStoreProtocol {
         isAllDay: Bool?,
         description: String?,
         url: String?,
+        location: String?,
         timeIntervals: [TimeInterval]?,
         completion: @escaping (Result<Void, Error>) -> Void
     ) {
@@ -208,6 +213,7 @@ final class EasyEventStore: EasyEventStoreProtocol {
             isAllDay: isAllDay,
             description: description,
             url: url,
+            location: location,
             timeIntervals: timeIntervals,
             completion: completion
         )
@@ -411,7 +417,8 @@ fileprivate extension EKEvent {
                 )
             } ?? [],
             description: notes,
-            url: url?.absoluteString
+            url: url?.absoluteString,
+            location: location
         )
     }
 }

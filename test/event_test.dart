@@ -35,6 +35,7 @@ void main() {
     calendarId: '1',
     description: null,
     url: null,
+    location: null,
     reminders: [],
     attendees: [],
   );
@@ -64,6 +65,7 @@ void main() {
           calendarId: any(named: 'calendarId'),
           description: any(named: 'description'),
           url: any(named: 'url'),
+          location: any(named: 'location'),
           reminders: any(named: 'reminders'),
         )).thenAnswer((_) async => event);
 
@@ -86,6 +88,57 @@ void main() {
           calendarId: any(named: 'calendarId'),
           description: any(named: 'description'),
           url: any(named: 'url'),
+          location: any(named: 'location'),
+          reminders: any(named: 'reminders'),
+        )).called(1);
+  });
+
+  test('createEvent with location returns event with location', () async {
+    // Given
+    final event = Event(
+      id: '1',
+      title: 'Test Event',
+      isAllDay: false,
+      startDate: startDate.millisecondsSinceEpoch,
+      endDate: endDate.millisecondsSinceEpoch,
+      calendarId: '1',
+      location: '1 Place Bellecour, 69002 Lyon',
+      reminders: [],
+      attendees: [],
+    );
+
+    when(() => mockCalendarApi.createEvent(
+          title: any(named: 'title'),
+          isAllDay: any(named: 'isAllDay'),
+          startDate: any(named: 'startDate'),
+          endDate: any(named: 'endDate'),
+          calendarId: any(named: 'calendarId'),
+          description: any(named: 'description'),
+          url: any(named: 'url'),
+          location: any(named: 'location'),
+          reminders: any(named: 'reminders'),
+        )).thenAnswer((_) async => event);
+
+    // When
+    final result = await eventide.createEvent(
+      title: 'Test Event',
+      startDate: startDate,
+      endDate: endDate,
+      calendarId: '1',
+      location: '1 Place Bellecour, 69002 Lyon',
+    );
+
+    // Then
+    expect(result.location, '1 Place Bellecour, 69002 Lyon');
+    verify(() => mockCalendarApi.createEvent(
+          title: any(named: 'title'),
+          isAllDay: any(named: 'isAllDay'),
+          startDate: any(named: 'startDate'),
+          endDate: any(named: 'endDate'),
+          calendarId: any(named: 'calendarId'),
+          description: any(named: 'description'),
+          url: any(named: 'url'),
+          location: '1 Place Bellecour, 69002 Lyon',
           reminders: any(named: 'reminders'),
         )).called(1);
   });
@@ -100,6 +153,7 @@ void main() {
           calendarId: any(named: 'calendarId'),
           description: any(named: 'description'),
           url: any(named: 'url'),
+          location: any(named: 'location'),
           reminders: any(named: 'reminders'),
         )).thenThrow(ETGenericException(message: 'API Error'));
 
@@ -121,6 +175,7 @@ void main() {
           calendarId: any(named: 'calendarId'),
           description: any(named: 'description'),
           url: any(named: 'url'),
+          location: any(named: 'location'),
           reminders: any(named: 'reminders'),
         )).called(1);
   });
@@ -147,6 +202,7 @@ void main() {
           endDate: any(named: 'endDate'),
           description: any(named: 'description'),
           url: any(named: 'url'),
+          location: any(named: 'location'),
           reminders: any(named: 'reminders'),
         )).thenAnswer((_) async => event);
 
@@ -167,6 +223,7 @@ void main() {
           endDate: endDate.millisecondsSinceEpoch,
           description: 'Test Description',
           url: 'http://test.com',
+          location: null,
           reminders: null,
         )).called(1);
   });
@@ -191,6 +248,7 @@ void main() {
           endDate: any(named: 'endDate'),
           description: any(named: 'description'),
           url: any(named: 'url'),
+          location: any(named: 'location'),
           reminders: any(named: 'reminders'),
         )).thenAnswer((_) async => event);
 
@@ -210,6 +268,7 @@ void main() {
           endDate: endDate.millisecondsSinceEpoch,
           description: null,
           url: null,
+          location: null,
           reminders: null,
         )).called(1);
   });
@@ -223,6 +282,7 @@ void main() {
           endDate: any(named: 'endDate'),
           description: any(named: 'description'),
           url: any(named: 'url'),
+          location: any(named: 'location'),
           reminders: any(named: 'reminders'),
         )).thenThrow(ETGenericException(message: 'API Error'));
 
@@ -242,6 +302,7 @@ void main() {
           endDate: endDate.millisecondsSinceEpoch,
           description: null,
           url: null,
+          location: null,
           reminders: null,
         )).called(1);
   });
@@ -276,6 +337,7 @@ void main() {
             endDate: any(named: 'endDate'),
             description: any(named: 'description'),
             url: any(named: 'url'),
+            location: any(named: 'location'),
             reminders: any(named: 'reminders'),
           )).thenAnswer((_) async => event);
       when(() => mockCalendarApi.createReminder(reminder: any(named: 'reminder'), eventId: any(named: 'eventId')))
@@ -297,6 +359,7 @@ void main() {
             endDate: endDate.millisecondsSinceEpoch,
             description: null,
             url: null,
+            location: null,
             reminders: [10 * 60, 20 * 60],
           )).called(1);
     });
@@ -322,6 +385,7 @@ void main() {
             calendarId: any(named: 'calendarId'),
             description: any(named: 'description'),
             url: any(named: 'url'),
+            location: any(named: 'location'),
             reminders: any(named: 'reminders'),
           )).thenAnswer((_) async => event);
       when(() => mockCalendarApi.createReminder(reminder: any(named: 'reminder'), eventId: any(named: 'eventId')))
@@ -346,6 +410,7 @@ void main() {
             calendarId: any(named: 'calendarId'),
             description: any(named: 'description'),
             url: any(named: 'url'),
+            location: any(named: 'location'),
             reminders: [10, 20],
           )).called(1);
     });
@@ -362,6 +427,7 @@ void main() {
         calendarId: 'default',
         reminders: [],
         attendees: [],
+        location: null,
       );
 
       when(() => mockCalendarApi.createEventInDefaultCalendar(
@@ -371,6 +437,7 @@ void main() {
             endDate: any(named: 'endDate'),
             description: any(named: 'description'),
             url: any(named: 'url'),
+            location: any(named: 'location'),
             reminders: any(named: 'reminders'),
           )).thenAnswer((_) async => event);
       when(() => mockCalendarApi.createReminder(reminder: any(named: 'reminder'), eventId: any(named: 'eventId')))
@@ -392,6 +459,7 @@ void main() {
             endDate: endDate.millisecondsSinceEpoch,
             description: null,
             url: null,
+            location: null,
             reminders: [10, 20],
           )).called(1);
     });
@@ -406,6 +474,7 @@ void main() {
           endDate: any(named: 'endDate'),
           description: any(named: 'description'),
           url: any(named: 'url'),
+          location: any(named: 'location'),
           reminders: any(named: 'reminders'),
         )).thenAnswer((_) async {});
 
@@ -428,6 +497,7 @@ void main() {
           endDate: endDate.millisecondsSinceEpoch,
           description: 'Test Description',
           url: 'http://test.com',
+          location: null,
           reminders: [10],
         )).called(1);
   });
@@ -441,6 +511,7 @@ void main() {
           endDate: any(named: 'endDate'),
           description: any(named: 'description'),
           url: any(named: 'url'),
+          location: any(named: 'location'),
           reminders: any(named: 'reminders'),
         )).thenAnswer((_) async {});
 
@@ -455,6 +526,7 @@ void main() {
           endDate: null,
           description: null,
           url: null,
+          location: null,
           reminders: null,
         )).called(1);
   });
@@ -469,6 +541,7 @@ void main() {
           endDate: any(named: 'endDate'),
           description: any(named: 'description'),
           url: any(named: 'url'),
+          location: any(named: 'location'),
           reminders: any(named: 'reminders'),
         )).thenThrow(ETPresentationException(message: 'Presentation Error'));
 
@@ -488,6 +561,7 @@ void main() {
           endDate: endDate.millisecondsSinceEpoch,
           description: null,
           url: null,
+          location: null,
           reminders: null,
         )).called(1);
   });
@@ -501,6 +575,7 @@ void main() {
           endDate: any(named: 'endDate'),
           description: any(named: 'description'),
           url: any(named: 'url'),
+          location: any(named: 'location'),
           reminders: any(named: 'reminders'),
         )).thenThrow(ETUserCanceledException(message: 'User Cancelled'));
 
@@ -520,6 +595,7 @@ void main() {
           endDate: endDate.millisecondsSinceEpoch,
           description: null,
           url: null,
+          location: null,
           reminders: null,
         )).called(1);
   });
@@ -556,6 +632,7 @@ void main() {
       calendarId: '1',
       reminders: [],
       attendees: [],
+      location: null,
     );
 
     when(() => mockCalendarApi.createEvent(
@@ -566,6 +643,7 @@ void main() {
           isAllDay: any(named: 'isAllDay'),
           description: any(named: 'description'),
           url: any(named: 'url'),
+          location: any(named: 'location'),
           reminders: any(named: 'reminders'),
         )).thenAnswer((_) async => mockEvent);
 
@@ -584,6 +662,7 @@ void main() {
           isAllDay: false,
           description: null,
           url: null,
+          location: null,
           reminders: null,
         )).called(1);
   });
@@ -612,6 +691,24 @@ void main() {
       expect(etEvent.description, 'Test Description');
       expect(etEvent.url, 'http://test.com');
       expect(etEvent.reminders, [Duration(minutes: 10), Duration(minutes: 20)]);
+    });
+
+    test('Event toETEvent with location', () {
+      final event = Event(
+        id: '1',
+        title: 'Test Event',
+        isAllDay: false,
+        startDate: DateTime(2023, 10, 1).millisecondsSinceEpoch,
+        endDate: DateTime(2023, 10, 2).millisecondsSinceEpoch,
+        calendarId: '1',
+        description: 'Test Description',
+        url: 'http://test.com',
+        location: '1 Place Bellecour, 69002 Lyon',
+        reminders: [10, 20],
+        attendees: [],
+      );
+      final etEvent = event.toETEvent();
+      expect(etEvent.location, '1 Place Bellecour, 69002 Lyon');
     });
 
     test('List<Event> toETEventList', () {
@@ -665,6 +762,7 @@ extension on Event {
       calendarId: calendarId,
       description: description,
       url: url,
+      location: location,
       reminders: reminders,
       attendees: [],
     );
