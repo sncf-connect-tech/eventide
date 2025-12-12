@@ -103,7 +103,6 @@ final eventide = Eventide();
 final calendar = await eventide.createCalendar(
   title: 'Work',
   color: Colors.red,
-  localAccountName: "My Company",
 );
 
 // Create an event in a specific calendar with reminders

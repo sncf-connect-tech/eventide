@@ -1,14 +1,17 @@
 // ignore_for_file: deprecated_member_use
 
+import 'package:eventide/eventide.dart';
 import 'package:flutter/material.dart';
 
-typedef OnCalendarFormSubmit = void Function(String title, Color color, String accountName);
+typedef OnCalendarFormSubmit = void Function(String title, Color color, ETAccount? account);
 
 class CalendarForm extends StatefulWidget {
   final OnCalendarFormSubmit onSubmit;
+  final List<ETAccount> availableAccounts;
 
   const CalendarForm({
     required this.onSubmit,
+    this.availableAccounts = const [],
     super.key,
   });
 
@@ -18,22 +21,25 @@ class CalendarForm extends StatefulWidget {
 
 class _CalendarFormState extends State<CalendarForm> {
   late final TextEditingController _titleController;
-  late final TextEditingController _accountController;
   late Color selectedColor;
+  ETAccount? selectedAccount;
 
   @override
   void initState() {
     super.initState();
 
     _titleController = TextEditingController();
-    _accountController = TextEditingController();
     selectedColor = Colors.red;
+
+    // Sélectionner le premier compte par défaut s'il y en a
+    if (widget.availableAccounts.isNotEmpty) {
+      selectedAccount = widget.availableAccounts.first;
+    }
   }
 
   @override
   void dispose() {
     _titleController.dispose();
-    _accountController.dispose();
     super.dispose();
   }
 
@@ -48,13 +54,59 @@ class _CalendarFormState extends State<CalendarForm> {
           ),
         ),
         const SizedBox(height: 16),
-        TextFormField(
-          controller: _accountController,
-          decoration: const InputDecoration(
-            labelText: 'Account name (Optional)',
-            hintText: 'Default: Eventide App',
+        if (widget.availableAccounts.isNotEmpty) ...[
+          DropdownButtonFormField<ETAccount>(
+            value: selectedAccount,
+            decoration: const InputDecoration(
+              labelText: 'Account',
+              hintText: 'Select an account',
+            ),
+            items: widget.availableAccounts.map((account) {
+              return DropdownMenuItem<ETAccount>(
+                value: account,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.account_circle, color: Colors.blue, size: 20),
+                    SizedBox(width: 8),
+                    Flexible(
+                      child: Text(
+                        account.name,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }).toList(),
+            onChanged: (ETAccount? value) {
+              setState(() {
+                selectedAccount = value;
+              });
+            },
           ),
-        ),
+        ] else ...[
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.orange.withOpacity(0.1),
+              border: Border.all(color: Colors.orange),
+              borderRadius: BorderRadius.circular(4),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.info, color: Colors.orange, size: 20),
+                SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'No accounts available. Calendar will be created in default account.',
+                    style: TextStyle(color: Colors.orange[800]),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
         const SizedBox(height: 16),
         DropdownButtonFormField<Color>(
           value: selectedColor,
@@ -143,10 +195,7 @@ class _CalendarFormState extends State<CalendarForm> {
                   return;
                 }
 
-                final accountName =
-                    _accountController.text.trim().isEmpty ? 'Eventide App' : _accountController.text.trim();
-
-                widget.onSubmit(title, selectedColor, accountName);
+                widget.onSubmit(title, selectedColor, selectedAccount);
 
                 Navigator.of(context).pop();
               },

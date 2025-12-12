@@ -22,7 +22,7 @@ final class AttendeeTests: XCTestCase {
                     title: "title",
                     color: UIColor.red,
                     isWritable: true,
-                    account: Account(name: "local", type: "local"),
+                    account: Account(id: "local", name: "local", type: "local"),
                     events: [
                         MockEvent(
                             id: "1",
@@ -112,7 +112,7 @@ final class AttendeeTests: XCTestCase {
                     title: "title",
                     color: UIColor.red,
                     isWritable: true,
-                    account: Account(name: "local", type: "local"),
+                    account: Account(id: "local", name: "local", type: "local"),
                     events: [
                         MockEvent(
                             id: "1",

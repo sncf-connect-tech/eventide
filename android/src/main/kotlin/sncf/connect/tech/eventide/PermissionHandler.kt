@@ -7,7 +7,7 @@ import android.content.pm.PackageManager.PERMISSION_GRANTED
 import androidx.core.app.ActivityCompat
 import io.flutter.plugin.common.PluginRegistry.RequestPermissionsResultListener
 
-open class PermissionHandler(private val activity: Activity): RequestPermissionsResultListener {
+class PermissionHandler(private val activity: Activity): RequestPermissionsResultListener {
     private var permissionCallback: (Boolean) -> Unit = {}
 
     companion object {

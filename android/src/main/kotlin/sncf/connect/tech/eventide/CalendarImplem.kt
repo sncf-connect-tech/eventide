@@ -17,11 +17,12 @@ class CalendarImplem(
     private var eventContentUri: Uri = CalendarContract.Events.CONTENT_URI,
     private var remindersContentUri: Uri = CalendarContract.Reminders.CONTENT_URI,
     private var attendeesContentUri: Uri = CalendarContract.Attendees.CONTENT_URI,
+    private val descriptionUrlHelper: DescriptionUrlHelper = DescriptionUrlHelper()
 ): CalendarApi {
     override fun createCalendar(
         title: String,
         color: Long,
-        localAccountName: String,
+        account: Account?,
         callback: (Result<Calendar>) -> Unit
     ) {
         permissionHandler.requestWritePermission { granted ->
@@ -39,20 +40,23 @@ class CalendarImplem(
 
             CoroutineScope(Dispatchers.IO).launch {
                 try {
+                    // Use provided accountName or default to device name
+                    val finalAccountName = account?.name ?: "LocalCalendar"
+                    
                     val syncAdapterUri = calendarContentUri.buildUpon()
                         .appendQueryParameter(CalendarContract.CALLER_IS_SYNCADAPTER, "true")
-                        .appendQueryParameter(CalendarContract.Calendars.ACCOUNT_NAME, localAccountName)
+                        .appendQueryParameter(CalendarContract.Calendars.ACCOUNT_NAME, finalAccountName)
                         .appendQueryParameter(CalendarContract.Calendars.ACCOUNT_TYPE, CalendarContract.ACCOUNT_TYPE_LOCAL)
                         .build()
 
                     val values = ContentValues().apply {
-                        put(CalendarContract.Calendars.ACCOUNT_NAME, localAccountName)
+                        put(CalendarContract.Calendars.ACCOUNT_NAME, finalAccountName)
                         put(CalendarContract.Calendars.ACCOUNT_TYPE, CalendarContract.ACCOUNT_TYPE_LOCAL)
                         put(CalendarContract.Calendars.NAME, title)
                         put(CalendarContract.Calendars.CALENDAR_DISPLAY_NAME, title)
                         put(CalendarContract.Calendars.CALENDAR_COLOR, color)
                         put(CalendarContract.Calendars.CALENDAR_ACCESS_LEVEL, CalendarContract.Calendars.CAL_ACCESS_OWNER)
-                        put(CalendarContract.Calendars.OWNER_ACCOUNT, localAccountName)
+                        put(CalendarContract.Calendars.OWNER_ACCOUNT, finalAccountName)
                     }
 
                     val calendarUri = contentResolver.insert(syncAdapterUri, values)
@@ -65,7 +69,8 @@ class CalendarImplem(
                                 color = color,
                                 isWritable = true,
                                 account = Account(
-                                    name = localAccountName,
+                                    id = finalAccountName,
+                                    name = finalAccountName,
                                     type = CalendarContract.ACCOUNT_TYPE_LOCAL
                                 )
                             )
@@ -107,7 +112,7 @@ class CalendarImplem(
 
     override fun retrieveCalendars(
         onlyWritableCalendars: Boolean,
-        fromLocalAccountName: String?,
+        account: Account?,
         callback: (Result<List<Calendar>>) -> Unit
     ) {
         permissionHandler.requestReadPermission { granted ->
@@ -137,10 +142,9 @@ class CalendarImplem(
                     var selection: String? = null
                     var selectionArgs: Array<String>? = null
 
-                    fromLocalAccountName?.let { localAccountName ->
-                        selection =
-                            CalendarContract.Calendars.ACCOUNT_NAME + " = ? AND " + CalendarContract.Calendars.ACCOUNT_TYPE + " = ?"
-                        selectionArgs = arrayOf(localAccountName, CalendarContract.ACCOUNT_TYPE_LOCAL)
+                    account?.let {
+                        selection = CalendarContract.Calendars.ACCOUNT_NAME + " = ? AND " + CalendarContract.Calendars.ACCOUNT_TYPE + " = ?"
+                        selectionArgs = arrayOf(it.name, it.type)
                     }
 
                     val cursor =
@@ -164,6 +168,7 @@ class CalendarImplem(
                                     color = color,
                                     isWritable = isWritable,
                                     account = Account(
+                                        id = accountName,
                                         name = accountName,
                                         type = accountType
                                     )
@@ -188,6 +193,66 @@ class CalendarImplem(
                 }
             }
 
+        }
+    }
+
+    override fun retrieveAccounts(callback: (Result<List<Account>>) -> Unit) {
+        permissionHandler.requestReadPermission { granted ->
+            if (!granted) {
+                callback(
+                    Result.failure(
+                        FlutterError(
+                            code = "ACCESS_REFUSED",
+                            message = "Calendar access has been refused or has not been given yet",
+                        )
+                    )
+                )
+                return@requestReadPermission
+            }
+
+            CoroutineScope(Dispatchers.IO).launch {
+                try {
+                    val projection = arrayOf(
+                        CalendarContract.Calendars.ACCOUNT_NAME,
+                        CalendarContract.Calendars.ACCOUNT_TYPE
+                    )
+
+                    val cursor = contentResolver.query(
+                        calendarContentUri, 
+                        projection, 
+                        null, 
+                        null, 
+                        null
+                    )
+                    
+                    val accountsSet = mutableSetOf<Account>()
+
+                    cursor?.use {
+                        while (it.moveToNext()) {
+                            val accountName = it.getString(it.getColumnIndexOrThrow(CalendarContract.Calendars.ACCOUNT_NAME))
+                            val accountType = it.getString(it.getColumnIndexOrThrow(CalendarContract.Calendars.ACCOUNT_TYPE))
+                            
+                            accountsSet.add(Account(
+                                id = accountName,
+                                name = accountName,
+                                type = accountType
+                            ))
+                        }
+                    }
+
+                    callback(Result.success(accountsSet.toList()))
+                } catch (e: Exception) {
+                    callback(
+                        Result.failure(
+                            FlutterError(
+                                code = "GENERIC_ERROR",
+                                message = "An error occurred",
+                                details = e.message
+                            )
+                        )
+                    )
+                }
+            }
         }
     }
 
@@ -280,7 +345,7 @@ class CalendarImplem(
             CoroutineScope(Dispatchers.IO).launch {
                 try {
                     if (isCalendarWritable(calendarId)) {
-                        val mergedDescription = DescriptionUrlHelper.mergeDescriptionAndUrl(description, url)
+                        val mergedDescription = descriptionUrlHelper.mergeDescriptionAndUrl(description, url)
 
                         val eventValues = ContentValues().apply {
                             put(CalendarContract.Events.CALENDAR_ID, calendarId)
@@ -383,7 +448,7 @@ class CalendarImplem(
         reminders: List<Long>?,
         callback: (Result<Unit>) -> Unit
     ) {
-        val mergedDescription = DescriptionUrlHelper.mergeDescriptionAndUrl(description, url)
+        val mergedDescription = descriptionUrlHelper.mergeDescriptionAndUrl(description, url)
         activityManager.startCreateEventActivity(
             eventContentUri = eventContentUri,
             title = title,
@@ -406,7 +471,7 @@ class CalendarImplem(
         callback: (Result<Unit>) -> Unit
     ) {
         try {
-            val mergedDescription = DescriptionUrlHelper.mergeDescriptionAndUrl(description, url)
+            val mergedDescription = descriptionUrlHelper.mergeDescriptionAndUrl(description, url)
             activityManager.startCreateEventActivity(
                 eventContentUri = eventContentUri,
                 title = title,
@@ -470,7 +535,7 @@ class CalendarImplem(
                             val title = c.getString(c.getColumnIndexOrThrow(CalendarContract.Events.TITLE))
                             val storedDescription =
                                 c.getString(c.getColumnIndexOrThrow(CalendarContract.Events.DESCRIPTION))
-                            val (parsedDescription, parsedUrl) = DescriptionUrlHelper.splitDescriptionAndUrl(storedDescription)
+                            val (parsedDescription, parsedUrl) = descriptionUrlHelper.splitDescriptionAndUrl(storedDescription)
                             val start = c.getLong(c.getColumnIndexOrThrow(CalendarContract.Events.DTSTART))
                             val end = c.getLong(c.getColumnIndexOrThrow(CalendarContract.Events.DTEND))
                             val isAllDay = c.getInt(c.getColumnIndexOrThrow(CalendarContract.Events.ALL_DAY)).toBoolean()
@@ -870,7 +935,7 @@ class CalendarImplem(
                     val id = it.getString(it.getColumnIndexOrThrow(CalendarContract.Events._ID))
                     val title = it.getString(it.getColumnIndexOrThrow(CalendarContract.Events.TITLE))
                     val storedDescription = it.getString(it.getColumnIndexOrThrow(CalendarContract.Events.DESCRIPTION))
-                    val (parsedDescription, parsedUrl) = DescriptionUrlHelper.splitDescriptionAndUrl(storedDescription)
+                    val (parsedDescription, parsedUrl) = descriptionUrlHelper.splitDescriptionAndUrl(storedDescription)
                     val isAllDay = it.getInt(it.getColumnIndexOrThrow(CalendarContract.Events.ALL_DAY)).toBoolean()
                     val startDate = it.getLong(it.getColumnIndexOrThrow(CalendarContract.Events.DTSTART))
                     val endDate = it.getLong(it.getColumnIndexOrThrow(CalendarContract.Events.DTEND))

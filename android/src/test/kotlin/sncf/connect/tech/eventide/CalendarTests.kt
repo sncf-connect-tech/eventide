@@ -78,7 +78,7 @@ class CalendarTests {
 
         var result: Result<Calendar>? = null
         val latch = CountDownLatch(1)
-        calendarImplem.createCalendar("Test Calendar", 0x00FF00, "Test Account") {
+        calendarImplem.createCalendar("Test Calendar", 0x00FF00, Account("Test Account", "Test Account", CalendarContract.ACCOUNT_TYPE_LOCAL)) {
             result = it
             latch.countDown()
         }
@@ -98,7 +98,7 @@ class CalendarTests {
         mockPermissionDenied(permissionHandler)
 
         var result: Result<Calendar>? = null
-        calendarImplem.createCalendar("Test Calendar", 0xFF0000, "Test Account") {
+        calendarImplem.createCalendar("Test Calendar", 0xFF0000, Account("Test Account", "Test account", "local")) {
             result = it
         }
 
@@ -114,7 +114,7 @@ class CalendarTests {
 
         var result: Result<Calendar>? = null
         val latch = CountDownLatch(1)
-        calendarImplem.createCalendar("Test Calendar", 0xFF0000, "Test Account") {
+        calendarImplem.createCalendar("Test Calendar", 0xFF0000, Account("Test Account", "Test account", "local")) {
             result = it
             latch.countDown()
         }
@@ -135,7 +135,7 @@ class CalendarTests {
 
         var result: Result<Calendar>? = null
         val latch = CountDownLatch(1)
-        calendarImplem.createCalendar("Test Calendar", 0xFF0000, "Test Account") {
+        calendarImplem.createCalendar("Test Calendar", 0xFF0000, Account("Test Account", "Test account", "local")) {
             result = it
             latch.countDown()
         }
@@ -154,7 +154,7 @@ class CalendarTests {
 
         var result: Result<Calendar>? = null
         val latch = CountDownLatch(1)
-        calendarImplem.createCalendar("Test Calendar", 0xFF0000, "Test Account") {
+        calendarImplem.createCalendar("Test Calendar", 0xFF0000, Account("Test Account", "Test account", "local")) {
             result = it
             latch.countDown()
         }
@@ -251,7 +251,7 @@ class CalendarTests {
 
         var result: Result<List<Calendar>>? = null
         val latch = CountDownLatch(1)
-        calendarImplem.retrieveCalendars(false, "Test Account") {
+        calendarImplem.retrieveCalendars(false, Account("Test Account", "Test Account", CalendarContract.ACCOUNT_TYPE_LOCAL)) {
             result = it
             latch.countDown()
         }

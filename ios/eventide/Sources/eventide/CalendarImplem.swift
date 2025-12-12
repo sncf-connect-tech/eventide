@@ -20,12 +20,12 @@ class CalendarImplem: CalendarApi {
     func createCalendar(
         title: String,
         color: Int64,
-        localAccountName: String,
+        in account: Account?,
         completion: @escaping (Result<Calendar, Error>) -> Void
     ) {
         permissionHandler.checkCalendarAccessThenExecute(.fullAccess) { [self] in
             do {
-                let createdCalendar = try easyEventStore.createCalendar(title: title, color: UIColor(int64: color), localAccountName: localAccountName)
+                let createdCalendar = try easyEventStore.createCalendar(title: title, color: UIColor(int64: color), account: account)
                 completion(.success(createdCalendar))
                 
             } catch {
@@ -45,13 +45,29 @@ class CalendarImplem: CalendarApi {
     }
     
     func retrieveCalendars(
-        onlyWritableCalendars: Bool,
-        fromLocalAccountName accountName: String?,
+        onlyWritable: Bool,
+        from account: Account?,
         completion: @escaping (Result<[Calendar], Error>) -> Void
     ) {
         permissionHandler.checkCalendarAccessThenExecute(.fullAccess) { [self] in
-            let calendars = easyEventStore.retrieveCalendars(onlyWritable: onlyWritableCalendars, from: accountName)
+            let calendars = easyEventStore.retrieveCalendars(onlyWritable: onlyWritable, from: account)
             completion(.success(calendars))
+            
+        } onPermissionRefused: {
+            completion(.failure(PigeonError(
+                code: "ACCESS_REFUSED",
+                message: "Calendar access has been refused or has not been given yet",
+                details: nil
+            )))
+        } onPermissionError: { error in
+            completion(.failure(error))
+        }
+    }
+    
+    func retrieveAccounts(completion: @escaping (Result<[Account], Error>) -> Void) {
+        permissionHandler.checkCalendarAccessThenExecute(.fullAccess) { [self] in
+            let accounts = easyEventStore.retrieveAccounts()
+            completion(.success(accounts))
             
         } onPermissionRefused: {
             completion(.failure(PigeonError(

@@ -1,6 +1,6 @@
 package sncf.connect.tech.eventide
 
-object DescriptionUrlHelper {
+class DescriptionUrlHelper {
     fun mergeDescriptionAndUrl(description: String?, url: String?): String? {
         val desc = description?.trim().takeIf { !it.isNullOrBlank() }
         val u = url?.trim().takeIf { !it.isNullOrBlank() }

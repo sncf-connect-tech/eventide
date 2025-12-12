@@ -15,13 +15,13 @@ class MockEasyEventStore: EasyEventStoreProtocol {
         self.calendars = calendars
     }
     
-    func createCalendar(title: String, color: UIColor, localAccountName: String) throws -> eventide.Calendar {
+    func createCalendar(title: String, color: UIColor, account: Account?) throws -> eventide.Calendar {
         let calendar = MockCalendar(
             id: "id",
             title: title,
             color: color,
             isWritable: true,
-            account: Account(name: localAccountName, type: "local"),
+            account: account ?? Account(id: "local", name: "local", type: "local"),
             events: []
         )
         
@@ -29,16 +29,16 @@ class MockEasyEventStore: EasyEventStoreProtocol {
         
         return calendar.toCalendar()
     }
-    
+
     func retrieveCalendars(
         onlyWritable: Bool,
-        from localAccountName: String?
+        from account: Account?
     ) -> [eventide.Calendar] {
         return calendars
-            .filter { onlyWritable && $0.isWritable || !onlyWritable }
+            .filter { onlyWritable ? $0.isWritable : true }
             .filter { calendar in
-                guard let localAccountName = localAccountName else { return true }
-                return calendar.account.name == localAccountName
+                guard let account = account else { return true }
+                return account.id == calendar.account.id && account.type == calendar.account.type
             }
             .map { $0.toCalendar() }
     }
@@ -61,6 +61,10 @@ class MockEasyEventStore: EasyEventStoreProtocol {
         }
         
         calendars.remove(at: index)
+    }
+    
+    func retrieveAccounts() -> [Account] {
+        return calendars.map { $0.account }
     }
     
     func createEvent(calendarId: String, title: String, startDate: Date, endDate: Date, isAllDay: Bool, description: String?, url: String?, timeIntervals: [TimeInterval]?) throws -> Event {

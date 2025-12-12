@@ -254,7 +254,9 @@ final class WelcomeScreen extends StatelessWidget {
         builder: (context) => BlocProvider(
           create: (context) => CalendarCubit(
             eventide: context.read<Eventide>(),
-          )..loadFullContent(),
+          )
+            ..loadFullContent()
+            ..loadAvailableAccounts(),
           child: const CalendarScreen(),
         ),
       ),

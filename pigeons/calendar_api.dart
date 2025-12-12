@@ -13,17 +13,22 @@ import 'package:pigeon/pigeon.dart';
 @HostApi()
 abstract class CalendarApi {
   @async
+  @SwiftFunction('createCalendar(title:color:in:)')
   Calendar createCalendar({
     required String title,
     required int color,
-    required String localAccountName,
+    required Account? account,
   });
 
   @async
+  @SwiftFunction('retrieveCalendars(onlyWritable:from:)')
   List<Calendar> retrieveCalendars({
     required bool onlyWritableCalendars,
-    required String? fromLocalAccountName,
+    required Account? account,
   });
+
+  @async
+  List<Account> retrieveAccounts();
 
   @async
   @SwiftFunction('deleteCalendar(_:)')
@@ -151,10 +156,12 @@ final class Event {
 }
 
 final class Account {
+  final String id;
   final String name;
   final String type;
 
   const Account({
+    required this.id,
     required this.name,
     required this.type,
   });
