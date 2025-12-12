@@ -18,11 +18,11 @@ final class EasyEventStore: EasyEventStoreProtocol {
     }
     
     func createCalendar(title: String, color: UIColor, localAccountName: String) throws -> Calendar {
-        guard let source = getSource() else {
+        guard let source = getSource(for: localAccountName) else {
             throw PigeonError(
                 code: "NOT_FOUND",
                 message: "Calendar source was not found",
-                details: "No source has been found between local, iCloud nor default sources"
+                details: "No source has been found for account: \(localAccountName)"
             )
         }
         
@@ -336,14 +336,22 @@ final class EasyEventStore: EasyEventStoreProtocol {
         return attendees
     }
     
-    private func getSource() -> EKSource? {
+    private func getSource(for accountName: String? = nil) -> EKSource? {
         guard let defaultSource = eventStore.defaultCalendarForNewEvents?.source else {
             // if eventStore.defaultCalendarForNewEvents?.source is nil then eventStore.sources is empty
             return nil
         }
         
+        if let accountName = accountName, !accountName.isEmpty {
+            if let specificSource = eventStore.sources.first(where: { $0.title == accountName }) {
+                return specificSource
+            }
+        }
+        
         let localSources = eventStore.sources.filter { $0.sourceType == .local }
-        let iCloudSources = eventStore.sources.filter { $0.sourceType == .calDAV && $0.sourceIdentifier == "iCloud" }
+        let iCloudSources = eventStore.sources.filter { 
+            $0.sourceType == .calDAV && $0.title.contains("iCloud")
+        }
 
         return localSources.first ?? iCloudSources.first ?? defaultSource
     }
@@ -357,7 +365,7 @@ fileprivate extension EKCalendar {
             color: UIColor(cgColor: cgColor).toInt64(),
             isWritable: allowsContentModifications,
             account: Account(
-                name: source.sourceIdentifier,
+                name: source.title,
                 type: source.sourceType.toString()
             )
         )
