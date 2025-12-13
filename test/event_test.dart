@@ -75,7 +75,7 @@ void main() {
       isAllDay: true,
       startDate: startDate,
       endDate: endDate,
-      calendarId: '',
+      calendarId: '1',
     );
 
     // Then
@@ -752,7 +752,7 @@ void main() {
 }
 
 extension on Event {
-  Event copyWithReminders(List<int> reminders) {
+  Event copyWithReminders(Iterable<int> reminders) {
     return Event(
       id: id,
       title: title,
@@ -763,7 +763,7 @@ extension on Event {
       description: description,
       url: url,
       location: location,
-      reminders: reminders,
+      reminders: reminders.toList(growable: false),
       attendees: [],
     );
   }

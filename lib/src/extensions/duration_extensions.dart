@@ -26,13 +26,13 @@ extension DurationToNative on Duration {
   }
 }
 
-extension DurationListToNative on List<Duration> {
+extension DurationListToNative on Iterable<Duration> {
   List<int> toNativeList() {
     return map((d) => d.toNativeDuration()).toList();
   }
 }
 
-extension NativeListToDuration on List<int> {
+extension NativeListToDuration on Iterable<int> {
   List<Duration> toDurationList() {
     return map((i) => i.toDuration()).toList();
   }

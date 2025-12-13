@@ -7,7 +7,7 @@ typedef OnCalendarFormSubmit = void Function(String title, Color color, ETAccoun
 
 class CalendarForm extends StatefulWidget {
   final OnCalendarFormSubmit onSubmit;
-  final List<ETAccount> availableAccounts;
+  final Iterable<ETAccount> availableAccounts;
 
   const CalendarForm({
     required this.onSubmit,

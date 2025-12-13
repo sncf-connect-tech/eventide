@@ -112,7 +112,7 @@ void main() {
         )).thenThrow(ETGenericException(message: 'API Error'));
 
     // When
-    Future<List<ETCalendar>> call() => eventide.retrieveCalendars(onlyWritableCalendars: true);
+    Future<Iterable<ETCalendar>> call() => eventide.retrieveCalendars(onlyWritableCalendars: true);
 
     // Then
     expect(call, throwsException);
@@ -163,7 +163,7 @@ void main() {
       expect(etCalendar.account.name, 'Test Account');
     });
 
-    test('List<Calendar> toETCalendarList', () {
+    test('Iterable<Calendar> toETCalendarList', () {
       final calendars = [
         Calendar(
           id: '1',

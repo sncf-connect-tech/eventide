@@ -7,9 +7,9 @@ import 'package:value_state/value_state.dart';
 typedef CalendarState = Value<CalendarData>;
 
 class CalendarData {
-  final Map<ETCalendar, List<ETEvent>> calendars;
+  final Map<ETCalendar, Iterable<ETEvent>> calendars;
   final Set<String> visibleCalendarIds;
-  final List<ETAccount> availableAccounts;
+  final Iterable<ETAccount> availableAccounts;
 
   CalendarData({
     required this.calendars,
@@ -18,9 +18,9 @@ class CalendarData {
   });
 
   CalendarData copyWith({
-    Map<ETCalendar, List<ETEvent>>? calendars,
+    Map<ETCalendar, Iterable<ETEvent>>? calendars,
     Set<String>? visibleCalendarIds,
-    List<ETAccount>? availableAccounts,
+    Iterable<ETAccount>? availableAccounts,
   }) {
     return CalendarData(
       calendars: calendars ?? this.calendars,
@@ -29,7 +29,7 @@ class CalendarData {
     );
   }
 
-  Map<ETCalendar, List<ETEvent>> get visibleCalendars {
+  Map<ETCalendar, Iterable<ETEvent>> get visibleCalendars {
     return Map.fromEntries(calendars.entries.where((entry) => visibleCalendarIds.contains(entry.key.id)));
   }
 }
@@ -60,7 +60,7 @@ final class CalendarCubit extends Cubit<CalendarState> {
 
   Future<void> loadFullContent() async {
     await state.fetchFrom(() async {
-      var calendars = <ETCalendar, List<ETEvent>>{};
+      var calendars = <ETCalendar, Iterable<ETEvent>>{};
 
       for (final calendar in await _eventide.retrieveCalendars()) {
         final events = await _eventide.retrieveEvents(
@@ -94,7 +94,7 @@ final class CalendarCubit extends Cubit<CalendarState> {
         account: account,
       );
 
-      var calendars = <ETCalendar, List<ETEvent>>{};
+      var calendars = <ETCalendar, Iterable<ETEvent>>{};
       for (final calendar in await _eventide.retrieveCalendars()) {
         final events = await _eventide.retrieveEvents(
           calendarId: calendar.id,
