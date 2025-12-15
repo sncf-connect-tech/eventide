@@ -1,6 +1,6 @@
 name: eventide
 description: "Provides a easy-to-use flutter interface to access & modify native device calendars (iOS & Android)"
-version: 1.0.2
+version: 2.0.0-beta.1
 repository: https://github.com/sncf-connect-tech/eventide
 topics:
   - flutter
@@ -39,8 +39,8 @@ keywords:
   - iOS 17 write-only permission
 
 environment:
-  sdk: ^3.6.0
-  flutter: '>=3.27.0'
+  sdk: ^3.7.0
+  flutter: '>=3.29.0'
 
 dependencies:
   flutter:
@@ -51,10 +51,10 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^5.0.0
-  pigeon: ^25.2.0
-  timezone: ^0.10.0
+  pigeon: ^26.1.0
+  timezone: ^0.10.1
   mocktail: ^1.0.4
-  clock: ^1.1.1
+  clock: ^1.1.2
   import_sorter: ^4.6.0
 
 flutter:
