@@ -327,7 +327,7 @@ final class EventTests: XCTestCase {
                     title: "title",
                     color: UIColor.red,
                     isWritable: true,
-                    account: Account(name: "local", type: "local"),
+                    account: Account(id: "local", name: "local", type: "local"),
                     events: []
                 )
             ]
@@ -796,7 +796,7 @@ final class EventTests: XCTestCase {
                     title: "Default Calendar",
                     color: UIColor.blue,
                     isWritable: true,
-                    account: Account(name: "local", type: "local"),
+                    account: Account(id: "local", name: "local", type: "local"),
                     events: []
                 )
             ]
@@ -843,7 +843,7 @@ final class EventTests: XCTestCase {
                     title: "Default Calendar",
                     color: UIColor.blue,
                     isWritable: true,
-                    account: Account(name: "local", type: "local"),
+                    account: Account(id: "local", name: "local", type: "local"),
                     events: []
                 )
             ]
@@ -890,7 +890,7 @@ final class EventTests: XCTestCase {
                     title: "Default Calendar",
                     color: UIColor.blue,
                     isWritable: true,
-                    account: Account(name: "local", type: "local"),
+                    account: Account(id: "local", name: "local", type: "local"),
                     events: []
                 )
             ]

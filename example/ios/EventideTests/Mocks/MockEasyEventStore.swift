@@ -67,10 +67,6 @@ class MockEasyEventStore: EasyEventStoreProtocol {
         return calendars.map { $0.account }
     }
     
-    func retrieveAccounts() -> [Account] {
-        return calendars.map { $0.account }
-    }
-    
     func createEvent(calendarId: String, title: String, startDate: Date, endDate: Date, isAllDay: Bool, description: String?, url: String?, location: String?, timeIntervals: [TimeInterval]?) throws -> Event {
         guard let mockCalendar = calendars.first(where: { $0.id == calendarId }) else {
             throw PigeonError(

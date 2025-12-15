@@ -228,7 +228,7 @@ final class CalendarTests: XCTestCase {
             permissionHandler: PermissionGranted()
         )
 
-        calendarImplem.retrieveCalendars(onlyWritableCalendars: false, fromLocalAccountName: nil) { retrieveCalendarsResult in
+        calendarImplem.retrieveCalendars(onlyWritable: false, from: nil) { retrieveCalendarsResult in
             switch (retrieveCalendarsResult) {
             case .success(let calendars):
                 XCTAssertEqual(calendars.count, 0)
