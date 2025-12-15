@@ -30,6 +30,7 @@
 * **Upcasting:**
   * **All `List` occurrences** are now `Iterable`
 * Updates minimum supported SDK version to Flutter 3.29/Dart 3.7
+* Add `location` to `ETEvent` by @StoneyDev
 
 ## 1.0.2
 * **Android URL Support:** Added comprehensive URL handling for event creation and retrieval. Android Calendar API lacks native URL field support, so implemented intelligent description/URL merging system that preserves both fields while maintaining compatibility with existing calendar apps
