@@ -24,13 +24,15 @@ abstract class EventidePlatform extends PlatformInterface {
   Future<ETCalendar> createCalendar({
     required String title,
     required Color color,
-    required String localAccountName,
+    ETAccount? account,
   });
 
   Future<List<ETCalendar>> retrieveCalendars({
     bool onlyWritableCalendars = true,
-    String? fromLocalAccountName,
+    ETAccount? account,
   });
+
+  Future<List<ETAccount>> retrieveAccounts();
 
   Future<void> deleteCalendar({
     required String calendarId,
@@ -224,13 +226,15 @@ final class ETEvent {
 ///
 /// For example, if the calendar belongs to a Google account, the account name will be the email address of the Google account.
 final class ETAccount {
+  final String id;
   final String name;
   final String type;
 
   @override
-  int get hashCode => Object.hash(name, type);
+  int get hashCode => Object.hash(id, name, type);
 
   const ETAccount({
+    required this.id,
     required this.name,
     required this.type,
   });
@@ -238,7 +242,11 @@ final class ETAccount {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other.runtimeType == runtimeType && other is ETAccount && other.name == name && other.type == type;
+      other.runtimeType == runtimeType &&
+          other is ETAccount &&
+          other.name == name &&
+          other.type == type &&
+          other.id == id;
 }
 
 /// Represents an attendee.

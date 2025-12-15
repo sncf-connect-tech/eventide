@@ -1,3 +1,32 @@
+## 2.0.0
+* **🚨 BREAKING CHANGES - Account API Redesign:**
+  * **createCalendar():** Parameter `localAccountName` (String) replaced with `account` (ETAccount?)
+    * Before: `createCalendar(title: 'Work', color: Colors.red, localAccountName: 'My App')`
+    * After: `createCalendar(title: 'Work', color: Colors.red, account: myAccount)`
+    * When `account` is null, calendar is created in default account/source
+  * **retrieveCalendars():** Parameter `fromLocalAccountName` (String) replaced with `account` (ETAccount?)
+    * Before: `retrieveCalendars(fromLocalAccountName: 'My App')`
+    * After: `retrieveCalendars(account: myAccount)`
+  * **New Method:** Added `retrieveAccounts()` to get all available accounts (Google, Exchange, local, etc.)
+    * Returns `List<ETAccount>` with account details for better account management
+    * Use this method to get accounts before creating calendars or filtering
+* **Enhanced Account Management:**
+  * More robust account handling across platforms
+  * Better integration with system accounts (Google, Exchange, iCloud, etc.)
+  * Improved account-based calendar filtering and organization
+* **Migration Guide:**
+  ```dart
+  // OLD API (v1.x)
+  final calendars = await eventide.retrieveCalendars(fromLocalAccountName: 'My App');
+  await eventide.createCalendar(title: 'Work', color: Colors.red, localAccountName: 'My App');
+  
+  // NEW API (v2.0)
+  final accounts = await eventide.retrieveAccounts();
+  final myAccount = accounts.firstWhere((acc) => acc.name == 'My App');
+  final calendars = await eventide.retrieveCalendars(account: myAccount);
+  await eventide.createCalendar(title: 'Work', color: Colors.red, account: myAccount);
+  ```
+
 ## 1.0.2
 * **Android URL Support:** Added comprehensive URL handling for event creation and retrieval. Android Calendar API lacks native URL field support, so implemented intelligent description/URL merging system that preserves both fields while maintaining compatibility with existing calendar apps
 * **Enhanced Native-Only Example App:** Added prefill parameters toggle to demonstrate `createEventThroughNativePlatform()` flexibility

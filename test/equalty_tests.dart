@@ -12,14 +12,14 @@ void main() {
         title: 'Work',
         color: Color(0xFF0000FF),
         isWritable: true,
-        account: ETAccount(name: 'test@gmail.com', type: 'Google'),
+        account: ETAccount(id: 'test@gmail.com', name: 'test@gmail.com', type: 'Google'),
       );
       const calendar2 = ETCalendar(
         id: '1',
         title: 'Work',
         color: Color(0xFF0000FF),
         isWritable: true,
-        account: ETAccount(name: 'test@gmail.com', type: 'Google'),
+        account: ETAccount(id: 'test@gmail.com', name: 'test@gmail.com', type: 'Google'),
       );
 
       expect(calendar1, equals(calendar2));
@@ -32,14 +32,14 @@ void main() {
         title: 'Work',
         color: Color(0xFF0000FF),
         isWritable: true,
-        account: ETAccount(name: 'test@gmail.com', type: 'Google'),
+        account: ETAccount(id: 'test@gmail.com', name: 'test@gmail.com', type: 'Google'),
       );
       const calendar2 = ETCalendar(
         id: '2',
         title: 'Personal',
         color: Color(0xFFFF0000),
         isWritable: false,
-        account: ETAccount(name: 'other@gmail.com', type: 'Google'),
+        account: ETAccount(id: 'other@gmail.com', name: 'other@gmail.com', type: 'Google'),
       );
 
       expect(calendar1, isNot(equals(calendar2)));
@@ -111,16 +111,16 @@ void main() {
 
   group('ETAccount equality tests', () {
     test('ETAccount objects with identical properties are equal', () {
-      const account1 = ETAccount(name: 'test@gmail.com', type: 'Google');
-      const account2 = ETAccount(name: 'test@gmail.com', type: 'Google');
+      const account1 = ETAccount(id: 'test@gmail.com', name: 'test@gmail.com', type: 'Google');
+      const account2 = ETAccount(id: 'test@gmail.com', name: 'test@gmail.com', type: 'Google');
 
       expect(account1, equals(account2));
       expect(account1.hashCode, equals(account2.hashCode));
     });
 
     test('ETAccount objects with different properties are not equal', () {
-      const account1 = ETAccount(name: 'test@gmail.com', type: 'Google');
-      const account2 = ETAccount(name: 'other@gmail.com', type: 'Outlook');
+      const account1 = ETAccount(id: 'test@gmail.com', name: 'test@gmail.com', type: 'Google');
+      const account2 = ETAccount(id: 'other@gmail.com', name: 'other@gmail.com', type: 'Outlook');
 
       expect(account1, isNot(equals(account2)));
       expect(account1.hashCode, isNot(equals(account2.hashCode)));

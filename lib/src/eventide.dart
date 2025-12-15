@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:eventide/src/calendar_api.g.dart';
 import 'package:eventide/src/eventide_exception.dart';
 import 'package:eventide/src/eventide_platform_interface.dart';
+import 'package:eventide/src/extensions/account_extensions.dart';
 import 'package:eventide/src/extensions/attendee_extensions.dart';
 import 'package:eventide/src/extensions/calendar_extensions.dart';
 import 'package:eventide/src/extensions/color_extensions.dart';
@@ -17,15 +18,18 @@ class Eventide extends EventidePlatform {
     @visibleForTesting CalendarApi? calendarApi,
   }) : _calendarApi = calendarApi ?? CalendarApi();
 
-  /// Creates a new calendar with the given [title], [color] and [accountName].
+  /// Creates a new calendar with the given [title], [color] and optional [accountName].
   ///
-  /// Note that [accountName] is an Android feature. It will be ignored on iOS.
+  /// If [account] is provided, the calendar will be created under that account.
+  /// If [account] is null, the calendar will be created in the default account/source:
+  /// - On iOS: Uses default source (local or iCloud)
+  /// - On Android: Uses "LocalCalendar" as the account name
   ///
   /// Returns the created [ETCalendar].
   ///
   /// Throws a [ETPermissionException] if the user refuses to grant calendar permissions.
   ///
-  /// Throws a [ETNotFoundException] on iOS if not one callendar source has been found or if the created calendar id is not found.
+  /// Throws a [ETNotFoundException] on iOS if no suitable calendar source is found or if the created calendar id is not found.
   ///
   /// Throws a [ETGenericException] on iOS if the color hex cannot be converted to a UIColor.
   ///
@@ -35,13 +39,13 @@ class Eventide extends EventidePlatform {
   Future<ETCalendar> createCalendar({
     required String title,
     required Color color,
-    required String localAccountName,
+    ETAccount? account,
   }) async {
     try {
       final calendar = await _calendarApi.createCalendar(
         title: title,
         color: color.toValue(),
-        localAccountName: localAccountName,
+        account: account?.toAccount(),
       );
       return calendar.toETCalendar();
     } on PlatformException catch (e) {
@@ -52,6 +56,8 @@ class Eventide extends EventidePlatform {
   /// Retrieves a list of calendars.
   /// If [onlyWritableCalendars] is `true`, only writable calendars are returned.
   ///
+  /// If [account] is provided, only calendars from that account are returned.
+  ///
   /// Returns a list of [ETCalendar]s.
   ///
   /// Throws a [ETPermissionException] if the user refuses to grant calendar permissions.
@@ -60,14 +66,32 @@ class Eventide extends EventidePlatform {
   @override
   Future<List<ETCalendar>> retrieveCalendars({
     bool onlyWritableCalendars = true,
-    String? fromLocalAccountName,
+    ETAccount? account,
   }) async {
     try {
       final calendars = await _calendarApi.retrieveCalendars(
         onlyWritableCalendars: onlyWritableCalendars,
-        fromLocalAccountName: fromLocalAccountName,
+        account: account?.toAccount(),
       );
       return calendars.toETCalendarList();
+    } on PlatformException catch (e) {
+      throw e.toETException();
+    }
+  }
+
+  /// Retrieves all available accounts from the device.
+  ///
+  /// Returns a list of [ETAccount] representing all accounts that have calendars.
+  /// This includes Google accounts, local accounts, Exchange accounts, etc.
+  ///
+  /// Throws a [ETPermissionException] if the user refuses to grant calendar permissions.
+  ///
+  /// Throws a [ETGenericException] if any other error occurs during accounts retrieval.
+  @override
+  Future<List<ETAccount>> retrieveAccounts() async {
+    try {
+      final accounts = await _calendarApi.retrieveAccounts();
+      return accounts.toETAccountList();
     } on PlatformException catch (e) {
       throw e.toETException();
     }

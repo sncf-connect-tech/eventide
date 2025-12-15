@@ -9,19 +9,23 @@ typedef CalendarState = Value<CalendarData>;
 class CalendarData {
   final Map<ETCalendar, List<ETEvent>> calendars;
   final Set<String> visibleCalendarIds;
+  final List<ETAccount> availableAccounts;
 
   CalendarData({
     required this.calendars,
     required this.visibleCalendarIds,
+    this.availableAccounts = const [],
   });
 
   CalendarData copyWith({
     Map<ETCalendar, List<ETEvent>>? calendars,
     Set<String>? visibleCalendarIds,
+    List<ETAccount>? availableAccounts,
   }) {
     return CalendarData(
       calendars: calendars ?? this.calendars,
       visibleCalendarIds: visibleCalendarIds ?? this.visibleCalendarIds,
+      availableAccounts: availableAccounts ?? this.availableAccounts,
     );
   }
 
@@ -38,6 +42,22 @@ final class CalendarCubit extends Cubit<CalendarState> {
   })  : _eventide = eventide,
         super(Value.initial());
 
+  Future<void> loadAvailableAccounts() async {
+    final accounts = await _eventide.retrieveAccounts();
+
+    if (state case Value(:final data?)) {
+      emit(Value.success(data.copyWith(
+        availableAccounts: accounts,
+      )));
+    } else {
+      emit(Value.success(CalendarData(
+        calendars: {},
+        visibleCalendarIds: {},
+        availableAccounts: accounts,
+      )));
+    }
+  }
+
   Future<void> loadFullContent() async {
     await state.fetchFrom(() async {
       var calendars = <ETCalendar, List<ETEvent>>{};
@@ -49,9 +69,11 @@ final class CalendarCubit extends Cubit<CalendarState> {
 
       final visibleCalendarIds = calendars.keys.map((cal) => cal.id).toSet();
 
+      final currentData = state.data;
       return CalendarData(
         calendars: calendars,
         visibleCalendarIds: visibleCalendarIds,
+        availableAccounts: currentData?.availableAccounts ?? [],
       );
     }).forEach(emit);
   }
@@ -59,13 +81,13 @@ final class CalendarCubit extends Cubit<CalendarState> {
   Future<void> createCalendar({
     required String title,
     required Color color,
-    required String localAccountName,
+    ETAccount? account,
   }) async {
     await state.fetchFrom(() async {
       await _eventide.createCalendar(
         title: title,
         color: color,
-        localAccountName: localAccountName,
+        account: account,
       );
 
       var calendars = <ETCalendar, List<ETEvent>>{};
@@ -83,6 +105,7 @@ final class CalendarCubit extends Cubit<CalendarState> {
       return CalendarData(
         calendars: calendars,
         visibleCalendarIds: visibleCalendarIds,
+        availableAccounts: currentData?.availableAccounts ?? [],
       );
     }).forEach(emit);
   }
@@ -150,6 +173,7 @@ final class CalendarCubit extends Cubit<CalendarState> {
       return CalendarData(
         calendars: calendars,
         visibleCalendarIds: visibleCalendarIds,
+        availableAccounts: currentData?.availableAccounts ?? [],
       );
     }).forEach(emit);
   }

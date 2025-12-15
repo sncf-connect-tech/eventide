@@ -22,13 +22,13 @@ final class CalendarTests: XCTestCase {
             permissionHandler: PermissionGranted()
         )
         
-        calendarImplem.createCalendar(title: "title", color: 0xFF0000, localAccountName: "Test account") { createCalendarResult in
+        calendarImplem.createCalendar(title: "title", color: 0xFF0000, in: Account(id: "Test account", name: "Test account", type: "calDAV")) { createCalendarResult in
             switch (createCalendarResult) {
             case .success(let calendar):
                 XCTAssert(calendar.title == "title")
                 XCTAssert(calendar.color == 0xFF0000)
                 XCTAssert(calendar.account.name == "Test account")
-                XCTAssert(calendar.account.type == "local")
+                XCTAssert(calendar.account.type == "calDAV")
                 XCTAssert(mockEasyEventStore.calendars.count == 1)
                 expectation.fulfill()
             case .failure:
@@ -49,7 +49,7 @@ final class CalendarTests: XCTestCase {
                     title: "title",
                     color: UIColor.red,
                     isWritable: false,
-                    account: Account(name: "local", type: "local"),
+                    account: Account(id: "local", name: "local", type: "local"),
                     events: []
                 ),
                 MockCalendar(
@@ -57,7 +57,7 @@ final class CalendarTests: XCTestCase {
                     title: "title",
                     color: UIColor.blue,
                     isWritable: true,
-                    account: Account(name: "iCloud", type: "calDAV"),
+                    account: Account(id: "iCloud", name: "iCloud", type: "calDAV"),
                     events: []
                 )
             ]
@@ -68,7 +68,7 @@ final class CalendarTests: XCTestCase {
             permissionHandler: PermissionGranted()
         )
         
-        calendarImplem.retrieveCalendars(onlyWritableCalendars: true, fromLocalAccountName: nil) { retrieveCalendarsResult in
+        calendarImplem.retrieveCalendars(onlyWritable: true, from: nil) { retrieveCalendarsResult in
             switch (retrieveCalendarsResult) {
             case .success(let calendars):
                 XCTAssert(calendars.count == 1)
@@ -85,8 +85,8 @@ final class CalendarTests: XCTestCase {
     func testRetrieveCalendars_onlyWritableWithAccountFilter_permissionGranted() {
         let expectation = expectation(description: "No eligible calendar")
         
-        let account1 = Account(name: "local", type: "local")
-        let account2 = Account(name: "iCloud", type: "calDAV")
+        let account1 = Account(id: "local", name: "local", type: "local")
+        let account2 = Account(id: "iCloud", name: "iCloud", type: "calDAV")
         let mockEasyEventStore = MockEasyEventStore(
             calendars: [
                 MockCalendar(
@@ -113,7 +113,7 @@ final class CalendarTests: XCTestCase {
             permissionHandler: PermissionGranted()
         )
         
-        calendarImplem.retrieveCalendars(onlyWritableCalendars: true, fromLocalAccountName: account1.name) { retrieveCalendarsResult in
+        calendarImplem.retrieveCalendars(onlyWritable: true, from: account1) { retrieveCalendarsResult in
             switch (retrieveCalendarsResult) {
             case .success(let calendars):
                 XCTAssert(calendars.isEmpty)
@@ -129,8 +129,8 @@ final class CalendarTests: XCTestCase {
     func testRetrieveCalendars_accountFilter_permissionGranted() {
         let expectation = expectation(description: "Calendar has been retrieved")
         
-        let account1 = Account(name: "local", type: "local")
-        let account2 = Account(name: "iCloud", type: "calDAV")
+        let account1 = Account(id: "local", name: "local", type: "local")
+        let account2 = Account(id: "iCloud", name: "iCloud", type: "calDAV")
         let mockEasyEventStore = MockEasyEventStore(
             calendars: [
                 MockCalendar(
@@ -157,7 +157,10 @@ final class CalendarTests: XCTestCase {
             permissionHandler: PermissionGranted()
         )
         
-        calendarImplem.retrieveCalendars(onlyWritableCalendars: false, fromLocalAccountName: account2.name) { retrieveCalendarsResult in
+        calendarImplem.retrieveCalendars(
+            onlyWritable: false,
+            from: account2
+        ) { retrieveCalendarsResult in
             switch (retrieveCalendarsResult) {
             case .success(let calendars):
                 XCTAssert(calendars.count == 1)
@@ -181,7 +184,7 @@ final class CalendarTests: XCTestCase {
                     title: "title",
                     color: UIColor.red,
                     isWritable: false,
-                    account: Account(name: "local", type: "local"),
+                    account: Account(id: "local", name: "local", type: "local"),
                     events: []
                 ),
                 MockCalendar(
@@ -189,7 +192,7 @@ final class CalendarTests: XCTestCase {
                     title: "title",
                     color: UIColor.blue,
                     isWritable: true,
-                    account: Account(name: "iCloud", type: "calDAV"),
+                    account: Account(id: "local", name: "iCloud", type: "calDAV"),
                     events: []
                 )
             ]
@@ -200,7 +203,7 @@ final class CalendarTests: XCTestCase {
             permissionHandler: PermissionGranted()
         )
         
-        calendarImplem.retrieveCalendars(onlyWritableCalendars: false, fromLocalAccountName: nil) { retrieveCalendarsResult in
+        calendarImplem.retrieveCalendars(onlyWritable: false, from: nil) { retrieveCalendarsResult in
             switch (retrieveCalendarsResult) {
             case .success(let calendars):
                 XCTAssert(calendars.count == 2)
@@ -225,7 +228,7 @@ final class CalendarTests: XCTestCase {
                     title: "title",
                     color: UIColor.red,
                     isWritable: true,
-                    account: Account(name: "local", type: "local"),
+                    account: Account(id: "local", name: "local", type: "local"),
                     events: []
                 )
             ]
@@ -259,7 +262,7 @@ final class CalendarTests: XCTestCase {
                     title: "title",
                     color: UIColor.red,
                     isWritable: false,
-                    account: Account(name: "local", type: "local"),
+                    account: Account(id: "local", name: "local", type: "local"),
                     events: []
                 )
             ]
@@ -298,7 +301,7 @@ final class CalendarTests: XCTestCase {
                     title: "title",
                     color: UIColor.red,
                     isWritable: false,
-                    account: Account(name: "local", type: "local"),
+                    account: Account(id: "local", name: "local", type: "local"),
                     events: []
                 )
             ]
@@ -337,7 +340,7 @@ final class CalendarTests: XCTestCase {
             permissionHandler: PermissionRefused()
         )
         
-        calendarImplem.createCalendar(title: "title", color: 0xFF0000, localAccountName: "Test account") { createCalendarResult in
+        calendarImplem.createCalendar(title: "title", color: 0xFF0000, in: Account(id: "Test account", name: "Test account", type: "calDAV")) { createCalendarResult in
             switch (createCalendarResult) {
             case .success:
                 XCTFail("Calendar should not have been created")
@@ -365,7 +368,7 @@ final class CalendarTests: XCTestCase {
             permissionHandler: PermissionRefused()
         )
         
-        calendarImplem.retrieveCalendars(onlyWritableCalendars: true, fromLocalAccountName: nil) { retrieveCalendarsResult in
+        calendarImplem.retrieveCalendars(onlyWritable: true, from: nil) { retrieveCalendarsResult in
             switch (retrieveCalendarsResult) {
             case .success:
                 XCTFail("Calendars should not have been retrieved")
@@ -393,7 +396,7 @@ final class CalendarTests: XCTestCase {
                     title: "title",
                     color: UIColor.red,
                     isWritable: true,
-                    account: Account(name: "local", type: "local"),
+                    account: Account(id: "local", name: "local", type: "local"),
                     events: []
                 )
             ]
@@ -432,7 +435,7 @@ final class CalendarTests: XCTestCase {
             permissionHandler: PermissionError()
         )
         
-        calendarImplem.createCalendar(title: "title", color: 0xFF0000, localAccountName: "Test account") { createCalendarResult in
+        calendarImplem.createCalendar(title: "title", color: 0xFF0000, in: Account(id: "Test account", name: "Test account", type: "calDAV")) { createCalendarResult in
             switch (createCalendarResult) {
             case .success:
                 XCTFail("Calendar should not have been created")
@@ -459,7 +462,7 @@ final class CalendarTests: XCTestCase {
             permissionHandler: PermissionError()
         )
         
-        calendarImplem.retrieveCalendars(onlyWritableCalendars: true, fromLocalAccountName: nil) { retrieveCalendarsResult in
+        calendarImplem.retrieveCalendars(onlyWritable: true, from: nil) { retrieveCalendarsResult in
             switch (retrieveCalendarsResult) {
             case .success:
                 XCTFail("Calendars should not have been retrieved")
@@ -486,7 +489,7 @@ final class CalendarTests: XCTestCase {
                     title: "title",
                     color: UIColor.red,
                     isWritable: true,
-                    account: Account(name: "local", type: "local"),
+                    account: Account(id: "local", name: "local", type: "local"),
                     events: []
                 )
             ]

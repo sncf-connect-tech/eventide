@@ -17,12 +17,12 @@ final class EasyEventStore: EasyEventStoreProtocol {
         self.eventEditManager = EventEditViewControllerManager(eventStore: eventStore)
     }
     
-    func createCalendar(title: String, color: UIColor, localAccountName: String) throws -> Calendar {
-        guard let source = getSource() else {
+    func createCalendar(title: String, color: UIColor, account: Account?) throws -> Calendar {
+        guard let source = getSource(for: account) else {
             throw PigeonError(
                 code: "NOT_FOUND",
                 message: "Calendar source was not found",
-                details: "No source has been found between local, iCloud nor default sources"
+                details: account != nil ? "No source has been found for account: \(account!.name)" : "No suitable calendar source found"
             )
         }
         
@@ -48,15 +48,33 @@ final class EasyEventStore: EasyEventStoreProtocol {
     
     func retrieveCalendars(
         onlyWritable: Bool,
-        from localAccountName: String?
+        from account: Account?
     ) -> [Calendar] {
         return eventStore.calendars(for: .event)
             .filter { onlyWritable ? $0.allowsContentModifications : true }
             .filter { calendar in
-                guard let localAccountName = localAccountName else { return true }
-                return calendar.source.sourceIdentifier == localAccountName
+                guard let account = account else { return true }
+                return account.id == calendar.source.sourceIdentifier && account.type == calendar.source.sourceType.toString()
             }
             .map { $0.toCalendar() }
+    }
+    
+    func retrieveAccounts() -> [Account] {
+        let sources = eventStore.sources
+        
+        return sources.compactMap { source in
+            return Account(
+                id: source.sourceIdentifier,
+                name: source.title,
+                type: String(source.sourceType.rawValue)
+            )
+        }
+        // Remove duplicates by converting to Set and back to Array
+        .reduce(into: [Account]()) { result, account in
+            if !result.contains(where: { $0.name == account.name && $0.type == account.type }) {
+                result.append(account)
+            }
+        }
     }
     
     func deleteCalendar(calendarId: String) throws {
@@ -336,14 +354,22 @@ final class EasyEventStore: EasyEventStoreProtocol {
         return attendees
     }
     
-    private func getSource() -> EKSource? {
+    private func getSource(for account: Account? = nil) -> EKSource? {
         guard let defaultSource = eventStore.defaultCalendarForNewEvents?.source else {
             // if eventStore.defaultCalendarForNewEvents?.source is nil then eventStore.sources is empty
             return nil
         }
         
+        if let account = account {
+            if let specificSource = eventStore.sources.first(where: { $0.title == account.name && $0.sourceType.toString() == account.type && $0.sourceIdentifier == account.id }) {
+                return specificSource
+            }
+        }
+        
         let localSources = eventStore.sources.filter { $0.sourceType == .local }
-        let iCloudSources = eventStore.sources.filter { $0.sourceType == .calDAV && $0.sourceIdentifier == "iCloud" }
+        let iCloudSources = eventStore.sources.filter { 
+            $0.sourceType == .calDAV && $0.title.contains("iCloud")
+        }
 
         return localSources.first ?? iCloudSources.first ?? defaultSource
     }
@@ -357,7 +383,8 @@ fileprivate extension EKCalendar {
             color: UIColor(cgColor: cgColor).toInt64(),
             isWritable: allowsContentModifications,
             account: Account(
-                name: source.sourceIdentifier,
+                id: source.sourceIdentifier,
+                name: source.title,
                 type: source.sourceType.toString()
             )
         )
@@ -392,7 +419,8 @@ fileprivate extension EKEvent {
 fileprivate extension EKSource {
     func toAccount() -> Account {
         return Account(
-            name: sourceIdentifier,
+            id: sourceIdentifier,
+            name: title,
             type: sourceType.toString()
         )
     }

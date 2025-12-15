@@ -1,3 +1,4 @@
+import 'package:eventide/eventide.dart';
 import 'package:eventide_example_full_permission/calendar/logic/calendar_cubit.dart';
 import 'package:eventide_example_full_permission/calendar/ui/components/calendar_form.dart';
 import 'package:flutter/material.dart';
@@ -32,48 +33,57 @@ class CustomDrawer extends StatelessWidget {
                 onPressed: () {
                   final calendarCubit = BlocProvider.of<CalendarCubit>(context);
 
+                  // Charger les comptes si ce n'est pas déjà fait
+                  calendarCubit.loadAvailableAccounts();
+
                   showDialog(
                     context: context,
-                    builder: (dialogContext) => AlertDialog(
-                      title: const Text('Create New Calendar'),
-                      content: CalendarForm(
-                        onSubmit: (title, color, accountName) async {
-                          try {
-                            await calendarCubit.createCalendar(
-                              title: title,
-                              color: color,
-                              localAccountName: accountName,
-                            );
+                    builder: (dialogContext) {
+                      final currentState = calendarCubit.state;
+                      final availableAccounts = currentState.data?.availableAccounts ?? [];
 
-                            if (dialogContext.mounted) {
-                              Navigator.of(dialogContext).pop();
-                            }
-
-                            if (context.mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text('Calendar "$title" created successfully!'),
-                                  backgroundColor: Colors.green,
-                                ),
+                      return AlertDialog(
+                        title: const Text('Create New Calendar'),
+                        content: CalendarForm(
+                          availableAccounts: availableAccounts,
+                          onSubmit: (title, color, account) async {
+                            try {
+                              await calendarCubit.createCalendar(
+                                title: title,
+                                color: color,
+                                account: account,
                               );
-                            }
-                          } catch (e) {
-                            if (dialogContext.mounted) {
-                              Navigator.of(dialogContext).pop();
-                            }
 
-                            if (context.mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text('Error creating calendar: $e'),
-                                  backgroundColor: Colors.red,
-                                ),
-                              );
+                              if (dialogContext.mounted) {
+                                Navigator.of(dialogContext).pop();
+                              }
+
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text('Calendar "$title" created successfully!'),
+                                    backgroundColor: Colors.green,
+                                  ),
+                                );
+                              }
+                            } catch (e) {
+                              if (dialogContext.mounted) {
+                                Navigator.of(dialogContext).pop();
+                              }
+
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text('Error creating calendar: $e'),
+                                    backgroundColor: Colors.red,
+                                  ),
+                                );
+                              }
                             }
-                          }
-                        },
-                      ),
-                    ),
+                          },
+                        ),
+                      );
+                    },
                   );
                 },
                 icon: const Icon(Icons.add),
@@ -100,39 +110,65 @@ class CustomDrawer extends StatelessWidget {
                   },
                 ),
               ] else ...[
-                ...data.calendars.keys.map((calendar) {
-                  final eventCount = data.calendars[calendar]?.length ?? 0;
-                  final isVisible = data.visibleCalendarIds.contains(calendar.id);
+                ...() {
+                  final groupedCalendars = <String, List<ETCalendar>>{};
+                  for (final calendar in data.calendars.keys) {
+                    final accountName = calendar.account.name;
+                    groupedCalendars.putIfAbsent(accountName, () => []).add(calendar);
+                  }
 
-                  return CheckboxListTile(
-                    value: isVisible,
-                    onChanged: (bool? value) {
-                      BlocProvider.of<CalendarCubit>(context).toggleCalendarVisibility(calendar.id);
-                    },
-                    secondary: Container(
-                      width: 16,
-                      height: 16,
-                      decoration: BoxDecoration(
-                        color: calendar.color,
-                        shape: BoxShape.circle,
+                  return groupedCalendars.entries.expand((entry) {
+                    final accountName = entry.key;
+                    final calendars = entry.value;
+
+                    return [
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                        child: Text(
+                          accountName,
+                          style: TextStyle(
+                            color: Colors.grey[600],
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12,
+                          ),
+                        ),
                       ),
-                    ),
-                    title: Text(
-                      calendar.title,
-                      style: TextStyle(
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    subtitle: Text(
-                      '$eventCount event${eventCount != 1 ? 's' : ''}',
-                      style: TextStyle(
-                        color: Colors.grey[600],
-                        fontSize: 12,
-                      ),
-                    ),
-                    controlAffinity: ListTileControlAffinity.leading,
-                  );
-                }),
+                      ...calendars.map((calendar) {
+                        final eventCount = data.calendars[calendar]?.length ?? 0;
+                        final isVisible = data.visibleCalendarIds.contains(calendar.id);
+
+                        return CheckboxListTile(
+                          value: isVisible,
+                          onChanged: (bool? value) {
+                            BlocProvider.of<CalendarCubit>(context).toggleCalendarVisibility(calendar.id);
+                          },
+                          secondary: Container(
+                            width: 16,
+                            height: 16,
+                            decoration: BoxDecoration(
+                              color: calendar.color,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                          title: Text(
+                            calendar.title,
+                            style: TextStyle(
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          subtitle: Text(
+                            '$eventCount event${eventCount != 1 ? 's' : ''}',
+                            style: TextStyle(
+                              color: Colors.grey[600],
+                              fontSize: 12,
+                            ),
+                          ),
+                          controlAffinity: ListTileControlAffinity.leading,
+                        );
+                      }),
+                    ];
+                  });
+                }(),
               ]
             ] else ...[
               if (state.hasError)

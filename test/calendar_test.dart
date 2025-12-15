@@ -22,7 +22,7 @@ void main() {
 
   test('createCalendar returns an ETCalendar', () async {
     // Given
-    const etAccount = ETAccount(name: 'Test Account', type: 'Test Type');
+    const etAccount = ETAccount(id: "1", name: 'Test Account', type: 'Test Type');
     final calendar = Calendar(
       id: '1',
       title: 'Test Calendar',
@@ -34,14 +34,14 @@ void main() {
     when(() => mockCalendarApi.createCalendar(
           title: any(named: 'title'),
           color: any(named: 'color'),
-          localAccountName: any(named: 'localAccountName'),
+          account: any(named: 'account'),
         )).thenAnswer((_) async => calendar);
 
     // When
     final result = await eventide.createCalendar(
       title: 'Test Calendar',
       color: Colors.blue,
-      localAccountName: 'Test Account',
+      account: ETAccount(id: 'Test account', name: 'Test account', type: 'local'),
     );
 
     // Then
@@ -49,31 +49,29 @@ void main() {
     verify(() => mockCalendarApi.createCalendar(
           title: 'Test Calendar',
           color: Colors.blue.toValue(),
-          localAccountName: any(named: 'localAccountName'),
+          account: any(named: 'account'),
         )).called(1);
   });
 
   test('createCalendar throws an exception when API fails', () async {
     // Given
-    when(() => mockCalendarApi.createCalendar(
-        title: any(named: 'title'),
-        color: any(named: 'color'),
-        localAccountName: "Test account")).thenThrow(ETGenericException(message: 'API Error'));
-
+    final account = Account(id: 'Test account', name: 'Test account', type: 'local');
+    when(() => mockCalendarApi.createCalendar(title: any(named: 'title'), color: any(named: 'color'), account: account))
+        .thenThrow(ETGenericException(message: 'API Error'));
     // When
     Future<ETCalendar> call() =>
-        eventide.createCalendar(title: 'Test Calendar', color: Colors.blue, localAccountName: "Test account");
+        eventide.createCalendar(title: 'Test Calendar', color: Colors.blue, account: account.toETAccount());
 
     // Then
     expect(call, throwsException);
-    verify(() => mockCalendarApi.createCalendar(
-        title: 'Test Calendar', color: Colors.blue.toValue(), localAccountName: "Test account")).called(1);
+    verify(() => mockCalendarApi.createCalendar(title: 'Test Calendar', color: Colors.blue.toValue(), account: account))
+        .called(1);
   });
 
   test('retrieveCalendars returns a list of ETCalendars', () async {
     // Given
-    final account1 = Account(name: 'Test Account 1', type: 'Test Type 1');
-    final account2 = Account(name: 'Test Account 2', type: 'Test Type 2');
+    final account1 = Account(id: "1", name: 'Test Account 1', type: 'Test Type 1');
+    final account2 = Account(id: "2", name: 'Test Account 2', type: 'Test Type 2');
     final calendars = [
       Calendar(
         id: '1',
@@ -92,7 +90,7 @@ void main() {
     ];
     when(() => mockCalendarApi.retrieveCalendars(
           onlyWritableCalendars: any(named: 'onlyWritableCalendars'),
-          fromLocalAccountName: any(named: 'fromLocalAccountName'),
+          account: any(named: 'account'),
         )).thenAnswer((_) async => [calendars.last]);
 
     // When
@@ -102,7 +100,7 @@ void main() {
     expect(result, [calendars.last].toETCalendarList());
     verify(() => mockCalendarApi.retrieveCalendars(
           onlyWritableCalendars: true,
-          fromLocalAccountName: any(named: 'fromLocalAccountName'),
+          account: any(named: 'account'),
         )).called(1);
   });
 
@@ -110,7 +108,7 @@ void main() {
     // Given
     when(() => mockCalendarApi.retrieveCalendars(
           onlyWritableCalendars: any(named: 'onlyWritableCalendars'),
-          fromLocalAccountName: null,
+          account: null,
         )).thenThrow(ETGenericException(message: 'API Error'));
 
     // When
@@ -120,7 +118,7 @@ void main() {
     expect(call, throwsException);
     verify(() => mockCalendarApi.retrieveCalendars(
           onlyWritableCalendars: true,
-          fromLocalAccountName: null,
+          account: null,
         )).called(1);
   });
 
@@ -155,7 +153,7 @@ void main() {
         title: 'Test Calendar',
         color: 0xFF123456,
         isWritable: true,
-        account: Account(name: 'Test Account', type: 'Test Type'),
+        account: Account(id: "1", name: 'Test Account', type: 'Test Type'),
       );
       final etCalendar = calendar.toETCalendar();
       expect(etCalendar.id, '1');
@@ -172,7 +170,7 @@ void main() {
           title: 'Test Calendar',
           color: 0xFF123456,
           isWritable: true,
-          account: Account(name: 'Test Account', type: 'Test Type'),
+          account: Account(id: "1", name: 'Test Account', type: 'Test Type'),
         ),
       ];
       final etCalendars = calendars.toETCalendarList();
