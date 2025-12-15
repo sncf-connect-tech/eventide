@@ -99,11 +99,24 @@ import 'package:eventide/eventide.dart';
 
 final eventide = Eventide();
 
-// Create a calendar
+// Get available accounts
+final accounts = await eventide.retrieveAccounts();
+print('Available accounts: ${accounts.map((a) => a.name).join(', ')}');
+
+// Create a calendar in default account
 final calendar = await eventide.createCalendar(
   title: 'Work',
   color: Colors.red,
 );
+
+// Create a calendar in specific account
+if (accounts.isNotEmpty) {
+  final specificCalendar = await eventide.createCalendar(
+    title: 'Personal',
+    color: Colors.blue,
+    account: accounts.first,
+  );
+}
 
 // Create an event in a specific calendar with reminders
 final event = await eventide.createEvent(
@@ -155,17 +168,27 @@ You can find more examples in the [examples app](./example/apps).
 Future<ETCalendar> createCalendar({
   required String title,
   required Color color,
-  required String localAccountName,
+  ETAccount? account,
 })
 ```
 
-Creates a new calendar with the specified title, color, and account name.
+Creates a new calendar with the specified title, color, and optional account.
 
 ```dart
+// Create calendar in default account
 final calendar = await eventide.createCalendar(
   title: 'Personal',
   color: Colors.blue,
-  localAccountName: 'My App',
+);
+
+// Create calendar in specific account
+final accounts = await eventide.retrieveAccounts();
+final googleAccount = accounts.firstWhere((acc) => acc.name.contains('gmail'));
+
+final workCalendar = await eventide.createCalendar(
+  title: 'Work',
+  color: Colors.red,
+  account: googleAccount,
 );
 ```
 
@@ -174,19 +197,26 @@ final calendar = await eventide.createCalendar(
 ```dart
 Future<List<ETCalendar>> retrieveCalendars({
   bool onlyWritableCalendars = true,
-  String? fromLocalAccountName,
+  ETAccount? account,
 })
 ```
 
-Retrieves a list of calendars, optionally filtered by account name and writability.
+Retrieves a list of calendars, optionally filtered by account and writability.
 
 ```dart
 // Get all writable calendars
 final calendars = await eventide.retrieveCalendars();
 
 // Get calendars from specific account
-final myCalendars = await eventide.retrieveCalendars(
-  fromLocalAccountName: 'My App',
+final accounts = await eventide.retrieveAccounts();
+final googleAccount = accounts.firstWhere((acc) => acc.name.contains('gmail'));
+final googleCalendars = await eventide.retrieveCalendars(
+  account: googleAccount,
+);
+
+// Get all calendars (including read-only)
+final allCalendars = await eventide.retrieveCalendars(
+  onlyWritableCalendars: false,
 );
 ```
 
@@ -202,6 +232,38 @@ Deletes a calendar by its ID.
 
 ```dart
 await eventide.deleteCalendar(calendarId: calendar.id);
+```
+
+#### Retrieve Accounts
+
+```dart
+Future<List<ETAccount>> retrieveAccounts()
+```
+
+Retrieves all available accounts from the device that have calendars. This includes Google accounts, local accounts, Exchange accounts, etc.
+
+```dart
+// Get all available accounts
+final accounts = await eventide.retrieveAccounts();
+
+for (final account in accounts) {
+  print('Account: ${account.name} (Type: ${account.type})');
+}
+
+// Find specific account type
+final googleAccounts = accounts.where((acc) => 
+  acc.name.toLowerCase().contains('gmail') || 
+  acc.name.toLowerCase().contains('google')
+).toList();
+
+// Use account for calendar operations
+if (googleAccounts.isNotEmpty) {
+  final calendar = await eventide.createCalendar(
+    title: 'Work Schedule',
+    color: Colors.blue,
+    account: googleAccounts.first,
+  );
+}
 ```
 
 ### Events
@@ -462,38 +524,58 @@ Platform specific values will be treated as follow when fetched from existing sy
 
 ### Accounts
 
-A calendar belongs to an account, such as a Google account or a local on-device account. You must provide a `localAccountName` when creating a calendar with Eventide.
+A calendar belongs to an account, such as a Google account, Exchange account, or a local on-device account. You can optionally specify an `ETAccount` when creating a calendar with Eventide.
 
-#### Creating Calendars with Accounts
+#### Working with Accounts
 
 ```dart
-const myAppCalendarIdentifier = "My Company";
+// Get all available accounts
+final accounts = await eventide.retrieveAccounts();
 
-await eventide.createCalendar(
-  title: 'Personal',
-  color: Colors.blue,
-  localAccountName: myAppCalendarIdentifier,
+// Display available accounts
+for (final account in accounts) {
+  print('📧 ${account.name} (${account.type})');
+}
+
+// Find Google account
+final googleAccount = accounts.firstWhere(
+  (account) => account.name.toLowerCase().contains('gmail'),
+  orElse: () => throw Exception('Google account not found'),
 );
 
-await eventide.createCalendar(
+// Create calendar in specific account
+final workCalendar = await eventide.createCalendar(
   title: 'Work',
   color: Colors.red,
-  localAccountName: myAppCalendarIdentifier,
+  account: googleAccount,
+);
+
+// Create calendar in default account (when account is null)
+final personalCalendar = await eventide.createCalendar(
+  title: 'Personal',
+  color: Colors.blue,
+  // account: null, // Will use default account
 );
 ```
 
-#### Filtering by Account
+#### Filtering Calendars by Account
 
 ```dart
-final myCompanyCalendars = await eventide.retrieveCalendars(
+// Get calendars from specific account
+final googleCalendars = await eventide.retrieveCalendars(
+  account: googleAccount,
   onlyWritableCalendars: true,
-  fromLocalAccountName: myAppCalendarIdentifier,
 );
+
+// Get all calendars from all accounts
+final allCalendars = await eventide.retrieveCalendars();
+
+// Group calendars by account
+final calendarsByAccount = <ETAccount, List<ETCalendar>>{};
+for (final calendar in allCalendars) {
+  calendarsByAccount.putIfAbsent(calendar.account, () => []).add(calendar);
+}
 ```
-
-> **Note:** Users might need to allow your custom account in their calendar app to display your calendars & events.
-
-![Google Calendar App > Parameters > Manage accounts](./.github/documentation/manageaccounts.png)
 
 ---
 

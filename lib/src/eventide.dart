@@ -20,8 +20,8 @@ class Eventide extends EventidePlatform {
 
   /// Creates a new calendar with the given [title], [color] and optional [accountName].
   ///
-  /// If [accountName] is provided, the calendar will be created under that account.
-  /// If [accountName] is null, the calendar will be created in the default account/source:
+  /// If [account] is provided, the calendar will be created under that account.
+  /// If [account] is null, the calendar will be created in the default account/source:
   /// - On iOS: Uses default source (local or iCloud)
   /// - On Android: Uses "LocalCalendar" as the account name
   ///
@@ -56,7 +56,7 @@ class Eventide extends EventidePlatform {
   /// Retrieves a list of calendars.
   /// If [onlyWritableCalendars] is `true`, only writable calendars are returned.
   ///
-  /// If [fromAccount] is provided, only calendars from that account are returned.
+  /// If [account] is provided, only calendars from that account are returned.
   ///
   /// Returns a list of [ETCalendar]s.
   ///
