@@ -21,22 +21,13 @@ abstract class EventidePlatform extends PlatformInterface {
     _instance = instance;
   }
 
-  Future<ETCalendar> createCalendar({
-    required String title,
-    required Color color,
-    ETAccount? account,
-  });
+  Future<ETCalendar> createCalendar({required String title, required Color color, ETAccount? account});
 
-  Future<Iterable<ETCalendar>> retrieveCalendars({
-    bool onlyWritableCalendars = true,
-    ETAccount? account,
-  });
+  Future<Iterable<ETCalendar>> retrieveCalendars({bool onlyWritableCalendars = true, ETAccount? account});
 
   Future<Iterable<ETAccount>> retrieveAccounts();
 
-  Future<void> deleteCalendar({
-    required String calendarId,
-  });
+  Future<void> deleteCalendar({required String calendarId});
 
   Future<ETEvent> createEvent({
     required String calendarId,
@@ -72,25 +63,13 @@ abstract class EventidePlatform extends PlatformInterface {
     Iterable<Duration>? reminders,
   });
 
-  Future<Iterable<ETEvent>> retrieveEvents({
-    required String calendarId,
-    DateTime? startDate,
-    DateTime? endDate,
-  });
+  Future<Iterable<ETEvent>> retrieveEvents({required String calendarId, DateTime? startDate, DateTime? endDate});
 
-  Future<void> deleteEvent({
-    required String eventId,
-  });
+  Future<void> deleteEvent({required String eventId});
 
-  Future<ETEvent> createReminder({
-    required String eventId,
-    required Duration durationBeforeEvent,
-  });
+  Future<ETEvent> createReminder({required String eventId, required Duration durationBeforeEvent});
 
-  Future<ETEvent> deleteReminder({
-    required String eventId,
-    required Duration durationBeforeEvent,
-  });
+  Future<ETEvent> deleteReminder({required String eventId, required Duration durationBeforeEvent});
 
   Future<ETEvent> createAttendee({
     required String eventId,
@@ -99,10 +78,7 @@ abstract class EventidePlatform extends PlatformInterface {
     required ETAttendeeType type,
   });
 
-  Future<ETEvent> deleteAttendee({
-    required String eventId,
-    required ETAttendee attendee,
-  });
+  Future<ETEvent> deleteAttendee({required String eventId, required ETAttendee attendee});
 }
 
 /// Represents a calendar.
@@ -180,18 +156,18 @@ final class ETEvent {
 
   @override
   int get hashCode => Object.hashAll([
-        id,
-        title,
-        isAllDay,
-        startDate,
-        endDate,
-        calendarId,
-        ...reminders,
-        ...attendees,
-        description,
-        url,
-        location,
-      ]);
+    id,
+    title,
+    isAllDay,
+    startDate,
+    endDate,
+    calendarId,
+    ...reminders,
+    ...attendees,
+    description,
+    url,
+    location,
+  ]);
 
   const ETEvent({
     required this.id,
@@ -242,11 +218,7 @@ final class ETAccount {
   @override
   int get hashCode => Object.hash(id, name, type);
 
-  const ETAccount({
-    required this.id,
-    required this.name,
-    required this.type,
-  });
+  const ETAccount({required this.id, required this.name, required this.type});
 
   @override
   bool operator ==(Object other) =>
@@ -276,12 +248,7 @@ final class ETAttendee {
   @override
   int get hashCode => Object.hash(name, email, type, status);
 
-  const ETAttendee({
-    required this.name,
-    required this.email,
-    required this.type,
-    required this.status,
-  });
+  const ETAttendee({required this.name, required this.email, required this.type, required this.status});
 
   @override
   bool operator ==(Object other) =>
@@ -295,36 +262,11 @@ final class ETAttendee {
 }
 
 enum ETAttendeeType {
-  unknown(
-    iosParticipantType: 0,
-    iosParticipantRole: 0,
-    androidAttendeeType: 0,
-    androidAttendeeRelationship: 0,
-  ),
-  requiredPerson(
-    iosParticipantType: 1,
-    iosParticipantRole: 1,
-    androidAttendeeType: 1,
-    androidAttendeeRelationship: 1,
-  ),
-  optionalPerson(
-    iosParticipantType: 1,
-    iosParticipantRole: 2,
-    androidAttendeeType: 2,
-    androidAttendeeRelationship: 1,
-  ),
-  organizer(
-    iosParticipantType: 1,
-    iosParticipantRole: 3,
-    androidAttendeeType: 1,
-    androidAttendeeRelationship: 2,
-  ),
-  resource(
-    iosParticipantType: 3,
-    iosParticipantRole: 1,
-    androidAttendeeType: 3,
-    androidAttendeeRelationship: 1,
-  );
+  unknown(iosParticipantType: 0, iosParticipantRole: 0, androidAttendeeType: 0, androidAttendeeRelationship: 0),
+  requiredPerson(iosParticipantType: 1, iosParticipantRole: 1, androidAttendeeType: 1, androidAttendeeRelationship: 1),
+  optionalPerson(iosParticipantType: 1, iosParticipantRole: 2, androidAttendeeType: 2, androidAttendeeRelationship: 1),
+  organizer(iosParticipantType: 1, iosParticipantRole: 3, androidAttendeeType: 1, androidAttendeeRelationship: 2),
+  resource(iosParticipantType: 3, iosParticipantRole: 1, androidAttendeeType: 3, androidAttendeeRelationship: 1);
 
   final int iosParticipantType;
   final int iosParticipantRole;
@@ -361,32 +303,14 @@ enum ETAttendeeType {
 ///
 /// [EKParticipantStatus.delegated] is not supported because it has no equivalent on Android.
 enum ETAttendanceStatus {
-  unknown(
-    iosStatus: 0,
-    androidStatus: 0,
-  ),
-  pending(
-    iosStatus: 1,
-    androidStatus: 3,
-  ),
-  accepted(
-    iosStatus: 2,
-    androidStatus: 1,
-  ),
-  declined(
-    iosStatus: 3,
-    androidStatus: 2,
-  ),
-  tentative(
-    iosStatus: 4,
-    androidStatus: 4,
-  );
+  unknown(iosStatus: 0, androidStatus: 0),
+  pending(iosStatus: 1, androidStatus: 3),
+  accepted(iosStatus: 2, androidStatus: 1),
+  declined(iosStatus: 3, androidStatus: 2),
+  tentative(iosStatus: 4, androidStatus: 4);
 
   final int iosStatus;
   final int androidStatus;
 
-  const ETAttendanceStatus({
-    required this.iosStatus,
-    required this.androidStatus,
-  });
+  const ETAttendanceStatus({required this.iosStatus, required this.androidStatus});
 }

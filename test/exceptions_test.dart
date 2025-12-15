@@ -7,10 +7,7 @@ import 'package:eventide/src/eventide_exception.dart';
 void main() {
   group('PlatformExceptionToETCalendarException tests', () {
     test('Converts PlatformException to ETPermissionException', () {
-      final platformException = PlatformException(
-        code: 'ACCESS_REFUSED',
-        message: 'Permission denied',
-      );
+      final platformException = PlatformException(code: 'ACCESS_REFUSED', message: 'Permission denied');
       final etException = platformException.toETException();
       expect(etException, isA<ETPermissionException>());
       expect(etException.code, 'ACCESS_REFUSED');
@@ -18,10 +15,7 @@ void main() {
     });
 
     test('Converts PlatformException to ETNotFoundException', () {
-      final platformException = PlatformException(
-        code: 'NOT_FOUND',
-        message: 'Not found',
-      );
+      final platformException = PlatformException(code: 'NOT_FOUND', message: 'Not found');
       final etException = platformException.toETException();
       expect(etException, isA<ETNotFoundException>());
       expect(etException.code, 'NOT_FOUND');
@@ -29,10 +23,7 @@ void main() {
     });
 
     test('Converts PlatformException to ETNotEditableException', () {
-      final platformException = PlatformException(
-        code: 'NOT_EDITABLE',
-        message: 'Not editable',
-      );
+      final platformException = PlatformException(code: 'NOT_EDITABLE', message: 'Not editable');
       final etException = platformException.toETException();
       expect(etException, isA<ETNotEditableException>());
       expect(etException.code, 'NOT_EDITABLE');
@@ -51,10 +42,7 @@ void main() {
     });
 
     test('Converts PlatformException to ETGenericException', () {
-      final platformException = PlatformException(
-        code: 'UNKNOWN_ERROR',
-        message: 'Unknown error',
-      );
+      final platformException = PlatformException(code: 'UNKNOWN_ERROR', message: 'Unknown error');
       final etException = platformException.toETException();
       expect(etException, isA<ETGenericException>());
       expect(etException.code, 'GENERIC_ERROR');
@@ -62,10 +50,7 @@ void main() {
     });
 
     test('Converts PlatformException to ETUserCanceledException', () {
-      final platformException = PlatformException(
-        code: 'USER_CANCELED',
-        message: 'User canceled the event creation',
-      );
+      final platformException = PlatformException(code: 'USER_CANCELED', message: 'User canceled the event creation');
       final etException = platformException.toETException();
       expect(etException, isA<ETUserCanceledException>());
       expect(etException.code, 'USER_CANCELED');

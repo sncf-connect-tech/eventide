@@ -43,14 +43,12 @@ void main() {
         attendees: [],
       );
 
-      when(() => mockCalendarApi.createReminder(reminder: any(named: 'reminder'), eventId: any(named: 'eventId')))
-          .thenAnswer((_) async => targetEvent);
+      when(
+        () => mockCalendarApi.createReminder(reminder: any(named: 'reminder'), eventId: any(named: 'eventId')),
+      ).thenAnswer((_) async => targetEvent);
 
       // When
-      final result = await eventide.createReminder(
-        durationBeforeEvent: const Duration(minutes: 10),
-        eventId: '1',
-      );
+      final result = await eventide.createReminder(durationBeforeEvent: const Duration(minutes: 10), eventId: '1');
 
       // Then
       expect(result, targetEvent.toETEvent());
@@ -59,14 +57,12 @@ void main() {
 
     test('createReminder throws an exception when API fails', () async {
       // Given
-      when(() => mockCalendarApi.createReminder(reminder: any(named: 'reminder'), eventId: any(named: 'eventId')))
-          .thenThrow(ETGenericException(message: 'API Error'));
+      when(
+        () => mockCalendarApi.createReminder(reminder: any(named: 'reminder'), eventId: any(named: 'eventId')),
+      ).thenThrow(ETGenericException(message: 'API Error'));
 
       // When
-      Future<ETEvent> call() => eventide.createReminder(
-            durationBeforeEvent: const Duration(minutes: 10),
-            eventId: '1',
-          );
+      Future<ETEvent> call() => eventide.createReminder(durationBeforeEvent: const Duration(minutes: 10), eventId: '1');
 
       // Then
       expect(call, throwsException);
@@ -86,14 +82,12 @@ void main() {
         attendees: [],
       );
 
-      when(() => mockCalendarApi.deleteReminder(reminder: any(named: 'reminder'), eventId: any(named: 'eventId')))
-          .thenAnswer((_) async => targetEvent);
+      when(
+        () => mockCalendarApi.deleteReminder(reminder: any(named: 'reminder'), eventId: any(named: 'eventId')),
+      ).thenAnswer((_) async => targetEvent);
 
       // When
-      final result = await eventide.deleteReminder(
-        durationBeforeEvent: const Duration(minutes: 10),
-        eventId: '1',
-      );
+      final result = await eventide.deleteReminder(durationBeforeEvent: const Duration(minutes: 10), eventId: '1');
 
       // Then
       expect(result, targetEvent.toETEvent());
@@ -102,14 +96,12 @@ void main() {
 
     test('deleteReminder throws an exception when API fails', () async {
       // Given
-      when(() => mockCalendarApi.deleteReminder(reminder: any(named: 'reminder'), eventId: any(named: 'eventId')))
-          .thenThrow(ETGenericException(message: 'API Error'));
+      when(
+        () => mockCalendarApi.deleteReminder(reminder: any(named: 'reminder'), eventId: any(named: 'eventId')),
+      ).thenThrow(ETGenericException(message: 'API Error'));
 
       // When
-      Future<ETEvent> call() => eventide.deleteReminder(
-            durationBeforeEvent: const Duration(minutes: 10),
-            eventId: '1',
-          );
+      Future<ETEvent> call() => eventide.deleteReminder(durationBeforeEvent: const Duration(minutes: 10), eventId: '1');
 
       // Then
       expect(call, throwsException);
@@ -139,14 +131,12 @@ void main() {
         attendees: [],
       );
 
-      when(() => mockCalendarApi.createReminder(reminder: any(named: 'reminder'), eventId: any(named: 'eventId')))
-          .thenAnswer((_) async => targetEvent);
+      when(
+        () => mockCalendarApi.createReminder(reminder: any(named: 'reminder'), eventId: any(named: 'eventId')),
+      ).thenAnswer((_) async => targetEvent);
 
       // When
-      final result = await eventide.createReminder(
-        durationBeforeEvent: const Duration(minutes: 10),
-        eventId: '1',
-      );
+      final result = await eventide.createReminder(durationBeforeEvent: const Duration(minutes: 10), eventId: '1');
 
       // Then
       expect(result, targetEvent.toETEvent());
@@ -155,14 +145,12 @@ void main() {
 
     test('createReminder throws an exception when API fails', () async {
       // Given
-      when(() => mockCalendarApi.createReminder(reminder: any(named: 'reminder'), eventId: any(named: 'eventId')))
-          .thenThrow(ETGenericException(message: 'API Error'));
+      when(
+        () => mockCalendarApi.createReminder(reminder: any(named: 'reminder'), eventId: any(named: 'eventId')),
+      ).thenThrow(ETGenericException(message: 'API Error'));
 
       // When
-      Future<ETEvent> call() => eventide.createReminder(
-            durationBeforeEvent: const Duration(minutes: 10),
-            eventId: '1',
-          );
+      Future<ETEvent> call() => eventide.createReminder(durationBeforeEvent: const Duration(minutes: 10), eventId: '1');
 
       // Then
       expect(call, throwsException);
@@ -182,14 +170,12 @@ void main() {
         attendees: [],
       );
 
-      when(() => mockCalendarApi.deleteReminder(reminder: any(named: 'reminder'), eventId: any(named: 'eventId')))
-          .thenAnswer((_) async => targetEvent);
+      when(
+        () => mockCalendarApi.deleteReminder(reminder: any(named: 'reminder'), eventId: any(named: 'eventId')),
+      ).thenAnswer((_) async => targetEvent);
 
       // When
-      final result = await eventide.deleteReminder(
-        durationBeforeEvent: const Duration(minutes: 10),
-        eventId: '1',
-      );
+      final result = await eventide.deleteReminder(durationBeforeEvent: const Duration(minutes: 10), eventId: '1');
 
       // Then
       expect(result, targetEvent.toETEvent());
@@ -198,14 +184,12 @@ void main() {
 
     test('deleteReminder throws an exception when API fails', () async {
       // Given
-      when(() => mockCalendarApi.deleteReminder(reminder: any(named: 'reminder'), eventId: any(named: 'eventId')))
-          .thenThrow(ETGenericException(message: 'API Error'));
+      when(
+        () => mockCalendarApi.deleteReminder(reminder: any(named: 'reminder'), eventId: any(named: 'eventId')),
+      ).thenThrow(ETGenericException(message: 'API Error'));
 
       // When
-      Future<ETEvent> call() => eventide.deleteReminder(
-            durationBeforeEvent: const Duration(minutes: 10),
-            eventId: '1',
-          );
+      Future<ETEvent> call() => eventide.deleteReminder(durationBeforeEvent: const Duration(minutes: 10), eventId: '1');
 
       // Then
       expect(call, throwsException);

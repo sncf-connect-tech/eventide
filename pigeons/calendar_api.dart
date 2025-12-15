@@ -1,40 +1,33 @@
 // ignore: depend_on_referenced_packages
 import 'package:pigeon/pigeon.dart';
 
-@ConfigurePigeon(PigeonOptions(
-  dartOut: 'lib/src/calendar_api.g.dart',
-  dartOptions: DartOptions(),
-  kotlinOut: 'android/src/main/kotlin/sncf/connect/tech/eventide/CalendarApi.g.kt',
-  kotlinOptions: KotlinOptions(package: 'sncf.connect.tech.eventide'),
-  swiftOut: 'ios/eventide/Sources/eventide/CalendarApi.g.swift',
-  swiftOptions: SwiftOptions(),
-  dartPackageName: 'eventide',
-))
+@ConfigurePigeon(
+  PigeonOptions(
+    dartOut: 'lib/src/calendar_api.g.dart',
+    dartOptions: DartOptions(),
+    kotlinOut: 'android/src/main/kotlin/sncf/connect/tech/eventide/CalendarApi.g.kt',
+    kotlinOptions: KotlinOptions(package: 'sncf.connect.tech.eventide'),
+    swiftOut: 'ios/eventide/Sources/eventide/CalendarApi.g.swift',
+    swiftOptions: SwiftOptions(),
+    dartPackageName: 'eventide',
+  ),
+)
 @HostApi()
 abstract class CalendarApi {
   @async
   @SwiftFunction('createCalendar(title:color:in:)')
-  Calendar createCalendar({
-    required String title,
-    required int color,
-    required Account? account,
-  });
+  Calendar createCalendar({required String title, required int color, required Account? account});
 
   @async
   @SwiftFunction('retrieveCalendars(onlyWritable:from:)')
-  List<Calendar> retrieveCalendars({
-    required bool onlyWritableCalendars,
-    required Account? account,
-  });
+  List<Calendar> retrieveCalendars({required bool onlyWritableCalendars, required Account? account});
 
   @async
   List<Account> retrieveAccounts();
 
   @async
   @SwiftFunction('deleteCalendar(_:)')
-  void deleteCalendar({
-    required String calendarId,
-  });
+  void deleteCalendar({required String calendarId});
 
   @async
   Event createEvent({
@@ -74,31 +67,19 @@ abstract class CalendarApi {
   });
 
   @async
-  List<Event> retrieveEvents({
-    required String calendarId,
-    required int startDate,
-    required int endDate,
-  });
+  List<Event> retrieveEvents({required String calendarId, required int startDate, required int endDate});
 
   @async
   @SwiftFunction('deleteEvent(withId:)')
-  void deleteEvent({
-    required String eventId,
-  });
+  void deleteEvent({required String eventId});
 
   @async
   @SwiftFunction('createReminder(_:forEventId:)')
-  Event createReminder({
-    required int reminder,
-    required String eventId,
-  });
+  Event createReminder({required int reminder, required String eventId});
 
   @async
   @SwiftFunction('deleteReminder(_:withEventId:)')
-  Event deleteReminder({
-    required int reminder,
-    required String eventId,
-  });
+  Event deleteReminder({required int reminder, required String eventId});
 
   @async
   Event createAttendee({
@@ -110,10 +91,7 @@ abstract class CalendarApi {
   });
 
   @async
-  Event deleteAttendee({
-    required String eventId,
-    required String email,
-  });
+  Event deleteAttendee({required String eventId, required String email});
 }
 
 final class Calendar {
@@ -165,11 +143,7 @@ final class Account {
   final String name;
   final String type;
 
-  const Account({
-    required this.id,
-    required this.name,
-    required this.type,
-  });
+  const Account({required this.id, required this.name, required this.type});
 }
 
 final class Attendee {
