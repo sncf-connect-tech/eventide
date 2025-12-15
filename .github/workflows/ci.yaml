@@ -9,8 +9,8 @@ env:
   FLUTTER_MINIMUM_VERSION: 3.27.0
   JAVA_VERSION: 17
   JAVA_DISTRIBUTION: corretto
-  IPHONE_NAME: iPhone 16 Pro
-  IPHONE_OS_VERSION: 18.4
+  IPHONE_NAME: iPhone 17
+  IPHONE_OS_VERSION: 26.1
 
 jobs:
   flutter-tests:

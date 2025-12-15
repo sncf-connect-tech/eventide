@@ -217,10 +217,33 @@ final class CalendarTests: XCTestCase {
         
         waitForExpectations(timeout: timeout)
     }
-    
+
+    func testRetrieveCalendars_emptyResult_permissionGranted() {
+        let expectation = expectation(description: "Empty calendars list returned")
+
+        let mockEasyEventStore = MockEasyEventStore(calendars: [])
+
+        calendarImplem = CalendarImplem(
+            easyEventStore: mockEasyEventStore,
+            permissionHandler: PermissionGranted()
+        )
+
+        calendarImplem.retrieveCalendars(onlyWritable: false, from: nil) { retrieveCalendarsResult in
+            switch (retrieveCalendarsResult) {
+            case .success(let calendars):
+                XCTAssertEqual(calendars.count, 0)
+                expectation.fulfill()
+            case .failure:
+                XCTFail("Should return empty list, not error")
+            }
+        }
+
+        waitForExpectations(timeout: timeout)
+    }
+
     func testDeleteCalendar_writable_permissionGranted() {
         let expectation = expectation(description: "Calendar has been deleted")
-        
+
         let mockEasyEventStore = MockEasyEventStore(
             calendars: [
                 MockCalendar(
@@ -233,12 +256,12 @@ final class CalendarTests: XCTestCase {
                 )
             ]
         )
-        
+
         calendarImplem = CalendarImplem(
             easyEventStore: mockEasyEventStore,
             permissionHandler: PermissionGranted()
         )
-        
+
         calendarImplem.deleteCalendar("1") { deleteCalendarResult in
             switch (deleteCalendarResult) {
             case .success:

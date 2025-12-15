@@ -124,6 +124,7 @@ final event = await eventide.createEvent(
   title: 'Meeting',
   startDate: DateTime.now(),
   endDate: DateTime.now().add(Duration(hours: 1)),
+  location: '1 Place Bellecour, 69002 Lyon',
   reminders: [
     const Duration(hours: 1),
     const Duration(minutes: 15),
@@ -279,6 +280,7 @@ Future<ETEvent> createEvent({
   bool isAllDay = false,
   String? description,
   String? url,
+  String? location,
   List<Duration>? reminders,
 })
 ```
@@ -292,6 +294,7 @@ final event = await eventide.createEvent(
   startDate: DateTime.now(),
   endDate: DateTime.now().add(Duration(hours: 1)),
   description: 'Weekly team sync',
+  location: '1 Place Bellecour, 69002 Lyon',
   isAllDay: false,
   reminders: [Duration(minutes: 15)],
 );
@@ -307,6 +310,7 @@ Future<void> createEventInDefaultCalendar({
   bool isAllDay = false,
   String? description,
   String? url,
+  String? location,
   List<Duration>? reminders,
 })
 ```
@@ -323,6 +327,7 @@ await eventide.createEventInDefaultCalendar(
   startDate: DateTime.now().add(Duration(days: 1)),
   endDate: DateTime.now().add(Duration(days: 1, hours: 1)),
   description: 'Weekly team sync',
+  location: 'Conference Room A',
   isAllDay: false,
   reminders: [Duration(minutes: 15)],
 );
@@ -338,6 +343,7 @@ Future<void> createEventThroughNativePlatform({
   bool? isAllDay,
   String? description,
   String? url,
+  String? location,
   List<Duration>? reminders,
 })
 ```
@@ -357,6 +363,7 @@ await eventide.createEventThroughNativePlatform(
   startDate: DateTime.now().add(Duration(hours: 2)),
   endDate: DateTime.now().add(Duration(hours: 2, minutes: 30)),
   description: 'Daily team synchronization',
+  location: 'Meeting Room B',
   isAllDay: false,
   reminders: [Duration(minutes: 10)],
 );

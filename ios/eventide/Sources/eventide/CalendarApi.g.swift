@@ -181,6 +181,7 @@ struct Event: Hashable {
   var attendees: [Attendee]
   var description: String? = nil
   var url: String? = nil
+  var location: String? = nil
 
 
   // swift-format-ignore: AlwaysUseLowerCamelCase
@@ -195,6 +196,7 @@ struct Event: Hashable {
     let attendees = pigeonVar_list[7] as! [Attendee]
     let description: String? = nilOrValue(pigeonVar_list[8])
     let url: String? = nilOrValue(pigeonVar_list[9])
+    let location: String? = nilOrValue(pigeonVar_list[10])
 
     return Event(
       id: id,
@@ -206,7 +208,8 @@ struct Event: Hashable {
       reminders: reminders,
       attendees: attendees,
       description: description,
-      url: url
+      url: url,
+      location: location
     )
   }
   func toList() -> [Any?] {
@@ -221,6 +224,7 @@ struct Event: Hashable {
       attendees,
       description,
       url,
+      location,
     ]
   }
   static func == (lhs: Event, rhs: Event) -> Bool {
@@ -362,9 +366,9 @@ protocol CalendarApi {
   func retrieveCalendars(onlyWritable onlyWritableCalendars: Bool, from account: Account?, completion: @escaping (Result<[Calendar], Error>) -> Void)
   func retrieveAccounts(completion: @escaping (Result<[Account], Error>) -> Void)
   func deleteCalendar(_ calendarId: String, completion: @escaping (Result<Void, Error>) -> Void)
-  func createEvent(calendarId: String, title: String, startDate: Int64, endDate: Int64, isAllDay: Bool, description: String?, url: String?, reminders: [Int64]?, completion: @escaping (Result<Event, Error>) -> Void)
-  func createEventInDefaultCalendar(title: String, startDate: Int64, endDate: Int64, isAllDay: Bool, description: String?, url: String?, reminders: [Int64]?, completion: @escaping (Result<Void, Error>) -> Void)
-  func createEventThroughNativePlatform(title: String?, startDate: Int64?, endDate: Int64?, isAllDay: Bool?, description: String?, url: String?, reminders: [Int64]?, completion: @escaping (Result<Void, Error>) -> Void)
+  func createEvent(calendarId: String, title: String, startDate: Int64, endDate: Int64, isAllDay: Bool, description: String?, url: String?, location: String?, reminders: [Int64]?, completion: @escaping (Result<Event, Error>) -> Void)
+  func createEventInDefaultCalendar(title: String, startDate: Int64, endDate: Int64, isAllDay: Bool, description: String?, url: String?, location: String?, reminders: [Int64]?, completion: @escaping (Result<Void, Error>) -> Void)
+  func createEventThroughNativePlatform(title: String?, startDate: Int64?, endDate: Int64?, isAllDay: Bool?, description: String?, url: String?, location: String?, reminders: [Int64]?, completion: @escaping (Result<Void, Error>) -> Void)
   func retrieveEvents(calendarId: String, startDate: Int64, endDate: Int64, completion: @escaping (Result<[Event], Error>) -> Void)
   func deleteEvent(withId eventId: String, completion: @escaping (Result<Void, Error>) -> Void)
   func createReminder(_ reminder: Int64, forEventId eventId: String, completion: @escaping (Result<Event, Error>) -> Void)
@@ -459,8 +463,9 @@ class CalendarApiSetup {
         let isAllDayArg = args[4] as! Bool
         let descriptionArg: String? = nilOrValue(args[5])
         let urlArg: String? = nilOrValue(args[6])
-        let remindersArg: [Int64]? = nilOrValue(args[7])
-        api.createEvent(calendarId: calendarIdArg, title: titleArg, startDate: startDateArg, endDate: endDateArg, isAllDay: isAllDayArg, description: descriptionArg, url: urlArg, reminders: remindersArg) { result in
+        let locationArg: String? = nilOrValue(args[7])
+        let remindersArg: [Int64]? = nilOrValue(args[8])
+        api.createEvent(calendarId: calendarIdArg, title: titleArg, startDate: startDateArg, endDate: endDateArg, isAllDay: isAllDayArg, description: descriptionArg, url: urlArg, location: locationArg, reminders: remindersArg) { result in
           switch result {
           case .success(let res):
             reply(wrapResult(res))
@@ -482,8 +487,9 @@ class CalendarApiSetup {
         let isAllDayArg = args[3] as! Bool
         let descriptionArg: String? = nilOrValue(args[4])
         let urlArg: String? = nilOrValue(args[5])
-        let remindersArg: [Int64]? = nilOrValue(args[6])
-        api.createEventInDefaultCalendar(title: titleArg, startDate: startDateArg, endDate: endDateArg, isAllDay: isAllDayArg, description: descriptionArg, url: urlArg, reminders: remindersArg) { result in
+        let locationArg: String? = nilOrValue(args[6])
+        let remindersArg: [Int64]? = nilOrValue(args[7])
+        api.createEventInDefaultCalendar(title: titleArg, startDate: startDateArg, endDate: endDateArg, isAllDay: isAllDayArg, description: descriptionArg, url: urlArg, location: locationArg, reminders: remindersArg) { result in
           switch result {
           case .success:
             reply(wrapResult(nil))
@@ -505,8 +511,9 @@ class CalendarApiSetup {
         let isAllDayArg: Bool? = nilOrValue(args[3])
         let descriptionArg: String? = nilOrValue(args[4])
         let urlArg: String? = nilOrValue(args[5])
-        let remindersArg: [Int64]? = nilOrValue(args[6])
-        api.createEventThroughNativePlatform(title: titleArg, startDate: startDateArg, endDate: endDateArg, isAllDay: isAllDayArg, description: descriptionArg, url: urlArg, reminders: remindersArg) { result in
+        let locationArg: String? = nilOrValue(args[6])
+        let remindersArg: [Int64]? = nilOrValue(args[7])
+        api.createEventThroughNativePlatform(title: titleArg, startDate: startDateArg, endDate: endDateArg, isAllDay: isAllDayArg, description: descriptionArg, url: urlArg, location: locationArg, reminders: remindersArg) { result in
           switch result {
           case .success:
             reply(wrapResult(nil))

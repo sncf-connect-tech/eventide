@@ -14,6 +14,7 @@ extension EventToETEvent on Event {
       calendarId: calendarId,
       description: description,
       url: url,
+      location: location,
       reminders: reminders.toDurationList(),
       attendees: attendees.toETAttendeeList(),
     );
@@ -31,6 +32,7 @@ extension ETEventCopy on ETEvent {
       calendarId: calendarId,
       description: description,
       url: url,
+      location: location,
       reminders: reminders ?? this.reminders,
       attendees: attendees,
     );

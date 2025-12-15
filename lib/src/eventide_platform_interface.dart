@@ -46,6 +46,7 @@ abstract class EventidePlatform extends PlatformInterface {
     bool isAllDay = false,
     String? description,
     String? url,
+    String? location,
     List<Duration>? reminders,
   });
 
@@ -56,6 +57,7 @@ abstract class EventidePlatform extends PlatformInterface {
     bool isAllDay = false,
     String? description,
     String? url,
+    String? location,
     List<Duration>? reminders,
   });
 
@@ -66,6 +68,7 @@ abstract class EventidePlatform extends PlatformInterface {
     bool? isAllDay,
     String? description,
     String? url,
+    String? location,
     List<Duration>? reminders,
   });
 
@@ -159,6 +162,8 @@ final class ETCalendar {
 ///
 /// [url] is the url of the event.
 ///
+/// [location] is the location of the event.
+///
 /// [reminders] is a list of [Duration] before the event.
 final class ETEvent {
   final String id;
@@ -171,6 +176,7 @@ final class ETEvent {
   final List<ETAttendee> attendees;
   final String? description;
   final String? url;
+  final String? location;
 
   @override
   int get hashCode => Object.hashAll([
@@ -184,6 +190,7 @@ final class ETEvent {
         ...attendees,
         description,
         url,
+        location,
       ]);
 
   const ETEvent({
@@ -197,6 +204,7 @@ final class ETEvent {
     this.attendees = const [],
     this.description,
     this.url,
+    this.location,
   });
 
   @override
@@ -213,7 +221,8 @@ final class ETEvent {
           listEquals(other.reminders, reminders) &&
           listEquals(other.attendees, attendees) &&
           other.description == description &&
-          other.url == url;
+          other.url == url &&
+          other.location == location;
 }
 
 /// Represents an account.

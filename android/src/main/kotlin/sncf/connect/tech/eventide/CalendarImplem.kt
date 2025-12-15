@@ -326,6 +326,7 @@ class CalendarImplem(
         isAllDay: Boolean,
         description: String?,
         url: String?,
+        location: String?,
         reminders: List<Long>?,
         callback: (Result<Event>) -> Unit
     ) {
@@ -351,6 +352,7 @@ class CalendarImplem(
                             put(CalendarContract.Events.CALENDAR_ID, calendarId)
                             put(CalendarContract.Events.TITLE, title)
                             put(CalendarContract.Events.DESCRIPTION, mergedDescription)
+                            put(CalendarContract.Events.EVENT_LOCATION, location)
                             put(CalendarContract.Events.DTSTART, startDate)
                             put(CalendarContract.Events.DTEND, endDate)
                             put(CalendarContract.Events.EVENT_TIMEZONE, "UTC")
@@ -384,6 +386,7 @@ class CalendarImplem(
                                     calendarId = calendarId,
                                     description = description,
                                     url = url,
+                                    location = location,
                                     isAllDay = isAllDay,
                                     reminders = reminders ?: emptyList(),
                                     attendees = emptyList(),
@@ -445,6 +448,7 @@ class CalendarImplem(
         isAllDay: Boolean,
         description: String?,
         url: String?,
+        location: String?,
         reminders: List<Long>?,
         callback: (Result<Unit>) -> Unit
     ) {
@@ -456,6 +460,7 @@ class CalendarImplem(
             endDate = endDate,
             isAllDay = isAllDay,
             description = mergedDescription,
+            location = location,
         )
         callback(Result.success(Unit))
     }
@@ -467,6 +472,7 @@ class CalendarImplem(
         isAllDay: Boolean?,
         description: String?,
         url: String?,
+        location: String?,
         reminders: List<Long>?,
         callback: (Result<Unit>) -> Unit
     ) {
@@ -479,6 +485,7 @@ class CalendarImplem(
                 endDate = endDate,
                 isAllDay = isAllDay,
                 description = mergedDescription,
+                location = location,
             )
             callback(Result.success(Unit))
         } catch (e: Exception) {
@@ -517,6 +524,7 @@ class CalendarImplem(
                         CalendarContract.Events._ID,
                         CalendarContract.Events.TITLE,
                         CalendarContract.Events.DESCRIPTION,
+                        CalendarContract.Events.EVENT_LOCATION,
                         CalendarContract.Events.DTSTART,
                         CalendarContract.Events.DTEND,
                         CalendarContract.Events.EVENT_TIMEZONE,
@@ -536,6 +544,7 @@ class CalendarImplem(
                             val storedDescription =
                                 c.getString(c.getColumnIndexOrThrow(CalendarContract.Events.DESCRIPTION))
                             val (parsedDescription, parsedUrl) = descriptionUrlHelper.splitDescriptionAndUrl(storedDescription)
+                            val eventLocation = c.getString(c.getColumnIndexOrThrow(CalendarContract.Events.EVENT_LOCATION))
                             val start = c.getLong(c.getColumnIndexOrThrow(CalendarContract.Events.DTSTART))
                             val end = c.getLong(c.getColumnIndexOrThrow(CalendarContract.Events.DTEND))
                             val isAllDay = c.getInt(c.getColumnIndexOrThrow(CalendarContract.Events.ALL_DAY)).toBoolean()
@@ -576,6 +585,7 @@ class CalendarImplem(
                                     calendarId = calendarId,
                                     description = parsedDescription,
                                     url = parsedUrl,
+                                    location = eventLocation,
                                     isAllDay = isAllDay,
                                     reminders = reminders,
                                     attendees = attendees
@@ -918,6 +928,7 @@ class CalendarImplem(
                 CalendarContract.Events._ID,
                 CalendarContract.Events.TITLE,
                 CalendarContract.Events.DESCRIPTION,
+                CalendarContract.Events.EVENT_LOCATION,
                 CalendarContract.Events.DTSTART,
                 CalendarContract.Events.DTEND,
                 CalendarContract.Events.EVENT_TIMEZONE,
@@ -936,6 +947,7 @@ class CalendarImplem(
                     val title = it.getString(it.getColumnIndexOrThrow(CalendarContract.Events.TITLE))
                     val storedDescription = it.getString(it.getColumnIndexOrThrow(CalendarContract.Events.DESCRIPTION))
                     val (parsedDescription, parsedUrl) = descriptionUrlHelper.splitDescriptionAndUrl(storedDescription)
+                    val eventLocation = it.getString(it.getColumnIndexOrThrow(CalendarContract.Events.EVENT_LOCATION))
                     val isAllDay = it.getInt(it.getColumnIndexOrThrow(CalendarContract.Events.ALL_DAY)).toBoolean()
                     val startDate = it.getLong(it.getColumnIndexOrThrow(CalendarContract.Events.DTSTART))
                     val endDate = it.getLong(it.getColumnIndexOrThrow(CalendarContract.Events.DTEND))
@@ -976,6 +988,7 @@ class CalendarImplem(
                         calendarId = calendarId,
                         description = parsedDescription,
                         url = parsedUrl,
+                        location = eventLocation,
                         isAllDay = isAllDay,
                         reminders = reminders,
                         attendees = attendees

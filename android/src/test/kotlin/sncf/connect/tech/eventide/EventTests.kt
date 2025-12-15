@@ -104,6 +104,7 @@ class EventTests {
             isAllDay = false,
             description = "Description",
             url = null,
+            location = null,
             reminders = null
         ) {
             result = it
@@ -141,6 +142,7 @@ class EventTests {
             isAllDay = false,
             description = "Description",
             url = null,
+            location = null,
             reminders = null
         ) {
             result = it
@@ -168,6 +170,7 @@ class EventTests {
             isAllDay = false,
             description = "Description",
             url = null,
+            location = null,
             reminders = null
         ) {
             result = it
@@ -193,6 +196,7 @@ class EventTests {
             isAllDay = false,
             description = "Description",
             url = null,
+            location = null,
             reminders = null
         ) {
             result = it
@@ -219,6 +223,7 @@ class EventTests {
             isAllDay = false,
             description = "Description",
             url = null,
+            location = null,
             reminders = null
         ) {
             result = it
@@ -410,6 +415,7 @@ class EventTests {
             isAllDay = false,
             description = "Description",
             url = null,
+            location = null,
             reminders = null
         ) {
             result = it
@@ -431,6 +437,7 @@ class EventTests {
             isAllDay = true,
             description = "All day description",
             url = "https://example.com",
+            location = null,
             reminders = listOf(10L, 30L)
         ) {
             result = it
@@ -452,6 +459,7 @@ class EventTests {
             isAllDay = false,
             description = null,
             url = null,
+            location = null,
             reminders = null
         ) {
             result = it
@@ -473,6 +481,7 @@ class EventTests {
             isAllDay = false,
             description = "Test Description",
             url = "https://example.com",
+            location = null,
             reminders = emptyList()
         ) {
             result = it
@@ -505,6 +514,7 @@ class EventTests {
             isAllDay = true,
             description = "All day description",
             url = null,
+            location = null,
             reminders = emptyList()
         ) {
             result = it
@@ -534,6 +544,7 @@ class EventTests {
             isAllDay = null,
             description = null,
             url = null,
+            location = null,
             reminders = null
         ) {
             result = it
@@ -563,6 +574,7 @@ class EventTests {
             isAllDay = false,
             description = null,
             url = null,
+            location = null,
             reminders = null
         ) {
             result = it
@@ -596,6 +608,7 @@ class EventTests {
             isAllDay = false,
             description = "Test",
             url = null,
+            location = null,
             reminders = null
         ) {
             result = it

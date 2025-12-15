@@ -25,41 +25,46 @@ class EventEditViewControllerManager: NSObject {
         isAllDay: Bool?,
         description: String?,
         url: String?,
+        location: String?,
         timeIntervals: [TimeInterval]?,
         completion: @escaping (Result<Void, Error>) -> Void
     ) {
         self.completion = completion
-        
+
         let event = EKEvent(eventStore: eventStore)
-        
+
         if let title = title {
             event.title = title
         }
-        
+
         if let startDate = startDate {
             event.startDate = startDate
         } else {
             event.startDate = Date()
         }
-        
+
         if let endDate = endDate {
             event.endDate = endDate
         } else {
             event.endDate = event.startDate.addingTimeInterval(3600)
         }
-        
+
         if let isAllDay = isAllDay {
             event.isAllDay = isAllDay
         }
-        
+
         if let description = description {
             event.notes = description
         }
-        
+
         if let urlString = url, let eventUrl = URL(string: urlString) {
             event.url = eventUrl
         }
-        
+
+        if let location = location {
+            event.location = location
+        }
+
         if let timeIntervals = timeIntervals {
             event.alarms = timeIntervals.compactMap { EKAlarm(relativeOffset: $0) }
         }

@@ -45,6 +45,7 @@ abstract class CalendarApi {
     required bool isAllDay,
     required String? description,
     required String? url,
+    required String? location,
     required List<int>? reminders,
   });
 
@@ -56,6 +57,7 @@ abstract class CalendarApi {
     required bool isAllDay,
     required String? description,
     required String? url,
+    required String? location,
     required List<int>? reminders,
   });
 
@@ -67,6 +69,7 @@ abstract class CalendarApi {
     bool? isAllDay,
     String? description,
     String? url,
+    String? location,
     List<int>? reminders,
   });
 
@@ -140,6 +143,7 @@ final class Event {
   final List<Attendee> attendees;
   final String? description;
   final String? url;
+  final String? location;
 
   const Event({
     required this.id,
@@ -152,6 +156,7 @@ final class Event {
     required this.attendees,
     required this.description,
     required this.url,
+    required this.location,
   });
 }
 
