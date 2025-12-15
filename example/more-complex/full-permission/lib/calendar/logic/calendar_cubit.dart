@@ -63,7 +63,11 @@ final class CalendarCubit extends Cubit<CalendarState> {
       var calendars = <ETCalendar, List<ETEvent>>{};
 
       for (final calendar in await _eventide.retrieveCalendars()) {
-        final events = await _eventide.retrieveEvents(calendarId: calendar.id);
+        final events = await _eventide.retrieveEvents(
+          calendarId: calendar.id,
+          startDate: DateTime.now().add(const Duration(days: -3)),
+          endDate: DateTime.now().add(const Duration(days: 7)),
+        );
         calendars[calendar] = events;
       }
 
@@ -92,7 +96,11 @@ final class CalendarCubit extends Cubit<CalendarState> {
 
       var calendars = <ETCalendar, List<ETEvent>>{};
       for (final calendar in await _eventide.retrieveCalendars()) {
-        final events = await _eventide.retrieveEvents(calendarId: calendar.id);
+        final events = await _eventide.retrieveEvents(
+          calendarId: calendar.id,
+          startDate: DateTime.now().add(const Duration(days: -3)),
+          endDate: DateTime.now().add(const Duration(days: 7)),
+        );
         calendars[calendar] = events;
       }
 
@@ -139,43 +147,6 @@ final class CalendarCubit extends Cubit<CalendarState> {
         return data.copyWith(calendars: updatedCalendars);
       }).forEach(emit);
     }
-  }
-
-  Future<void> createEventInDefaultCalendar({
-    required String title,
-    required String description,
-    required bool isAllDay,
-    required TZDateTime startDate,
-    required TZDateTime endDate,
-  }) async {
-    await state.fetchFrom(() async {
-      await _eventide.createEventInDefaultCalendar(
-        title: title,
-        description: description,
-        isAllDay: isAllDay,
-        startDate: startDate,
-        endDate: endDate,
-        reminders: [
-          Duration(hours: 1),
-          Duration(minutes: 10),
-        ],
-      );
-
-      var calendars = <ETCalendar, List<ETEvent>>{};
-      for (final calendar in await _eventide.retrieveCalendars()) {
-        final events = await _eventide.retrieveEvents(calendarId: calendar.id);
-        calendars[calendar] = events;
-      }
-
-      final currentData = state.data;
-      final visibleCalendarIds = currentData?.visibleCalendarIds ?? calendars.keys.map((cal) => cal.id).toSet();
-
-      return CalendarData(
-        calendars: calendars,
-        visibleCalendarIds: visibleCalendarIds,
-        availableAccounts: currentData?.availableAccounts ?? [],
-      );
-    }).forEach(emit);
   }
 
   void toggleCalendarVisibility(String calendarId) {
