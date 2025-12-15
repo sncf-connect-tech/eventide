@@ -67,7 +67,11 @@ class MockEasyEventStore: EasyEventStoreProtocol {
         return calendars.map { $0.account }
     }
     
-    func createEvent(calendarId: String, title: String, startDate: Date, endDate: Date, isAllDay: Bool, description: String?, url: String?, timeIntervals: [TimeInterval]?) throws -> Event {
+    func retrieveAccounts() -> [Account] {
+        return calendars.map { $0.account }
+    }
+    
+    func createEvent(calendarId: String, title: String, startDate: Date, endDate: Date, isAllDay: Bool, description: String?, url: String?, location: String?, timeIntervals: [TimeInterval]?) throws -> Event {
         guard let mockCalendar = calendars.first(where: { $0.id == calendarId }) else {
             throw PigeonError(
                 code: "NOT_FOUND",
@@ -93,7 +97,7 @@ class MockEasyEventStore: EasyEventStoreProtocol {
         return mockEvent.toEvent()
     }
     
-    func createEvent(title: String, startDate: Date, endDate: Date, isAllDay: Bool, description: String?, url: String?, timeIntervals: [TimeInterval]?) throws {
+    func createEvent(title: String, startDate: Date, endDate: Date, isAllDay: Bool, description: String?, url: String?, location: String?, timeIntervals: [TimeInterval]?) throws {
         let mockEvent = MockEvent(
             id: String(calendars.first!.events.count),
             title: title,
@@ -109,7 +113,7 @@ class MockEasyEventStore: EasyEventStoreProtocol {
         calendars.first!.events.append(mockEvent)
     }
     
-    func presentEventCreationViewController(title: String?, startDate: Date?, endDate: Date?, isAllDay: Bool?, description: String?, url: String?, timeIntervals: [TimeInterval]?, completion: @escaping (Result<Void, any Error>) -> Void) {
+    func presentEventCreationViewController(title: String?, startDate: Date?, endDate: Date?, isAllDay: Bool?, description: String?, url: String?, location: String?, timeIntervals: [TimeInterval]?, completion: @escaping (Result<Void, any Error>) -> Void) {
         completion(.success(()))
     }
     
@@ -248,10 +252,11 @@ class MockEvent {
     let isAllDay: Bool
     let description: String?
     let url: String?
+    let location: String?
     var reminders: [TimeInterval]?
     let attendees: [MockAttendee]?
-    
-    init(id: String, title: String, startDate: Date, endDate: Date, calendarId: String, isAllDay: Bool, description: String?, url: String?, reminders: [TimeInterval]? = nil, attendees: [MockAttendee]? = nil) {
+
+    init(id: String, title: String, startDate: Date, endDate: Date, calendarId: String, isAllDay: Bool, description: String?, url: String?, location: String? = nil, reminders: [TimeInterval]? = nil, attendees: [MockAttendee]? = nil) {
         self.id = id
         self.title = title
         self.startDate = startDate
@@ -260,6 +265,7 @@ class MockEvent {
         self.isAllDay = isAllDay
         self.description = description
         self.url = url
+        self.location = location
         self.reminders = reminders?.map({ $0 })
         self.attendees = attendees
     }
@@ -310,7 +316,7 @@ class MockAttendee {
 
 /// Mock that simulates user canceling the native event creation
 class MockEasyEventStoreCanceled: MockEasyEventStore {
-    override func presentEventCreationViewController(title: String?, startDate: Date?, endDate: Date?, isAllDay: Bool?, description: String?, url: String?, timeIntervals: [TimeInterval]?, completion: @escaping (Result<Void, any Error>) -> Void) {
+    override func presentEventCreationViewController(title: String?, startDate: Date?, endDate: Date?, isAllDay: Bool?, description: String?, url: String?, location: String?, timeIntervals: [TimeInterval]?, completion: @escaping (Result<Void, any Error>) -> Void) {
         // Simulate user cancellation
         completion(.failure(PigeonError(
             code: "USER_CANCELED",
@@ -322,7 +328,7 @@ class MockEasyEventStoreCanceled: MockEasyEventStore {
 
 /// Mock that simulates presentation error
 class MockEasyEventStorePresentationError: MockEasyEventStore {
-    override func presentEventCreationViewController(title: String?, startDate: Date?, endDate: Date?, isAllDay: Bool?, description: String?, url: String?, timeIntervals: [TimeInterval]?, completion: @escaping (Result<Void, any Error>) -> Void) {
+    override func presentEventCreationViewController(title: String?, startDate: Date?, endDate: Date?, isAllDay: Bool?, description: String?, url: String?, location: String?, timeIntervals: [TimeInterval]?, completion: @escaping (Result<Void, any Error>) -> Void) {
         // Simulate presentation error
         completion(.failure(PigeonError(
             code: "PRESENTATION_ERROR",
@@ -334,7 +340,7 @@ class MockEasyEventStorePresentationError: MockEasyEventStore {
 
 /// Mock that simulates event deletion during creation
 class MockEasyEventStoreEventDeleted: MockEasyEventStore {
-    override func presentEventCreationViewController(title: String?, startDate: Date?, endDate: Date?, isAllDay: Bool?, description: String?, url: String?, timeIntervals: [TimeInterval]?, completion: @escaping (Result<Void, any Error>) -> Void) {
+    override func presentEventCreationViewController(title: String?, startDate: Date?, endDate: Date?, isAllDay: Bool?, description: String?, url: String?, location: String?, timeIntervals: [TimeInterval]?, completion: @escaping (Result<Void, any Error>) -> Void) {
         // Simulate event deletion
         completion(.failure(PigeonError(
             code: "EVENT_DELETED",
@@ -346,7 +352,7 @@ class MockEasyEventStoreEventDeleted: MockEasyEventStore {
 
 /// Mock that simulates unknown action
 class MockEasyEventStoreUnknownAction: MockEasyEventStore {
-    override func presentEventCreationViewController(title: String?, startDate: Date?, endDate: Date?, isAllDay: Bool?, description: String?, url: String?, timeIntervals: [TimeInterval]?, completion: @escaping (Result<Void, any Error>) -> Void) {
+    override func presentEventCreationViewController(title: String?, startDate: Date?, endDate: Date?, isAllDay: Bool?, description: String?, url: String?, location: String?, timeIntervals: [TimeInterval]?, completion: @escaping (Result<Void, any Error>) -> Void) {
         // Simulate unknown action
         completion(.failure(PigeonError(
             code: "GENERIC_ERROR",

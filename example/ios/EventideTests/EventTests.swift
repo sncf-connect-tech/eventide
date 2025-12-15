@@ -44,6 +44,7 @@ final class EventTests: XCTestCase {
             isAllDay: false,
             description: "description",
             url: "url",
+            location: nil,
             reminders: []
         ) { createEventResult in
             switch (createEventResult) {
@@ -93,6 +94,7 @@ final class EventTests: XCTestCase {
             isAllDay: false,
             description: "description",
             url: "url",
+            location: nil,
             reminders: []
         ) { createEventResult in
             switch (createEventResult) {
@@ -107,7 +109,7 @@ final class EventTests: XCTestCase {
                 expectation.fulfill()
             }
         }
-        
+
         waitForExpectations(timeout: timeout)
     }
     
@@ -311,10 +313,51 @@ final class EventTests: XCTestCase {
         
         waitForExpectations(timeout: timeout)
     }
-    
+
+    func testRetrieveEvents_emptyResult_permissionGranted() {
+        let expectation = expectation(description: "Empty events list returned")
+
+        let startDate = Date()
+        let endDate = Date().addingTimeInterval(TimeInterval(10))
+
+        let mockEasyEventStore = MockEasyEventStore(
+            calendars: [
+                MockCalendar(
+                    id: "1",
+                    title: "title",
+                    color: UIColor.red,
+                    isWritable: true,
+                    account: Account(name: "local", type: "local"),
+                    events: []
+                )
+            ]
+        )
+
+        calendarImplem = CalendarImplem(
+            easyEventStore: mockEasyEventStore,
+            permissionHandler: PermissionGranted()
+        )
+
+        calendarImplem.retrieveEvents(
+            calendarId: "1",
+            startDate: startDate.millisecondsSince1970,
+            endDate: endDate.millisecondsSince1970
+        ) { retrieveEventsResult in
+            switch (retrieveEventsResult) {
+            case .success(let events):
+                XCTAssertEqual(events.count, 0)
+                expectation.fulfill()
+            case .failure:
+                XCTFail("Should return empty list, not error")
+            }
+        }
+
+        waitForExpectations(timeout: timeout)
+    }
+
     func testDeleteEvent_permissionGranted() {
         let expectation = expectation(description: "Event has been deleted")
-        
+
         let mockEasyEventStore = MockEasyEventStore(
             calendars: [
                 MockCalendar(
@@ -486,6 +529,7 @@ final class EventTests: XCTestCase {
             isAllDay: false,
             description: "description",
             url: "url",
+            location: nil,
             reminders: []
         ) { createEventResult in
             switch (createEventResult) {
@@ -627,6 +671,7 @@ final class EventTests: XCTestCase {
             isAllDay: false,
             description: "description",
             url: "url",
+            location: nil,
             reminders: []
         ) { createEventResult in
             switch (createEventResult) {
@@ -736,8 +781,151 @@ final class EventTests: XCTestCase {
         waitForExpectations(timeout: timeout)
     }
     
+    // MARK: - Create Event In Default Calendar Tests
+
+    func testCreateEventInDefaultCalendar_permissionGranted() {
+        let expectation = expectation(description: "Event has been created in default calendar")
+
+        let startDate = Date().millisecondsSince1970
+        let endDate = Date().addingTimeInterval(TimeInterval(3600)).millisecondsSince1970
+
+        let mockEasyEventStore = MockEasyEventStore(
+            calendars: [
+                MockCalendar(
+                    id: "1",
+                    title: "Default Calendar",
+                    color: UIColor.blue,
+                    isWritable: true,
+                    account: Account(name: "local", type: "local"),
+                    events: []
+                )
+            ]
+        )
+
+        calendarImplem = CalendarImplem(
+            easyEventStore: mockEasyEventStore,
+            permissionHandler: PermissionGranted()
+        )
+
+        calendarImplem.createEventInDefaultCalendar(
+            title: "Default Calendar Event",
+            startDate: startDate,
+            endDate: endDate,
+            isAllDay: false,
+            description: "Event in default calendar",
+            url: "https://example.com",
+            location: "Paris",
+            reminders: [900]
+        ) { result in
+            switch result {
+            case .success:
+                XCTAssertEqual(mockEasyEventStore.calendars.first!.events.count, 1)
+                XCTAssertEqual(mockEasyEventStore.calendars.first!.events.first!.title, "Default Calendar Event")
+                expectation.fulfill()
+            case .failure(let error):
+                XCTFail("Event should have been created: \(error)")
+            }
+        }
+
+        waitForExpectations(timeout: timeout)
+    }
+
+    func testCreateEventInDefaultCalendar_allDayEvent_permissionGranted() {
+        let expectation = expectation(description: "All-day event has been created in default calendar")
+
+        let startDate = Date().millisecondsSince1970
+        let endDate = Date().addingTimeInterval(TimeInterval(86400)).millisecondsSince1970
+
+        let mockEasyEventStore = MockEasyEventStore(
+            calendars: [
+                MockCalendar(
+                    id: "1",
+                    title: "Default Calendar",
+                    color: UIColor.blue,
+                    isWritable: true,
+                    account: Account(name: "local", type: "local"),
+                    events: []
+                )
+            ]
+        )
+
+        calendarImplem = CalendarImplem(
+            easyEventStore: mockEasyEventStore,
+            permissionHandler: PermissionGranted()
+        )
+
+        calendarImplem.createEventInDefaultCalendar(
+            title: "All Day Event",
+            startDate: startDate,
+            endDate: endDate,
+            isAllDay: true,
+            description: "All day event",
+            url: nil,
+            location: nil,
+            reminders: [3600, 7200]
+        ) { result in
+            switch result {
+            case .success:
+                XCTAssertEqual(mockEasyEventStore.calendars.first!.events.count, 1)
+                XCTAssertEqual(mockEasyEventStore.calendars.first!.events.first!.isAllDay, true)
+                expectation.fulfill()
+            case .failure(let error):
+                XCTFail("Event should have been created: \(error)")
+            }
+        }
+
+        waitForExpectations(timeout: timeout)
+    }
+
+    func testCreateEventInDefaultCalendar_nullDescription_permissionGranted() {
+        let expectation = expectation(description: "Event with null description has been created")
+
+        let startDate = Date().millisecondsSince1970
+        let endDate = Date().addingTimeInterval(TimeInterval(3600)).millisecondsSince1970
+
+        let mockEasyEventStore = MockEasyEventStore(
+            calendars: [
+                MockCalendar(
+                    id: "1",
+                    title: "Default Calendar",
+                    color: UIColor.blue,
+                    isWritable: true,
+                    account: Account(name: "local", type: "local"),
+                    events: []
+                )
+            ]
+        )
+
+        calendarImplem = CalendarImplem(
+            easyEventStore: mockEasyEventStore,
+            permissionHandler: PermissionGranted()
+        )
+
+        calendarImplem.createEventInDefaultCalendar(
+            title: "Event Without Description",
+            startDate: startDate,
+            endDate: endDate,
+            isAllDay: false,
+            description: nil,
+            url: nil,
+            location: nil,
+            reminders: nil
+        ) { result in
+            switch result {
+            case .success:
+                XCTAssertEqual(mockEasyEventStore.calendars.first!.events.count, 1)
+                XCTAssertNil(mockEasyEventStore.calendars.first!.events.first!.description)
+                expectation.fulfill()
+            case .failure(let error):
+                XCTFail("Event should have been created: \(error)")
+            }
+        }
+
+        waitForExpectations(timeout: timeout)
+    }
+
     // MARK: - Native Platform Event Creation Tests
-    
+
     func testCreateEventThroughNativePlatform_userSaves() {
         let expectation = expectation(description: "Event creation through native platform succeeded")
         
@@ -766,6 +954,7 @@ final class EventTests: XCTestCase {
             isAllDay: false,
             description: "Created through native UI",
             url: "https://example.com",
+            location: nil,
             reminders: [900] // 15 minutes
         ) { result in
             switch result {
@@ -798,6 +987,7 @@ final class EventTests: XCTestCase {
             isAllDay: false,
             description: "This should be canceled",
             url: nil,
+            location: nil,
             reminders: nil
         ) { result in
             switch result {
@@ -836,6 +1026,7 @@ final class EventTests: XCTestCase {
             isAllDay: nil,
             description: nil,
             url: nil,
+            location: nil,
             reminders: nil
         ) { result in
             switch result {
@@ -874,6 +1065,7 @@ final class EventTests: XCTestCase {
             isAllDay: true,
             description: "This should work even without permissions",
             url: nil,
+            location: nil,
             reminders: [300, 600] // 5 and 10 minutes
         ) { result in
             switch result {
@@ -905,6 +1097,7 @@ final class EventTests: XCTestCase {
             isAllDay: false,
             description: nil,
             url: nil,
+            location: nil,
             reminders: nil
         ) { result in
             switch result {
@@ -941,6 +1134,7 @@ final class EventTests: XCTestCase {
             isAllDay: nil,
             description: nil,
             url: nil,
+            location: nil,
             reminders: nil
         ) { result in
             switch result {
