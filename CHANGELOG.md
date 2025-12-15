@@ -26,6 +26,7 @@
   final calendars = await eventide.retrieveCalendars(account: myAccount);
   await eventide.createCalendar(title: 'Work', color: Colors.red, account: myAccount);
   ```
+* **Removed automatic duration addition** for parameters `startDate` and `endDate` in `retrieveEvents()` method
 
 ## 1.0.2
 * **Android URL Support:** Added comprehensive URL handling for event creation and retrieval. Android Calendar API lacks native URL field support, so implemented intelligent description/URL merging system that preserves both fields while maintaining compatibility with existing calendar apps
