@@ -42,7 +42,7 @@ void main() {
       when(() => mockCalendarApi.retrieveAccounts()).thenAnswer((_) async => mockAccounts);
 
       // When
-      final result = await eventide.retrieveAccounts();
+      final result = (await eventide.retrieveAccounts()).toList(growable: false);
 
       // Then
       expect(result, hasLength(3));
@@ -134,7 +134,7 @@ void main() {
       when(() => mockCalendarApi.retrieveAccounts()).thenAnswer((_) async => mockAccounts);
 
       // When
-      final result = await eventide.retrieveAccounts();
+      final result = (await eventide.retrieveAccounts()).toList(growable: false);
 
       // Then
       expect(result, hasLength(2));

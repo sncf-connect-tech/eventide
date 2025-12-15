@@ -13,6 +13,8 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.util.concurrent.CountDownLatch
+import sncf.connect.tech.eventide.Mocks.Companion.mockPermissionDenied
+import sncf.connect.tech.eventide.Mocks.Companion.mockPermissionGranted
 
 class AccountTests {
     private lateinit var context: Context

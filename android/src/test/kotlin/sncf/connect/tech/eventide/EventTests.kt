@@ -13,6 +13,11 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import sncf.connect.tech.eventide.Mocks.Companion.mockPermissionDenied
+import sncf.connect.tech.eventide.Mocks.Companion.mockPermissionGranted
+import sncf.connect.tech.eventide.Mocks.Companion.mockRetrieveAttendees
+import sncf.connect.tech.eventide.Mocks.Companion.mockRetrieveEvents
+import sncf.connect.tech.eventide.Mocks.Companion.mockRetrieveReminders
 import java.time.Instant
 import java.util.concurrent.CountDownLatch
 

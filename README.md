@@ -196,7 +196,7 @@ final workCalendar = await eventide.createCalendar(
 #### Retrieve Calendars
 
 ```dart
-Future<List<ETCalendar>> retrieveCalendars({
+Future<Iterable<ETCalendar>> retrieveCalendars({
   bool onlyWritableCalendars = true,
   ETAccount? account,
 })
@@ -238,33 +238,21 @@ await eventide.deleteCalendar(calendarId: calendar.id);
 #### Retrieve Accounts
 
 ```dart
-Future<List<ETAccount>> retrieveAccounts()
+Future<Iterable<ETAccount>> retrieveAccounts()
 ```
 
-Retrieves all available accounts from the device that have calendars. This includes Google accounts, local accounts, Exchange accounts, etc.
+Retrieves all available accounts from the device that have calendars. This includes Google accounts, iCloud accounts, Exchange accounts, etc.
 
 ```dart
 // Get all available accounts
 final accounts = await eventide.retrieveAccounts();
 
-for (final account in accounts) {
-  print('Account: ${account.name} (Type: ${account.type})');
-}
-
-// Find specific account type
-final googleAccounts = accounts.where((acc) => 
-  acc.name.toLowerCase().contains('gmail') || 
-  acc.name.toLowerCase().contains('google')
-).toList();
-
 // Use account for calendar operations
-if (googleAccounts.isNotEmpty) {
-  final calendar = await eventide.createCalendar(
-    title: 'Work Schedule',
-    color: Colors.blue,
-    account: googleAccounts.first,
-  );
-}
+final calendar = await eventide.createCalendar(
+  title: 'Work Schedule',
+  color: Colors.blue,
+  account: accounts.first, // Note that a default local account will be used if no account is specified.
+);
 ```
 
 ### Events
@@ -281,7 +269,7 @@ Future<ETEvent> createEvent({
   String? description,
   String? url,
   String? location,
-  List<Duration>? reminders,
+  Iterable<Duration>? reminders,
 })
 ```
 
@@ -311,7 +299,7 @@ Future<void> createEventInDefaultCalendar({
   String? description,
   String? url,
   String? location,
-  List<Duration>? reminders,
+  Iterable<Duration>? reminders,
 })
 ```
 
@@ -344,7 +332,7 @@ Future<void> createEventThroughNativePlatform({
   String? description,
   String? url,
   String? location,
-  List<Duration>? reminders,
+  Iterable<Duration>? reminders,
 })
 ```
 
@@ -380,7 +368,7 @@ await eventide.createEventThroughNativePlatform();
 #### Retrieve Events
 
 ```dart
-Future<List<ETEvent>> retrieveEvents({
+Future<Iterable<ETEvent>> retrieveEvents({
   required String calendarId,
   DateTime? startDate,
   DateTime? endDate,
@@ -576,12 +564,6 @@ final googleCalendars = await eventide.retrieveCalendars(
 
 // Get all calendars from all accounts
 final allCalendars = await eventide.retrieveCalendars();
-
-// Group calendars by account
-final calendarsByAccount = <ETAccount, List<ETCalendar>>{};
-for (final calendar in allCalendars) {
-  calendarsByAccount.putIfAbsent(calendar.account, () => []).add(calendar);
-}
 ```
 
 ---

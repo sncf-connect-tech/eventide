@@ -27,12 +27,12 @@ abstract class EventidePlatform extends PlatformInterface {
     ETAccount? account,
   });
 
-  Future<List<ETCalendar>> retrieveCalendars({
+  Future<Iterable<ETCalendar>> retrieveCalendars({
     bool onlyWritableCalendars = true,
     ETAccount? account,
   });
 
-  Future<List<ETAccount>> retrieveAccounts();
+  Future<Iterable<ETAccount>> retrieveAccounts();
 
   Future<void> deleteCalendar({
     required String calendarId,
@@ -47,7 +47,7 @@ abstract class EventidePlatform extends PlatformInterface {
     String? description,
     String? url,
     String? location,
-    List<Duration>? reminders,
+    Iterable<Duration>? reminders,
   });
 
   Future<void> createEventInDefaultCalendar({
@@ -58,7 +58,7 @@ abstract class EventidePlatform extends PlatformInterface {
     String? description,
     String? url,
     String? location,
-    List<Duration>? reminders,
+    Iterable<Duration>? reminders,
   });
 
   Future<void> createEventThroughNativePlatform({
@@ -69,10 +69,10 @@ abstract class EventidePlatform extends PlatformInterface {
     String? description,
     String? url,
     String? location,
-    List<Duration>? reminders,
+    Iterable<Duration>? reminders,
   });
 
-  Future<List<ETEvent>> retrieveEvents({
+  Future<Iterable<ETEvent>> retrieveEvents({
     required String calendarId,
     DateTime? startDate,
     DateTime? endDate,
@@ -115,7 +115,7 @@ abstract class EventidePlatform extends PlatformInterface {
 ///
 /// [isWritable] is a boolean to indicate if the calendar is writable.
 ///
-/// [sourceName] is the name of the source of the calendar.
+/// [account] is the account/source of the calendar.
 final class ETCalendar {
   final String id;
   final String title;
@@ -172,8 +172,8 @@ final class ETEvent {
   final DateTime startDate;
   final DateTime endDate;
   final String calendarId;
-  final List<Duration> reminders;
-  final List<ETAttendee> attendees;
+  final Iterable<Duration> reminders;
+  final Iterable<ETAttendee> attendees;
   final String? description;
   final String? url;
   final String? location;
@@ -218,8 +218,8 @@ final class ETEvent {
           other.startDate == startDate &&
           other.endDate == endDate &&
           other.calendarId == calendarId &&
-          listEquals(other.reminders, reminders) &&
-          listEquals(other.attendees, attendees) &&
+          listEquals(List.from(other.attendees), List.from(attendees)) &&
+          listEquals(List.from(other.reminders), List.from(reminders)) &&
           other.description == description &&
           other.url == url &&
           other.location == location;

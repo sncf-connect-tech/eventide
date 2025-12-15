@@ -64,7 +64,7 @@ class Eventide extends EventidePlatform {
   ///
   /// Throws a [ETGenericException] if any other error occurs during calendars retrieval.
   @override
-  Future<List<ETCalendar>> retrieveCalendars({
+  Future<Iterable<ETCalendar>> retrieveCalendars({
     bool onlyWritableCalendars = true,
     ETAccount? account,
   }) async {
@@ -88,7 +88,7 @@ class Eventide extends EventidePlatform {
   ///
   /// Throws a [ETGenericException] if any other error occurs during accounts retrieval.
   @override
-  Future<List<ETAccount>> retrieveAccounts() async {
+  Future<Iterable<ETAccount>> retrieveAccounts() async {
     try {
       final accounts = await _calendarApi.retrieveAccounts();
       return accounts.toETAccountList();
@@ -139,7 +139,7 @@ class Eventide extends EventidePlatform {
     String? description,
     String? url,
     String? location,
-    List<Duration>? reminders,
+    Iterable<Duration>? reminders,
   }) async {
     try {
       final event = await _calendarApi.createEvent(
@@ -186,7 +186,7 @@ class Eventide extends EventidePlatform {
     String? description,
     String? url,
     String? location,
-    List<Duration>? reminders,
+    Iterable<Duration>? reminders,
   }) async {
     try {
       await _calendarApi.createEventInDefaultCalendar(
@@ -231,7 +231,7 @@ class Eventide extends EventidePlatform {
     String? description,
     String? url,
     String? location,
-    List<Duration>? reminders,
+    Iterable<Duration>? reminders,
   }) async {
     try {
       await _calendarApi.createEventThroughNativePlatform(
@@ -260,7 +260,7 @@ class Eventide extends EventidePlatform {
   ///
   /// Throws a [ETGenericException] if any other error occurs during events retrieval.
   @override
-  Future<List<ETEvent>> retrieveEvents({
+  Future<Iterable<ETEvent>> retrieveEvents({
     required String calendarId,
     DateTime? startDate,
     DateTime? endDate,

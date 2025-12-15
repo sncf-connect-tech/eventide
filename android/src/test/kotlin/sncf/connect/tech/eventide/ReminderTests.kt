@@ -10,6 +10,8 @@ import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import sncf.connect.tech.eventide.Mocks.Companion.mockPermissionDenied
+import sncf.connect.tech.eventide.Mocks.Companion.mockPermissionGranted
 import java.util.concurrent.CountDownLatch
 
 class ReminderTests {

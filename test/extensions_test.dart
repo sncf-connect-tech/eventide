@@ -186,14 +186,14 @@ void main() {
       debugDefaultTargetPlatformOverride = null;
     });
 
-    test('List<Duration> toNativeList', () {
+    test('Iterable<Duration> toNativeList', () {
       debugDefaultTargetPlatformOverride = TargetPlatform.android;
       final durations = [Duration(minutes: 10), Duration(minutes: 20)];
       expect(durations.toNativeList(), [10, 20]);
       debugDefaultTargetPlatformOverride = null;
     });
 
-    test('List<int> toDurationList', () {
+    test('Iterable<int> toDurationList', () {
       debugDefaultTargetPlatformOverride = TargetPlatform.android;
       final durations = [10, 20];
       expect(durations.toDurationList(), [Duration(minutes: 10), Duration(minutes: 20)]);

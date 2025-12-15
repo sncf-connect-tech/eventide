@@ -22,7 +22,7 @@ extension EventToETEvent on Event {
 }
 
 extension ETEventCopy on ETEvent {
-  ETEvent copyWithReminders(List<Duration>? reminders) {
+  ETEvent copyWithReminders(Iterable<Duration>? reminders) {
     return ETEvent(
       id: id,
       title: title,

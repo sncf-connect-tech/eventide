@@ -10,6 +10,10 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import sncf.connect.tech.eventide.Mocks.Companion.mockPermissionDenied
+import sncf.connect.tech.eventide.Mocks.Companion.mockPermissionGranted
+import sncf.connect.tech.eventide.Mocks.Companion.mockRetrieveAttendees
+import sncf.connect.tech.eventide.Mocks.Companion.mockRetrieveEvents
 import java.util.concurrent.CountDownLatch
 
 class AttendeeTests {
@@ -66,7 +70,7 @@ class AttendeeTests {
         latch.await()
 
         assertTrue(result!!.isSuccess)
-        val attendee = result!!.getOrNull()?.attendees?.get(0)
+        val attendee = result.getOrNull()?.attendees?.get(0)
         assertEquals("John Doe", attendee!!.name)
         assertEquals("john.doe@example.com", attendee.email)
         assertEquals(1, attendee.role)
