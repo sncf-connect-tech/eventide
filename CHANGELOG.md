@@ -8,7 +8,7 @@
     * Before: `retrieveCalendars(fromLocalAccountName: 'My App')`
     * After: `retrieveCalendars(account: myAccount)`
   * **New Method:** Added `retrieveAccounts()` to get all available accounts (Google, Exchange, local, etc.)
-    * Returns `List<ETAccount>` with account details for better account management
+    * Returns `Iterable<ETAccount>` with account details for better account management
     * Use this method to get accounts before creating calendars or filtering
 * **Enhanced Account Management:**
   * More robust account handling across platforms
