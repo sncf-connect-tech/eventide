@@ -203,7 +203,9 @@ final class ETEvent {
 
 /// Represents an account.
 ///
-/// [name] is the name of the account. It corresponds to CalendarContract.Calendars.ACCOUNT_NAME on Android and EKSource.sourceIdentifier on iOS.
+/// [id] is a unique identifier for the account. It corresponds to CalendarContract.Calendars.ACCOUNT_NAME on Android and EKSource.sourceIdentifier on iOS.
+///
+/// [name] is the name of the account. It corresponds to CalendarContract.Calendars.ACCOUNT_NAME on Android and EKSource.title on iOS.
 ///
 /// [type] is the type of the account. It corresponds to CalendarContract.Calendars.ACCOUNT_TYPE on Android and EKSource.sourceType on iOS.
 ///
@@ -261,6 +263,11 @@ final class ETAttendee {
           other.status == status;
 }
 
+/// ETAttendeeType
+/// IOS     EKParticipantType : unknown, person, room, resource, group
+///         EKParticipantRole : unknown, required, optional, chair, nonParticipant
+/// ANDROID ATTENDEE_TYPE     : TYPE_NONE, TYPE_REQUIRED, TYPE_OPTIONAL, TYPE_RESOURCE, TYPE_ROOM
+///         ATTENDEE_RELATIONSHIP : RELATIONSHIP_NONE, RELATIONSHIP_ORGANIZER, RELATIONSHIP_ATTENDEE
 enum ETAttendeeType {
   unknown(iosParticipantType: 0, iosParticipantRole: 0, androidAttendeeType: 0, androidAttendeeRelationship: 0),
   requiredPerson(iosParticipantType: 1, iosParticipantRole: 1, androidAttendeeType: 1, androidAttendeeRelationship: 1),
