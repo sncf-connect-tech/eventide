@@ -8,7 +8,7 @@
     * Before: `retrieveCalendars(fromLocalAccountName: 'My App')`
     * After: `retrieveCalendars(account: myAccount)`
   * **New Method:** Added `retrieveAccounts()` to get all available accounts (Google, Exchange, local, etc.)
-    * Returns `List<ETAccount>` with account details for better account management
+    * Returns `Iterable<ETAccount>` with account details for better account management
     * Use this method to get accounts before creating calendars or filtering
 * **Enhanced Account Management:**
   * More robust account handling across platforms
@@ -29,6 +29,8 @@
 * **Removed automatic duration addition** for parameters `startDate` and `endDate` in `retrieveEvents()` method
 * **Upcasting:**
   * **All `List` occurrences** are now `Iterable`
+* Updates minimum supported SDK version to Flutter 3.29/Dart 3.7
+* Add `location` to `ETEvent` by @StoneyDev
 
 ## 1.0.2
 * **Android URL Support:** Added comprehensive URL handling for event creation and retrieval. Android Calendar API lacks native URL field support, so implemented intelligent description/URL merging system that preserves both fields while maintaining compatibility with existing calendar apps

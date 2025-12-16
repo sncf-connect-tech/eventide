@@ -5,34 +5,29 @@ import 'package:eventide/src/eventide_platform_interface.dart';
 
 extension ETAttendeeTypeToNative on ETAttendeeType {
   int get nativeRole => switch (defaultTargetPlatform) {
-        TargetPlatform.iOS => iosParticipantRole,
-        TargetPlatform.android => androidAttendeeType,
-        _ => throw UnimplementedError(),
-      };
+    TargetPlatform.iOS => iosParticipantRole,
+    TargetPlatform.android => androidAttendeeType,
+    _ => throw UnimplementedError(),
+  };
 
   int get nativeType => switch (defaultTargetPlatform) {
-        TargetPlatform.iOS => iosParticipantType,
-        TargetPlatform.android => androidAttendeeRelationship,
-        _ => throw UnimplementedError(),
-      };
+    TargetPlatform.iOS => iosParticipantType,
+    TargetPlatform.android => androidAttendeeRelationship,
+    _ => throw UnimplementedError(),
+  };
 }
 
 extension ETAttendanceStatusToNative on ETAttendanceStatus {
   int get nativeStatus => switch (defaultTargetPlatform) {
-        TargetPlatform.iOS => iosStatus,
-        TargetPlatform.android => androidStatus,
-        _ => throw UnimplementedError(),
-      };
+    TargetPlatform.iOS => iosStatus,
+    TargetPlatform.android => androidStatus,
+    _ => throw UnimplementedError(),
+  };
 }
 
 extension AttendeeToET on Attendee {
   ETAttendee toETAttendee() {
-    return ETAttendee(
-      name: name,
-      email: email,
-      type: parseETAttendeeType(),
-      status: parseETAttendanceStatus(),
-    );
+    return ETAttendee(name: name, email: email, type: parseETAttendeeType(), status: parseETAttendanceStatus());
   }
 
   /*

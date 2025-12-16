@@ -6,11 +6,9 @@ on:
   pull_request:
 
 env:
-  FLUTTER_MINIMUM_VERSION: 3.27.0
+  FLUTTER_MINIMUM_VERSION: 3.29.0
   JAVA_VERSION: 17
   JAVA_DISTRIBUTION: corretto
-  IPHONE_NAME: iPhone 17
-  IPHONE_OS_VERSION: 26.1
 
 jobs:
   flutter-tests:
@@ -83,11 +81,21 @@ jobs:
           flutter build ios --config-only
           cd ../..
 
+      - name: Get latest iOS simulator info
+        id: ios-simulator
+        run: |
+          # Get the latest iPhone model and iOS version available
+          latest_iphone=$(xcrun simctl list devicetypes | grep -E "iPhone [0-9]+" | sort -V | tail -1 | sed 's/.*\(iPhone [0-9][0-9]*\).*/\1/')
+          latest_ios=$(xcrun simctl list runtimes | grep iOS | sort -V | tail -1 | awk '{print $2}' | sed 's/[()]//g')
+          echo "iphone_name=$latest_iphone" >> $GITHUB_OUTPUT
+          echo "ios_version=$latest_ios" >> $GITHUB_OUTPUT
+          echo "Using iPhone: $latest_iphone with iOS: $latest_ios"
+
       - name: Run tests
         run: |
           xcodebuild test -workspace ./example/ios/Runner.xcworkspace \
             -scheme EventideTests \
-            -destination "platform=iOS Simulator,name=${{ env.IPHONE_NAME }},OS=${{ env.IPHONE_OS_VERSION }}" \
+            -destination "platform=iOS Simulator,name=${{ steps.ios-simulator.outputs.iphone_name }},OS=${{ steps.ios-simulator.outputs.ios_version }},arch=arm64" \
             -resultBundlePath build/reports/EventideTests.xcresult \
             -quiet
 

@@ -57,17 +57,19 @@ void main() {
       attendees: [],
     );
 
-    when(() => mockCalendarApi.createEvent(
-          title: any(named: 'title'),
-          isAllDay: any(named: 'isAllDay'),
-          startDate: any(named: 'startDate'),
-          endDate: any(named: 'endDate'),
-          calendarId: any(named: 'calendarId'),
-          description: any(named: 'description'),
-          url: any(named: 'url'),
-          location: any(named: 'location'),
-          reminders: any(named: 'reminders'),
-        )).thenAnswer((_) async => event);
+    when(
+      () => mockCalendarApi.createEvent(
+        title: any(named: 'title'),
+        isAllDay: any(named: 'isAllDay'),
+        startDate: any(named: 'startDate'),
+        endDate: any(named: 'endDate'),
+        calendarId: any(named: 'calendarId'),
+        description: any(named: 'description'),
+        url: any(named: 'url'),
+        location: any(named: 'location'),
+        reminders: any(named: 'reminders'),
+      ),
+    ).thenAnswer((_) async => event);
 
     // When
     final result = await eventide.createEvent(
@@ -80,17 +82,19 @@ void main() {
 
     // Then
     expect(result, event.toETEvent());
-    verify(() => mockCalendarApi.createEvent(
-          title: any(named: 'title'),
-          isAllDay: any(named: 'isAllDay'),
-          startDate: any(named: 'startDate'),
-          endDate: any(named: 'endDate'),
-          calendarId: any(named: 'calendarId'),
-          description: any(named: 'description'),
-          url: any(named: 'url'),
-          location: any(named: 'location'),
-          reminders: any(named: 'reminders'),
-        )).called(1);
+    verify(
+      () => mockCalendarApi.createEvent(
+        title: any(named: 'title'),
+        isAllDay: any(named: 'isAllDay'),
+        startDate: any(named: 'startDate'),
+        endDate: any(named: 'endDate'),
+        calendarId: any(named: 'calendarId'),
+        description: any(named: 'description'),
+        url: any(named: 'url'),
+        location: any(named: 'location'),
+        reminders: any(named: 'reminders'),
+      ),
+    ).called(1);
   });
 
   test('createEvent with location returns event with location', () async {
@@ -107,17 +111,19 @@ void main() {
       attendees: [],
     );
 
-    when(() => mockCalendarApi.createEvent(
-          title: any(named: 'title'),
-          isAllDay: any(named: 'isAllDay'),
-          startDate: any(named: 'startDate'),
-          endDate: any(named: 'endDate'),
-          calendarId: any(named: 'calendarId'),
-          description: any(named: 'description'),
-          url: any(named: 'url'),
-          location: any(named: 'location'),
-          reminders: any(named: 'reminders'),
-        )).thenAnswer((_) async => event);
+    when(
+      () => mockCalendarApi.createEvent(
+        title: any(named: 'title'),
+        isAllDay: any(named: 'isAllDay'),
+        startDate: any(named: 'startDate'),
+        endDate: any(named: 'endDate'),
+        calendarId: any(named: 'calendarId'),
+        description: any(named: 'description'),
+        url: any(named: 'url'),
+        location: any(named: 'location'),
+        reminders: any(named: 'reminders'),
+      ),
+    ).thenAnswer((_) async => event);
 
     // When
     final result = await eventide.createEvent(
@@ -130,54 +136,56 @@ void main() {
 
     // Then
     expect(result.location, '1 Place Bellecour, 69002 Lyon');
-    verify(() => mockCalendarApi.createEvent(
-          title: any(named: 'title'),
-          isAllDay: any(named: 'isAllDay'),
-          startDate: any(named: 'startDate'),
-          endDate: any(named: 'endDate'),
-          calendarId: any(named: 'calendarId'),
-          description: any(named: 'description'),
-          url: any(named: 'url'),
-          location: '1 Place Bellecour, 69002 Lyon',
-          reminders: any(named: 'reminders'),
-        )).called(1);
+    verify(
+      () => mockCalendarApi.createEvent(
+        title: any(named: 'title'),
+        isAllDay: any(named: 'isAllDay'),
+        startDate: any(named: 'startDate'),
+        endDate: any(named: 'endDate'),
+        calendarId: any(named: 'calendarId'),
+        description: any(named: 'description'),
+        url: any(named: 'url'),
+        location: '1 Place Bellecour, 69002 Lyon',
+        reminders: any(named: 'reminders'),
+      ),
+    ).called(1);
   });
 
   test('createEvent throws an exception when API fails', () async {
     // Given
-    when(() => mockCalendarApi.createEvent(
-          title: any(named: 'title'),
-          isAllDay: any(named: 'isAllDay'),
-          startDate: any(named: 'startDate'),
-          endDate: any(named: 'endDate'),
-          calendarId: any(named: 'calendarId'),
-          description: any(named: 'description'),
-          url: any(named: 'url'),
-          location: any(named: 'location'),
-          reminders: any(named: 'reminders'),
-        )).thenThrow(ETGenericException(message: 'API Error'));
+    when(
+      () => mockCalendarApi.createEvent(
+        title: any(named: 'title'),
+        isAllDay: any(named: 'isAllDay'),
+        startDate: any(named: 'startDate'),
+        endDate: any(named: 'endDate'),
+        calendarId: any(named: 'calendarId'),
+        description: any(named: 'description'),
+        url: any(named: 'url'),
+        location: any(named: 'location'),
+        reminders: any(named: 'reminders'),
+      ),
+    ).thenThrow(ETGenericException(message: 'API Error'));
 
     // When
-    Future<ETEvent> call() => eventide.createEvent(
-          title: 'Test Event',
-          startDate: startDate,
-          endDate: endDate,
-          calendarId: '',
-        );
+    Future<ETEvent> call() =>
+        eventide.createEvent(title: 'Test Event', startDate: startDate, endDate: endDate, calendarId: '');
 
     // Then
     expect(call, throwsException);
-    verify(() => mockCalendarApi.createEvent(
-          title: any(named: 'title'),
-          isAllDay: any(named: 'isAllDay'),
-          startDate: any(named: 'startDate'),
-          endDate: any(named: 'endDate'),
-          calendarId: any(named: 'calendarId'),
-          description: any(named: 'description'),
-          url: any(named: 'url'),
-          location: any(named: 'location'),
-          reminders: any(named: 'reminders'),
-        )).called(1);
+    verify(
+      () => mockCalendarApi.createEvent(
+        title: any(named: 'title'),
+        isAllDay: any(named: 'isAllDay'),
+        startDate: any(named: 'startDate'),
+        endDate: any(named: 'endDate'),
+        calendarId: any(named: 'calendarId'),
+        description: any(named: 'description'),
+        url: any(named: 'url'),
+        location: any(named: 'location'),
+        reminders: any(named: 'reminders'),
+      ),
+    ).called(1);
   });
 
   test('createEventInDefaultCalendar returns an ETEvent', () async {
@@ -195,16 +203,18 @@ void main() {
       attendees: [],
     );
 
-    when(() => mockCalendarApi.createEventInDefaultCalendar(
-          title: any(named: 'title'),
-          isAllDay: any(named: 'isAllDay'),
-          startDate: any(named: 'startDate'),
-          endDate: any(named: 'endDate'),
-          description: any(named: 'description'),
-          url: any(named: 'url'),
-          location: any(named: 'location'),
-          reminders: any(named: 'reminders'),
-        )).thenAnswer((_) async => event);
+    when(
+      () => mockCalendarApi.createEventInDefaultCalendar(
+        title: any(named: 'title'),
+        isAllDay: any(named: 'isAllDay'),
+        startDate: any(named: 'startDate'),
+        endDate: any(named: 'endDate'),
+        description: any(named: 'description'),
+        url: any(named: 'url'),
+        location: any(named: 'location'),
+        reminders: any(named: 'reminders'),
+      ),
+    ).thenAnswer((_) async => event);
 
     // When
     await eventide.createEventInDefaultCalendar(
@@ -216,16 +226,18 @@ void main() {
     );
 
     // Then
-    verify(() => mockCalendarApi.createEventInDefaultCalendar(
-          title: 'Test Event',
-          isAllDay: false,
-          startDate: startDate.millisecondsSinceEpoch,
-          endDate: endDate.millisecondsSinceEpoch,
-          description: 'Test Description',
-          url: 'http://test.com',
-          location: null,
-          reminders: null,
-        )).called(1);
+    verify(
+      () => mockCalendarApi.createEventInDefaultCalendar(
+        title: 'Test Event',
+        isAllDay: false,
+        startDate: startDate.millisecondsSinceEpoch,
+        endDate: endDate.millisecondsSinceEpoch,
+        description: 'Test Description',
+        url: 'http://test.com',
+        location: null,
+        reminders: null,
+      ),
+    ).called(1);
   });
 
   test('createEventInDefaultCalendar with all day event returns an ETEvent', () async {
@@ -241,16 +253,18 @@ void main() {
       attendees: [],
     );
 
-    when(() => mockCalendarApi.createEventInDefaultCalendar(
-          title: any(named: 'title'),
-          isAllDay: any(named: 'isAllDay'),
-          startDate: any(named: 'startDate'),
-          endDate: any(named: 'endDate'),
-          description: any(named: 'description'),
-          url: any(named: 'url'),
-          location: any(named: 'location'),
-          reminders: any(named: 'reminders'),
-        )).thenAnswer((_) async => event);
+    when(
+      () => mockCalendarApi.createEventInDefaultCalendar(
+        title: any(named: 'title'),
+        isAllDay: any(named: 'isAllDay'),
+        startDate: any(named: 'startDate'),
+        endDate: any(named: 'endDate'),
+        description: any(named: 'description'),
+        url: any(named: 'url'),
+        location: any(named: 'location'),
+        reminders: any(named: 'reminders'),
+      ),
+    ).thenAnswer((_) async => event);
 
     // When
     await eventide.createEventInDefaultCalendar(
@@ -261,50 +275,53 @@ void main() {
     );
 
     // Then
-    verify(() => mockCalendarApi.createEventInDefaultCalendar(
-          title: 'All Day Event',
-          isAllDay: true,
-          startDate: startDate.millisecondsSinceEpoch,
-          endDate: endDate.millisecondsSinceEpoch,
-          description: null,
-          url: null,
-          location: null,
-          reminders: null,
-        )).called(1);
+    verify(
+      () => mockCalendarApi.createEventInDefaultCalendar(
+        title: 'All Day Event',
+        isAllDay: true,
+        startDate: startDate.millisecondsSinceEpoch,
+        endDate: endDate.millisecondsSinceEpoch,
+        description: null,
+        url: null,
+        location: null,
+        reminders: null,
+      ),
+    ).called(1);
   });
 
   test('createEventInDefaultCalendar throws an exception when API fails', () async {
     // Given
-    when(() => mockCalendarApi.createEventInDefaultCalendar(
-          title: any(named: 'title'),
-          isAllDay: any(named: 'isAllDay'),
-          startDate: any(named: 'startDate'),
-          endDate: any(named: 'endDate'),
-          description: any(named: 'description'),
-          url: any(named: 'url'),
-          location: any(named: 'location'),
-          reminders: any(named: 'reminders'),
-        )).thenThrow(ETGenericException(message: 'API Error'));
+    when(
+      () => mockCalendarApi.createEventInDefaultCalendar(
+        title: any(named: 'title'),
+        isAllDay: any(named: 'isAllDay'),
+        startDate: any(named: 'startDate'),
+        endDate: any(named: 'endDate'),
+        description: any(named: 'description'),
+        url: any(named: 'url'),
+        location: any(named: 'location'),
+        reminders: any(named: 'reminders'),
+      ),
+    ).thenThrow(ETGenericException(message: 'API Error'));
 
     // When
-    Future<void> call() => eventide.createEventInDefaultCalendar(
-          title: 'Test Event',
-          startDate: startDate,
-          endDate: endDate,
-        );
+    Future<void> call() =>
+        eventide.createEventInDefaultCalendar(title: 'Test Event', startDate: startDate, endDate: endDate);
 
     // Then
     expect(call, throwsException);
-    verify(() => mockCalendarApi.createEventInDefaultCalendar(
-          title: 'Test Event',
-          isAllDay: false,
-          startDate: startDate.millisecondsSinceEpoch,
-          endDate: endDate.millisecondsSinceEpoch,
-          description: null,
-          url: null,
-          location: null,
-          reminders: null,
-        )).called(1);
+    verify(
+      () => mockCalendarApi.createEventInDefaultCalendar(
+        title: 'Test Event',
+        isAllDay: false,
+        startDate: startDate.millisecondsSinceEpoch,
+        endDate: endDate.millisecondsSinceEpoch,
+        description: null,
+        url: null,
+        location: null,
+        reminders: null,
+      ),
+    ).called(1);
   });
 
   group('iOS tests', () {
@@ -330,18 +347,21 @@ void main() {
         attendees: [],
       );
 
-      when(() => mockCalendarApi.createEventInDefaultCalendar(
-            title: any(named: 'title'),
-            isAllDay: any(named: 'isAllDay'),
-            startDate: any(named: 'startDate'),
-            endDate: any(named: 'endDate'),
-            description: any(named: 'description'),
-            url: any(named: 'url'),
-            location: any(named: 'location'),
-            reminders: any(named: 'reminders'),
-          )).thenAnswer((_) async => event);
-      when(() => mockCalendarApi.createReminder(reminder: any(named: 'reminder'), eventId: any(named: 'eventId')))
-          .thenAnswer((_) async => event.copyWithReminders(reminders.toNativeList()));
+      when(
+        () => mockCalendarApi.createEventInDefaultCalendar(
+          title: any(named: 'title'),
+          isAllDay: any(named: 'isAllDay'),
+          startDate: any(named: 'startDate'),
+          endDate: any(named: 'endDate'),
+          description: any(named: 'description'),
+          url: any(named: 'url'),
+          location: any(named: 'location'),
+          reminders: any(named: 'reminders'),
+        ),
+      ).thenAnswer((_) async => event);
+      when(
+        () => mockCalendarApi.createReminder(reminder: any(named: 'reminder'), eventId: any(named: 'eventId')),
+      ).thenAnswer((_) async => event.copyWithReminders(reminders.toNativeList()));
 
       // When
       await eventide.createEventInDefaultCalendar(
@@ -352,16 +372,18 @@ void main() {
       );
 
       // Then
-      verify(() => mockCalendarApi.createEventInDefaultCalendar(
-            title: 'Test Event',
-            isAllDay: false,
-            startDate: startDate.millisecondsSinceEpoch,
-            endDate: endDate.millisecondsSinceEpoch,
-            description: null,
-            url: null,
-            location: null,
-            reminders: [10 * 60, 20 * 60],
-          )).called(1);
+      verify(
+        () => mockCalendarApi.createEventInDefaultCalendar(
+          title: 'Test Event',
+          isAllDay: false,
+          startDate: startDate.millisecondsSinceEpoch,
+          endDate: endDate.millisecondsSinceEpoch,
+          description: null,
+          url: null,
+          location: null,
+          reminders: [10 * 60, 20 * 60],
+        ),
+      ).called(1);
     });
   });
 
@@ -377,19 +399,22 @@ void main() {
     test('createEvent with reminders returns an ETEvent with reminders', () async {
       // Given
       const reminders = [Duration(minutes: 10), Duration(minutes: 20)];
-      when(() => mockCalendarApi.createEvent(
-            title: any(named: 'title'),
-            isAllDay: any(named: 'isAllDay'),
-            startDate: any(named: 'startDate'),
-            endDate: any(named: 'endDate'),
-            calendarId: any(named: 'calendarId'),
-            description: any(named: 'description'),
-            url: any(named: 'url'),
-            location: any(named: 'location'),
-            reminders: any(named: 'reminders'),
-          )).thenAnswer((_) async => event);
-      when(() => mockCalendarApi.createReminder(reminder: any(named: 'reminder'), eventId: any(named: 'eventId')))
-          .thenAnswer((_) async => event.copyWithReminders(reminders.toNativeList()));
+      when(
+        () => mockCalendarApi.createEvent(
+          title: any(named: 'title'),
+          isAllDay: any(named: 'isAllDay'),
+          startDate: any(named: 'startDate'),
+          endDate: any(named: 'endDate'),
+          calendarId: any(named: 'calendarId'),
+          description: any(named: 'description'),
+          url: any(named: 'url'),
+          location: any(named: 'location'),
+          reminders: any(named: 'reminders'),
+        ),
+      ).thenAnswer((_) async => event);
+      when(
+        () => mockCalendarApi.createReminder(reminder: any(named: 'reminder'), eventId: any(named: 'eventId')),
+      ).thenAnswer((_) async => event.copyWithReminders(reminders.toNativeList()));
 
       // When
       final result = await eventide.createEvent(
@@ -402,17 +427,19 @@ void main() {
 
       // Then
       expect(result.reminders, equals(reminders));
-      verify(() => mockCalendarApi.createEvent(
-            title: any(named: 'title'),
-            isAllDay: any(named: 'isAllDay'),
-            startDate: any(named: 'startDate'),
-            endDate: any(named: 'endDate'),
-            calendarId: any(named: 'calendarId'),
-            description: any(named: 'description'),
-            url: any(named: 'url'),
-            location: any(named: 'location'),
-            reminders: [10, 20],
-          )).called(1);
+      verify(
+        () => mockCalendarApi.createEvent(
+          title: any(named: 'title'),
+          isAllDay: any(named: 'isAllDay'),
+          startDate: any(named: 'startDate'),
+          endDate: any(named: 'endDate'),
+          calendarId: any(named: 'calendarId'),
+          description: any(named: 'description'),
+          url: any(named: 'url'),
+          location: any(named: 'location'),
+          reminders: [10, 20],
+        ),
+      ).called(1);
     });
 
     test('createEventInDefaultCalendar with reminders returns an ETEvent with reminders', () async {
@@ -430,18 +457,21 @@ void main() {
         location: null,
       );
 
-      when(() => mockCalendarApi.createEventInDefaultCalendar(
-            title: any(named: 'title'),
-            isAllDay: any(named: 'isAllDay'),
-            startDate: any(named: 'startDate'),
-            endDate: any(named: 'endDate'),
-            description: any(named: 'description'),
-            url: any(named: 'url'),
-            location: any(named: 'location'),
-            reminders: any(named: 'reminders'),
-          )).thenAnswer((_) async => event);
-      when(() => mockCalendarApi.createReminder(reminder: any(named: 'reminder'), eventId: any(named: 'eventId')))
-          .thenAnswer((_) async => event.copyWithReminders(reminders.toNativeList()));
+      when(
+        () => mockCalendarApi.createEventInDefaultCalendar(
+          title: any(named: 'title'),
+          isAllDay: any(named: 'isAllDay'),
+          startDate: any(named: 'startDate'),
+          endDate: any(named: 'endDate'),
+          description: any(named: 'description'),
+          url: any(named: 'url'),
+          location: any(named: 'location'),
+          reminders: any(named: 'reminders'),
+        ),
+      ).thenAnswer((_) async => event);
+      when(
+        () => mockCalendarApi.createReminder(reminder: any(named: 'reminder'), eventId: any(named: 'eventId')),
+      ).thenAnswer((_) async => event.copyWithReminders(reminders.toNativeList()));
 
       // When
       await eventide.createEventInDefaultCalendar(
@@ -452,31 +482,35 @@ void main() {
       );
 
       // Then
-      verify(() => mockCalendarApi.createEventInDefaultCalendar(
-            title: 'Test Event',
-            isAllDay: false,
-            startDate: startDate.millisecondsSinceEpoch,
-            endDate: endDate.millisecondsSinceEpoch,
-            description: null,
-            url: null,
-            location: null,
-            reminders: [10, 20],
-          )).called(1);
+      verify(
+        () => mockCalendarApi.createEventInDefaultCalendar(
+          title: 'Test Event',
+          isAllDay: false,
+          startDate: startDate.millisecondsSinceEpoch,
+          endDate: endDate.millisecondsSinceEpoch,
+          description: null,
+          url: null,
+          location: null,
+          reminders: [10, 20],
+        ),
+      ).called(1);
     });
   });
 
   test('createEventThroughNativePlatform creates event with all parameters', () async {
     // Given
-    when(() => mockCalendarApi.createEventThroughNativePlatform(
-          title: any(named: 'title'),
-          isAllDay: any(named: 'isAllDay'),
-          startDate: any(named: 'startDate'),
-          endDate: any(named: 'endDate'),
-          description: any(named: 'description'),
-          url: any(named: 'url'),
-          location: any(named: 'location'),
-          reminders: any(named: 'reminders'),
-        )).thenAnswer((_) async {});
+    when(
+      () => mockCalendarApi.createEventThroughNativePlatform(
+        title: any(named: 'title'),
+        isAllDay: any(named: 'isAllDay'),
+        startDate: any(named: 'startDate'),
+        endDate: any(named: 'endDate'),
+        description: any(named: 'description'),
+        url: any(named: 'url'),
+        location: any(named: 'location'),
+        reminders: any(named: 'reminders'),
+      ),
+    ).thenAnswer((_) async {});
 
     // When
     await eventide.createEventThroughNativePlatform(
@@ -490,51 +524,59 @@ void main() {
     );
 
     // Then
-    verify(() => mockCalendarApi.createEventThroughNativePlatform(
-          title: 'Test Event',
-          isAllDay: false,
-          startDate: startDate.millisecondsSinceEpoch,
-          endDate: endDate.millisecondsSinceEpoch,
-          description: 'Test Description',
-          url: 'http://test.com',
-          location: null,
-          reminders: [10],
-        )).called(1);
+    verify(
+      () => mockCalendarApi.createEventThroughNativePlatform(
+        title: 'Test Event',
+        isAllDay: false,
+        startDate: startDate.millisecondsSinceEpoch,
+        endDate: endDate.millisecondsSinceEpoch,
+        description: 'Test Description',
+        url: 'http://test.com',
+        location: null,
+        reminders: [10],
+      ),
+    ).called(1);
   });
 
   test('createEventThroughNativePlatform creates event with minimal parameters', () async {
     // Given
-    when(() => mockCalendarApi.createEventThroughNativePlatform(
-          title: any(named: 'title'),
-          isAllDay: any(named: 'isAllDay'),
-          startDate: any(named: 'startDate'),
-          endDate: any(named: 'endDate'),
-          description: any(named: 'description'),
-          url: any(named: 'url'),
-          location: any(named: 'location'),
-          reminders: any(named: 'reminders'),
-        )).thenAnswer((_) async {});
+    when(
+      () => mockCalendarApi.createEventThroughNativePlatform(
+        title: any(named: 'title'),
+        isAllDay: any(named: 'isAllDay'),
+        startDate: any(named: 'startDate'),
+        endDate: any(named: 'endDate'),
+        description: any(named: 'description'),
+        url: any(named: 'url'),
+        location: any(named: 'location'),
+        reminders: any(named: 'reminders'),
+      ),
+    ).thenAnswer((_) async {});
 
     // When
     await eventide.createEventThroughNativePlatform();
 
     // Then
-    verify(() => mockCalendarApi.createEventThroughNativePlatform(
-          title: null,
-          isAllDay: null,
-          startDate: null,
-          endDate: null,
-          description: null,
-          url: null,
-          location: null,
-          reminders: null,
-        )).called(1);
+    verify(
+      () => mockCalendarApi.createEventThroughNativePlatform(
+        title: null,
+        isAllDay: null,
+        startDate: null,
+        endDate: null,
+        description: null,
+        url: null,
+        location: null,
+        reminders: null,
+      ),
+    ).called(1);
   });
 
-  test('createEventThroughNativePlatform throws ETPresentationException when API fails with presentation error',
-      () async {
-    // Given
-    when(() => mockCalendarApi.createEventThroughNativePlatform(
+  test(
+    'createEventThroughNativePlatform throws ETPresentationException when API fails with presentation error',
+    () async {
+      // Given
+      when(
+        () => mockCalendarApi.createEventThroughNativePlatform(
           title: any(named: 'title'),
           isAllDay: any(named: 'isAllDay'),
           startDate: any(named: 'startDate'),
@@ -543,18 +585,17 @@ void main() {
           url: any(named: 'url'),
           location: any(named: 'location'),
           reminders: any(named: 'reminders'),
-        )).thenThrow(ETPresentationException(message: 'Presentation Error'));
+        ),
+      ).thenThrow(ETPresentationException(message: 'Presentation Error'));
 
-    // When
-    Future<void> call() => eventide.createEventThroughNativePlatform(
-          title: 'Test Event',
-          startDate: startDate,
-          endDate: endDate,
-        );
+      // When
+      Future<void> call() =>
+          eventide.createEventThroughNativePlatform(title: 'Test Event', startDate: startDate, endDate: endDate);
 
-    // Then
-    expect(call, throwsException);
-    verify(() => mockCalendarApi.createEventThroughNativePlatform(
+      // Then
+      expect(call, throwsException);
+      verify(
+        () => mockCalendarApi.createEventThroughNativePlatform(
           title: 'Test Event',
           isAllDay: null,
           startDate: startDate.millisecondsSinceEpoch,
@@ -563,58 +604,69 @@ void main() {
           url: null,
           location: null,
           reminders: null,
-        )).called(1);
-  });
+        ),
+      ).called(1);
+    },
+  );
 
   test('createEventThroughNativePlatform throws ETUserCanceledException when user cancels', () async {
     // Given
-    when(() => mockCalendarApi.createEventThroughNativePlatform(
-          title: any(named: 'title'),
-          isAllDay: any(named: 'isAllDay'),
-          startDate: any(named: 'startDate'),
-          endDate: any(named: 'endDate'),
-          description: any(named: 'description'),
-          url: any(named: 'url'),
-          location: any(named: 'location'),
-          reminders: any(named: 'reminders'),
-        )).thenThrow(ETUserCanceledException(message: 'User Cancelled'));
+    when(
+      () => mockCalendarApi.createEventThroughNativePlatform(
+        title: any(named: 'title'),
+        isAllDay: any(named: 'isAllDay'),
+        startDate: any(named: 'startDate'),
+        endDate: any(named: 'endDate'),
+        description: any(named: 'description'),
+        url: any(named: 'url'),
+        location: any(named: 'location'),
+        reminders: any(named: 'reminders'),
+      ),
+    ).thenThrow(ETUserCanceledException(message: 'User Cancelled'));
 
     // When
-    Future<void> call() => eventide.createEventThroughNativePlatform(
-          title: 'Test Event',
-          startDate: startDate,
-          endDate: endDate,
-        );
+    Future<void> call() =>
+        eventide.createEventThroughNativePlatform(title: 'Test Event', startDate: startDate, endDate: endDate);
 
     // Then
     expect(call, throwsException);
-    verify(() => mockCalendarApi.createEventThroughNativePlatform(
-          title: 'Test Event',
-          isAllDay: null,
-          startDate: startDate.millisecondsSinceEpoch,
-          endDate: endDate.millisecondsSinceEpoch,
-          description: null,
-          url: null,
-          location: null,
-          reminders: null,
-        )).called(1);
+    verify(
+      () => mockCalendarApi.createEventThroughNativePlatform(
+        title: 'Test Event',
+        isAllDay: null,
+        startDate: startDate.millisecondsSinceEpoch,
+        endDate: endDate.millisecondsSinceEpoch,
+        description: null,
+        url: null,
+        location: null,
+        reminders: null,
+      ),
+    ).called(1);
   });
 
   test('retrieveEvents returns a list of ETEvents with reminders', () async {
     // Given
     const reminders = [Duration(minutes: 10), Duration(minutes: 20)];
-    when(() => mockCalendarApi.retrieveEvents(
+    when(
+      () => mockCalendarApi.retrieveEvents(
         calendarId: any(named: 'calendarId'),
         startDate: any(named: 'startDate'),
-        endDate: any(named: 'endDate'))).thenAnswer((_) async => [event.copyWithReminders(reminders.toNativeList())]);
+        endDate: any(named: 'endDate'),
+      ),
+    ).thenAnswer((_) async => [event.copyWithReminders(reminders.toNativeList())]);
 
     // When
     final result = await eventide.retrieveEvents(calendarId: '1');
 
     // Then
     expect(result.first.reminders, equals(reminders));
-    verify(() => mockCalendarApi.retrieveEvents(
-        calendarId: '1', startDate: any(named: 'startDate'), endDate: any(named: 'endDate'))).called(1);
+    verify(
+      () => mockCalendarApi.retrieveEvents(
+        calendarId: '1',
+        startDate: any(named: 'startDate'),
+        endDate: any(named: 'endDate'),
+      ),
+    ).called(1);
   });
 
   test('create Event timezone management test: Paris - Montréal flight', () async {
@@ -635,17 +687,19 @@ void main() {
       location: null,
     );
 
-    when(() => mockCalendarApi.createEvent(
-          calendarId: any(named: 'calendarId'),
-          title: any(named: 'title'),
-          startDate: any(named: 'startDate'),
-          endDate: any(named: 'endDate'),
-          isAllDay: any(named: 'isAllDay'),
-          description: any(named: 'description'),
-          url: any(named: 'url'),
-          location: any(named: 'location'),
-          reminders: any(named: 'reminders'),
-        )).thenAnswer((_) async => mockEvent);
+    when(
+      () => mockCalendarApi.createEvent(
+        calendarId: any(named: 'calendarId'),
+        title: any(named: 'title'),
+        startDate: any(named: 'startDate'),
+        endDate: any(named: 'endDate'),
+        isAllDay: any(named: 'isAllDay'),
+        description: any(named: 'description'),
+        url: any(named: 'url'),
+        location: any(named: 'location'),
+        reminders: any(named: 'reminders'),
+      ),
+    ).thenAnswer((_) async => mockEvent);
 
     await eventide.createEvent(
       title: 'Paris - Montréal',
@@ -654,17 +708,19 @@ void main() {
       calendarId: '1',
     );
 
-    verify(() => mockCalendarApi.createEvent(
-          calendarId: '1',
-          title: 'Paris - Montréal',
-          startDate: utcParisDeparture.millisecondsSinceEpoch,
-          endDate: utcMontrealArrival.millisecondsSinceEpoch,
-          isAllDay: false,
-          description: null,
-          url: null,
-          location: null,
-          reminders: null,
-        )).called(1);
+    verify(
+      () => mockCalendarApi.createEvent(
+        calendarId: '1',
+        title: 'Paris - Montréal',
+        startDate: utcParisDeparture.millisecondsSinceEpoch,
+        endDate: utcMontrealArrival.millisecondsSinceEpoch,
+        isAllDay: false,
+        description: null,
+        url: null,
+        location: null,
+        reminders: null,
+      ),
+    ).called(1);
   });
 
   group('EventToETEvent tests', () {

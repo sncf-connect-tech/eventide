@@ -13,11 +13,7 @@ void main() {
   group('AccountExtensions tests', () {
     test('Account toETAccount conversion', () {
       // Given
-      final account = Account(
-        id: 'test-id',
-        name: 'Test Account',
-        type: 'com.google',
-      );
+      final account = Account(id: 'test-id', name: 'Test Account', type: 'com.google');
 
       // When
       final etAccount = account.toETAccount();
@@ -30,11 +26,7 @@ void main() {
 
     test('Account toETAccount with special characters', () {
       // Given
-      final account = Account(
-        id: 'special-123_test',
-        name: 'user+tag@example.com',
-        type: 'com.test.special',
-      );
+      final account = Account(id: 'special-123_test', name: 'user+tag@example.com', type: 'com.test.special');
 
       // When
       final etAccount = account.toETAccount();
@@ -83,11 +75,7 @@ void main() {
 
     test('ETAccount toAccount conversion', () {
       // Given
-      const etAccount = ETAccount(
-        id: 'et-test-id',
-        name: 'ET Test Account',
-        type: 'com.eventide',
-      );
+      const etAccount = ETAccount(id: 'et-test-id', name: 'ET Test Account', type: 'com.eventide');
 
       // When
       final account = etAccount.toAccount();
@@ -100,11 +88,7 @@ void main() {
 
     test('ETAccount toAccount with unicode characters', () {
       // Given
-      const etAccount = ETAccount(
-        id: 'unicode-test',
-        name: 'Ñoño\'s Calendar 📅',
-        type: 'com.unicode.test',
-      );
+      const etAccount = ETAccount(id: 'unicode-test', name: 'Ñoño\'s Calendar 📅', type: 'com.unicode.test');
 
       // When
       final account = etAccount.toAccount();
@@ -117,11 +101,7 @@ void main() {
 
     test('round-trip conversion Account -> ETAccount -> Account', () {
       // Given
-      final originalAccount = Account(
-        id: 'round-trip-test',
-        name: 'Round Trip Account',
-        type: 'com.roundtrip',
-      );
+      final originalAccount = Account(id: 'round-trip-test', name: 'Round Trip Account', type: 'com.roundtrip');
 
       // When
       final etAccount = originalAccount.toETAccount();

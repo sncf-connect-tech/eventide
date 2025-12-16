@@ -14,9 +14,7 @@ import 'package:eventide/src/extensions/event_extensions.dart';
 class Eventide extends EventidePlatform {
   final CalendarApi _calendarApi;
 
-  Eventide({
-    @visibleForTesting CalendarApi? calendarApi,
-  }) : _calendarApi = calendarApi ?? CalendarApi();
+  Eventide({@visibleForTesting CalendarApi? calendarApi}) : _calendarApi = calendarApi ?? CalendarApi();
 
   /// Creates a new calendar with the given [title], [color] and optional [accountName].
   ///
@@ -36,11 +34,7 @@ class Eventide extends EventidePlatform {
   /// Throws a [ETGenericException] if any other error occurs during calendar creation.
 
   @override
-  Future<ETCalendar> createCalendar({
-    required String title,
-    required Color color,
-    ETAccount? account,
-  }) async {
+  Future<ETCalendar> createCalendar({required String title, required Color color, ETAccount? account}) async {
     try {
       final calendar = await _calendarApi.createCalendar(
         title: title,
@@ -64,10 +58,7 @@ class Eventide extends EventidePlatform {
   ///
   /// Throws a [ETGenericException] if any other error occurs during calendars retrieval.
   @override
-  Future<Iterable<ETCalendar>> retrieveCalendars({
-    bool onlyWritableCalendars = true,
-    ETAccount? account,
-  }) async {
+  Future<Iterable<ETCalendar>> retrieveCalendars({bool onlyWritableCalendars = true, ETAccount? account}) async {
     try {
       final calendars = await _calendarApi.retrieveCalendars(
         onlyWritableCalendars: onlyWritableCalendars,
@@ -107,9 +98,7 @@ class Eventide extends EventidePlatform {
   ///
   /// Throws a [ETGenericException] if any other error occurs during calendar deletion.
   @override
-  Future<void> deleteCalendar({
-    required String calendarId,
-  }) async {
+  Future<void> deleteCalendar({required String calendarId}) async {
     try {
       await _calendarApi.deleteCalendar(calendarId: calendarId);
     } on PlatformException catch (e) {
@@ -260,11 +249,7 @@ class Eventide extends EventidePlatform {
   ///
   /// Throws a [ETGenericException] if any other error occurs during events retrieval.
   @override
-  Future<Iterable<ETEvent>> retrieveEvents({
-    required String calendarId,
-    DateTime? startDate,
-    DateTime? endDate,
-  }) async {
+  Future<Iterable<ETEvent>> retrieveEvents({required String calendarId, DateTime? startDate, DateTime? endDate}) async {
     try {
       final start = (startDate ?? DateTime.now()).toUtc();
       final end = (endDate ?? DateTime.now()).toUtc();
@@ -289,9 +274,7 @@ class Eventide extends EventidePlatform {
   ///
   /// Throws a [ETGenericException] if any other error occurs during event deletion.
   @override
-  Future<void> deleteEvent({
-    required String eventId,
-  }) async {
+  Future<void> deleteEvent({required String eventId}) async {
     try {
       await _calendarApi.deleteEvent(eventId: eventId);
     } on PlatformException catch (e) {
@@ -309,10 +292,7 @@ class Eventide extends EventidePlatform {
   ///
   /// Throws a [ETGenericException] if any other error occurs during reminder creation.
   @override
-  Future<ETEvent> createReminder({
-    required String eventId,
-    required Duration durationBeforeEvent,
-  }) async {
+  Future<ETEvent> createReminder({required String eventId, required Duration durationBeforeEvent}) async {
     try {
       final updatedEvent = await _calendarApi.createReminder(
         reminder: durationBeforeEvent.toNativeDuration(),
@@ -332,10 +312,7 @@ class Eventide extends EventidePlatform {
   ///
   /// Throws a [ETGenericException] if any other error occurs during reminder deletion.
   @override
-  Future<ETEvent> deleteReminder({
-    required String eventId,
-    required Duration durationBeforeEvent,
-  }) async {
+  Future<ETEvent> deleteReminder({required String eventId, required Duration durationBeforeEvent}) async {
     try {
       final updatedEvent = await _calendarApi.deleteReminder(
         reminder: durationBeforeEvent.toNativeDuration(),
@@ -387,10 +364,7 @@ class Eventide extends EventidePlatform {
   ///
   /// Throws a [ETGenericException] if any other error occurs during attendee deletion.
   @override
-  Future<ETEvent> deleteAttendee({
-    required String eventId,
-    required ETAttendee attendee,
-  }) async {
+  Future<ETEvent> deleteAttendee({required String eventId, required ETAttendee attendee}) async {
     try {
       final event = await _calendarApi.deleteAttendee(eventId: eventId, email: attendee.email);
       return event.toETEvent();
