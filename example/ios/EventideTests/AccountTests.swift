@@ -22,7 +22,7 @@ final class AccountTests: XCTestCase {
                     title: "title",
                     color: UIColor.red,
                     isWritable: false,
-                    account: Account(id: "test", name: "test", type: "local"),
+                    account: Account(id: "id1", name: "test", type: "local"),
                     events: []
                 ),
                 MockCalendar(
@@ -30,7 +30,7 @@ final class AccountTests: XCTestCase {
                     title: "title",
                     color: UIColor.blue,
                     isWritable: true,
-                    account: Account(id: "iCloud", name: "iCloud", type: "calDAV"),
+                    account: Account(id: "id2", name: "iCloud", type: "calDAV"),
                     events: []
                 )
             ]
@@ -45,8 +45,8 @@ final class AccountTests: XCTestCase {
             switch (retrieveAccountsResult) {
             case .success(let accounts):
                 XCTAssert(accounts.count == 2)
-                XCTAssert(accounts.first!.id == "test")
-                XCTAssert(accounts.last!.id == "iCloud")
+                XCTAssert(accounts.first!.id == "id1")
+                XCTAssert(accounts.last!.id == "id2")
                 expectation.fulfill()
             case .failure:
                 XCTFail("Accounts should have been retrieved")
