@@ -41,7 +41,7 @@ class CalendarImplem(
             CoroutineScope(Dispatchers.IO).launch {
                 try {
                     // Use provided accountName or default to device name
-                    val finalAccountName = account?.name ?: "LocalCalendar"
+                    val finalAccountName = account?.name ?: "local"
                     
                     val syncAdapterUri = calendarContentUri.buildUpon()
                         .appendQueryParameter(CalendarContract.CALLER_IS_SYNCADAPTER, "true")

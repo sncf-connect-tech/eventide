@@ -21,7 +21,7 @@ class Eventide extends EventidePlatform {
   /// If [account] is provided, the calendar will be created under that account.
   /// If [account] is null, the calendar will be created in the default account/source:
   /// - On iOS: Uses default source (local or iCloud)
-  /// - On Android: Uses "LocalCalendar" as the account name
+  /// - On Android: Uses "local" as the account name
   ///
   /// Returns the created [ETCalendar].
   ///
