@@ -66,7 +66,7 @@ final class EasyEventStore: EasyEventStoreProtocol {
             return Account(
                 id: source.sourceIdentifier,
                 name: source.title,
-                type: String(source.sourceType.rawValue)
+                type: source.sourceType.toString()
             )
         }
         // Remove duplicates by converting to Set and back to Array
