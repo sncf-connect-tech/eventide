@@ -1,3 +1,6 @@
+## 2.0.1
+* **Fix sourceType comparison** on iOS (https://github.com/sncf-connect-tech/eventide/issues/98)
+
 ## 2.0.0
 * **🚨 BREAKING CHANGES - Account API Redesign:**
   * **createCalendar():** Parameter `localAccountName` (String) replaced with `account` (ETAccount?)
