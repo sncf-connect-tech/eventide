@@ -1,3 +1,7 @@
+## 2.1.0
+* **Account name improvement** on Android. We figured we could fetch a displayable account name based on the account type using PackageManager. i.e. `com.google` will result in a clean `Google` `account.name`
+* **Dart dev dependencies upgrade**
+
 ## 2.0.1
 * **Fix sourceType comparison** on iOS (https://github.com/sncf-connect-tech/eventide/issues/98)
 
