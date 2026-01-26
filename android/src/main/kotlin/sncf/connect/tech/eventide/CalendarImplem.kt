@@ -1,7 +1,9 @@
 package sncf.connect.tech.eventide
 
+import android.accounts.AccountManager
 import android.content.ContentResolver
 import android.content.ContentValues
+import android.content.pm.PackageManager
 import android.net.Uri
 import android.provider.CalendarContract
 import kotlinx.coroutines.CoroutineScope
@@ -13,6 +15,8 @@ class CalendarImplem(
     private var contentResolver: ContentResolver,
     private var permissionHandler: PermissionHandler,
     private val activityManager: CalendarActivityManager,
+    private val accountManager: AccountManager,
+    private val packageManager: PackageManager,
     private var calendarContentUri: Uri = CalendarContract.Calendars.CONTENT_URI,
     private var eventContentUri: Uri = CalendarContract.Events.CONTENT_URI,
     private var remindersContentUri: Uri = CalendarContract.Reminders.CONTENT_URI,
@@ -159,6 +163,7 @@ class CalendarImplem(
                             val accessLevel = it.getInt(it.getColumnIndexOrThrow(CalendarContract.Calendars.CALENDAR_ACCESS_LEVEL))
                             val accountName = it.getString(it.getColumnIndexOrThrow(CalendarContract.Calendars.ACCOUNT_NAME))
                             val accountType = it.getString(it.getColumnIndexOrThrow(CalendarContract.Calendars.ACCOUNT_TYPE))
+                            val displayAccountName = getSystemAccountLabel(accountType) ?: accountName
 
                             val isWritable = accessLevel >= CalendarContract.Calendars.CAL_ACCESS_CONTRIBUTOR
                             if (!onlyWritableCalendars || isWritable) {
@@ -169,7 +174,7 @@ class CalendarImplem(
                                     isWritable = isWritable,
                                     account = Account(
                                         id = accountName,
-                                        name = accountName,
+                                        name = displayAccountName,
                                         type = accountType
                                     )
                                 )
@@ -231,10 +236,11 @@ class CalendarImplem(
                         while (it.moveToNext()) {
                             val accountName = it.getString(it.getColumnIndexOrThrow(CalendarContract.Calendars.ACCOUNT_NAME))
                             val accountType = it.getString(it.getColumnIndexOrThrow(CalendarContract.Calendars.ACCOUNT_TYPE))
-                            
+                            val displayAccountName = getSystemAccountLabel(accountType) ?: accountName
+
                             accountsSet.add(Account(
                                 id = accountName,
-                                name = accountName,
+                                name = displayAccountName,
                                 type = accountType
                             ))
                         }
@@ -1102,9 +1108,20 @@ class CalendarImplem(
             ))
         }
     }
+
+    private fun getSystemAccountLabel(accountType: String): String? {
+        val authenticator = accountManager.authenticatorTypes.find { it.type == accountType }
+
+        return authenticator?.let { auth ->
+            try {
+                packageManager.getText(auth.packageName, auth.labelId, null)?.toString()
+            } catch (_: Exception) {
+                null
+            }
+        }
+    }
 }
 
 private fun Boolean.toInt() = if (this) 1 else 0
 
 private fun Int.toBoolean() = this != 0
-
