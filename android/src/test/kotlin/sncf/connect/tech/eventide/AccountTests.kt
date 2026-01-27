@@ -1,7 +1,10 @@
 package sncf.connect.tech.eventide
 
+import android.accounts.AccountManager
+import android.accounts.AuthenticatorDescription
 import android.content.ContentResolver
 import android.content.Context
+import android.content.pm.PackageManager
 import android.database.Cursor
 import android.net.Uri
 import android.provider.CalendarContract
@@ -21,6 +24,8 @@ class AccountTests {
     private lateinit var contentResolver: ContentResolver
     private lateinit var permissionHandler: PermissionHandler
     private lateinit var activityManager: CalendarActivityManager
+    private lateinit var accountManager: AccountManager
+    private lateinit var packageManager: PackageManager
     private lateinit var calendarImplem: CalendarImplem
     private lateinit var calendarContentUri: Uri
 
@@ -30,12 +35,19 @@ class AccountTests {
         contentResolver = mockk(relaxed = true)
         permissionHandler = mockk(relaxed = true)
         activityManager = mockk(relaxed = true)
+        accountManager = mockk(relaxed = true)
+        packageManager = mockk(relaxed = true)
         calendarContentUri = mockk(relaxed = true)
+
+        // Par défaut, aucun authenticator n'est disponible (getSystemAccountLabel retourne null)
+        every { accountManager.authenticatorTypes } returns emptyArray()
 
         calendarImplem = CalendarImplem(
             contentResolver = contentResolver,
             permissionHandler = permissionHandler,
             activityManager = activityManager,
+            accountManager = accountManager,
+            packageManager = packageManager,
             calendarContentUri = calendarContentUri,
             eventContentUri = mockk(relaxed = true),
             remindersContentUri = mockk(relaxed = true),

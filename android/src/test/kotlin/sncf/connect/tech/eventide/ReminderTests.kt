@@ -1,7 +1,9 @@
 package sncf.connect.tech.eventide
 
+import android.accounts.AccountManager
 import android.content.ContentResolver
 import android.content.Context
+import android.content.pm.PackageManager
 import android.database.Cursor
 import android.net.Uri
 import android.provider.CalendarContract
@@ -19,6 +21,8 @@ class ReminderTests {
     private lateinit var contentResolver: ContentResolver
     private lateinit var permissionHandler: PermissionHandler
     private lateinit var activityManager: CalendarActivityManager
+    private lateinit var accountManager: AccountManager
+    private lateinit var packageManager: PackageManager
     private lateinit var calendarImplem: CalendarImplem
     private lateinit var calendarContentUri: Uri
     private lateinit var eventContentUri: Uri
@@ -31,6 +35,8 @@ class ReminderTests {
         contentResolver = mockk(relaxed = true)
         permissionHandler = mockk(relaxed = true)
         activityManager = mockk(relaxed = true)
+        accountManager = mockk(relaxed = true)
+        packageManager = mockk(relaxed = true)
         calendarContentUri = mockk(relaxed = true)
         eventContentUri = mockk(relaxed = true)
         remindersContentUri = mockk(relaxed = true)
@@ -40,6 +46,8 @@ class ReminderTests {
             contentResolver = contentResolver,
             permissionHandler = permissionHandler,
             activityManager = activityManager,
+            accountManager = accountManager,
+            packageManager = packageManager,
             calendarContentUri = calendarContentUri,
             eventContentUri = eventContentUri,
             remindersContentUri = remindersContentUri,
