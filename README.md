@@ -338,6 +338,9 @@ Future<void> createEventThroughNativePlatform({
 
 Creates a new event using the native platform UI. This method provides a consistent cross-platform experience for event creation without requiring calendar permissions.
 
+> **Android technical limitation:**
+> On Android, this feature uses an Intent to delegate event creation to the system calendar app. An Intent is "fire and forget": there is no way to know if the user actually added or cancelled the event. **It is therefore not recommended to chain multiple calls to this method on Android**, as the system will only handle one Intent at a time and will ignore subsequent calls until the user has finished the current action in the calendar app.
+
 **Platform Behavior:**
 - **iOS**: Opens the native event creation modal where users can create events with write-only permission
 - **Android**: Opens the system calendar app for event creation (identical behavior to `createEventInDefaultCalendar()`)
