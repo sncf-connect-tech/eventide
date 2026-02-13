@@ -1,3 +1,6 @@
+## 2.1.1
+* **Fix allDay flag in createEventThroughNativePlatform:** allDay extra flag was `CalendarContract.EXTRA_EVENT_ALL_DAY` and not `CalendarContract.Events.ALL_DAY`
+
 ## 2.1.0
 * **Account name improvement** on Android. We figured we could fetch a displayable account name based on the account type using PackageManager. i.e. `com.google` will result in a clean `Google` `account.name`
 * **Dart dev dependencies upgrade**
