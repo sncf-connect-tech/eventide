@@ -205,8 +205,6 @@ class Eventide extends EventidePlatform {
   ///
   /// Throws a [ETUserCanceledException] if the user cancels the event creation.
   ///
-  /// Throws a [ETEventDeletedException] if the event is deleted during the creation
-  ///
   /// Throws a [ETGenericException] if any other error occurs during event creation.
   ///
   /// Not that this is a fire and forget method on Android. It will not wait the event creation to be done to return, so nothing will happen after this method call.

@@ -14,16 +14,20 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import sncf.connect.tech.eventide.Mocks.Companion.mockPermissionDenied
 import sncf.connect.tech.eventide.Mocks.Companion.mockPermissionGranted
+import sncf.connect.tech.eventide.handler.CalendarActivityManager
+import sncf.connect.tech.eventide.handler.IcsEventManager
+import sncf.connect.tech.eventide.handler.PermissionHandler
 import java.util.concurrent.CountDownLatch
 
 class ReminderTests {
     private lateinit var context: Context
     private lateinit var contentResolver: ContentResolver
     private lateinit var permissionHandler: PermissionHandler
-    private lateinit var activityManager: CalendarActivityManager
+    private lateinit var icsEventManager: IcsEventManager
     private lateinit var accountManager: AccountManager
     private lateinit var packageManager: PackageManager
     private lateinit var calendarImplem: CalendarImplem
+    private lateinit var calendarActivityManager: CalendarActivityManager
     private lateinit var calendarContentUri: Uri
     private lateinit var eventContentUri: Uri
     private lateinit var remindersContentUri: Uri
@@ -34,20 +38,23 @@ class ReminderTests {
         context = mockk(relaxed = true)
         contentResolver = mockk(relaxed = true)
         permissionHandler = mockk(relaxed = true)
-        activityManager = mockk(relaxed = true)
+        icsEventManager = mockk(relaxed = true)
         accountManager = mockk(relaxed = true)
         packageManager = mockk(relaxed = true)
+        calendarActivityManager = mockk(relaxed = true)
         calendarContentUri = mockk(relaxed = true)
         eventContentUri = mockk(relaxed = true)
         remindersContentUri = mockk(relaxed = true)
         attendeesContentUri = mockk(relaxed = true)
 
         calendarImplem = CalendarImplem(
+            context = context,
             contentResolver = contentResolver,
             permissionHandler = permissionHandler,
-            activityManager = activityManager,
+            icsEventManager = icsEventManager,
             accountManager = accountManager,
             packageManager = packageManager,
+            calendarActivityManager = calendarActivityManager,
             calendarContentUri = calendarContentUri,
             eventContentUri = eventContentUri,
             remindersContentUri = remindersContentUri,

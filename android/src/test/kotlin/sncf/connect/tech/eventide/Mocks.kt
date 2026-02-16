@@ -6,6 +6,7 @@ import android.net.Uri
 import android.provider.CalendarContract
 import io.mockk.every
 import io.mockk.mockk
+import sncf.connect.tech.eventide.handler.PermissionHandler
 
 class Mocks {
     companion object {

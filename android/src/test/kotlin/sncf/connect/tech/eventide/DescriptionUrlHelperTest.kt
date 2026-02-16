@@ -1,5 +1,6 @@
 package sncf.connect.tech.eventide
 
+import sncf.connect.tech.eventide.handler.DescriptionUrlHelper
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
