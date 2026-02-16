@@ -9,6 +9,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  timezone: ^0.10.1
 
   eventide:
     path: ../../../

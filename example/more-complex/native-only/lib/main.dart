@@ -1,8 +1,11 @@
 // ignore_for_file: deprecated_member_use
 import 'package:eventide/eventide.dart';
 import 'package:flutter/material.dart';
+import 'package:timezone/data/latest.dart' as tz;
+import 'package:timezone/timezone.dart';
 
 void main() {
+  tz.initializeTimeZones();
   WidgetsFlutterBinding.ensureInitialized();
   runApp(MyApp());
 }
@@ -33,6 +36,7 @@ class NativeOnlyDemoPage extends StatefulWidget {
 class _NativeOnlyDemoPageState extends State<NativeOnlyDemoPage> {
   final Eventide eventide = Eventide();
   bool _prefillParameters = false;
+  bool _prefillAllDay = false;
 
   @override
   Widget build(BuildContext context) {
@@ -145,10 +149,23 @@ class _NativeOnlyDemoPageState extends State<NativeOnlyDemoPage> {
                         onChanged: (bool value) {
                           setState(() {
                             _prefillParameters = value;
+                            if (!value) _prefillAllDay = false;
                           });
                         },
                         activeColor: Colors.purple,
                       ),
+                      if (_prefillParameters)
+                        SwitchListTile(
+                          title: const Text('All Day Event'),
+                          subtitle: const Text('Prefill as an all-day event'),
+                          value: _prefillAllDay,
+                          onChanged: (bool value) {
+                            setState(() {
+                              _prefillAllDay = value;
+                            });
+                          },
+                          activeColor: Colors.purple,
+                        ),
                     ],
                   ),
                 ),
@@ -249,18 +266,32 @@ class _NativeOnlyDemoPageState extends State<NativeOnlyDemoPage> {
     try {
       if (_prefillParameters) {
         final now = DateTime.now();
-        await eventide.createEventThroughNativePlatform(
-          title: 'Sample Event',
-          startDate: now.add(const Duration(hours: 1)),
-          endDate: now.add(const Duration(hours: 2)),
-          isAllDay: false,
-          description: 'This is an event created from the Eventide app with prefilled parameters.',
-          url: 'https://example.com',
-          reminders: [
-            const Duration(minutes: 15),
-            const Duration(minutes: 5),
-          ],
-        );
+        if (_prefillAllDay) {
+          final start = DateTime(now.year, now.month, now.day);
+          final end = start.add(const Duration(days: 1));
+          await eventide.createEventThroughNativePlatform(
+            title: 'All Day Event',
+            startDate: TZDateTime.from(start, local),
+            endDate: TZDateTime.from(end, local),
+            isAllDay: true,
+            description: 'This is an all-day event created from the Eventide app.',
+            url: 'https://example.com',
+            reminders: [const Duration(hours: 2)],
+          );
+        } else {
+          await eventide.createEventThroughNativePlatform(
+            title: 'Sample Event',
+            startDate: TZDateTime.from(now.add(const Duration(hours: 1)), local),
+            endDate: TZDateTime.from(now.add(const Duration(hours: 2)), local),
+            isAllDay: false,
+            description: 'This is an event created from the Eventide app with prefilled parameters.',
+            url: 'https://example.com',
+            reminders: [
+              const Duration(minutes: 15),
+              const Duration(minutes: 5),
+            ],
+          );
+        }
       } else {
         await eventide.createEventThroughNativePlatform();
       }
@@ -269,7 +300,9 @@ class _NativeOnlyDemoPageState extends State<NativeOnlyDemoPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(_prefillParameters
-                ? 'Event with prefilled parameters created successfully!'
+                ? _prefillAllDay
+                    ? 'All-day event with prefilled parameters created successfully!'
+                    : 'Event with prefilled parameters created successfully!'
                 : 'Native interface opened with empty form!'),
             backgroundColor: Colors.green,
             behavior: SnackBarBehavior.floating,
