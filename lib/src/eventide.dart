@@ -16,7 +16,7 @@ class Eventide extends EventidePlatform {
 
   Eventide({@visibleForTesting CalendarApi? calendarApi}) : _calendarApi = calendarApi ?? CalendarApi();
 
-  /// Creates a new calendar with the given [title], [color] and optional [accountName].
+  /// Creates a new calendar with the given [title], [color] and optional [account].
   ///
   /// If [account] is provided, the calendar will be created under that account.
   /// If [account] is null, the calendar will be created in the default account/source:
@@ -111,7 +111,7 @@ class Eventide extends EventidePlatform {
   ///
   /// /!\ Note that a [Duration] in seconds will not be supported by Android for API limitations.
   ///
-  /// Returns the created [Event].
+  /// Returns the created [ETEvent].
   ///
   /// Throws a [ETPermissionException] if the user refuses to grant calendar permissions.
   ///
@@ -154,6 +154,9 @@ class Eventide extends EventidePlatform {
   ///
   /// On iOS, this method will prompt user for write only permission and will insert your event in user's default calendar.
   ///
+  /// On Android, this method will prompt user to choose the calendar app whom they want the event added into.
+  /// It is the same Android native implementation as [createEventThroughNativePlatform].
+  ///
   /// / /!\ Note that a [Duration] in seconds will not be supported by Android for API limitations.
   ///
   /// Returns the created [ETEvent].
@@ -163,9 +166,6 @@ class Eventide extends EventidePlatform {
   /// Throws a [ETNotFoundException] if the default calendar is not found or if the created event id is not found.
   ///
   /// Throws a [ETGenericException] if any other error occurs during event creation.
-  ///
-  /// Not that this is a fire and forget method on Android. It will not wait the event creation to be done to return, so nothing will happen after this method call.
-  /// It is the same Android native implementation as [createEventThroughNativePlatform].
   @override
   Future<void> createEventInDefaultCalendar({
     required String title,
@@ -193,22 +193,20 @@ class Eventide extends EventidePlatform {
     }
   }
 
-  /// Creates a new event through the native platform's event creation UI with optional [title], [startDate], [endDate], [description], [url], [location], and a list of [reminders] duration.
+  /// Creates a new event with optional [title], [startDate], [endDate], [isAllDay], [description], [url], [location], and a list of [reminders] duration.
+  ///
+  /// On iOS, this method will present the native event creation UI with the provided parameters pre-filled. The user can then choose to create the event or cancel the operation.
+  ///
+  /// On Android, this method will prompt user to choose the calendar app whom they want the event added into.
+  /// It is the same Android native implementation as [createEventInDefaultCalendar].
   ///
   /// /!\ Note that a [Duration] in seconds will not be supported by Android for API limitations.
-  ///
-  /// This method does not guarantee that an event will be created, as the user may cancel the operation.
-  /// If the user creates an event, it will be added to the selected calendar.
-  /// If the user cancels the operation, no event will be created.
   ///
   /// Throws a [ETPresentationException] if there is an error presenting the native event creation UI.
   ///
   /// Throws a [ETUserCanceledException] if the user cancels the event creation.
   ///
   /// Throws a [ETGenericException] if any other error occurs during event creation.
-  ///
-  /// Not that this is a fire and forget method on Android. It will not wait the event creation to be done to return, so nothing will happen after this method call.
-  /// It is the same Android native implementation as [createEventInDefaultCalendar].
   @override
   Future<void> createEventThroughNativePlatform({
     String? title,
