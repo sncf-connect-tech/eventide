@@ -1,65 +1,47 @@
 package sncf.connect.tech.eventide
 
-import android.accounts.AccountManager
-import android.content.pm.PackageManager
+import android.app.Application
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.embedding.engine.plugins.activity.ActivityAware
 import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
-import io.flutter.plugin.common.BinaryMessenger
+import io.flutter.plugin.common.PluginRegistry
 
 class EventidePlugin: FlutterPlugin, ActivityAware {
-    private lateinit var binaryMessenger: BinaryMessenger
-    private var permissionHandler: PermissionHandler? = null
-    private var activityManager: CalendarActivityManager? = null
-    private var accountManager: AccountManager? = null
-    private var packageManager: PackageManager? = null
+    interface ActivityComponent {
+        val requestPermissionsResultListener: PluginRegistry.RequestPermissionsResultListener
+        val calendarActivityLifecycleListener: Application.ActivityLifecycleCallbacks
+        fun updateActivity(binding: ActivityPluginBinding?)
+    }
+
+    private lateinit var activityComponent: ActivityComponent
+    private var binding: ActivityPluginBinding? = null
 
     override fun onAttachedToEngine(flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
-        binaryMessenger = flutterPluginBinding.binaryMessenger
+        val calendarImpl = CalendarImplem(flutterPluginBinding.applicationContext)
+        CalendarApi.setUp(flutterPluginBinding.binaryMessenger, calendarImpl)
+        activityComponent = calendarImpl
     }
 
     override fun onDetachedFromEngine(flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
         CalendarApi.setUp(flutterPluginBinding.binaryMessenger, null)
     }
 
-    override fun onAttachedToActivity(binding: ActivityPluginBinding) {
-        val activity = binding.activity
-        val contentResolver = activity.contentResolver
-
-        permissionHandler = PermissionHandler(activity)
-        activityManager = CalendarActivityManager(activity)
-        accountManager = AccountManager.get(activity)
-        packageManager = activity.packageManager
-
-        binding.addRequestPermissionsResultListener(permissionHandler!!)
-
-        val calendarImplem = CalendarImplem(contentResolver, permissionHandler!!, activityManager!!, accountManager!!, packageManager!!)
-        CalendarApi.setUp(binaryMessenger, calendarImplem)
+    private fun attachToActivity(binding: ActivityPluginBinding) {
+        this.binding = binding
+        activityComponent.updateActivity(binding)
+        binding.addRequestPermissionsResultListener(activityComponent.requestPermissionsResultListener)
+        binding.activity.application.registerActivityLifecycleCallbacks(activityComponent.calendarActivityLifecycleListener)
     }
 
-    override fun onDetachedFromActivityForConfigChanges() {
-        CalendarApi.setUp(binaryMessenger, null)
+    private fun detachFromActivity() {
+        binding?.removeRequestPermissionsResultListener(activityComponent.requestPermissionsResultListener)
+        binding?.activity?.application?.unregisterActivityLifecycleCallbacks(activityComponent.calendarActivityLifecycleListener)
+        activityComponent.updateActivity(null)
+        binding = null
     }
 
-    override fun onReattachedToActivityForConfigChanges(binding: ActivityPluginBinding) {
-        val activity = binding.activity
-        val contentResolver = activity.contentResolver
-
-        permissionHandler = PermissionHandler(activity)
-        activityManager = CalendarActivityManager(activity)
-        accountManager = AccountManager.get(activity)
-
-        binding.addRequestPermissionsResultListener(permissionHandler!!)
-
-        val calendarImplem = CalendarImplem(contentResolver, permissionHandler!!, activityManager!!, accountManager!!, packageManager!!)
-        CalendarApi.setUp(binaryMessenger, calendarImplem)
-    }
-
-    override fun onDetachedFromActivity() {
-        permissionHandler = null
-        activityManager = null
-        accountManager = null
-        packageManager = null
-        CalendarApi.setUp(binaryMessenger, null)
-    }
+    override fun onAttachedToActivity(binding: ActivityPluginBinding) = attachToActivity(binding)
+    override fun onReattachedToActivityForConfigChanges(binding: ActivityPluginBinding) = attachToActivity(binding)
+    override fun onDetachedFromActivityForConfigChanges() = detachFromActivity()
+    override fun onDetachedFromActivity() = detachFromActivity()
 }

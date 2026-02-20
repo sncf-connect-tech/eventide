@@ -2,5 +2,17 @@
     <!-- Permissions must be declared by the app using Eventide based on needed features -->
     <!-- For reading calendars/events: android.permission.READ_CALENDAR -->
     <!-- For creating/modifying calendars/events: android.permission.WRITE_CALENDAR -->
-    <!-- createEventInDefaultCalendar() does not require any permissions -->
+
+    <!-- Required by file provider -->
+    <application>
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.eventide.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/eventide_file_paths" />
+        </provider>
+    </application>
 </manifest>

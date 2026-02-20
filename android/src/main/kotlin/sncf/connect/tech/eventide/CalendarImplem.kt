@@ -1,28 +1,54 @@
 package sncf.connect.tech.eventide
 
 import android.accounts.AccountManager
+import android.app.Activity
+import android.app.Application
 import android.content.ContentResolver
 import android.content.ContentValues
+import android.content.Context
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.provider.CalendarContract
+import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
+import io.flutter.plugin.common.PluginRegistry
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import sncf.connect.tech.eventide.handler.CalendarActivityManager
+import sncf.connect.tech.eventide.handler.DescriptionUrlHelper
+import sncf.connect.tech.eventide.handler.IcsEventManager
+import sncf.connect.tech.eventide.handler.PermissionHandler
 import java.util.concurrent.CountDownLatch
 
 class CalendarImplem(
-    private var contentResolver: ContentResolver,
-    private var permissionHandler: PermissionHandler,
-    private val activityManager: CalendarActivityManager,
-    private val accountManager: AccountManager,
-    private val packageManager: PackageManager,
-    private var calendarContentUri: Uri = CalendarContract.Calendars.CONTENT_URI,
-    private var eventContentUri: Uri = CalendarContract.Events.CONTENT_URI,
-    private var remindersContentUri: Uri = CalendarContract.Reminders.CONTENT_URI,
-    private var attendeesContentUri: Uri = CalendarContract.Attendees.CONTENT_URI,
-    private val descriptionUrlHelper: DescriptionUrlHelper = DescriptionUrlHelper()
-): CalendarApi {
+    private val context: Context,
+    private val permissionHandler: PermissionHandler = PermissionHandler(),
+    private val calendarActivityManager: CalendarActivityManager = CalendarActivityManager(),
+    private val icsEventManager: IcsEventManager = IcsEventManager(context),
+    private val accountManager: AccountManager = AccountManager.get(context),
+    private val packageManager: PackageManager = context.packageManager,
+    private val contentResolver: ContentResolver = context.contentResolver,
+    private val calendarContentUri: Uri = CalendarContract.Calendars.CONTENT_URI,
+    private val eventContentUri: Uri = CalendarContract.Events.CONTENT_URI,
+    private val remindersContentUri: Uri = CalendarContract.Reminders.CONTENT_URI,
+    private val attendeesContentUri: Uri = CalendarContract.Attendees.CONTENT_URI,
+): CalendarApi, EventidePlugin.ActivityComponent {
+    private var activity: Activity? = null
+
+    // ------------------- PluginActivityComponent implementation ------------------
+    override val requestPermissionsResultListener: PluginRegistry.RequestPermissionsResultListener
+        get() = permissionHandler
+    
+    override val calendarActivityLifecycleListener: Application.ActivityLifecycleCallbacks
+        get() = calendarActivityManager
+    
+    override fun updateActivity(binding: ActivityPluginBinding?) {
+        activity = binding?.activity
+        permissionHandler.activity = activity
+        calendarActivityManager.activity = activity
+    }
+
+    // ------------------- CalendarApi implementation ------------------
     override fun createCalendar(
         title: String,
         color: Long,
@@ -46,7 +72,7 @@ class CalendarImplem(
                 try {
                     // Use provided accountName or default to device name
                     val finalAccountName = account?.name ?: "local"
-                    
+
                     val syncAdapterUri = calendarContentUri.buildUpon()
                         .appendQueryParameter(CalendarContract.CALLER_IS_SYNCADAPTER, "true")
                         .appendQueryParameter(CalendarContract.Calendars.ACCOUNT_NAME, finalAccountName)
@@ -104,8 +130,8 @@ class CalendarImplem(
                         Result.failure(
                             FlutterError(
                                 code = "GENERIC_ERROR",
-                                message = "An error occurred",
-                                details = e.message
+                                message = e.message,
+                                details = e.cause
                             )
                         )
                     )
@@ -190,8 +216,8 @@ class CalendarImplem(
                         Result.failure(
                             FlutterError(
                                 code = "GENERIC_ERROR",
-                                message = "An error occurred",
-                                details = e.message
+                                message = e.message,
+                                details = e.cause
                             )
                         )
                     )
@@ -223,13 +249,13 @@ class CalendarImplem(
                     )
 
                     val cursor = contentResolver.query(
-                        calendarContentUri, 
-                        projection, 
-                        null, 
-                        null, 
+                        calendarContentUri,
+                        projection,
+                        null,
+                        null,
                         null
                     )
-                    
+
                     val accountsSet = mutableSetOf<Account>()
 
                     cursor?.use {
@@ -252,8 +278,8 @@ class CalendarImplem(
                         Result.failure(
                             FlutterError(
                                 code = "GENERIC_ERROR",
-                                message = "An error occurred",
-                                details = e.message
+                                message = e.message,
+                                details = e.cause
                             )
                         )
                     )
@@ -314,8 +340,8 @@ class CalendarImplem(
                         Result.failure(
                             FlutterError(
                                 code = "GENERIC_ERROR",
-                                message = "An error occurred",
-                                details = e.message
+                                message = e.message,
+                                details = e.cause
                             )
                         )
                     )
@@ -352,6 +378,7 @@ class CalendarImplem(
             CoroutineScope(Dispatchers.IO).launch {
                 try {
                     if (isCalendarWritable(calendarId)) {
+                        val descriptionUrlHelper = DescriptionUrlHelper()
                         val mergedDescription = descriptionUrlHelper.mergeDescriptionAndUrl(description, url)
 
                         val eventValues = ContentValues().apply {
@@ -437,8 +464,8 @@ class CalendarImplem(
                         Result.failure(
                             FlutterError(
                                 code = "GENERIC_ERROR",
-                                message = "An error occurred",
-                                details = e.message
+                                message = e.message,
+                                details = e.cause
                             )
                         )
                     )
@@ -457,19 +484,17 @@ class CalendarImplem(
         location: String?,
         reminders: List<Long>?,
         callback: (Result<Unit>) -> Unit
-    ) {
-        val mergedDescription = descriptionUrlHelper.mergeDescriptionAndUrl(description, url)
-        activityManager.startCreateEventActivity(
-            eventContentUri = eventContentUri,
-            title = title,
-            startDate = startDate,
-            endDate = endDate,
-            isAllDay = isAllDay,
-            description = mergedDescription,
-            location = location,
-        )
-        callback(Result.success(Unit))
-    }
+    ) = shareEventAsIcs(
+        title = title,
+        startDate = startDate,
+        endDate = endDate,
+        isAllDay = isAllDay,
+        description = description,
+        url = url,
+        location = location,
+        reminders = reminders,
+        callback = callback
+    )
 
     override fun createEventThroughNativePlatform(
         title: String?,
@@ -481,29 +506,17 @@ class CalendarImplem(
         location: String?,
         reminders: List<Long>?,
         callback: (Result<Unit>) -> Unit
-    ) {
-        try {
-            val mergedDescription = descriptionUrlHelper.mergeDescriptionAndUrl(description, url)
-            activityManager.startCreateEventActivity(
-                eventContentUri = eventContentUri,
-                title = title,
-                startDate = startDate,
-                endDate = endDate,
-                isAllDay = isAllDay,
-                description = mergedDescription,
-                location = location,
-            )
-            callback(Result.success(Unit))
-        } catch (e: Exception) {
-            callback(Result.failure(
-                FlutterError(
-                    code = "GENERIC_ERROR",
-                    message = "Failed to start calendar activity: ${e.message}",
-                    details = e.toString()
-                )
-            ))
-        }
-    }
+    ) = shareEventAsIcs(
+        title = title,
+        startDate = startDate,
+        endDate = endDate,
+        isAllDay = isAllDay,
+        description = description,
+        url = url,
+        location = location,
+        reminders = reminders,
+        callback = callback
+    )
 
     override fun retrieveEvents(
         calendarId: String,
@@ -544,6 +557,7 @@ class CalendarImplem(
                     val events = mutableListOf<Event>()
 
                     cursor?.use { c ->
+                        val descriptionUrlHelper = DescriptionUrlHelper()
                         while (c.moveToNext()) {
                             val id = c.getString(c.getColumnIndexOrThrow(CalendarContract.Events._ID))
                             val title = c.getString(c.getColumnIndexOrThrow(CalendarContract.Events.TITLE))
@@ -607,8 +621,8 @@ class CalendarImplem(
                         Result.failure(
                             FlutterError(
                                 code = "GENERIC_ERROR",
-                                message = "An error occurred",
-                                details = e.message
+                                message = e.message,
+                                details = e.cause
                             )
                         )
                     )
@@ -671,8 +685,8 @@ class CalendarImplem(
                         Result.failure(
                             FlutterError(
                                 code = "GENERIC_ERROR",
-                                message = "An error occurred",
-                                details = e.message
+                                message = e.message,
+                                details = e.cause
                             )
                         )
                     )
@@ -711,8 +725,8 @@ class CalendarImplem(
                         Result.failure(
                             FlutterError(
                                 code = "GENERIC_ERROR",
-                                message = "An error occurred",
-                                details = e.message
+                                message = e.message,
+                                details = e.cause
                             )
                         )
                     )
@@ -759,8 +773,8 @@ class CalendarImplem(
                         Result.failure(
                             FlutterError(
                                 code = "GENERIC_ERROR",
-                                message = "An error occurred",
-                                details = e.message
+                                message = e.message,
+                                details = e.cause
                             )
                         )
                     )
@@ -808,8 +822,8 @@ class CalendarImplem(
                         Result.failure(
                             FlutterError(
                                 code = "GENERIC_ERROR",
-                                message = "An error occurred",
-                                details = e.message
+                                message = e.message,
+                                details = e.cause
                             )
                         )
                     )
@@ -860,8 +874,8 @@ class CalendarImplem(
                         Result.failure(
                             FlutterError(
                                 code = "GENERIC_ERROR",
-                                message = "An error occurred",
-                                details = e.message
+                                message = e.message,
+                                details = e.cause
                             )
                         )
                     )
@@ -870,6 +884,7 @@ class CalendarImplem(
         }
     }
 
+    // ------------------- Private methods -------------------
     private fun isCalendarWritable(
         calendarId: String,
     ): Boolean {
@@ -948,6 +963,7 @@ class CalendarImplem(
             var event: Event? = null
 
             cursor?.use { it ->
+                val descriptionUrlHelper = DescriptionUrlHelper()
                 if (it.moveToNext()) {
                     val id = it.getString(it.getColumnIndexOrThrow(CalendarContract.Events._ID))
                     val title = it.getString(it.getColumnIndexOrThrow(CalendarContract.Events.TITLE))
@@ -1021,8 +1037,8 @@ class CalendarImplem(
                 Result.failure(
                     FlutterError(
                         code = "GENERIC_ERROR",
-                        message = "An error occurred",
-                        details = e.message
+                        message = e.message,
+                        details = e.cause
                     )
                 )
             )
@@ -1054,8 +1070,8 @@ class CalendarImplem(
             callback(Result.failure(
                 FlutterError(
                     code = "GENERIC_ERROR",
-                    message = "An error occurred",
-                    details = e.message
+                    message = e.message,
+                    details = e.cause
                 )
             ))
         }
@@ -1102,8 +1118,8 @@ class CalendarImplem(
             callback(Result.failure(
                 FlutterError(
                     code = "GENERIC_ERROR",
-                    message = "An error occurred",
-                    details = e.message
+                    message = e.message,
+                    details = e.cause
                 )
             ))
         }
@@ -1118,6 +1134,46 @@ class CalendarImplem(
             } catch (_: Exception) {
                 null
             }
+        }
+    }
+
+    private fun shareEventAsIcs(
+        title: String?,
+        startDate: Long?,
+        endDate: Long?,
+        isAllDay: Boolean?,
+        description: String?,
+        url: String?,
+        location: String?,
+        reminders: List<Long>?,
+        callback: (Result<Unit>) -> Unit
+    ) {
+        try {
+            val descriptionUrlHelper = DescriptionUrlHelper()
+            val mergedDescription = descriptionUrlHelper.mergeDescriptionAndUrl(description, url)
+            val icsContent = icsEventManager.generateIcsContent(
+                title = title,
+                startDate = startDate,
+                endDate = endDate,
+                isAllDay = isAllDay,
+                description = mergedDescription,
+                location = location,
+                reminders = reminders
+            )
+
+            calendarActivityManager.createShareIntent(icsContent) {
+                callback(Result.success(Unit))
+            }
+        } catch (e: Exception) {
+            callback(
+                Result.failure(
+                    FlutterError(
+                        code = "GENERIC_ERROR",
+                        message = e.message,
+                        details = e.cause
+                    )
+                )
+            )
         }
     }
 }

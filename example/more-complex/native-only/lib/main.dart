@@ -282,7 +282,7 @@ class _NativeOnlyDemoPageState extends State<NativeOnlyDemoPage> {
           await eventide.createEventThroughNativePlatform(
             title: 'Sample Event',
             startDate: TZDateTime.from(now.add(const Duration(hours: 1)), local),
-            endDate: TZDateTime.from(now.add(const Duration(hours: 2)), local),
+            endDate: TZDateTime.from(now.add(const Duration(days: 1, hours: 2)), local),
             isAllDay: false,
             description: 'This is an event created from the Eventide app with prefilled parameters.',
             url: 'https://example.com',

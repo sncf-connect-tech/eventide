@@ -20,6 +20,9 @@ import sncf.connect.tech.eventide.Mocks.Companion.mockPermissionGranted
 import sncf.connect.tech.eventide.Mocks.Companion.mockRetrieveAttendees
 import sncf.connect.tech.eventide.Mocks.Companion.mockRetrieveEvents
 import sncf.connect.tech.eventide.Mocks.Companion.mockRetrieveReminders
+import sncf.connect.tech.eventide.handler.CalendarActivityManager
+import sncf.connect.tech.eventide.handler.IcsEventManager
+import sncf.connect.tech.eventide.handler.PermissionHandler
 import java.time.Instant
 import java.util.concurrent.CountDownLatch
 
@@ -27,10 +30,11 @@ class EventTests {
     private lateinit var context: Context
     private lateinit var contentResolver: ContentResolver
     private lateinit var permissionHandler: PermissionHandler
-    private lateinit var activityManager: CalendarActivityManager
+    private lateinit var icsEventManager: IcsEventManager
     private lateinit var accountManager: AccountManager
     private lateinit var packageManager: PackageManager
     private lateinit var calendarImplem: CalendarImplem
+    private lateinit var calendarActivityManager: CalendarActivityManager
     private lateinit var calendarContentUri: Uri
     private lateinit var eventContentUri: Uri
     private lateinit var remindersContentUri: Uri
@@ -41,24 +45,27 @@ class EventTests {
         context = mockk(relaxed = true)
         contentResolver = mockk(relaxed = true)
         permissionHandler = mockk(relaxed = true)
-        activityManager = mockk(relaxed = true)
+        icsEventManager = mockk(relaxed = true)
         accountManager = mockk(relaxed = true)
         packageManager = mockk(relaxed = true)
+        calendarActivityManager = mockk(relaxed = true)
         calendarContentUri = mockk(relaxed = true)
         eventContentUri = mockk(relaxed = true)
         remindersContentUri = mockk(relaxed = true)
         attendeesContentUri = mockk(relaxed = true)
 
         calendarImplem = CalendarImplem(
-            contentResolver = contentResolver,
-            permissionHandler = permissionHandler,
-            activityManager = activityManager,
-            accountManager = accountManager,
-            packageManager = packageManager,
-            calendarContentUri = calendarContentUri,
-            eventContentUri = eventContentUri,
-            remindersContentUri = remindersContentUri,
-            attendeesContentUri = attendeesContentUri
+            context,
+            permissionHandler,
+            calendarActivityManager,
+            icsEventManager,
+            accountManager,
+            packageManager,
+            contentResolver,
+            calendarContentUri,
+            eventContentUri,
+            remindersContentUri,
+            attendeesContentUri
         )
     }
 
@@ -420,18 +427,42 @@ class EventTests {
         val startMilli = Instant.now().toEpochMilli()
         val endMilli = Instant.now().toEpochMilli()
 
+        every { icsEventManager.generateIcsContent(any(), any(), any(), any(), any(), any(), any()) }.returns(
+            "BEGIN:VCALENDAR\nVERSION:2.0\nBEGIN:VEVENT\nSUMMARY:Test Event\nDTSTART:${startMilli}\nDTEND:${endMilli}\nDESCRIPTION:Description\nEND:VEVENT\nEND:VCALENDAR"
+        )
+
+        every { calendarActivityManager.createShareIntent(any(), any()) } answers {
+            secondArg<(Unit) -> Unit>().invoke(Unit)
+        }
+
         var result: Result<Unit>? = null
+        val latch = CountDownLatch(1)
         calendarImplem.createEventInDefaultCalendar(
             title = "Test Event",
             startDate = startMilli,
             endDate = endMilli,
             isAllDay = false,
-            description = "Description",
-            url = null,
+            description = "Test Description",
+            url = "https://example.com",
             location = null,
-            reminders = null
+            reminders = emptyList()
         ) {
             result = it
+            latch.countDown()
+        }
+
+        latch.await()
+
+        verify {
+            icsEventManager.generateIcsContent(
+                title = "Test Event",
+                startDate = startMilli,
+                endDate = endMilli,
+                isAllDay = false,
+                description = "Test Description\n\nhttps://example.com",
+                location = null,
+                reminders = emptyList()
+            )
         }
 
         assertTrue(result!!.isSuccess)
@@ -442,7 +473,16 @@ class EventTests {
         val startMilli = Instant.now().toEpochMilli()
         val endMilli = Instant.now().toEpochMilli()
 
+        every { icsEventManager.generateIcsContent(any(), any(), any(), any(), any(), any(), any()) }.returns(
+            "BEGIN:VCALENDAR\nVERSION:2.0\nBEGIN:VEVENT\nSUMMARY:Test Event\nDTSTART:${startMilli}\nDTEND:${endMilli}\nDESCRIPTION:Description\nEND:VEVENT\nEND:VCALENDAR"
+        )
+
+        every { calendarActivityManager.createShareIntent(any(), any()) } answers {
+            secondArg<(Unit) -> Unit>().invoke(Unit)
+        }
+
         var result: Result<Unit>? = null
+        val latch = CountDownLatch(1)
         calendarImplem.createEventInDefaultCalendar(
             title = "All Day Event",
             startDate = startMilli,
@@ -454,6 +494,21 @@ class EventTests {
             reminders = listOf(10L, 30L)
         ) {
             result = it
+            latch.countDown()
+        }
+
+        latch.await()
+
+        verify {
+            icsEventManager.generateIcsContent(
+                title = "All Day Event",
+                startDate = startMilli,
+                endDate = endMilli,
+                isAllDay = true,
+                description = "All day description\n\nhttps://example.com",
+                location = null,
+                reminders = listOf(10L, 30L)
+            )
         }
 
         assertTrue(result!!.isSuccess)
@@ -464,7 +519,16 @@ class EventTests {
         val startMilli = Instant.now().toEpochMilli()
         val endMilli = Instant.now().toEpochMilli()
 
+        every { icsEventManager.generateIcsContent(any(), any(), any(), any(), any(), any(), any()) }.returns(
+            "BEGIN:VCALENDAR\nVERSION:2.0\nBEGIN:VEVENT\nSUMMARY:Test Event\nDTSTART:${startMilli}\nDTEND:${endMilli}\nDESCRIPTION:Description\nEND:VEVENT\nEND:VCALENDAR"
+        )
+
+        every { calendarActivityManager.createShareIntent(any(), any()) } answers {
+            secondArg<(Unit) -> Unit>().invoke(Unit)
+        }
+
         var result: Result<Unit>? = null
+        val latch = CountDownLatch(1)
         calendarImplem.createEventInDefaultCalendar(
             title = "Test Event",
             startDate = startMilli,
@@ -476,17 +540,41 @@ class EventTests {
             reminders = null
         ) {
             result = it
+            latch.countDown()
+        }
+
+        latch.await()
+
+        verify {
+            icsEventManager.generateIcsContent(
+                title = "Test Event",
+                startDate = startMilli,
+                endDate = endMilli,
+                isAllDay = false,
+                description = null,
+                location = null,
+                reminders = null
+            )
         }
 
         assertTrue(result!!.isSuccess)
     }
 
     @Test
-    fun createEventThroughNativePlatform_withAllParameters_callsActivityManagerAndReturnsSuccess() = runTest {
+    fun createEventThroughNativePlatform_createsEventSuccessfully() = runTest {
         val startMilli = Instant.now().toEpochMilli()
         val endMilli = Instant.now().toEpochMilli()
 
+        every { icsEventManager.generateIcsContent(any(), any(), any(), any(), any(), any(), any()) }.returns(
+            "BEGIN:VCALENDAR\nVERSION:2.0\nBEGIN:VEVENT\nSUMMARY:Test Event\nDTSTART:${startMilli}\nDTEND:${endMilli}\nDESCRIPTION:Description\nEND:VEVENT\nEND:VCALENDAR"
+        )
+
+        every { calendarActivityManager.createShareIntent(any(), any()) } answers {
+            secondArg<(Unit) -> Unit>().invoke(Unit)
+        }
+
         var result: Result<Unit>? = null
+        val latch = CountDownLatch(1)
         calendarImplem.createEventThroughNativePlatform(
             title = "Test Event",
             startDate = startMilli,
@@ -498,16 +586,20 @@ class EventTests {
             reminders = emptyList()
         ) {
             result = it
+            latch.countDown()
         }
 
+        latch.await()
+
         verify {
-            activityManager.startCreateEventActivity(
-                eventContentUri = eventContentUri,
+            icsEventManager.generateIcsContent(
                 title = "Test Event",
                 startDate = startMilli,
                 endDate = endMilli,
                 isAllDay = false,
-                description = "Test Description\n\nhttps://example.com"
+                description = "Test Description\n\nhttps://example.com",
+                location = null,
+                reminders = emptyList()
             )
         }
 
@@ -515,32 +607,45 @@ class EventTests {
     }
 
     @Test
-    fun createEventThroughNativePlatform_withAllDayEvent_callsActivityManagerWithCorrectParameters() = runTest {
+    fun createEventThroughNativePlatform_withAllDayEvent_createsEventSuccessfully() = runTest {
         val startMilli = Instant.now().toEpochMilli()
         val endMilli = Instant.now().toEpochMilli()
 
+        every { icsEventManager.generateIcsContent(any(), any(), any(), any(), any(), any(), any()) }.returns(
+            "BEGIN:VCALENDAR\nVERSION:2.0\nBEGIN:VEVENT\nSUMMARY:Test Event\nDTSTART:${startMilli}\nDTEND:${endMilli}\nDESCRIPTION:Description\nEND:VEVENT\nEND:VCALENDAR"
+        )
+
+        every { calendarActivityManager.createShareIntent(any(), any()) } answers {
+            secondArg<(Unit) -> Unit>().invoke(Unit)
+        }
+
         var result: Result<Unit>? = null
+        val latch = CountDownLatch(1)
         calendarImplem.createEventThroughNativePlatform(
             title = "All Day Event",
             startDate = startMilli,
             endDate = endMilli,
             isAllDay = true,
             description = "All day description",
-            url = null,
+            url = "https://example.com",
             location = null,
-            reminders = emptyList()
+            reminders = listOf(10L, 30L)
         ) {
             result = it
+            latch.countDown()
         }
 
+        latch.await()
+
         verify {
-            activityManager.startCreateEventActivity(
-                eventContentUri = eventContentUri,
+            icsEventManager.generateIcsContent(
                 title = "All Day Event",
                 startDate = startMilli,
                 endDate = endMilli,
                 isAllDay = true,
-                description = "All day description"
+                description = "All day description\n\nhttps://example.com",
+                location = null,
+                reminders = listOf(10L, 30L)
             )
         }
 
@@ -548,87 +653,48 @@ class EventTests {
     }
 
     @Test
-    fun createEventThroughNativePlatform_withNullValues_callsActivityManagerWithNullParameters() = runTest {
-        var result: Result<Unit>? = null
-        calendarImplem.createEventThroughNativePlatform(
-            title = null,
-            startDate = null,
-            endDate = null,
-            isAllDay = null,
-            description = null,
-            url = null,
-            location = null,
-            reminders = null
-        ) {
-            result = it
+    fun createEventThroughNativePlatform_withNullDescription_createsEventSuccessfully() = runTest {
+        val startMilli = Instant.now().toEpochMilli()
+        val endMilli = Instant.now().toEpochMilli()
+
+        every { icsEventManager.generateIcsContent(any(), any(), any(), any(), any(), any(), any()) }.returns(
+            "BEGIN:VCALENDAR\nVERSION:2.0\nBEGIN:VEVENT\nSUMMARY:Test Event\nDTSTART:${startMilli}\nDTEND:${endMilli}\nDESCRIPTION:Description\nEND:VEVENT\nEND:VCALENDAR"
+        )
+
+        every { calendarActivityManager.createShareIntent(any(), any()) } answers {
+            secondArg<(Unit) -> Unit>().invoke(Unit)
         }
-
-        verify {
-            activityManager.startCreateEventActivity(
-                eventContentUri = eventContentUri,
-                title = null,
-                startDate = null,
-                endDate = null,
-                isAllDay = null,
-                description = null
-            )
-        }
-
-        assertTrue(result!!.isSuccess)
-    }
-
-    @Test
-    fun createEventThroughNativePlatform_withMinimalParameters_callsActivityManagerSuccessfully() = runTest {
-        var result: Result<Unit>? = null
-        calendarImplem.createEventThroughNativePlatform(
-            title = "Minimal Event",
-            startDate = 1000L,
-            endDate = 2000L,
-            isAllDay = false,
-            description = null,
-            url = null,
-            location = null,
-            reminders = null
-        ) {
-            result = it
-        }
-
-        verify {
-            activityManager.startCreateEventActivity(
-                eventContentUri = eventContentUri,
-                title = "Minimal Event",
-                startDate = 1000L,
-                endDate = 2000L,
-                isAllDay = false,
-                description = null
-            )
-        }
-
-        assertTrue(result!!.isSuccess)
-    }
-
-    @Test
-    fun createEventThroughNativePlatform_alwaysReturnsSuccessRegardlessOfActivityManagerBehavior() = runTest {
-        every {
-            activityManager.startCreateEventActivity(any(), any(), any(), any(), any(), any())
-        } throws RuntimeException("Activity Manager Error")
 
         var result: Result<Unit>? = null
+        val latch = CountDownLatch(1)
         calendarImplem.createEventThroughNativePlatform(
             title = "Test Event",
-            startDate = 1000L,
-            endDate = 2000L,
+            startDate = startMilli,
+            endDate = endMilli,
             isAllDay = false,
-            description = "Test",
+            description = null,
             url = null,
             location = null,
             reminders = null
         ) {
             result = it
+            latch.countDown()
         }
 
-        assertTrue(result!!.isFailure)
-        assertEquals("GENERIC_ERROR", (result.exceptionOrNull() as FlutterError).code)
-        assertTrue((result.exceptionOrNull() as FlutterError).message!!.contains("Failed to start calendar activity"))
+        latch.await()
+
+        verify {
+            icsEventManager.generateIcsContent(
+                title = "Test Event",
+                startDate = startMilli,
+                endDate = endMilli,
+                isAllDay = false,
+                description = null,
+                location = null,
+                reminders = null
+            )
+        }
+
+        assertTrue(result!!.isSuccess)
     }
 }

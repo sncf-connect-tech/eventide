@@ -1,4 +1,4 @@
-package sncf.connect.tech.eventide
+package sncf.connect.tech.eventide.handler
 
 class DescriptionUrlHelper {
     fun mergeDescriptionAndUrl(description: String?, url: String?): String? {
