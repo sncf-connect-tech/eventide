@@ -1,42 +1,13 @@
 name: eventide
 description: "Provides a easy-to-use flutter interface to access & modify native device calendars (iOS & Android)"
-version: 2.1.1
+version: 2.2.0
 repository: https://github.com/sncf-connect-tech/eventide
-topics:
-  - flutter
-  - calendar
-  - api
-  - native
-  - eventide
 
 workspace:
   - example/
   - example/more-complex/full-permission
   - example/more-complex/write-only
   - example/more-complex/native-only
-
-keywords:
-  - flutter
-  - calendar
-  - api
-  - native
-  - eventide
-  - sncf
-  - plugin
-  - mobile
-  - event management
-  - calendar integration
-  - cross-platform
-  - reminders
-  - event scheduling
-  - date management
-  - time management
-  - flutter plugin
-  - calendar events
-  - calendar API
-  - iOS calendar
-  - Android calendar
-  - iOS 17 write-only permission
 
 environment:
   sdk: ^3.7.0
@@ -65,3 +36,33 @@ flutter:
         pluginClass: EventidePlugin
       ios:
         pluginClass: EventidePlugin
+
+topics:
+  - flutter
+  - calendar
+  - api
+  - native
+  - eventide
+
+keywords:
+  - flutter
+  - calendar
+  - api
+  - native
+  - eventide
+  - sncf
+  - plugin
+  - mobile
+  - event management
+  - calendar integration
+  - cross-platform
+  - reminders
+  - event scheduling
+  - date management
+  - time management
+  - flutter plugin
+  - calendar events
+  - calendar API
+  - iOS calendar
+  - Android calendar
+  - iOS 17 write-only permission

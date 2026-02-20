@@ -1,13 +1,8 @@
+## 2.2.0
+* **Definitive fix in `createEventInDefaultCalendar` & `createEventThroughNativePlatform` on Android :**: using ical format under the hood
+
 ## 2.1.1
 * **Fix allDay flag in createEventThroughNativePlatform:** allDay extra flag was `CalendarContract.EXTRA_EVENT_ALL_DAY` and not `CalendarContract.Events.ALL_DAY`
-> **Android technical limitation:**
-> On Android, `createEventThroughNativePlatform` uses an Intent to delegate event creation to the system calendar app. An Intent is "fire and forget": there is no way to know if the user actually added or cancelled the event.
-
-> **It is therefore not recommended to chain multiple calls to this method on Android**, as the system will only handle one Intent at a time and will ignore subsequent calls until the user has finished the current action in the calendar app.
-
-> Android also may not always prompt the user to choose which calendar app to use, and tends to open Google Calendar by default if it is installed. This behavior depends on the apps installed and the user's system preferences, and cannot be controlled by the plugin.
-
-> _We are working on a solution to improve this behavior, which should be available in a future release._
 
 ## 2.1.0
 * **Account name improvement** on Android. We figured we could fetch a displayable account name based on the account type using PackageManager. i.e. `com.google` will result in a clean `Google` `account.name`
