@@ -18,7 +18,7 @@ coverage:
         target: 80%
         threshold: 5%
       android:
-        enabled: yes # Enabled now that Android JaCoCo coverage is fixed
+        enabled: yes
         target: 80%
         threshold: 5%
     project:
@@ -31,7 +31,7 @@ coverage:
         target: 80%
         threshold: 5%
       android:
-        enabled: yes # Enabled now that Android JaCoCo coverage is fixed
+        enabled: yes
         target: 80%
         threshold: 5%
 
