@@ -1,7 +1,7 @@
 name: plugin-interop
 description: |-
   Guidelines for working with Pigeon and Platform Channels in Flutter plugins.
-  Ensures safe, type-typed, and efficient communication between Dart and Native.
+  Ensures safe, strongly-typed, and efficient communication between Dart and Native.
 ---
 
 # Plugin Interop (Pigeon & Platform Channels)

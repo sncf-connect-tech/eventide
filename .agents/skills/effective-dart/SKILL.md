@@ -399,12 +399,12 @@ Well organized code benefits both the health of the app itself, and the team wor
 Dependency injection prevents your app from having globally accessible objects, which makes your code less error prone.
 We recommend you use the `provider` package to handle dependency injection.
 
-#### Use `go_router our auto_route` for navigation.
+#### Use go_router or auto_route for navigation.
 **Recommend**
 
 Go_router is the preferred way to write 90% of Flutter applications.
 auto_route is also an accepted alternative, particularly useful when you need strongly-typed route parameters or prefer a code-generation based approach.
-There are some specific use-cases that go_router our auto_route doesn't solve,
+There are some specific use-cases that go_router or auto_route doesn't solve,
 in which case you can use the `Flutter Navigator API` directly or try other packages found on `pub.dev`.
 
 #### Use standardized naming conventions for classes, files and directories.

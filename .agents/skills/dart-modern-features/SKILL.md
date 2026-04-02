@@ -1,7 +1,7 @@
 ---
 name: dart-modern-features
 description: |-
-  Guidelines for using modern Dart features (v3.0 - v3.10) such as Records, 
+  Guidelines for using modern Dart features (v3.0+) such as Records, 
   Pattern Matching, Switch Expressions, Extension Types, Class Modifiers, 
   Wildcards, Null-Aware Elements, and Dot Shorthands.
 ---
@@ -108,7 +108,7 @@ String describeStatus(int code) => switch (code) {
 
 ### Class Modifiers
 Use class modifiers (`sealed`, `final`, `base`, `interface`) to restrict how
-classes can be used outside their defines library. Prefer `sealed` for defining
+classes can be used outside their defined library. Prefer `sealed` for defining
 closed families of subtypes to enable exhaustive checking.
 
 **Avoid:**
