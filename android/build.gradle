@@ -92,10 +92,10 @@ tasks.register('jacocoTestReport', JacocoReport) {
     def mainSrc = "${project.projectDir}/src/main/kotlin/sncf/connect/tech/eventide/"
 
     sourceDirectories.setFrom(files(mainSrc))
-    classDirectories.setFrom(files("${rootProject.buildDir}/eventide/tmp/kotlin-classes/debug/").asFileTree.matching {
+    classDirectories.setFrom(files("${rootProject.buildDir}/${project.name}/tmp/kotlin-classes/debug/").asFileTree.matching {
         exclude fileFilter
     })
-    executionData.setFrom(files("${rootProject.buildDir}/eventide/jacoco/testDebugUnitTest.exec"))
+    executionData.setFrom(files("${rootProject.buildDir}/${project.name}/jacoco/testDebugUnitTest.exec"))
 }
 
 tasks.withType(Test) {
