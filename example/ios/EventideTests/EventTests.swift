@@ -1153,4 +1153,68 @@ final class EventTests: XCTestCase {
         
         waitForExpectations(timeout: timeout)
     }
+
+    func testUpdateEvent_permissionGranted() {
+        let expectation = expectation(description: "Event has been updated")
+
+        let startDate = Date().millisecondsSince1970
+        let endDate = Date().addingTimeInterval(TimeInterval(10)).millisecondsSince1970
+
+        let mockCalendar = MockCalendar(
+            id: "1",
+            title: "title",
+            color: UIColor.red,
+            isWritable: true,
+            account: Account(id: "local", name: "local", type: "local"),
+            events: [
+                MockEvent(
+                    id: "event1",
+                    calendarId: "1",
+                    title: "Old Title",
+                    startDate: Date(from: startDate),
+                    endDate: Date(from: endDate),
+                    isAllDay: false,
+                    description: "Old Desc",
+                    url: "Old URL",
+                    location: "Old Loc",
+                    reminders: []
+                )
+            ]
+        )
+
+        let mockEasyEventStore = MockEasyEventStore(calendars: [mockCalendar])
+
+        calendarImplem = CalendarImplem(
+            easyEventStore: mockEasyEventStore,
+            permissionHandler: PermissionGranted()
+        )
+
+        calendarImplem.updateEvent(
+            withId: "event1",
+            calendarId: "1",
+            title: "New Title",
+            startDate: startDate + 1000,
+            endDate: endDate + 1000,
+            isAllDay: true,
+            description: "New Desc",
+            url: "New URL",
+            location: "New Loc",
+            reminders: [10]
+        ) { result in
+            switch (result) {
+            case .success:
+                let updatedEvent = mockCalendar.events[0]
+                XCTAssert(updatedEvent.title == "New Title")
+                XCTAssert(updatedEvent.startDate.millisecondsSince1970 == startDate + 1000)
+                XCTAssert(updatedEvent.isAllDay == true)
+                XCTAssert(updatedEvent.description == "New Desc")
+                XCTAssert(updatedEvent.reminders == [-10.0]) // In MockEasyEventStore it's converted
+                expectation.fulfill()
+            case .failure:
+                XCTFail("Event should have been updated")
+            }
+        }
+
+        waitForExpectations(timeout: timeout)
+    }
 }

@@ -697,4 +697,74 @@ class EventTests {
 
         assertTrue(result!!.isSuccess)
     }
+
+    @Test
+    fun updateEvent_withGrantedPermission_updatesEventSuccessfully() = runTest {
+        mockPermissionGranted(permissionHandler)
+        mockWritableCalendar()
+
+        every { contentResolver.update(eventContentUri, any(), any(), any()) } returns 1
+
+        var result: Result<Unit>? = null
+        val latch = CountDownLatch(1)
+        calendarImplem.updateEvent(
+            "1",
+            "1",
+            "New Title",
+            0L,
+            1000L,
+            false,
+            "Description",
+            "url",
+            "location",
+            null
+        ) {
+            result = it
+            latch.countDown()
+        }
+
+        latch.await()
+
+        assertTrue(result!!.isSuccess)
+        verify {
+            contentResolver.update(eventContentUri, any(), any(), any())
+        }
+    }
+
+    @Test
+    fun updateEvent_withReminders_updatesEventAndRemindersSuccessfully() = runTest {
+        mockPermissionGranted(permissionHandler)
+        mockWritableCalendar()
+
+        every { contentResolver.update(eventContentUri, any(), any(), any()) } returns 1
+        every { contentResolver.delete(remindersContentUri, any(), any()) } returns 1
+        every { contentResolver.insert(remindersContentUri, any()) } returns mockk()
+
+        var result: Result<Unit>? = null
+        val latch = CountDownLatch(1)
+        calendarImplem.updateEvent(
+            "1",
+            "1",
+            "New Title",
+            0L,
+            1000L,
+            false,
+            "Description",
+            "url",
+            "location",
+            listOf(10L, 20L)
+        ) {
+            result = it
+            latch.countDown()
+        }
+
+        latch.await()
+
+        assertTrue(result!!.isSuccess)
+        verify {
+            contentResolver.update(eventContentUri, any(), any(), any())
+            contentResolver.delete(remindersContentUri, any(), any())
+            contentResolver.insert(remindersContentUri, any())
+        }
+    }
 }

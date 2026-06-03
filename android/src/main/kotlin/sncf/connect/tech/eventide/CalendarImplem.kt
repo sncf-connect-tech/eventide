@@ -350,6 +350,77 @@ class CalendarImplem(
         }
     }
 
+    override fun updateCalendar(
+        calendarId: String,
+        title: String,
+        color: Long,
+        callback: (Result<Unit>) -> Unit
+    ) {
+        permissionHandler.requestWritePermission { granted ->
+            if (!granted) {
+                callback(
+                    Result.failure(
+                        FlutterError(
+                            code = "ACCESS_REFUSED",
+                            message = "Calendar access has been refused or has not been given yet",
+                        )
+                    )
+                )
+                return@requestWritePermission
+            }
+
+            CoroutineScope(Dispatchers.IO).launch {
+                try {
+                    if (isCalendarWritable(calendarId)) {
+                        val values = ContentValues().apply {
+                            put(CalendarContract.Calendars.NAME, title)
+                            put(CalendarContract.Calendars.CALENDAR_DISPLAY_NAME, title)
+                            put(CalendarContract.Calendars.CALENDAR_COLOR, color)
+                        }
+
+                        val selection = CalendarContract.Calendars._ID + " = ?"
+                        val selectionArgs = arrayOf(calendarId)
+
+                        val updated = contentResolver.update(calendarContentUri, values, selection, selectionArgs)
+                        if (updated > 0) {
+                            callback(Result.success(Unit))
+                        } else {
+                            callback(
+                                Result.failure(
+                                    FlutterError(
+                                        code = "NOT_FOUND",
+                                        message = "Failed to update calendar"
+                                    )
+                                )
+                            )
+                        }
+                    } else {
+                        callback(
+                            Result.failure(
+                                FlutterError(
+                                    code = "NOT_EDITABLE",
+                                    message = "Calendar is not writable"
+                                )
+                            )
+                        )
+                    }
+                } catch (e: FlutterError) {
+                    callback(Result.failure(e))
+                } catch (e: Exception) {
+                    callback(
+                        Result.failure(
+                            FlutterError(
+                                code = "GENERIC_ERROR",
+                                message = e.message,
+                                details = e.cause
+                            )
+                        )
+                    )
+                }
+            }
+        }
+    }
+
     override fun createEvent(
         calendarId: String,
         title: String,
@@ -441,6 +512,109 @@ class CalendarImplem(
                                     FlutterError(
                                         code = "GENERIC_ERROR",
                                         message = "Failed to create event"
+                                    )
+                                )
+                            )
+                        }
+                    } else {
+                        callback(
+                            Result.failure(
+                                FlutterError(
+                                    code = "NOT_EDITABLE",
+                                    message = "Calendar is not writable"
+                                )
+                            )
+                        )
+                    }
+
+                } catch (e: FlutterError) {
+                    callback(Result.failure(e))
+
+                } catch (e: Exception) {
+                    callback(
+                        Result.failure(
+                            FlutterError(
+                                code = "GENERIC_ERROR",
+                                message = e.message,
+                                details = e.cause
+                            )
+                        )
+                    )
+                }
+            }
+        }
+    }
+
+    override fun updateEvent(
+        eventId: String,
+        calendarId: String,
+        title: String,
+        startDate: Long,
+        endDate: Long,
+        isAllDay: Boolean,
+        description: String?,
+        url: String?,
+        location: String?,
+        reminders: List<Long>?,
+        callback: (Result<Unit>) -> Unit
+    ) {
+        permissionHandler.requestWritePermission { granted ->
+            if (!granted) {
+                callback(
+                    Result.failure(
+                        FlutterError(
+                            code = "ACCESS_REFUSED",
+                            message = "Calendar access has been refused or has not been given yet",
+                        )
+                    )
+                )
+                return@requestWritePermission
+            }
+
+            CoroutineScope(Dispatchers.IO).launch {
+                try {
+                    if (isCalendarWritable(calendarId)) {
+                        val descriptionUrlHelper = DescriptionUrlHelper()
+                        val mergedDescription = descriptionUrlHelper.mergeDescriptionAndUrl(description, url)
+
+                        val eventValues = ContentValues().apply {
+                            put(CalendarContract.Events.CALENDAR_ID, calendarId)
+                            put(CalendarContract.Events.TITLE, title)
+                            put(CalendarContract.Events.DESCRIPTION, mergedDescription)
+                            put(CalendarContract.Events.EVENT_LOCATION, location)
+                            put(CalendarContract.Events.DTSTART, startDate)
+                            put(CalendarContract.Events.DTEND, endDate)
+                            put(CalendarContract.Events.EVENT_TIMEZONE, "UTC")
+                            put(CalendarContract.Events.ALL_DAY, if (isAllDay) 1 else 0)
+                        }
+
+                        val selection = CalendarContract.Events._ID + " = ?"
+                        val selectionArgs = arrayOf(eventId)
+
+                        val updated = contentResolver.update(eventContentUri, eventValues, selection, selectionArgs)
+                        
+                        if (reminders != null) {
+                            val reminderSelection = CalendarContract.Reminders.EVENT_ID + " = ?"
+                            contentResolver.delete(remindersContentUri, reminderSelection, arrayOf(eventId))
+
+                            reminders.forEach { reminder ->
+                                val reminderValues = ContentValues().apply {
+                                    put(CalendarContract.Reminders.EVENT_ID, eventId)
+                                    put(CalendarContract.Reminders.MINUTES, reminder)
+                                    put(CalendarContract.Reminders.METHOD, CalendarContract.Reminders.METHOD_ALERT)
+                                }
+                                contentResolver.insert(remindersContentUri, reminderValues)
+                            }
+                        }
+
+                        if (updated > 0) {
+                            callback(Result.success(Unit))
+                        } else {
+                            callback(
+                                Result.failure(
+                                    FlutterError(
+                                        code = "NOT_FOUND",
+                                        message = "Failed to update event"
                                     )
                                 )
                             )

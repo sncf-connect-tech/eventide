@@ -77,6 +77,40 @@ final class EasyEventStore: EasyEventStoreProtocol {
         }
     }
     
+    func updateCalendar(calendarId: String, title: String, color: UIColor) throws -> Calendar {
+        guard let ekCalendar = eventStore.calendar(withIdentifier: calendarId) else {
+            throw PigeonError(
+                code: "NOT_FOUND",
+                message: "Calendar not found",
+                details: "The provided calendar.id is certainly incorrect"
+            )
+        }
+
+        guard ekCalendar.allowsContentModifications else {
+            throw PigeonError(
+                code: "NOT_EDITABLE",
+                message: "Calendar not editable",
+                details: "Calendar does not allow content modifications"
+            )
+        }
+
+        ekCalendar.title = title
+        ekCalendar.cgColor = color.cgColor
+
+        do {
+            try eventStore.saveCalendar(ekCalendar, commit: true)
+            return ekCalendar.toCalendar()
+            
+        } catch {
+            eventStore.reset()
+            throw PigeonError(
+                code: "GENERIC_ERROR",
+                message: "Error while updating calendar",
+                details: error.localizedDescription
+            )
+        }
+    }
+    
     func deleteCalendar(calendarId: String) throws {
         guard let calendar = eventStore.calendar(withIdentifier: calendarId) else {
             throw PigeonError(
@@ -235,6 +269,67 @@ final class EasyEventStore: EasyEventStoreProtocol {
         )
         
         return eventStore.events(matching: predicate).map { $0.toEvent() }
+    }
+    
+    func updateEvent(
+        eventId: String,
+        calendarId: String,
+        title: String,
+        startDate: Date,
+        endDate: Date,
+        isAllDay: Bool,
+        description: String?,
+        url: String?,
+        location: String?,
+        timeIntervals: [TimeInterval]?
+    ) throws -> Event {
+        guard let ekEvent = eventStore.event(withIdentifier: eventId) else {
+            throw PigeonError(
+                code: "NOT_FOUND",
+                message: "Event not found",
+                details: "The provided event.id is certainly incorrect"
+            )
+        }
+
+        guard let ekCalendar = eventStore.calendar(withIdentifier: calendarId) else {
+            throw PigeonError(
+                code: "NOT_FOUND",
+                message: "Calendar not found",
+                details: "The provided calendar.id is certainly incorrect"
+            )
+        }
+
+        ekEvent.calendar = ekCalendar
+        ekEvent.title = title
+        ekEvent.notes = description
+        ekEvent.startDate = startDate
+        ekEvent.endDate = endDate
+        ekEvent.timeZone = TimeZone(identifier: "UTC")
+        ekEvent.isAllDay = isAllDay
+        ekEvent.location = location
+
+        if let urlString = url {
+            ekEvent.url = URL(string: urlString)
+        } else {
+            ekEvent.url = nil
+        }
+
+        if let timeIntervals = timeIntervals {
+            ekEvent.alarms = timeIntervals.map({ EKAlarm(relativeOffset: $0) })
+        }
+
+        do {
+            try eventStore.save(ekEvent, span: EKSpan.thisEvent, commit: true)
+            return ekEvent.toEvent()
+            
+        } catch {
+            eventStore.reset()
+            throw PigeonError(
+                code: "GENERIC_ERROR",
+                message: "Event not updated",
+                details: error.localizedDescription
+            )
+        }
     }
     
     func deleteEvent(eventId: String) throws {

@@ -539,4 +539,39 @@ final class CalendarTests: XCTestCase {
         
         waitForExpectations(timeout: timeout)
     }
+
+    func testUpdateCalendar_permissionGranted() {
+        let expectation = expectation(description: "Calendar has been updated")
+
+        let mockEasyEventStore = MockEasyEventStore(
+            calendars: [
+                MockCalendar(
+                    id: "1",
+                    title: "Old Title",
+                    color: UIColor.red,
+                    isWritable: true,
+                    account: Account(id: "local", name: "local", type: "local"),
+                    events: []
+                )
+            ]
+        )
+
+        calendarImplem = CalendarImplem(
+            easyEventStore: mockEasyEventStore,
+            permissionHandler: PermissionGranted()
+        )
+
+        calendarImplem.updateCalendar(withId: "1", title: "New Title", color: 0x00FF00) { result in
+            switch (result) {
+            case .success:
+                XCTAssert(mockEasyEventStore.calendars[0].title == "New Title")
+                XCTAssert(mockEasyEventStore.calendars[0].color.toInt64() == 0x00FF00)
+                expectation.fulfill()
+            case .failure:
+                XCTFail("Calendar should have been updated")
+            }
+        }
+
+        waitForExpectations(timeout: timeout)
+    }
 }

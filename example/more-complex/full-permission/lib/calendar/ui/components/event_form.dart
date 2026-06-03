@@ -15,11 +15,15 @@ final class EventForm extends StatefulWidget {
   final List<ETCalendar> calendars;
   final OnEventFormSubmit onSubmit;
   final DateTime? initialDate;
+  final ETEvent? initialEvent;
+  final ETCalendar? initialCalendar;
 
   const EventForm({
     required this.calendars,
     required this.onSubmit,
     this.initialDate,
+    this.initialEvent,
+    this.initialCalendar,
     super.key,
   });
 
@@ -38,10 +42,15 @@ final class _EventFormState extends State<EventForm> {
   @override
   void initState() {
     super.initState();
-    _titleController = TextEditingController();
-    _descriptionController = TextEditingController();
+    _titleController = TextEditingController(text: widget.initialEvent?.title ?? '');
+    _descriptionController = TextEditingController(text: widget.initialEvent?.description ?? '');
+    _selectedCalendar = widget.initialCalendar;
 
-    if (widget.initialDate != null) {
+    if (widget.initialEvent != null) {
+      _selectedStartDate = widget.initialEvent!.startDate;
+      _selectedEndDate = widget.initialEvent!.endDate;
+      isAllDay = widget.initialEvent!.isAllDay;
+    } else if (widget.initialDate != null) {
       _selectedStartDate = widget.initialDate!;
       _selectedEndDate = widget.initialDate!.add(const Duration(hours: 1));
     } else {
@@ -122,10 +131,13 @@ final class _EventFormState extends State<EventForm> {
                 child: ElevatedButton(
                   onPressed: () async {
                     final lastDate = _selectedEndDate;
+                    final firstDate = widget.initialEvent != null
+                        ? DateTime(2000)
+                        : DateTime.now();
                     final pickedDate = await showDatePicker(
                       context: context,
                       initialDate: _selectedStartDate,
-                      firstDate: DateTime.now(),
+                      firstDate: firstDate,
                       lastDate: lastDate,
                     );
 
@@ -173,7 +185,7 @@ final class _EventFormState extends State<EventForm> {
                     final firstDate = _selectedStartDate;
                     final pickedDate = await showDatePicker(
                       context: context,
-                      initialDate: _selectedEndDate,
+                      initialDate: _selectedEndDate.isBefore(firstDate) ? firstDate : _selectedEndDate,
                       firstDate: firstDate,
                       lastDate: firstDate.add(const Duration(days: 365)),
                     );
@@ -226,9 +238,9 @@ final class _EventFormState extends State<EventForm> {
                     );
                   }
                 : null,
-            child: const Text('Create event'),
+            child: Text(widget.initialEvent != null ? 'Update event' : 'Create event'),
           ),
-          if (!isAllDay) ...[
+          if (!isAllDay && widget.initialEvent == null) ...[
             const SizedBox(height: 16),
             ElevatedButton(
               onPressed: widget.calendars.isEmpty || _selectedCalendar != null

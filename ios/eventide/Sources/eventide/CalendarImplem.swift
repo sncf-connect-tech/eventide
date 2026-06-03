@@ -41,16 +41,15 @@ class CalendarImplem: CalendarApi {
         } onPermissionError: { error in
             completion(.failure(error))
         }
-
     }
     
     func retrieveCalendars(
-        onlyWritable: Bool,
+        onlyWritable onlyWritableCalendars: Bool,
         from account: Account?,
         completion: @escaping (Result<[Calendar], Error>) -> Void
     ) {
         permissionHandler.checkCalendarAccessThenExecute(.fullAccess) { [self] in
-            let calendars = easyEventStore.retrieveCalendars(onlyWritable: onlyWritable, from: account)
+            let calendars = easyEventStore.retrieveCalendars(onlyWritable: onlyWritableCalendars, from: account)
             completion(.success(calendars))
             
         } onPermissionRefused: {
@@ -80,7 +79,28 @@ class CalendarImplem: CalendarApi {
         }
     }
     
-    func deleteCalendar(_ calendarId: String, completion: @escaping (Result<Void, any Error>) -> Void) {
+    func updateCalendar(withId calendarId: String, title: String, color: Int64, completion: @escaping (Result<Calendar, Error>) -> Void) {
+        permissionHandler.checkCalendarAccessThenExecute(.fullAccess) { [self] in
+            do {
+                let calendar = try easyEventStore.updateCalendar(calendarId: calendarId, title: title, color: UIColor(int64: color))
+                completion(.success(calendar))
+                
+            } catch {
+                completion(.failure(error))
+            }
+            
+        } onPermissionRefused: {
+            completion(.failure(PigeonError(
+                code: "ACCESS_REFUSED",
+                message: "Calendar access has been refused or has not been given yet",
+                details: nil
+            )))
+        } onPermissionError: { error in
+            completion(.failure(error))
+        }
+    }
+    
+    func deleteCalendar(_ calendarId: String, completion: @escaping (Result<Void, Error>) -> Void) {
         permissionHandler.checkCalendarAccessThenExecute(.fullAccess) { [self] in
             do {
                 try easyEventStore.deleteCalendar(calendarId: calendarId)
@@ -151,7 +171,7 @@ class CalendarImplem: CalendarApi {
         url: String?,
         location: String?,
         reminders: [Int64]?,
-        completion: @escaping (Result<Void, any Error>) -> Void
+        completion: @escaping (Result<Void, Error>) -> Void
     ) {
         permissionHandler.checkCalendarAccessThenExecute(.writeOnly) { [self] in
             do {
@@ -192,7 +212,7 @@ class CalendarImplem: CalendarApi {
         url: String?,
         location: String?,
         reminders: [Int64]?,
-        completion: @escaping (Result<Void, any Error>) -> Void
+        completion: @escaping (Result<Void, Error>) -> Void
     ) {
         easyEventStore.presentEventCreationViewController(
             title: title,
@@ -212,7 +232,7 @@ class CalendarImplem: CalendarApi {
         calendarId: String,
         startDate: Int64,
         endDate: Int64,
-        completion: @escaping (Result<[Event], any Error>) -> Void
+        completion: @escaping (Result<[Event], Error>) -> Void
     ) {
         permissionHandler.checkCalendarAccessThenExecute(.fullAccess) { [self] in
             do {
@@ -238,7 +258,51 @@ class CalendarImplem: CalendarApi {
         }
     }
     
-    func deleteEvent(withId eventId: String, completion: @escaping (Result<Void, any Error>) -> Void) {
+    func updateEvent(
+        withId eventId: String,
+        calendarId: String,
+        title: String,
+        startDate: Int64,
+        endDate: Int64,
+        isAllDay: Bool,
+        description: String?,
+        url: String?,
+        location: String?,
+        reminders: [Int64]?,
+        completion: @escaping (Result<Event, Error>) -> Void
+    ) {
+        permissionHandler.checkCalendarAccessThenExecute(.fullAccess) { [self] in
+            do {
+                let event = try easyEventStore.updateEvent(
+                    eventId: eventId,
+                    calendarId: calendarId,
+                    title: title,
+                    startDate: Date(from: startDate),
+                    endDate: Date(from: endDate),
+                    isAllDay: isAllDay,
+                    description: description,
+                    url: url,
+                    location: location,
+                    timeIntervals: reminders?.compactMap { TimeInterval(-$0) }
+                )
+                completion(.success(event))
+                
+            } catch {
+                completion(.failure(error))
+            }
+            
+        } onPermissionRefused: {
+            completion(.failure(PigeonError(
+                code: "ACCESS_REFUSED",
+                message: "Calendar access has been refused or has not been given yet",
+                details: nil
+            )))
+        } onPermissionError: { error in
+            completion(.failure(error))
+        }
+    }
+    
+    func deleteEvent(withId eventId: String, completion: @escaping (Result<Void, Error>) -> Void) {
         permissionHandler.checkCalendarAccessThenExecute(.fullAccess) { [self] in
             do {
                 try easyEventStore.deleteEvent(eventId: eventId)
@@ -259,7 +323,7 @@ class CalendarImplem: CalendarApi {
         }
     }
     
-    func createReminder(_ reminder: Int64, forEventId eventId: String, completion: @escaping (Result<Event, any Error>) -> Void) {
+    func createReminder(_ reminder: Int64, forEventId eventId: String, completion: @escaping (Result<Event, Error>) -> Void) {
         permissionHandler.checkCalendarAccessThenExecute(.fullAccess) { [self] in
             do {
                 let modifiedEvent = try easyEventStore.createReminder(timeInterval: TimeInterval(-reminder), eventId: eventId)
@@ -281,7 +345,7 @@ class CalendarImplem: CalendarApi {
 
     }
     
-    func deleteReminder(_ reminder: Int64, withEventId eventId: String, completion: @escaping (Result<Event, any Error>) -> Void) {
+    func deleteReminder(_ reminder: Int64, withEventId eventId: String, completion: @escaping (Result<Event, Error>) -> Void) {
         permissionHandler.checkCalendarAccessThenExecute(.fullAccess) { [self] in
             do {
                 let modifiedEvent = try easyEventStore.deleteReminder(timeInterval: TimeInterval(-reminder), eventId: eventId)
@@ -308,7 +372,7 @@ class CalendarImplem: CalendarApi {
         email: String,
         role: Int64,
         type: Int64,
-        completion: @escaping (Result<Event, any Error>) -> Void
+        completion: @escaping (Result<Event, Error>) -> Void
     ) {
         /// EventKit cannot add participants to an event nor change participant information.
         /// https://developer.apple.com/documentation/eventkit/ekparticipant#overview
@@ -324,7 +388,7 @@ class CalendarImplem: CalendarApi {
     func deleteAttendee(
         eventId: String,
         email: String,
-        completion: @escaping (Result<Event, any Error>) -> Void
+        completion: @escaping (Result<Event, Error>) -> Void
     ) {
         /// EventKit cannot add participants to an event nor change participant information.
         /// https://developer.apple.com/documentation/eventkit/ekparticipant#overview

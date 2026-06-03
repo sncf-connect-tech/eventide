@@ -1,5 +1,6 @@
 import 'package:eventide/eventide.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:timezone/timezone.dart';
 import 'package:value_state/value_state.dart';
 
 final class EventDetailsCubit extends Cubit<Value<ETEvent>> {
@@ -43,6 +44,27 @@ final class EventDetailsCubit extends Cubit<Value<ETEvent>> {
     if (state case Value(:final data?)) {
       await state.fetchFrom(() async {
         return await _calendarPlugin.deleteAttendee(eventId: data.id, attendee: attendee);
+      }).forEach(emit);
+    }
+  }
+
+  Future<void> updateEvent({
+    required String title,
+    required String description,
+    required bool isAllDay,
+    required TZDateTime startDate,
+    required TZDateTime endDate,
+  }) async {
+    if (state case Value(:final data?)) {
+      await state.fetchFrom(() async {
+        return await _calendarPlugin.updateEvent(
+          data,
+          title: title,
+          description: description,
+          isAllDay: isAllDay,
+          startDate: startDate.millisecondsSinceEpoch,
+          endDate: endDate.millisecondsSinceEpoch,
+        );
       }).forEach(emit);
     }
   }

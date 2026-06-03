@@ -26,6 +26,8 @@ abstract class EventidePlatform extends PlatformInterface {
   Future<Iterable<ETCalendar>> retrieveCalendars({bool onlyWritableCalendars = true, ETAccount? account});
 
   Future<Iterable<ETAccount>> retrieveAccounts();
+  
+  Future<ETCalendar> updateCalendar(ETCalendar calendar, {String? title, Color? color});
 
   Future<void> deleteCalendar({required String calendarId});
 
@@ -64,6 +66,18 @@ abstract class EventidePlatform extends PlatformInterface {
   });
 
   Future<Iterable<ETEvent>> retrieveEvents({required String calendarId, DateTime? startDate, DateTime? endDate});
+  
+  Future<ETEvent> updateEvent(ETEvent event, {
+    String? calendarId,
+    String? title,
+    int? startDate,
+    int? endDate,
+    bool? isAllDay,
+    String? description,
+    String? url,
+    String? location,
+    List<int>? reminders,
+  });
 
   Future<void> deleteEvent({required String eventId});
 
