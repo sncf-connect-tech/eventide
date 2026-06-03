@@ -84,6 +84,9 @@ class Mocks {
             every { permissionHandler.requestReadAndWritePermissions(any()) } answers {
                 firstArg<(Boolean) -> Unit>().invoke(true)
             }
+
+            every { permissionHandler.requestWritePermissionSync() } returns true
+            every { permissionHandler.requestReadPermissionSync() } returns true
         }
 
         fun mockPermissionDenied(permissionHandler: PermissionHandler) {
@@ -98,6 +101,9 @@ class Mocks {
             every { permissionHandler.requestReadAndWritePermissions(any()) } answers {
                 firstArg<(Boolean) -> Unit>().invoke(false)
             }
+
+            every { permissionHandler.requestWritePermissionSync() } returns false
+            every { permissionHandler.requestReadPermissionSync() } returns false
         }
 
         fun mockPrimaryCalendarFound(

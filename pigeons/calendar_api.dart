@@ -15,25 +15,31 @@ import 'package:pigeon/pigeon.dart';
 @HostApi()
 abstract class CalendarApi {
   @async
+  @TaskQueue(type: TaskQueueType.serialBackgroundThread)
   @SwiftFunction('createCalendar(title:color:in:)')
   Calendar createCalendar({required String title, required int color, required Account? account});
 
   @async
+  @TaskQueue(type: TaskQueueType.serialBackgroundThread)
   @SwiftFunction('updateCalendar(withId:title:color:)')
   Calendar updateCalendar({required String calendarId, required String title, required int color});
 
   @async
+  @TaskQueue(type: TaskQueueType.serialBackgroundThread)
   @SwiftFunction('retrieveCalendars(onlyWritable:from:)')
   List<Calendar> retrieveCalendars({required bool onlyWritableCalendars, required Account? account});
 
   @async
+  @TaskQueue(type: TaskQueueType.serialBackgroundThread)
   List<Account> retrieveAccounts();
 
   @async
+  @TaskQueue(type: TaskQueueType.serialBackgroundThread)
   @SwiftFunction('deleteCalendar(_:)')
   void deleteCalendar({required String calendarId});
 
   @async
+  @TaskQueue(type: TaskQueueType.serialBackgroundThread)
   Event createEvent({
     required String calendarId,
     required String title,
@@ -47,6 +53,7 @@ abstract class CalendarApi {
   });
 
   @async
+  @TaskQueue(type: TaskQueueType.serialBackgroundThread)
   @SwiftFunction('updateEvent(withId:calendarId:title:startDate:endDate:isAllDay:description:url:location:reminders:)')
   Event updateEvent({
     required String eventId,
@@ -62,6 +69,7 @@ abstract class CalendarApi {
   });
 
   @async
+  @TaskQueue(type: TaskQueueType.serialBackgroundThread)
   void createEventInDefaultCalendar({
     required String title,
     required int startDate,
@@ -74,6 +82,7 @@ abstract class CalendarApi {
   });
 
   @async
+  @TaskQueue(type: TaskQueueType.serialBackgroundThread)
   void createEventThroughNativePlatform({
     String? title,
     int? startDate,
@@ -86,21 +95,26 @@ abstract class CalendarApi {
   });
 
   @async
+  @TaskQueue(type: TaskQueueType.serialBackgroundThread)
   List<Event> retrieveEvents({required String calendarId, required int startDate, required int endDate});
 
   @async
+  @TaskQueue(type: TaskQueueType.serialBackgroundThread)
   @SwiftFunction('deleteEvent(withId:)')
   void deleteEvent({required String eventId});
 
   @async
+  @TaskQueue(type: TaskQueueType.serialBackgroundThread)
   @SwiftFunction('createReminder(_:forEventId:)')
   Event createReminder({required int reminder, required String eventId});
 
   @async
+  @TaskQueue(type: TaskQueueType.serialBackgroundThread)
   @SwiftFunction('deleteReminder(_:withEventId:)')
   Event deleteReminder({required int reminder, required String eventId});
 
   @async
+  @TaskQueue(type: TaskQueueType.serialBackgroundThread)
   Event createAttendee({
     required String eventId,
     required String name,
@@ -110,6 +124,7 @@ abstract class CalendarApi {
   });
 
   @async
+  @TaskQueue(type: TaskQueueType.serialBackgroundThread)
   Event deleteAttendee({required String eventId, required String email});
 }
 

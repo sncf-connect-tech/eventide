@@ -484,8 +484,9 @@ interface CalendarApi {
     @JvmOverloads
     fun setUp(binaryMessenger: BinaryMessenger, api: CalendarApi?, messageChannelSuffix: String = "") {
       val separatedMessageChannelSuffix = if (messageChannelSuffix.isNotEmpty()) ".$messageChannelSuffix" else ""
+      val taskQueue = binaryMessenger.makeBackgroundTaskQueue()
       run {
-        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.eventide.CalendarApi.createCalendar$separatedMessageChannelSuffix", codec)
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.eventide.CalendarApi.createCalendar$separatedMessageChannelSuffix", codec, taskQueue)
         if (api != null) {
           channel.setMessageHandler { message, reply ->
             val args = message as List<Any?>
@@ -507,7 +508,7 @@ interface CalendarApi {
         }
       }
       run {
-        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.eventide.CalendarApi.updateCalendar$separatedMessageChannelSuffix", codec)
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.eventide.CalendarApi.updateCalendar$separatedMessageChannelSuffix", codec, taskQueue)
         if (api != null) {
           channel.setMessageHandler { message, reply ->
             val args = message as List<Any?>
@@ -529,7 +530,7 @@ interface CalendarApi {
         }
       }
       run {
-        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.eventide.CalendarApi.retrieveCalendars$separatedMessageChannelSuffix", codec)
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.eventide.CalendarApi.retrieveCalendars$separatedMessageChannelSuffix", codec, taskQueue)
         if (api != null) {
           channel.setMessageHandler { message, reply ->
             val args = message as List<Any?>
@@ -550,7 +551,7 @@ interface CalendarApi {
         }
       }
       run {
-        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.eventide.CalendarApi.retrieveAccounts$separatedMessageChannelSuffix", codec)
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.eventide.CalendarApi.retrieveAccounts$separatedMessageChannelSuffix", codec, taskQueue)
         if (api != null) {
           channel.setMessageHandler { _, reply ->
             api.retrieveAccounts{ result: Result<List<Account>> ->
@@ -568,7 +569,7 @@ interface CalendarApi {
         }
       }
       run {
-        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.eventide.CalendarApi.deleteCalendar$separatedMessageChannelSuffix", codec)
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.eventide.CalendarApi.deleteCalendar$separatedMessageChannelSuffix", codec, taskQueue)
         if (api != null) {
           channel.setMessageHandler { message, reply ->
             val args = message as List<Any?>
@@ -587,7 +588,7 @@ interface CalendarApi {
         }
       }
       run {
-        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.eventide.CalendarApi.createEvent$separatedMessageChannelSuffix", codec)
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.eventide.CalendarApi.createEvent$separatedMessageChannelSuffix", codec, taskQueue)
         if (api != null) {
           channel.setMessageHandler { message, reply ->
             val args = message as List<Any?>
@@ -615,7 +616,7 @@ interface CalendarApi {
         }
       }
       run {
-        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.eventide.CalendarApi.updateEvent$separatedMessageChannelSuffix", codec)
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.eventide.CalendarApi.updateEvent$separatedMessageChannelSuffix", codec, taskQueue)
         if (api != null) {
           channel.setMessageHandler { message, reply ->
             val args = message as List<Any?>
@@ -644,7 +645,7 @@ interface CalendarApi {
         }
       }
       run {
-        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.eventide.CalendarApi.createEventInDefaultCalendar$separatedMessageChannelSuffix", codec)
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.eventide.CalendarApi.createEventInDefaultCalendar$separatedMessageChannelSuffix", codec, taskQueue)
         if (api != null) {
           channel.setMessageHandler { message, reply ->
             val args = message as List<Any?>
@@ -670,7 +671,7 @@ interface CalendarApi {
         }
       }
       run {
-        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.eventide.CalendarApi.createEventThroughNativePlatform$separatedMessageChannelSuffix", codec)
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.eventide.CalendarApi.createEventThroughNativePlatform$separatedMessageChannelSuffix", codec, taskQueue)
         if (api != null) {
           channel.setMessageHandler { message, reply ->
             val args = message as List<Any?>
@@ -696,7 +697,7 @@ interface CalendarApi {
         }
       }
       run {
-        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.eventide.CalendarApi.retrieveEvents$separatedMessageChannelSuffix", codec)
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.eventide.CalendarApi.retrieveEvents$separatedMessageChannelSuffix", codec, taskQueue)
         if (api != null) {
           channel.setMessageHandler { message, reply ->
             val args = message as List<Any?>
@@ -718,7 +719,7 @@ interface CalendarApi {
         }
       }
       run {
-        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.eventide.CalendarApi.deleteEvent$separatedMessageChannelSuffix", codec)
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.eventide.CalendarApi.deleteEvent$separatedMessageChannelSuffix", codec, taskQueue)
         if (api != null) {
           channel.setMessageHandler { message, reply ->
             val args = message as List<Any?>
@@ -737,7 +738,7 @@ interface CalendarApi {
         }
       }
       run {
-        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.eventide.CalendarApi.createReminder$separatedMessageChannelSuffix", codec)
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.eventide.CalendarApi.createReminder$separatedMessageChannelSuffix", codec, taskQueue)
         if (api != null) {
           channel.setMessageHandler { message, reply ->
             val args = message as List<Any?>
@@ -758,7 +759,7 @@ interface CalendarApi {
         }
       }
       run {
-        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.eventide.CalendarApi.deleteReminder$separatedMessageChannelSuffix", codec)
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.eventide.CalendarApi.deleteReminder$separatedMessageChannelSuffix", codec, taskQueue)
         if (api != null) {
           channel.setMessageHandler { message, reply ->
             val args = message as List<Any?>
@@ -779,7 +780,7 @@ interface CalendarApi {
         }
       }
       run {
-        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.eventide.CalendarApi.createAttendee$separatedMessageChannelSuffix", codec)
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.eventide.CalendarApi.createAttendee$separatedMessageChannelSuffix", codec, taskQueue)
         if (api != null) {
           channel.setMessageHandler { message, reply ->
             val args = message as List<Any?>
@@ -803,7 +804,7 @@ interface CalendarApi {
         }
       }
       run {
-        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.eventide.CalendarApi.deleteAttendee$separatedMessageChannelSuffix", codec)
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.eventide.CalendarApi.deleteAttendee$separatedMessageChannelSuffix", codec, taskQueue)
         if (api != null) {
           channel.setMessageHandler { message, reply ->
             val args = message as List<Any?>
