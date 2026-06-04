@@ -2,6 +2,7 @@ pre-commit:
   parallel: false
   commands:
     linter:
+      glob: "*.dart"
       run: dart analyze . --fatal-infos
     sort-imports:
       glob: "*.dart"
