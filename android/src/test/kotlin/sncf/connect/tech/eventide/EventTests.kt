@@ -705,7 +705,7 @@ class EventTests {
 
         every { contentResolver.update(eventContentUri, any(), any(), any()) } returns 1
 
-        var result: Result<Unit>? = null
+        var result: Result<Event>? = null
         val latch = CountDownLatch(1)
         calendarImplem.updateEvent(
             "1",
@@ -740,7 +740,7 @@ class EventTests {
         every { contentResolver.delete(remindersContentUri, any(), any()) } returns 1
         every { contentResolver.insert(remindersContentUri, any()) } returns mockk()
 
-        var result: Result<Unit>? = null
+        var result: Result<Event>? = null
         val latch = CountDownLatch(1)
         calendarImplem.updateEvent(
             "1",

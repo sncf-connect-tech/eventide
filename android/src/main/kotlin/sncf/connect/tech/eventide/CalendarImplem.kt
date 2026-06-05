@@ -556,7 +556,7 @@ class CalendarImplem(
         url: String?,
         location: String?,
         reminders: List<Long>?,
-        callback: (Result<Unit>) -> Unit
+        callback: (Result<Event>) -> Unit
     ) {
         permissionHandler.requestWritePermission { granted ->
             if (!granted) {
@@ -608,7 +608,7 @@ class CalendarImplem(
                         }
 
                         if (updated > 0) {
-                            callback(Result.success(Unit))
+                            retrieveEvent(eventId, callback)
                         } else {
                             callback(
                                 Result.failure(
