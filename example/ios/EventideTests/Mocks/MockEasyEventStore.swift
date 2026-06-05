@@ -62,7 +62,7 @@ class MockEasyEventStore: EasyEventStoreProtocol {
         calendars.remove(at: index)
     }
 
-    func updateCalendar(calendarId: String, title: String, color: UIColor) throws {
+    func updateCalendar(calendarId: String, title: String, color: UIColor) throws -> eventide.Calendar {
         guard let index = calendars.firstIndex(where: { $0.id == calendarId }) else {
             throw PigeonError(
                 code: "NOT_FOUND",
@@ -81,6 +81,7 @@ class MockEasyEventStore: EasyEventStoreProtocol {
 
         calendars[index].title = title
         calendars[index].color = color
+        return calendars[index].toCalendar()
     }
 
     func createEvent(calendarId: String, title: String, startDate: Date, endDate: Date, isAllDay: Bool, description: String?, url: String?, location: String?, timeIntervals: [TimeInterval]?) throws -> Event {
@@ -109,7 +110,7 @@ class MockEasyEventStore: EasyEventStoreProtocol {
         return mockEvent.toEvent()
     }
 
-    func updateEvent(eventId: String, calendarId: String, title: String, startDate: Date, endDate: Date, isAllDay: Bool, description: String?, url: String?, location: String?, timeIntervals: [TimeInterval]?) throws {
+    func updateEvent(eventId: String, calendarId: String, title: String, startDate: Date, endDate: Date, isAllDay: Bool, description: String?, url: String?, location: String?, timeIntervals: [TimeInterval]?) throws -> Event {
         guard let mockEvent = findEvent(eventId: eventId) else {
             throw PigeonError(
                 code: "NOT_FOUND",
@@ -142,6 +143,7 @@ class MockEasyEventStore: EasyEventStoreProtocol {
         if let timeIntervals = timeIntervals {
             mockEvent.reminders = timeIntervals
         }
+        return mockEvent.toEvent()
     }
 
     func createEvent(title: String, startDate: Date, endDate: Date, isAllDay: Bool, description: String?, url: String?, location: String?, timeIntervals: [TimeInterval]?) throws {
