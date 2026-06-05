@@ -354,7 +354,7 @@ class CalendarImplem(
         calendarId: String,
         title: String,
         color: Long,
-        callback: (Result<Unit>) -> Unit
+        callback: (Result<Calendar>) -> Unit
     ) {
         permissionHandler.requestWritePermission { granted ->
             if (!granted) {
@@ -383,7 +383,7 @@ class CalendarImplem(
 
                         val updated = contentResolver.update(calendarContentUri, values, selection, selectionArgs)
                         if (updated > 0) {
-                            callback(Result.success(Unit))
+                            retrieveCalendar(calendarId, callback)
                         } else {
                             callback(
                                 Result.failure(
@@ -1059,6 +1059,77 @@ class CalendarImplem(
     }
 
     // ------------------- Private methods -------------------
+    private fun retrieveCalendar(calendarId: String, callback: (Result<Calendar>) -> Unit) {
+        try {
+            val projection = arrayOf(
+                CalendarContract.Calendars._ID,
+                CalendarContract.Calendars.CALENDAR_DISPLAY_NAME,
+                CalendarContract.Calendars.CALENDAR_COLOR,
+                CalendarContract.Calendars.CALENDAR_ACCESS_LEVEL,
+                CalendarContract.Calendars.ACCOUNT_NAME,
+                CalendarContract.Calendars.ACCOUNT_TYPE
+            )
+            val selection = CalendarContract.Calendars._ID + " = ?"
+            val selectionArgs = arrayOf(calendarId)
+
+            val cursor = contentResolver.query(calendarContentUri, projection, selection, selectionArgs, null)
+            cursor?.use {
+                if (it.moveToNext()) {
+                    val id = it.getString(it.getColumnIndexOrThrow(CalendarContract.Calendars._ID))
+                    val displayName = it.getString(it.getColumnIndexOrThrow(CalendarContract.Calendars.CALENDAR_DISPLAY_NAME))
+                    val color = it.getLong(it.getColumnIndexOrThrow(CalendarContract.Calendars.CALENDAR_COLOR))
+                    val accessLevel = it.getInt(it.getColumnIndexOrThrow(CalendarContract.Calendars.CALENDAR_ACCESS_LEVEL))
+                    val accountName = it.getString(it.getColumnIndexOrThrow(CalendarContract.Calendars.ACCOUNT_NAME))
+                    val accountType = it.getString(it.getColumnIndexOrThrow(CalendarContract.Calendars.ACCOUNT_TYPE))
+                    val displayAccountName = getSystemAccountLabel(accountType) ?: accountName
+
+                    val isWritable = accessLevel >= CalendarContract.Calendars.CAL_ACCESS_CONTRIBUTOR
+                    callback(
+                        Result.success(
+                            Calendar(
+                                id = id,
+                                title = displayName,
+                                color = color,
+                                isWritable = isWritable,
+                                account = Account(
+                                    id = accountName,
+                                    name = displayAccountName,
+                                    type = accountType
+                                )
+                            )
+                        )
+                    )
+                } else {
+                    callback(
+                        Result.failure(
+                            FlutterError(
+                                code = "NOT_FOUND",
+                                message = "Failed to retrieve calendar"
+                            )
+                        )
+                    )
+                }
+            } ?: callback(
+                Result.failure(
+                    FlutterError(
+                        code = "GENERIC_ERROR",
+                        message = "An error occurred"
+                    )
+                )
+            )
+        } catch (e: Exception) {
+            callback(
+                Result.failure(
+                    FlutterError(
+                        code = "GENERIC_ERROR",
+                        message = e.message,
+                        details = e.cause
+                    )
+                )
+            )
+        }
+    }
+
     private fun isCalendarWritable(
         calendarId: String,
     ): Boolean {

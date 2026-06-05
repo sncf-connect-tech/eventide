@@ -514,7 +514,7 @@ class CalendarTests {
 
         every { contentResolver.update(calendarContentUri, any(), any(), any()) } returns 1
 
-        var result: Result<Unit>? = null
+        var result: Result<Calendar>? = null
         val latch = CountDownLatch(1)
         calendarImplem.updateCalendar("1", "New Title", 0xFF0000) {
             result = it
@@ -534,7 +534,7 @@ class CalendarTests {
         mockPermissionGranted(permissionHandler)
         mockNotWritableCalendar()
 
-        var result: Result<Unit>? = null
+        var result: Result<Calendar>? = null
         val latch = CountDownLatch(1)
         calendarImplem.updateCalendar("1", "New Title", 0xFF0000) {
             result = it
@@ -552,7 +552,7 @@ class CalendarTests {
         mockPermissionGranted(permissionHandler)
         mockCalendarNotFound()
 
-        var result: Result<Unit>? = null
+        var result: Result<Calendar>? = null
         val latch = CountDownLatch(1)
         calendarImplem.updateCalendar("1", "New Title", 0xFF0000) {
             result = it
