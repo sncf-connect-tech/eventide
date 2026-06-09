@@ -131,9 +131,7 @@ final class _EventFormState extends State<EventForm> {
                 child: ElevatedButton(
                   onPressed: () async {
                     final lastDate = _selectedEndDate;
-                    final firstDate = widget.initialEvent != null
-                        ? DateTime(2000)
-                        : DateTime.now();
+                    final firstDate = widget.initialEvent != null ? DateTime(2000) : DateTime.now();
                     final pickedDate = await showDatePicker(
                       context: context,
                       initialDate: _selectedStartDate,

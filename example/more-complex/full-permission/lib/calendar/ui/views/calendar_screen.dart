@@ -135,14 +135,16 @@ final class _CalendarScreenState extends State<CalendarScreen> with SingleTicker
                               data.calendars.keys.singleWhere((calendar) => calendar.id == event.calendarId);
                           final calendarCubit = BlocProvider.of<CalendarCubit>(context);
 
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (context) => EventDetailsScreen(
-                                event: event,
-                                isCalendarWritable: relatedCalendar.isWritable,
-                              ),
-                            ),
-                          ).then((_) => calendarCubit.loadFullContent());
+                          Navigator.of(context)
+                              .push(
+                                MaterialPageRoute(
+                                  builder: (context) => EventDetailsScreen(
+                                    event: event,
+                                    isCalendarWritable: relatedCalendar.isWritable,
+                                  ),
+                                ),
+                              )
+                              .then((_) => calendarCubit.loadFullContent());
                         }
                       }
                     },
