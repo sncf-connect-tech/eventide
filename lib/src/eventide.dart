@@ -90,15 +90,15 @@ class Eventide extends EventidePlatform {
 
   /// Updates the given [calendar] with optional new values for [title] and [color].
   /// Only the provided parameters will be updated, the others will remain unchanged.
-  /// 
+  ///
   /// Returns the updated [ETCalendar].
-  /// 
+  ///
   /// Throws a [ETPermissionException] if the user refuses to grant calendar permissions.
-  /// 
+  ///
   /// Throws a [ETNotFoundException] if the calendar with the given [calendar.id] is not found.
-  /// 
+  ///
   /// Throws a [ETNotEditableException] if the calendar is not editable.
-  /// 
+  ///
   /// Throws a [ETGenericException] if any other error occurs during calendar update.
   @override
   Future<ETCalendar> updateCalendar(ETCalendar calendar, {String? title, Color? color}) async {
@@ -288,26 +288,27 @@ class Eventide extends EventidePlatform {
 
   /// Updates the given [event] with optional new values for [calendarId], [title], [startDate], [endDate], [isAllDay], [description], [url], [location], and a list of [reminders] duration.
   /// Only the provided parameters will be updated, the others will remain unchanged.
-  /// 
+  ///
   /// Returns the updated [ETEvent].
-  /// 
+  ///
   /// Throws a [ETPermissionException] if the user refuses to grant calendar permissions.
-  /// 
+  ///
   /// Throws a [ETNotFoundException] if the event with the given [event.id] is not found or if the new calendar with the given [calendarId] is not found.
-  /// 
+  ///
   /// Throws a [ETNotEditableException] if the calendar is not editable.
-  /// 
+  ///
   /// Throws a [ETGenericException] if any other error occurs during event update.
   @override
-  Future<ETEvent> updateEvent(ETEvent event, {
-    String? calendarId, 
-    String? title, 
-    int? startDate, 
-    int? endDate, 
-    bool? isAllDay, 
-    String? description, 
-    String? url, 
-    String? location, 
+  Future<ETEvent> updateEvent(
+    ETEvent event, {
+    String? calendarId,
+    String? title,
+    int? startDate,
+    int? endDate,
+    bool? isAllDay,
+    String? description,
+    String? url,
+    String? location,
     List<int>? reminders,
   }) async {
     try {
