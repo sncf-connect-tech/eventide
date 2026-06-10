@@ -704,6 +704,10 @@ class EventTests {
         mockWritableCalendar()
 
         every { contentResolver.update(eventContentUri, any(), any(), any()) } returns 1
+        
+        mockRetrieveEvents(contentResolver, eventContentUri)
+        mockRetrieveAttendees(contentResolver, attendeesContentUri)
+        mockRetrieveReminders(contentResolver, remindersContentUri)
 
         var result: Result<Event>? = null
         val latch = CountDownLatch(1)
@@ -739,6 +743,10 @@ class EventTests {
         every { contentResolver.update(eventContentUri, any(), any(), any()) } returns 1
         every { contentResolver.delete(remindersContentUri, any(), any()) } returns 1
         every { contentResolver.insert(remindersContentUri, any()) } returns mockk()
+        
+        mockRetrieveEvents(contentResolver, eventContentUri)
+        mockRetrieveAttendees(contentResolver, attendeesContentUri)
+        mockRetrieveReminders(contentResolver, remindersContentUri)
 
         var result: Result<Event>? = null
         val latch = CountDownLatch(1)

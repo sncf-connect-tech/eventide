@@ -71,13 +71,13 @@ abstract class EventidePlatform extends PlatformInterface {
     ETEvent event, {
     String? calendarId,
     String? title,
-    int? startDate,
-    int? endDate,
+    DateTime? startDate,
+    DateTime? endDate,
     bool? isAllDay,
     String? description,
     String? url,
     String? location,
-    List<int>? reminders,
+    Iterable<Duration>? reminders,
   });
 
   Future<void> deleteEvent({required String eventId});

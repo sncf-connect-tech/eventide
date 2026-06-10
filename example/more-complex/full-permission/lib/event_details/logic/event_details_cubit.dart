@@ -62,8 +62,8 @@ final class EventDetailsCubit extends Cubit<Value<ETEvent>> {
           title: title,
           description: description,
           isAllDay: isAllDay,
-          startDate: startDate.millisecondsSinceEpoch,
-          endDate: endDate.millisecondsSinceEpoch,
+          startDate: startDate,
+          endDate: endDate,
         );
       }).forEach(emit);
     }

@@ -786,6 +786,120 @@ void main() {
       expect(etEvents.length, 1);
       expect(etEvents.first.id, '1');
     });
+
+    test('updateEvent with new start and end dates should update the event correctly', () async {
+      // Given
+      final originalEvent = Event(
+        id: '1',
+        title: 'Test Event',
+        isAllDay: false,
+        startDate: DateTime.now().millisecondsSinceEpoch,
+        endDate: DateTime.now().add(Duration(days: 1)).millisecondsSinceEpoch,
+        calendarId: '19',
+        description: 'Test Description',
+        url: 'http://test.com',
+        reminders: [10, 20],
+        attendees: [],
+      );
+
+      final updatedStartDate = DateTime.now().add(Duration(days: 2));
+      final updatedEndDate = DateTime.now().add(Duration(days: 3));
+
+      when(
+        () => mockCalendarApi.updateEvent(
+          eventId: any(named: 'eventId'),
+          title: any(named: 'title'),
+          isAllDay: any(named: 'isAllDay'),
+          startDate: any(named: 'startDate'),
+          endDate: any(named: 'endDate'),
+          calendarId: any(named: 'calendarId'),
+          description: any(named: 'description'),
+          url: any(named: 'url'),
+          location: any(named: 'location'),
+          reminders: any(named: 'reminders'),
+        ),
+      ).thenAnswer((_) async => originalEvent);
+
+      // When
+      await eventide.updateEvent(
+        originalEvent.toETEvent(),
+        title: 'Updated test Event',
+        startDate: updatedStartDate,
+        endDate: updatedEndDate,
+      );
+
+      // Then
+      verify(
+        () => mockCalendarApi.updateEvent(
+          eventId: '1',
+          title: 'Updated test Event',
+          isAllDay: originalEvent.isAllDay,
+          startDate: updatedStartDate.millisecondsSinceEpoch,
+          endDate: updatedEndDate.millisecondsSinceEpoch,
+          calendarId: '19',
+          description: originalEvent.description,
+          url: originalEvent.url,
+          location: originalEvent.location,
+          reminders: originalEvent.reminders,
+        ),
+      ).called(1);
+    });
+
+    test('updateEvent throws an exception when API fails', () async {
+      // Given
+      final originalEvent = Event(
+        id: '1',
+        title: 'Test Event',
+        isAllDay: false,
+        startDate: DateTime.now().millisecondsSinceEpoch,
+        endDate: DateTime.now().add(Duration(days: 1)).millisecondsSinceEpoch,
+        calendarId: '19',
+        description: 'Test Description',
+        url: 'http://test.com',
+        reminders: [10, 20],
+        attendees: [],
+      );
+
+      when(
+        () => mockCalendarApi.updateEvent(
+          eventId: any(named: 'eventId'),
+          title: any(named: 'title'),
+          isAllDay: any(named: 'isAllDay'),
+          startDate: any(named: 'startDate'),
+          endDate: any(named: 'endDate'),
+          calendarId: any(named: 'calendarId'),
+          description: any(named: 'description'),
+          url: any(named: 'url'),
+          location: any(named: 'location'),
+          reminders: any(named: 'reminders'),
+        ),
+      ).thenThrow(ETGenericException(message: 'API Error'));
+
+      // When
+      Future<void> call() => eventide.updateEvent(
+        originalEvent.toETEvent(),
+        title: 'Updated test Event',
+        startDate: DateTime.now().add(Duration(days: 2)),
+        endDate: DateTime.now().add(Duration(days: 3)),
+      );
+
+      // Then
+      expect(call, throwsException);
+      verify(
+        () => mockCalendarApi.updateEvent(
+          eventId: any(named: 'eventId'),
+          title: any(named: 'title'),
+          isAllDay: any(named: 'isAllDay'),
+          startDate: any(named: 'startDate'),
+          endDate: any(named: 'endDate'),
+          calendarId: any(named: 'calendarId'),
+          description: any(named: 'description'),
+          url: any(named: 'url'),
+          location: any(named: 'location'),
+          reminders: any(named: 'reminders'),
+        ),
+      ).called(1);
+    });
   });
 
   group('ETEventCopy tests', () {

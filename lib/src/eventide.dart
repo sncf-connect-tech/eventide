@@ -303,26 +303,26 @@ class Eventide extends EventidePlatform {
     ETEvent event, {
     String? calendarId,
     String? title,
-    int? startDate,
-    int? endDate,
+    DateTime? startDate,
+    DateTime? endDate,
     bool? isAllDay,
     String? description,
     String? url,
     String? location,
-    List<int>? reminders,
+    Iterable<Duration>? reminders,
   }) async {
     try {
       final updatedEvent = await _calendarApi.updateEvent(
         eventId: event.id,
         calendarId: calendarId ?? event.calendarId,
         title: title ?? event.title,
-        startDate: startDate ?? event.startDate.toUtc().millisecondsSinceEpoch,
-        endDate: endDate ?? event.endDate.toUtc().millisecondsSinceEpoch,
+        startDate: (startDate ?? event.startDate).toUtc().millisecondsSinceEpoch,
+        endDate: (endDate ?? event.endDate).toUtc().millisecondsSinceEpoch,
         isAllDay: isAllDay ?? event.isAllDay,
         description: description ?? event.description,
         url: url ?? event.url,
         location: location ?? event.location,
-        reminders: reminders ?? event.reminders.map((e) => e.toNativeDuration()).toList(),
+        reminders: (reminders ?? event.reminders).map((e) => e.toNativeDuration()).toList(),
       );
       return updatedEvent.toETEvent();
     } on PlatformException catch (e) {

@@ -205,8 +205,8 @@ final class CalendarCubit extends Cubit<CalendarState> {
           title: title,
           description: description,
           isAllDay: isAllDay,
-          startDate: startDate.millisecondsSinceEpoch,
-          endDate: endDate.millisecondsSinceEpoch,
+          startDate: startDate,
+          endDate: endDate,
         );
 
         final updatedCalendars = Map<ETCalendar, List<ETEvent>>.from(
