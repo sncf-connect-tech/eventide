@@ -23,6 +23,23 @@ class IcsEventManagerTest {
     }
 
     @Test
+    fun `generateIcsContent contains no blank lines`() {
+        val icsContent = icsEventManager.generateIcsContent(
+            title = "Event",
+            description = "Desc",
+            location = "Paris",
+            startDate = 1700000000000L,
+            endDate = 1700003600000L,
+            reminders = listOf(10L),
+            isAllDay = false
+        )
+
+        val lines = icsContent.lines()
+        val blankLines = lines.filter { it.isBlank() }
+        assertTrue(blankLines.isEmpty(), "ICS content must not contain blank lines (RFC 5545), found ${blankLines.size}")
+    }
+
+    @Test
     fun `generateIcsContent with all fields filled and reminders`() {
         val icsContent = icsEventManager.generateIcsContent(
             title = "Réunion importante",
