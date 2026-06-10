@@ -290,16 +290,35 @@ final class EasyEventStore: EasyEventStoreProtocol {
                 details: "The provided event.id is certainly incorrect"
             )
         }
-
-        guard let ekCalendar = eventStore.calendar(withIdentifier: calendarId) else {
+        
+        guard ekEvent.calendar.allowsContentModifications else {
             throw PigeonError(
-                code: "NOT_FOUND",
-                message: "Calendar not found",
-                details: "The provided calendar.id is certainly incorrect"
+                code: "NOT_EDITABLE",
+                message: "Event actual calendar is not editable",
+                details: "Calendar does not allow content modifications"
             )
         }
+        
+        if calendarId != ekEvent.calendar.calendarIdentifier {
+            guard let ekCalendar = eventStore.calendar(withIdentifier: calendarId) else {
+                throw PigeonError(
+                    code: "NOT_FOUND",
+                    message: "Calendar not found",
+                    details: "The provided calendar.id is certainly incorrect"
+                )
+            }
+            
+            guard ekCalendar.allowsContentModifications else {
+                throw PigeonError(
+                    code: "NOT_EDITABLE",
+                    message: "Event new calendar is not editable",
+                    details: "Calendar does not allow content modifications"
+                )
+            }
 
-        ekEvent.calendar = ekCalendar
+            ekEvent.calendar = ekCalendar
+        }
+
         ekEvent.title = title
         ekEvent.notes = description
         ekEvent.startDate = startDate

@@ -19,24 +19,26 @@ final class ReminderTests: XCTestCase {
         
         let mockEasyEventStore = MockEasyEventStore(
             calendars: [
-                MockCalendar(
+                Calendar(
                     id: "1",
                     title: "title",
-                    color: UIColor.red,
+                    color: UIColor.red.toInt64(),
                     isWritable: true,
-                    account: Account(id: "local", name: "local", type: "local"),
-                    events: [
-                        MockEvent(
-                            id: "1",
-                            title: "title",
-                            startDate: Date(),
-                            endDate: Date().addingTimeInterval(TimeInterval(10)),
-                            calendarId: "1",
-                            isAllDay: false,
-                            description: "description",
-                            url: "url"
-                        )
-                    ]
+                    account: Account(id: "local", name: "local", type: "local")
+                )
+            ],
+            events: [
+                Event(
+                    id: "1",
+                    calendarId: "1",
+                    title: "title",
+                    isAllDay: false,
+                    startDate: Date().millisecondsSince1970,
+                    endDate: Date().addingTimeInterval(TimeInterval(10)).millisecondsSince1970,
+                    reminders: [],
+                    attendees: [],
+                    description: "description",
+                    url: "url"
                 )
             ]
         )
@@ -51,7 +53,7 @@ final class ReminderTests: XCTestCase {
             case .success(let event):
                 XCTAssert(event.reminders.count == 1)
                 XCTAssert(event.reminders.first == -reminder)
-                XCTAssert(mockEasyEventStore.calendars.first!.events.first!.reminders!.first! == TimeInterval(-reminder))
+                XCTAssert(mockEasyEventStore.events.first!.reminders.first! == -reminder)
                 expectation.fulfill()
             case .failure:
                 XCTFail("Reminder should have been created")
@@ -68,25 +70,26 @@ final class ReminderTests: XCTestCase {
         
         let mockEasyEventStore = MockEasyEventStore(
             calendars: [
-                MockCalendar(
+                Calendar(
                     id: "1",
                     title: "title",
-                    color: UIColor.red,
+                    color: UIColor.red.toInt64(),
                     isWritable: true,
-                    account: Account(id: "local", name: "local", type: "local"),
-                    events: [
-                        MockEvent(
-                            id: "1",
-                            title: "title",
-                            startDate: Date(),
-                            endDate: Date().addingTimeInterval(TimeInterval(10)),
-                            calendarId: "1",
-                            isAllDay: false,
-                            description: "description",
-                            url: "url",
-                            reminders: [10]
-                        )
-                    ]
+                    account: Account(id: "local", name: "local", type: "local")
+                )
+            ],
+            events: [
+                Event(
+                    id: "1",
+                    calendarId: "1",
+                    title: "title",
+                    isAllDay: false,
+                    startDate: Date().millisecondsSince1970,
+                    endDate: Date().addingTimeInterval(TimeInterval(10)).millisecondsSince1970,
+                    reminders: [10],
+                    attendees: [],
+                    description: "description",
+                    url: "url"
                 )
             ]
         )
@@ -101,7 +104,7 @@ final class ReminderTests: XCTestCase {
             case .success(let event):
                 XCTAssert(event.reminders.count == 2)
                 XCTAssert(event.reminders.last == -reminder)
-                XCTAssert(mockEasyEventStore.calendars.first!.events.first!.reminders!.last! == TimeInterval(-reminder))
+                XCTAssert(mockEasyEventStore.events.first!.reminders.last! == -reminder)
                 expectation.fulfill()
             case .failure:
                 XCTFail("Reminder should have been created")
@@ -118,24 +121,26 @@ final class ReminderTests: XCTestCase {
         
         let mockEasyEventStore = MockEasyEventStore(
             calendars: [
-                MockCalendar(
+                Calendar(
                     id: "1",
                     title: "title",
-                    color: UIColor.red,
+                    color: UIColor.red.toInt64(),
                     isWritable: true,
-                    account: Account(id: "local", name: "local", type: "local"),
-                    events: [
-                        MockEvent(
-                            id: "2",
-                            title: "title",
-                            startDate: Date(),
-                            endDate: Date().addingTimeInterval(TimeInterval(10)),
-                            calendarId: "1",
-                            isAllDay: false,
-                            description: "description",
-                            url: "url"
-                        )
-                    ]
+                    account: Account(id: "local", name: "local", type: "local")
+                )
+            ],
+            events: [
+                Event(
+                    id: "2",
+                    calendarId: "1",
+                    title: "title",
+                    isAllDay: false,
+                    startDate: Date().millisecondsSince1970,
+                    endDate: Date().addingTimeInterval(TimeInterval(10)).millisecondsSince1970,
+                    reminders: [],
+                    attendees: [],
+                    description: "description",
+                    url: "url"
                 )
             ]
         )
@@ -155,7 +160,7 @@ final class ReminderTests: XCTestCase {
                     return
                 }
                 XCTAssert(error.code == "NOT_FOUND")
-                XCTAssert(mockEasyEventStore.calendars.first!.events.first!.reminders == nil)
+                XCTAssert(mockEasyEventStore.events.first!.reminders.isEmpty)
                 expectation.fulfill()
             }
         }
@@ -168,25 +173,26 @@ final class ReminderTests: XCTestCase {
         
         let mockEasyEventStore = MockEasyEventStore(
             calendars: [
-                MockCalendar(
+                Calendar(
                     id: "1",
                     title: "title",
-                    color: UIColor.red,
+                    color: UIColor.red.toInt64(),
                     isWritable: true,
-                    account: Account(id: "local", name: "local", type: "local"),
-                    events: [
-                        MockEvent(
-                            id: "1",
-                            title: "title",
-                            startDate: Date(),
-                            endDate: Date().addingTimeInterval(TimeInterval(10)),
-                            calendarId: "1",
-                            isAllDay: false,
-                            description: "description",
-                            url: "url",
-                            reminders: [3600]
-                        )
-                    ]
+                    account: Account(id: "local", name: "local", type: "local")
+                )
+            ],
+            events: [
+                Event(
+                    id: "1",
+                    calendarId: "1",
+                    title: "title",
+                    isAllDay: false,
+                    startDate: Date().millisecondsSince1970,
+                    endDate: Date().addingTimeInterval(TimeInterval(10)).millisecondsSince1970,
+                    reminders: [3600],
+                    attendees: [],
+                    description: "description",
+                    url: "url"
                 )
             ]
         )
@@ -200,7 +206,7 @@ final class ReminderTests: XCTestCase {
             switch (createReminderResult) {
             case .success(let event):
                 XCTAssert(event.reminders.isEmpty)
-                XCTAssert(mockEasyEventStore.calendars.first!.events.first!.reminders!.isEmpty)
+                XCTAssert(mockEasyEventStore.events.first!.reminders.isEmpty)
                 expectation.fulfill()
             case .failure:
                 XCTFail("Reminder should have been deleted")
@@ -215,25 +221,26 @@ final class ReminderTests: XCTestCase {
         
         let mockEasyEventStore = MockEasyEventStore(
             calendars: [
-                MockCalendar(
+                Calendar(
                     id: "1",
                     title: "title",
-                    color: UIColor.red,
+                    color: UIColor.red.toInt64(),
                     isWritable: true,
-                    account: Account(id: "local", name: "local", type: "local"),
-                    events: [
-                        MockEvent(
-                            id: "2",
-                            title: "title",
-                            startDate: Date(),
-                            endDate: Date().addingTimeInterval(TimeInterval(10)),
-                            calendarId: "1",
-                            isAllDay: false,
-                            description: "description",
-                            url: "url",
-                            reminders: [3600]
-                        )
-                    ]
+                    account: Account(id: "local", name: "local", type: "local")
+                )
+            ],
+            events: [
+                Event(
+                    id: "2",
+                    calendarId: "1",
+                    title: "title",
+                    isAllDay: false,
+                    startDate: Date().millisecondsSince1970,
+                    endDate: Date().addingTimeInterval(TimeInterval(10)).millisecondsSince1970,
+                    reminders: [3600],
+                    attendees: [],
+                    description: "description",
+                    url: "url"
                 )
             ]
         )
@@ -253,7 +260,7 @@ final class ReminderTests: XCTestCase {
                     return
                 }
                 XCTAssert(error.code == "NOT_FOUND")
-                XCTAssert(mockEasyEventStore.calendars.first!.events.first!.reminders!.count == 1)
+                XCTAssert(mockEasyEventStore.events.first!.reminders.count == 1)
                 expectation.fulfill()
             }
         }
@@ -266,25 +273,26 @@ final class ReminderTests: XCTestCase {
         
         let mockEasyEventStore = MockEasyEventStore(
             calendars: [
-                MockCalendar(
+                Calendar(
                     id: "1",
                     title: "title",
-                    color: UIColor.red,
+                    color: UIColor.red.toInt64(),
                     isWritable: true,
-                    account: Account(id: "local", name: "local", type: "local"),
-                    events: [
-                        MockEvent(
-                            id: "1",
-                            title: "title",
-                            startDate: Date(),
-                            endDate: Date().addingTimeInterval(TimeInterval(10)),
-                            calendarId: "1",
-                            isAllDay: false,
-                            description: "description",
-                            url: "url",
-                            reminders: [3600]
-                        )
-                    ]
+                    account: Account(id: "local", name: "local", type: "local")
+                )
+            ],
+            events: [
+                Event(
+                    id: "1",
+                    calendarId: "1",
+                    title: "title",
+                    isAllDay: false,
+                    startDate: Date().millisecondsSince1970,
+                    endDate: Date().addingTimeInterval(TimeInterval(10)).millisecondsSince1970,
+                    reminders: [3600],
+                    attendees: [],
+                    description: "description",
+                    url: "url"
                 )
             ]
         )
@@ -304,7 +312,7 @@ final class ReminderTests: XCTestCase {
                     return
                 }
                 XCTAssert(error.code == "NOT_FOUND")
-                XCTAssert(mockEasyEventStore.calendars.first!.events.first!.reminders!.count == 1)
+                XCTAssert(mockEasyEventStore.events.first!.reminders.count == 1)
                 expectation.fulfill()
             }
         }
@@ -319,24 +327,26 @@ final class ReminderTests: XCTestCase {
         
         let mockEasyEventStore = MockEasyEventStore(
             calendars: [
-                MockCalendar(
+                Calendar(
                     id: "1",
                     title: "title",
-                    color: UIColor.red,
+                    color: UIColor.red.toInt64(),
                     isWritable: true,
-                    account: Account(id: "local", name: "local", type: "local"),
-                    events: [
-                        MockEvent(
-                            id: "1",
-                            title: "title",
-                            startDate: Date(),
-                            endDate: Date().addingTimeInterval(TimeInterval(10)),
-                            calendarId: "1",
-                            isAllDay: false,
-                            description: "description",
-                            url: "url"
-                        )
-                    ]
+                    account: Account(id: "local", name: "local", type: "local")
+                )
+            ],
+            events: [
+                Event(
+                    id: "1",
+                    calendarId: "1",
+                    title: "title",
+                    isAllDay: false,
+                    startDate: Date().millisecondsSince1970,
+                    endDate: Date().addingTimeInterval(TimeInterval(10)).millisecondsSince1970,
+                    reminders: [],
+                    attendees: [],
+                    description: "description",
+                    url: "url"
                 )
             ]
         )
@@ -356,7 +366,7 @@ final class ReminderTests: XCTestCase {
                     return
                 }
                 XCTAssert(error.code == "ACCESS_REFUSED")
-                XCTAssert(mockEasyEventStore.calendars.first!.events.first!.reminders == nil)
+                XCTAssert(mockEasyEventStore.events.first!.reminders.isEmpty)
                 expectation.fulfill()
             }
         }
@@ -369,25 +379,26 @@ final class ReminderTests: XCTestCase {
         
         let mockEasyEventStore = MockEasyEventStore(
             calendars: [
-                MockCalendar(
+                Calendar(
                     id: "1",
                     title: "title",
-                    color: UIColor.red,
+                    color: UIColor.red.toInt64(),
                     isWritable: true,
-                    account: Account(id: "local", name: "local", type: "local"),
-                    events: [
-                        MockEvent(
-                            id: "1",
-                            title: "title",
-                            startDate: Date(),
-                            endDate: Date().addingTimeInterval(TimeInterval(10)),
-                            calendarId: "1",
-                            isAllDay: false,
-                            description: "description",
-                            url: "url",
-                            reminders: [3600]
-                        )
-                    ]
+                    account: Account(id: "local", name: "local", type: "local")
+                )
+            ],
+            events: [
+                Event(
+                    id: "1",
+                    calendarId: "1",
+                    title: "title",
+                    isAllDay: false,
+                    startDate: Date().millisecondsSince1970,
+                    endDate: Date().addingTimeInterval(TimeInterval(10)).millisecondsSince1970,
+                    reminders: [3600],
+                    attendees: [],
+                    description: "description",
+                    url: "url"
                 )
             ]
         )
@@ -407,7 +418,7 @@ final class ReminderTests: XCTestCase {
                     return
                 }
                 XCTAssert(error.code == "ACCESS_REFUSED")
-                XCTAssert(mockEasyEventStore.calendars.first!.events.first!.reminders!.count == 1)
+                XCTAssert(mockEasyEventStore.events.first!.reminders.count == 1)
                 expectation.fulfill()
             }
         }
@@ -422,24 +433,26 @@ final class ReminderTests: XCTestCase {
         
         let mockEasyEventStore = MockEasyEventStore(
             calendars: [
-                MockCalendar(
+                Calendar(
                     id: "1",
                     title: "title",
-                    color: UIColor.red,
+                    color: UIColor.red.toInt64(),
                     isWritable: true,
-                    account: Account(id: "local", name: "local", type: "local"),
-                    events: [
-                        MockEvent(
-                            id: "1",
-                            title: "title",
-                            startDate: Date(),
-                            endDate: Date().addingTimeInterval(TimeInterval(10)),
-                            calendarId: "1",
-                            isAllDay: false,
-                            description: "description",
-                            url: "url"
-                        )
-                    ]
+                    account: Account(id: "local", name: "local", type: "local")
+                )
+            ],
+            events: [
+                Event(
+                    id: "1",
+                    calendarId: "1",
+                    title: "title",
+                    isAllDay: false,
+                    startDate: Date().millisecondsSince1970,
+                    endDate: Date().addingTimeInterval(TimeInterval(10)).millisecondsSince1970,
+                    reminders: [],
+                    attendees: [],
+                    description: "description",
+                    url: "url"
                 )
             ]
         )
@@ -458,7 +471,7 @@ final class ReminderTests: XCTestCase {
                     XCTFail("error should be of type PermissionError.PermErr")
                     return
                 }
-                XCTAssert(mockEasyEventStore.calendars.first!.events.first!.reminders == nil)
+                XCTAssert(mockEasyEventStore.events.first!.reminders.isEmpty)
                 expectation.fulfill()
             }
         }
@@ -471,25 +484,26 @@ final class ReminderTests: XCTestCase {
         
         let mockEasyEventStore = MockEasyEventStore(
             calendars: [
-                MockCalendar(
+                Calendar(
                     id: "1",
                     title: "title",
-                    color: UIColor.red,
+                    color: UIColor.red.toInt64(),
                     isWritable: true,
-                    account: Account(id: "local", name: "local", type: "local"),
-                    events: [
-                        MockEvent(
-                            id: "1",
-                            title: "title",
-                            startDate: Date(),
-                            endDate: Date().addingTimeInterval(TimeInterval(10)),
-                            calendarId: "1",
-                            isAllDay: false,
-                            description: "description",
-                            url: "url",
-                            reminders: [3600]
-                        )
-                    ]
+                    account: Account(id: "local", name: "local", type: "local")
+                )
+            ],
+            events: [
+                Event(
+                    id: "1",
+                    calendarId: "1",
+                    title: "title",
+                    isAllDay: false,
+                    startDate: Date().millisecondsSince1970,
+                    endDate: Date().addingTimeInterval(TimeInterval(10)).millisecondsSince1970,
+                    reminders: [3600],
+                    attendees: [],
+                    description: "description",
+                    url: "url"
                 )
             ]
         )
@@ -508,7 +522,7 @@ final class ReminderTests: XCTestCase {
                     XCTFail("error should be of type PermissionError.PermErr")
                     return
                 }
-                XCTAssert(mockEasyEventStore.calendars.first!.events.first!.reminders!.count == 1)
+                XCTAssert(mockEasyEventStore.events.first!.reminders.count == 1)
                 expectation.fulfill()
             }
         }

@@ -17,21 +17,19 @@ final class AccountTests: XCTestCase {
         
         let mockEasyEventStore = MockEasyEventStore(
             calendars: [
-                MockCalendar(
+                Calendar(
                     id: "1",
                     title: "title",
-                    color: UIColor.red,
+                    color: UIColor.red.toInt64(),
                     isWritable: false,
-                    account: Account(id: "id1", name: "test", type: "local"),
-                    events: []
+                    account: Account(id: "id1", name: "test", type: "local")
                 ),
-                MockCalendar(
+                Calendar(
                     id: "2",
                     title: "title",
-                    color: UIColor.blue,
+                    color: UIColor.blue.toInt64(),
                     isWritable: true,
-                    account: Account(id: "id2", name: "iCloud", type: "calDAV"),
-                    events: []
+                    account: Account(id: "id2", name: "iCloud", type: "calDAV")
                 )
             ]
         )

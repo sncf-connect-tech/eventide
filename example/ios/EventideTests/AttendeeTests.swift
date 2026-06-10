@@ -17,24 +17,26 @@ final class AttendeeTests: XCTestCase {
         
         let mockEasyEventStore = MockEasyEventStore(
             calendars: [
-                MockCalendar(
+                Calendar(
                     id: "1",
                     title: "title",
-                    color: UIColor.red,
+                    color: UIColor.red.toInt64(),
                     isWritable: true,
                     account: Account(id: "local", name: "local", type: "local"),
-                    events: [
-                        MockEvent(
-                            id: "1",
-                            title: "title",
-                            startDate: Date(),
-                            endDate: Date().addingTimeInterval(TimeInterval(10)),
-                            calendarId: "1",
-                            isAllDay: false,
-                            description: "description",
-                            url: "url"
-                        )
-                    ]
+                )
+            ],
+            events: [
+                Event(
+                    id: "1",
+                    calendarId: "1",
+                    title: "title",
+                    isAllDay: false,
+                    startDate: Date().millisecondsSince1970,
+                    endDate: Date().addingTimeInterval(TimeInterval(10)).millisecondsSince1970,
+                    reminders: [],
+                    attendees: [],
+                    description: "description",
+                    url: "url"
                 )
             ]
         )
@@ -107,24 +109,26 @@ final class AttendeeTests: XCTestCase {
         
         let mockEasyEventStore = MockEasyEventStore(
             calendars: [
-                MockCalendar(
+                Calendar(
                     id: "1",
                     title: "title",
-                    color: UIColor.red,
+                    color: UIColor.red.toInt64(),
                     isWritable: true,
-                    account: Account(id: "local", name: "local", type: "local"),
-                    events: [
-                        MockEvent(
-                            id: "1",
-                            title: "title",
-                            startDate: Date(),
-                            endDate: Date().addingTimeInterval(TimeInterval(10)),
-                            calendarId: "1",
-                            isAllDay: false,
-                            description: "description",
-                            url: "url"
-                        )
-                    ]
+                    account: Account(id: "local", name: "local", type: "local")
+                )
+            ],
+            events: [
+                Event(
+                    id: "1",
+                    calendarId: "1",
+                    title: "title",
+                    isAllDay: false,
+                    startDate: Date().millisecondsSince1970,
+                    endDate: Date().addingTimeInterval(TimeInterval(10)).millisecondsSince1970,
+                    reminders: [],
+                    attendees: [],
+                    description: "description",
+                    url: "url"
                 )
             ]
         )
