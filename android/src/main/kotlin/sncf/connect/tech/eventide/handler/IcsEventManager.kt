@@ -26,11 +26,11 @@ class IcsEventManager(private val context: Context) {
     ): String = StringBuilder().apply {
         val prodId = "-//${context.packageName}//EventidePlugin//FR"
 
-        appendLine("BEGIN:VCALENDAR\n")
-        appendLine("VERSION:2.0\n")
-        appendLine("PRODID:$prodId\n")
+        appendLine("BEGIN:VCALENDAR")
+        appendLine("VERSION:2.0")
+        appendLine("PRODID:$prodId")
         appendLine("CALSCALE:GREGORIAN")
-        appendLine("BEGIN:VEVENT\n")
+        appendLine("BEGIN:VEVENT")
 
         appendLine("UID:${UUID.randomUUID()}@${context.packageName}")
         appendLine("DTSTAMP:${icsDateTimeFormat.format(Calendar.getInstance().getTime())}")
@@ -39,25 +39,25 @@ class IcsEventManager(private val context: Context) {
         val endDate = endDate ?: (startDate + 60 * 60 * 1000)
 
         if (isAllDay ?: false) {
-            appendLine("DTSTART;VALUE=DATE:${icsDateFormat.format(Date(startDate))}\n")
-            appendLine("DTEND;VALUE=DATE:${icsDateFormat.format(Date(endDate))}\n")
+            appendLine("DTSTART;VALUE=DATE:${icsDateFormat.format(Date(startDate))}")
+            appendLine("DTEND;VALUE=DATE:${icsDateFormat.format(Date(endDate))}")
         } else {
-            appendLine("DTSTART:${icsDateTimeFormat.format(Date(startDate))}\n")
-            appendLine("DTEND:${icsDateTimeFormat.format(Date(endDate))}\n")
+            appendLine("DTSTART:${icsDateTimeFormat.format(Date(startDate))}")
+            appendLine("DTEND:${icsDateTimeFormat.format(Date(endDate))}")
         }
 
-        title?.let { appendLine(foldLine("SUMMARY:${escape(it)}\n")) }
-        description?.let { appendLine(foldLine("DESCRIPTION:${escape(it)}\n")) }
-        location?.let { appendLine(foldLine("LOCATION:${escape(it)}\n")) }
+        title?.let { append(foldLine("SUMMARY:${escape(it)}")) }
+        description?.let { append(foldLine("DESCRIPTION:${escape(it)}")) }
+        location?.let { append(foldLine("LOCATION:${escape(it)}")) }
 
         reminders?.forEach { minutes ->
-            appendLine("BEGIN:VALARM\n")
-            appendLine("TRIGGER:-PT${minutes}M\n")
-            appendLine("ACTION:DISPLAY\n")
-            appendLine("END:VALARM\n")
+            appendLine("BEGIN:VALARM")
+            appendLine("TRIGGER:-PT${minutes}M")
+            appendLine("ACTION:DISPLAY")
+            appendLine("END:VALARM")
         }
 
-        appendLine("END:VEVENT\n")
+        appendLine("END:VEVENT")
         appendLine("END:VCALENDAR")
     }.toString()
 
