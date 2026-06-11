@@ -1,3 +1,6 @@
+## 2.2.1
+* **Fix createEventThroughNativePlatform on Android** by enforcing ICS compatibility. IcsEventManager.generateIcsContent had three RFC 5545 violations.
+
 ## 2.2.0
 * **Definitive fix in `createEventInDefaultCalendar` & `createEventThroughNativePlatform` on Android :**: using ical format under the hood
 
