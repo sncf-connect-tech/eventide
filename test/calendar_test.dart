@@ -114,12 +114,12 @@ void main() {
     verify(() => mockCalendarApi.retrieveCalendars(onlyWritableCalendars: true, account: null)).called(1);
   });
 
-  test('updateCalendar calls the API and returns an ETCalendar', () async {
+  test('updateCalendar calls the API and returns an ETCalendar with updated values', () async {
     // Given
     final calendar = Calendar(
       id: '987654321',
-      title: 'Updated Calendar',
-      color: Colors.green.toValue(),
+      title: 'Calendar',
+      color: Colors.red.toValue(),
       isWritable: true,
       account: Account(id: "1", name: 'Test Account', type: 'Test Type'),
     );
@@ -137,10 +137,36 @@ void main() {
     // Then
     verify(
       () => mockCalendarApi.updateCalendar(
-        calendarId: '987654321',
+        calendarId: calendar.id,
         title: 'Updated Calendar',
         color: Colors.green.toValue(),
       ),
+    ).called(1);
+  });
+
+  test('updateCalendar calls the API and returns an ETCalendar with no updated values', () async {
+    // Given
+    final calendar = Calendar(
+      id: '987654321',
+      title: 'Calendar',
+      color: Colors.red.toValue(),
+      isWritable: true,
+      account: Account(id: "1", name: 'Test Account', type: 'Test Type'),
+    );
+    when(
+      () => mockCalendarApi.updateCalendar(
+        calendarId: any(named: 'calendarId'),
+        title: any(named: 'title'),
+        color: any(named: 'color'),
+      ),
+    ).thenAnswer((_) async => calendar);
+
+    // When
+    await eventide.updateCalendar(calendar.toETCalendar(), title: null, color: null);
+
+    // Then
+    verify(
+      () => mockCalendarApi.updateCalendar(calendarId: calendar.id, title: calendar.title, color: calendar.color),
     ).called(1);
   });
 
