@@ -7,17 +7,24 @@ import 'dart:async';
 import 'dart:typed_data' show Float64List, Int32List, Int64List;
 
 import 'package:flutter/services.dart';
-
 import 'package:meta/meta.dart' show immutable, protected, visibleForTesting;
 
-Object? _extractReplyValueOrThrow(List<Object?>? replyList, String channelName, {required bool isNullValid}) {
+Object? _extractReplyValueOrThrow(
+    List<Object?>? replyList,
+    String channelName, {
+    required bool isNullValid,
+}) {
   if (replyList == null) {
     throw PlatformException(
       code: 'channel-error',
       message: 'Unable to establish connection on channel: "$channelName".',
     );
   } else if (replyList.length > 1) {
-    throw PlatformException(code: replyList[0]! as String, message: replyList[1] as String?, details: replyList[2]);
+    throw PlatformException(
+      code: replyList[0]! as String,
+      message: replyList[1] as String?,
+      details: replyList[2],
+    );
   } else if (!isNullValid && (replyList.isNotEmpty && replyList[0] == null)) {
     throw PlatformException(
       code: 'null-error',
@@ -38,7 +45,9 @@ bool _deepEquals(Object? a, Object? b) {
     return a == b;
   }
   if (a is List && b is List) {
-    return a.length == b.length && a.indexed.every(((int, dynamic) item) => _deepEquals(item.$2, b[item.$1]));
+    return a.length == b.length &&
+        a.indexed
+            .every(((int, dynamic) item) => _deepEquals(item.$2, b[item.$1]));
   }
   if (a is Map && b is Map) {
     if (a.length != b.length) {
@@ -87,6 +96,7 @@ int _deepHash(Object? value) {
   return value.hashCode;
 }
 
+
 class Calendar {
   Calendar({
     required this.id,
@@ -107,12 +117,17 @@ class Calendar {
   Account account;
 
   List<Object?> _toList() {
-    return <Object?>[id, title, color, isWritable, account];
+    return <Object?>[
+      id,
+      title,
+      color,
+      isWritable,
+      account,
+    ];
   }
 
   Object encode() {
-    return _toList();
-  }
+    return _toList();  }
 
   static Calendar decode(Object result) {
     result as List<Object?>;
@@ -134,11 +149,7 @@ class Calendar {
     if (identical(this, other)) {
       return true;
     }
-    return _deepEquals(id, other.id) &&
-        _deepEquals(title, other.title) &&
-        _deepEquals(color, other.color) &&
-        _deepEquals(isWritable, other.isWritable) &&
-        _deepEquals(account, other.account);
+    return _deepEquals(id, other.id) && _deepEquals(title, other.title) && _deepEquals(color, other.color) && _deepEquals(isWritable, other.isWritable) && _deepEquals(account, other.account);
   }
 
   @override
@@ -200,8 +211,7 @@ class Event {
   }
 
   Object encode() {
-    return _toList();
-  }
+    return _toList();  }
 
   static Event decode(Object result) {
     result as List<Object?>;
@@ -229,17 +239,7 @@ class Event {
     if (identical(this, other)) {
       return true;
     }
-    return _deepEquals(id, other.id) &&
-        _deepEquals(calendarId, other.calendarId) &&
-        _deepEquals(title, other.title) &&
-        _deepEquals(isAllDay, other.isAllDay) &&
-        _deepEquals(startDate, other.startDate) &&
-        _deepEquals(endDate, other.endDate) &&
-        _deepEquals(reminders, other.reminders) &&
-        _deepEquals(attendees, other.attendees) &&
-        _deepEquals(description, other.description) &&
-        _deepEquals(url, other.url) &&
-        _deepEquals(location, other.location);
+    return _deepEquals(id, other.id) && _deepEquals(calendarId, other.calendarId) && _deepEquals(title, other.title) && _deepEquals(isAllDay, other.isAllDay) && _deepEquals(startDate, other.startDate) && _deepEquals(endDate, other.endDate) && _deepEquals(reminders, other.reminders) && _deepEquals(attendees, other.attendees) && _deepEquals(description, other.description) && _deepEquals(url, other.url) && _deepEquals(location, other.location);
   }
 
   @override
@@ -248,7 +248,11 @@ class Event {
 }
 
 class Account {
-  Account({required this.id, required this.name, required this.type});
+  Account({
+    required this.id,
+    required this.name,
+    required this.type,
+  });
 
   String id;
 
@@ -257,16 +261,23 @@ class Account {
   String type;
 
   List<Object?> _toList() {
-    return <Object?>[id, name, type];
+    return <Object?>[
+      id,
+      name,
+      type,
+    ];
   }
 
   Object encode() {
-    return _toList();
-  }
+    return _toList();  }
 
   static Account decode(Object result) {
     result as List<Object?>;
-    return Account(id: result[0]! as String, name: result[1]! as String, type: result[2]! as String);
+    return Account(
+      id: result[0]! as String,
+      name: result[1]! as String,
+      type: result[2]! as String,
+    );
   }
 
   @override
@@ -287,7 +298,13 @@ class Account {
 }
 
 class Attendee {
-  Attendee({required this.name, required this.email, required this.type, required this.role, required this.status});
+  Attendee({
+    required this.name,
+    required this.email,
+    required this.type,
+    required this.role,
+    required this.status,
+  });
 
   String name;
 
@@ -300,12 +317,17 @@ class Attendee {
   int status;
 
   List<Object?> _toList() {
-    return <Object?>[name, email, type, role, status];
+    return <Object?>[
+      name,
+      email,
+      type,
+      role,
+      status,
+    ];
   }
 
   Object encode() {
-    return _toList();
-  }
+    return _toList();  }
 
   static Attendee decode(Object result) {
     result as List<Object?>;
@@ -327,17 +349,14 @@ class Attendee {
     if (identical(this, other)) {
       return true;
     }
-    return _deepEquals(name, other.name) &&
-        _deepEquals(email, other.email) &&
-        _deepEquals(type, other.type) &&
-        _deepEquals(role, other.role) &&
-        _deepEquals(status, other.status);
+    return _deepEquals(name, other.name) && _deepEquals(email, other.email) && _deepEquals(type, other.type) && _deepEquals(role, other.role) && _deepEquals(status, other.status);
   }
 
   @override
   // ignore: avoid_equals_and_hash_code_on_mutable_classes
   int get hashCode => _deepHash(<Object?>[runtimeType, ..._toList()]);
 }
+
 
 class _PigeonCodec extends StandardMessageCodec {
   const _PigeonCodec();
@@ -346,16 +365,16 @@ class _PigeonCodec extends StandardMessageCodec {
     if (value is int) {
       buffer.putUint8(4);
       buffer.putInt64(value);
-    } else if (value is Calendar) {
+    }    else if (value is Calendar) {
       buffer.putUint8(129);
       writeValue(buffer, value.encode());
-    } else if (value is Event) {
+    }    else if (value is Event) {
       buffer.putUint8(130);
       writeValue(buffer, value.encode());
-    } else if (value is Account) {
+    }    else if (value is Account) {
       buffer.putUint8(131);
       writeValue(buffer, value.encode());
-    } else if (value is Attendee) {
+    }    else if (value is Attendee) {
       buffer.putUint8(132);
       writeValue(buffer, value.encode());
     } else {
@@ -385,17 +404,16 @@ class CalendarApi {
   /// available for dependency injection.  If it is left null, the default
   /// BinaryMessenger will be used which routes to the host platform.
   CalendarApi({BinaryMessenger? binaryMessenger, String messageChannelSuffix = ''})
-    : pigeonVar_binaryMessenger = binaryMessenger,
-      pigeonVar_messageChannelSuffix = messageChannelSuffix.isNotEmpty ? '.$messageChannelSuffix' : '';
+      : pigeonVar_binaryMessenger = binaryMessenger,
+        pigeonVar_messageChannelSuffix = messageChannelSuffix.isNotEmpty ? '.$messageChannelSuffix' : '';
   final BinaryMessenger? pigeonVar_binaryMessenger;
 
   static const MessageCodec<Object?> pigeonChannelCodec = _PigeonCodec();
 
   final String pigeonVar_messageChannelSuffix;
 
-  Future<Calendar> createCalendar({required String title, required int color, required Account? account}) async {
-    final pigeonVar_channelName =
-        'dev.flutter.pigeon.eventide.CalendarApi.createCalendar$pigeonVar_messageChannelSuffix';
+  Future<Calendar> createCalendar({required String title, required int color, required Account? account, }) async {
+    final pigeonVar_channelName = 'dev.flutter.pigeon.eventide.CalendarApi.createCalendar$pigeonVar_messageChannelSuffix';
     final pigeonVar_channel = BasicMessageChannel<Object?>(
       pigeonVar_channelName,
       pigeonChannelCodec,
@@ -405,16 +423,16 @@ class CalendarApi {
     final pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
 
     final Object? pigeonVar_replyValue = _extractReplyValueOrThrow(
-      pigeonVar_replyList,
-      pigeonVar_channelName,
-      isNullValid: false,
-    );
+        pigeonVar_replyList,
+        pigeonVar_channelName,
+        isNullValid: false,
+    )
+    ;
     return pigeonVar_replyValue! as Calendar;
   }
 
-  Future<Calendar> updateCalendar({required String calendarId, required String title, required int color}) async {
-    final pigeonVar_channelName =
-        'dev.flutter.pigeon.eventide.CalendarApi.updateCalendar$pigeonVar_messageChannelSuffix';
+  Future<Calendar> updateCalendar({required String calendarId, required String title, required int color, }) async {
+    final pigeonVar_channelName = 'dev.flutter.pigeon.eventide.CalendarApi.updateCalendar$pigeonVar_messageChannelSuffix';
     final pigeonVar_channel = BasicMessageChannel<Object?>(
       pigeonVar_channelName,
       pigeonChannelCodec,
@@ -424,16 +442,16 @@ class CalendarApi {
     final pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
 
     final Object? pigeonVar_replyValue = _extractReplyValueOrThrow(
-      pigeonVar_replyList,
-      pigeonVar_channelName,
-      isNullValid: false,
-    );
+        pigeonVar_replyList,
+        pigeonVar_channelName,
+        isNullValid: false,
+    )
+    ;
     return pigeonVar_replyValue! as Calendar;
   }
 
   Future<List<Calendar>> retrieveCalendars({required bool onlyWritableCalendars, required Account? account}) async {
-    final pigeonVar_channelName =
-        'dev.flutter.pigeon.eventide.CalendarApi.retrieveCalendars$pigeonVar_messageChannelSuffix';
+    final pigeonVar_channelName = 'dev.flutter.pigeon.eventide.CalendarApi.retrieveCalendars$pigeonVar_messageChannelSuffix';
     final pigeonVar_channel = BasicMessageChannel<Object?>(
       pigeonVar_channelName,
       pigeonChannelCodec,
@@ -443,16 +461,16 @@ class CalendarApi {
     final pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
 
     final Object? pigeonVar_replyValue = _extractReplyValueOrThrow(
-      pigeonVar_replyList,
-      pigeonVar_channelName,
-      isNullValid: false,
-    );
+        pigeonVar_replyList,
+        pigeonVar_channelName,
+        isNullValid: false,
+    )
+    ;
     return (pigeonVar_replyValue! as List<Object?>).cast<Calendar>();
   }
 
   Future<List<Account>> retrieveAccounts() async {
-    final pigeonVar_channelName =
-        'dev.flutter.pigeon.eventide.CalendarApi.retrieveAccounts$pigeonVar_messageChannelSuffix';
+    final pigeonVar_channelName = 'dev.flutter.pigeon.eventide.CalendarApi.retrieveAccounts$pigeonVar_messageChannelSuffix';
     final pigeonVar_channel = BasicMessageChannel<Object?>(
       pigeonVar_channelName,
       pigeonChannelCodec,
@@ -462,16 +480,16 @@ class CalendarApi {
     final pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
 
     final Object? pigeonVar_replyValue = _extractReplyValueOrThrow(
-      pigeonVar_replyList,
-      pigeonVar_channelName,
-      isNullValid: false,
-    );
+        pigeonVar_replyList,
+        pigeonVar_channelName,
+        isNullValid: false,
+    )
+    ;
     return (pigeonVar_replyValue! as List<Object?>).cast<Account>();
   }
 
   Future<void> deleteCalendar({required String calendarId}) async {
-    final pigeonVar_channelName =
-        'dev.flutter.pigeon.eventide.CalendarApi.deleteCalendar$pigeonVar_messageChannelSuffix';
+    final pigeonVar_channelName = 'dev.flutter.pigeon.eventide.CalendarApi.deleteCalendar$pigeonVar_messageChannelSuffix';
     final pigeonVar_channel = BasicMessageChannel<Object?>(
       pigeonVar_channelName,
       pigeonChannelCodec,
@@ -480,154 +498,90 @@ class CalendarApi {
     final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(<Object?>[calendarId]);
     final pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
 
-    _extractReplyValueOrThrow(pigeonVar_replyList, pigeonVar_channelName, isNullValid: true);
+    _extractReplyValueOrThrow(
+        pigeonVar_replyList,
+        pigeonVar_channelName,
+        isNullValid: true,
+    )
+    ;
   }
 
-  Future<Event> createEvent({
-    required String calendarId,
-    required String title,
-    required int startDate,
-    required int endDate,
-    required bool isAllDay,
-    required String? description,
-    required String? url,
-    required String? location,
-    required List<int>? reminders,
-  }) async {
+  Future<Event> createEvent({required String calendarId, required String title, required int startDate, required int endDate, required bool isAllDay, required String? description, required String? url, required String? location, required List<int>? reminders, }) async {
     final pigeonVar_channelName = 'dev.flutter.pigeon.eventide.CalendarApi.createEvent$pigeonVar_messageChannelSuffix';
     final pigeonVar_channel = BasicMessageChannel<Object?>(
       pigeonVar_channelName,
       pigeonChannelCodec,
       binaryMessenger: pigeonVar_binaryMessenger,
     );
-    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(<Object?>[
-      calendarId,
-      title,
-      startDate,
-      endDate,
-      isAllDay,
-      description,
-      url,
-      location,
-      reminders,
-    ]);
+    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(<Object?>[calendarId, title, startDate, endDate, isAllDay, description, url, location, reminders]);
     final pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
 
     final Object? pigeonVar_replyValue = _extractReplyValueOrThrow(
-      pigeonVar_replyList,
-      pigeonVar_channelName,
-      isNullValid: false,
-    );
+        pigeonVar_replyList,
+        pigeonVar_channelName,
+        isNullValid: false,
+    )
+    ;
     return pigeonVar_replyValue! as Event;
   }
 
-  Future<Event> updateEvent({
-    required String eventId,
-    required String calendarId,
-    required String title,
-    required int startDate,
-    required int endDate,
-    required bool isAllDay,
-    required String? description,
-    required String? url,
-    required String? location,
-    required List<int>? reminders,
-  }) async {
+  Future<Event> updateEvent({required String eventId, required String calendarId, required String title, required int startDate, required int endDate, required bool isAllDay, required String? description, required String? url, required String? location, required List<int>? reminders, }) async {
     final pigeonVar_channelName = 'dev.flutter.pigeon.eventide.CalendarApi.updateEvent$pigeonVar_messageChannelSuffix';
     final pigeonVar_channel = BasicMessageChannel<Object?>(
       pigeonVar_channelName,
       pigeonChannelCodec,
       binaryMessenger: pigeonVar_binaryMessenger,
     );
-    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(<Object?>[
-      eventId,
-      calendarId,
-      title,
-      startDate,
-      endDate,
-      isAllDay,
-      description,
-      url,
-      location,
-      reminders,
-    ]);
+    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(<Object?>[eventId, calendarId, title, startDate, endDate, isAllDay, description, url, location, reminders]);
     final pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
 
     final Object? pigeonVar_replyValue = _extractReplyValueOrThrow(
-      pigeonVar_replyList,
-      pigeonVar_channelName,
-      isNullValid: false,
-    );
+        pigeonVar_replyList,
+        pigeonVar_channelName,
+        isNullValid: false,
+    )
+    ;
     return pigeonVar_replyValue! as Event;
   }
 
-  Future<void> createEventInDefaultCalendar({
-    required String title,
-    required int startDate,
-    required int endDate,
-    required bool isAllDay,
-    required String? description,
-    required String? url,
-    required String? location,
-    required List<int>? reminders,
-  }) async {
-    final pigeonVar_channelName =
-        'dev.flutter.pigeon.eventide.CalendarApi.createEventInDefaultCalendar$pigeonVar_messageChannelSuffix';
+  Future<void> createEventInDefaultCalendar({required String title, required int startDate, required int endDate, required bool isAllDay, required String? description, required String? url, required String? location, required List<int>? reminders, }) async {
+    final pigeonVar_channelName = 'dev.flutter.pigeon.eventide.CalendarApi.createEventInDefaultCalendar$pigeonVar_messageChannelSuffix';
     final pigeonVar_channel = BasicMessageChannel<Object?>(
       pigeonVar_channelName,
       pigeonChannelCodec,
       binaryMessenger: pigeonVar_binaryMessenger,
     );
-    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(<Object?>[
-      title,
-      startDate,
-      endDate,
-      isAllDay,
-      description,
-      url,
-      location,
-      reminders,
-    ]);
+    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(<Object?>[title, startDate, endDate, isAllDay, description, url, location, reminders]);
     final pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
 
-    _extractReplyValueOrThrow(pigeonVar_replyList, pigeonVar_channelName, isNullValid: true);
+    _extractReplyValueOrThrow(
+        pigeonVar_replyList,
+        pigeonVar_channelName,
+        isNullValid: true,
+    )
+    ;
   }
 
-  Future<void> createEventThroughNativePlatform({
-    String? title,
-    int? startDate,
-    int? endDate,
-    bool? isAllDay,
-    String? description,
-    String? url,
-    String? location,
-    List<int>? reminders,
-  }) async {
-    final pigeonVar_channelName =
-        'dev.flutter.pigeon.eventide.CalendarApi.createEventThroughNativePlatform$pigeonVar_messageChannelSuffix';
+  Future<void> createEventThroughNativePlatform({String? title, int? startDate, int? endDate, bool? isAllDay, String? description, String? url, String? location, List<int>? reminders, }) async {
+    final pigeonVar_channelName = 'dev.flutter.pigeon.eventide.CalendarApi.createEventThroughNativePlatform$pigeonVar_messageChannelSuffix';
     final pigeonVar_channel = BasicMessageChannel<Object?>(
       pigeonVar_channelName,
       pigeonChannelCodec,
       binaryMessenger: pigeonVar_binaryMessenger,
     );
-    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(<Object?>[
-      title,
-      startDate,
-      endDate,
-      isAllDay,
-      description,
-      url,
-      location,
-      reminders,
-    ]);
+    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(<Object?>[title, startDate, endDate, isAllDay, description, url, location, reminders]);
     final pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
 
-    _extractReplyValueOrThrow(pigeonVar_replyList, pigeonVar_channelName, isNullValid: true);
+    _extractReplyValueOrThrow(
+        pigeonVar_replyList,
+        pigeonVar_channelName,
+        isNullValid: true,
+    )
+    ;
   }
 
-  Future<List<Event>> retrieveEvents({required String calendarId, required int startDate, required int endDate}) async {
-    final pigeonVar_channelName =
-        'dev.flutter.pigeon.eventide.CalendarApi.retrieveEvents$pigeonVar_messageChannelSuffix';
+  Future<List<Event>> retrieveEvents({required String calendarId, required int startDate, required int endDate, }) async {
+    final pigeonVar_channelName = 'dev.flutter.pigeon.eventide.CalendarApi.retrieveEvents$pigeonVar_messageChannelSuffix';
     final pigeonVar_channel = BasicMessageChannel<Object?>(
       pigeonVar_channelName,
       pigeonChannelCodec,
@@ -637,10 +591,11 @@ class CalendarApi {
     final pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
 
     final Object? pigeonVar_replyValue = _extractReplyValueOrThrow(
-      pigeonVar_replyList,
-      pigeonVar_channelName,
-      isNullValid: false,
-    );
+        pigeonVar_replyList,
+        pigeonVar_channelName,
+        isNullValid: false,
+    )
+    ;
     return (pigeonVar_replyValue! as List<Object?>).cast<Event>();
   }
 
@@ -654,12 +609,16 @@ class CalendarApi {
     final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(<Object?>[eventId]);
     final pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
 
-    _extractReplyValueOrThrow(pigeonVar_replyList, pigeonVar_channelName, isNullValid: true);
+    _extractReplyValueOrThrow(
+        pigeonVar_replyList,
+        pigeonVar_channelName,
+        isNullValid: true,
+    )
+    ;
   }
 
   Future<Event> createReminder({required int reminder, required String eventId}) async {
-    final pigeonVar_channelName =
-        'dev.flutter.pigeon.eventide.CalendarApi.createReminder$pigeonVar_messageChannelSuffix';
+    final pigeonVar_channelName = 'dev.flutter.pigeon.eventide.CalendarApi.createReminder$pigeonVar_messageChannelSuffix';
     final pigeonVar_channel = BasicMessageChannel<Object?>(
       pigeonVar_channelName,
       pigeonChannelCodec,
@@ -669,16 +628,16 @@ class CalendarApi {
     final pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
 
     final Object? pigeonVar_replyValue = _extractReplyValueOrThrow(
-      pigeonVar_replyList,
-      pigeonVar_channelName,
-      isNullValid: false,
-    );
+        pigeonVar_replyList,
+        pigeonVar_channelName,
+        isNullValid: false,
+    )
+    ;
     return pigeonVar_replyValue! as Event;
   }
 
   Future<Event> deleteReminder({required int reminder, required String eventId}) async {
-    final pigeonVar_channelName =
-        'dev.flutter.pigeon.eventide.CalendarApi.deleteReminder$pigeonVar_messageChannelSuffix';
+    final pigeonVar_channelName = 'dev.flutter.pigeon.eventide.CalendarApi.deleteReminder$pigeonVar_messageChannelSuffix';
     final pigeonVar_channel = BasicMessageChannel<Object?>(
       pigeonVar_channelName,
       pigeonChannelCodec,
@@ -688,22 +647,16 @@ class CalendarApi {
     final pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
 
     final Object? pigeonVar_replyValue = _extractReplyValueOrThrow(
-      pigeonVar_replyList,
-      pigeonVar_channelName,
-      isNullValid: false,
-    );
+        pigeonVar_replyList,
+        pigeonVar_channelName,
+        isNullValid: false,
+    )
+    ;
     return pigeonVar_replyValue! as Event;
   }
 
-  Future<Event> createAttendee({
-    required String eventId,
-    required String name,
-    required String email,
-    required int role,
-    required int type,
-  }) async {
-    final pigeonVar_channelName =
-        'dev.flutter.pigeon.eventide.CalendarApi.createAttendee$pigeonVar_messageChannelSuffix';
+  Future<Event> createAttendee({required String eventId, required String name, required String email, required int role, required int type, }) async {
+    final pigeonVar_channelName = 'dev.flutter.pigeon.eventide.CalendarApi.createAttendee$pigeonVar_messageChannelSuffix';
     final pigeonVar_channel = BasicMessageChannel<Object?>(
       pigeonVar_channelName,
       pigeonChannelCodec,
@@ -713,16 +666,16 @@ class CalendarApi {
     final pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
 
     final Object? pigeonVar_replyValue = _extractReplyValueOrThrow(
-      pigeonVar_replyList,
-      pigeonVar_channelName,
-      isNullValid: false,
-    );
+        pigeonVar_replyList,
+        pigeonVar_channelName,
+        isNullValid: false,
+    )
+    ;
     return pigeonVar_replyValue! as Event;
   }
 
   Future<Event> deleteAttendee({required String eventId, required String email}) async {
-    final pigeonVar_channelName =
-        'dev.flutter.pigeon.eventide.CalendarApi.deleteAttendee$pigeonVar_messageChannelSuffix';
+    final pigeonVar_channelName = 'dev.flutter.pigeon.eventide.CalendarApi.deleteAttendee$pigeonVar_messageChannelSuffix';
     final pigeonVar_channel = BasicMessageChannel<Object?>(
       pigeonVar_channelName,
       pigeonChannelCodec,
@@ -732,10 +685,11 @@ class CalendarApi {
     final pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
 
     final Object? pigeonVar_replyValue = _extractReplyValueOrThrow(
-      pigeonVar_replyList,
-      pigeonVar_channelName,
-      isNullValid: false,
-    );
+        pigeonVar_replyList,
+        pigeonVar_channelName,
+        isNullValid: false,
+    )
+    ;
     return pigeonVar_replyValue! as Event;
   }
 }

@@ -6,6 +6,7 @@ import android.app.Activity
 import android.content.pm.PackageManager.PERMISSION_GRANTED
 import androidx.core.app.ActivityCompat
 import io.flutter.plugin.common.PluginRegistry.RequestPermissionsResultListener
+import java.util.concurrent.CountDownLatch
 
 class PermissionHandler(): RequestPermissionsResultListener {
     var activity: Activity? = null
@@ -35,6 +36,32 @@ class PermissionHandler(): RequestPermissionsResultListener {
         }
     }
 
+    fun requestReadPermissionSync(): Boolean {
+        var result = false
+        val latch = CountDownLatch(1)
+        
+        requestReadPermission { granted ->
+            result = granted
+            latch.countDown()
+        }
+        
+        latch.await()
+        return result
+    }
+
+    fun requestWritePermissionSync(): Boolean {
+        var result = false
+        val latch = CountDownLatch(1)
+        
+        requestWritePermission { granted ->
+            result = granted
+            latch.countDown()
+        }
+        
+        latch.await()
+        return result
+    }
+
     fun requestReadPermission(callback: (Boolean) -> Unit) {
         withActivity { activity ->
             val hasReadPermission = ActivityCompat.checkSelfPermission(activity, READ_CALENDAR) == PERMISSION_GRANTED
@@ -42,7 +69,9 @@ class PermissionHandler(): RequestPermissionsResultListener {
                 callback(true)
             } else {
                 permissionCallback = callback
-                ActivityCompat.requestPermissions(activity, arrayOf(READ_CALENDAR), requestCode)
+                activity.runOnUiThread {
+                    ActivityCompat.requestPermissions(activity, arrayOf(READ_CALENDAR), requestCode)
+                }
             }
         }
     }
@@ -54,7 +83,9 @@ class PermissionHandler(): RequestPermissionsResultListener {
                 callback(true)
             } else {
                 permissionCallback = callback
-                ActivityCompat.requestPermissions(activity, arrayOf(WRITE_CALENDAR), requestCode)
+                activity.runOnUiThread {
+                    ActivityCompat.requestPermissions(activity, arrayOf(WRITE_CALENDAR), requestCode)
+                }
             }
         }
     }
