@@ -19,19 +19,22 @@ class Mocks {
             every { eventCursor.getColumnIndexOrThrow(CalendarContract.Events._ID) } returns 0
             every { eventCursor.getColumnIndexOrThrow(CalendarContract.Events.TITLE) } returns 1
             every { eventCursor.getColumnIndexOrThrow(CalendarContract.Events.DESCRIPTION) } returns 2
-            every { eventCursor.getColumnIndexOrThrow(CalendarContract.Events.CALENDAR_ID) } returns 3
+            every { eventCursor.getColumnIndexOrThrow(CalendarContract.Events.EVENT_LOCATION) } returns 3
             every { eventCursor.getColumnIndexOrThrow(CalendarContract.Events.DTSTART) } returns 4
             every { eventCursor.getColumnIndexOrThrow(CalendarContract.Events.DTEND) } returns 5
-            every { eventCursor.getColumnIndexOrThrow(CalendarContract.Events.ALL_DAY) } returns 6
+            every { eventCursor.getColumnIndexOrThrow(CalendarContract.Events.EVENT_TIMEZONE) } returns 6
+            every { eventCursor.getColumnIndexOrThrow(CalendarContract.Events.CALENDAR_ID) } returns 7
+            every { eventCursor.getColumnIndexOrThrow(CalendarContract.Events.ALL_DAY) } returns 8
 
             // Mock values for each column
             every { eventCursor.getString(0) } returns "eventId"
             every { eventCursor.getString(1) } returns "eventTitle"
             every { eventCursor.getString(2) } returns "eventDescription"
-            every { eventCursor.getString(3) } returns "calendarId"
+            every { eventCursor.getString(3) } returns "location"
+            every { eventCursor.getString(7) } returns "calendarId"
             every { eventCursor.getLong(4) } returns 1L
             every { eventCursor.getLong(5) } returns 1L
-            every { eventCursor.getInt(6) } returns 0
+            every { eventCursor.getInt(8) } returns 0
         }
 
         fun mockRetrieveAttendees(contentResolver: ContentResolver, attendeesContentUri: Uri) {

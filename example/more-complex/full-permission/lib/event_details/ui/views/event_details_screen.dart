@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:eventide/eventide.dart';
+import 'package:eventide_example_full_permission/calendar/ui/components/event_form.dart';
 import 'package:eventide_example_full_permission/event_details/logic/event_details_cubit.dart';
 import 'package:eventide_example_full_permission/event_details/ui/components/attendee_form.dart';
 import 'package:flutter/material.dart';
@@ -28,6 +29,59 @@ final class EventDetailsScreen extends StatelessWidget {
       child: Scaffold(
         appBar: AppBar(
           title: Text(event.title),
+          actions: [
+            if (isCalendarWritable)
+              Builder(
+                builder: (context) => IconButton(
+                  icon: const Icon(Icons.edit),
+                  onPressed: () {
+                    final cubit = context.read<EventDetailsCubit>();
+                    final currentEvent = (context.read<EventDetailsCubit>().state).data ?? event;
+
+                    showDialog(
+                      context: context,
+                      builder: (dialogContext) => AlertDialog(
+                        title: const Text('Edit event'),
+                        content: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                          child: EventForm(
+                            calendars: const [],
+                            initialEvent: currentEvent,
+                            onSubmit: (_, title, description, isAllDay, startDate, endDate) async {
+                              try {
+                                await cubit.updateEvent(
+                                  title: title,
+                                  description: description,
+                                  isAllDay: isAllDay,
+                                  startDate: startDate,
+                                  endDate: endDate,
+                                );
+
+                                if (dialogContext.mounted) {
+                                  Navigator.of(dialogContext).pop();
+                                }
+                              } catch (e) {
+                                if (dialogContext.mounted) {
+                                  Navigator.of(dialogContext).pop();
+                                }
+                                if (context.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text('Error updating event: $e'),
+                                      backgroundColor: Colors.red,
+                                    ),
+                                  );
+                                }
+                              }
+                            },
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+          ],
         ),
         body: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),

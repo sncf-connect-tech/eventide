@@ -19,6 +19,10 @@ abstract class CalendarApi {
   Calendar createCalendar({required String title, required int color, required Account? account});
 
   @async
+  @SwiftFunction('updateCalendar(withId:title:color:)')
+  Calendar updateCalendar({required String calendarId, required String title, required int color});
+
+  @async
   @SwiftFunction('retrieveCalendars(onlyWritable:from:)')
   List<Calendar> retrieveCalendars({required bool onlyWritableCalendars, required Account? account});
 
@@ -31,6 +35,21 @@ abstract class CalendarApi {
 
   @async
   Event createEvent({
+    required String calendarId,
+    required String title,
+    required int startDate,
+    required int endDate,
+    required bool isAllDay,
+    required String? description,
+    required String? url,
+    required String? location,
+    required List<int>? reminders,
+  });
+
+  @async
+  @SwiftFunction('updateEvent(withId:calendarId:title:startDate:endDate:isAllDay:description:url:location:reminders:)')
+  Event updateEvent({
+    required String eventId,
     required String calendarId,
     required String title,
     required int startDate,

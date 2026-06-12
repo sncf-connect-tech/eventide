@@ -8,10 +8,12 @@ typedef OnCalendarFormSubmit = void Function(String title, Color color, ETAccoun
 class CalendarForm extends StatefulWidget {
   final OnCalendarFormSubmit onSubmit;
   final Iterable<ETAccount> availableAccounts;
+  final ETCalendar? initialCalendar;
 
   const CalendarForm({
     required this.onSubmit,
     this.availableAccounts = const [],
+    this.initialCalendar,
     super.key,
   });
 
@@ -28,8 +30,8 @@ class _CalendarFormState extends State<CalendarForm> {
   void initState() {
     super.initState();
 
-    _titleController = TextEditingController();
-    selectedColor = Colors.red;
+    _titleController = TextEditingController(text: widget.initialCalendar?.title ?? '');
+    selectedColor = widget.initialCalendar?.color ?? Colors.red;
 
     // Sélectionner le premier compte par défaut s'il y en a
     if (widget.availableAccounts.isNotEmpty) {
@@ -203,7 +205,7 @@ class _CalendarFormState extends State<CalendarForm> {
                 backgroundColor: selectedColor,
                 foregroundColor: Colors.white,
               ),
-              child: const Text('Create Calendar'),
+              child: Text(widget.initialCalendar != null ? 'Update Calendar' : 'Create Calendar'),
             ),
           ],
         ),

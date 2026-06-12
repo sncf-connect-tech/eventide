@@ -114,6 +114,96 @@ void main() {
     verify(() => mockCalendarApi.retrieveCalendars(onlyWritableCalendars: true, account: null)).called(1);
   });
 
+  test('updateCalendar calls the API and returns an ETCalendar with updated values', () async {
+    // Given
+    final calendar = Calendar(
+      id: '987654321',
+      title: 'Calendar',
+      color: Colors.red.toValue(),
+      isWritable: true,
+      account: Account(id: "1", name: 'Test Account', type: 'Test Type'),
+    );
+    when(
+      () => mockCalendarApi.updateCalendar(
+        calendarId: any(named: 'calendarId'),
+        title: any(named: 'title'),
+        color: any(named: 'color'),
+      ),
+    ).thenAnswer((_) async => calendar);
+
+    // When
+    await eventide.updateCalendar(calendar.toETCalendar(), title: 'Updated Calendar', color: Colors.green);
+
+    // Then
+    verify(
+      () => mockCalendarApi.updateCalendar(
+        calendarId: calendar.id,
+        title: 'Updated Calendar',
+        color: Colors.green.toValue(),
+      ),
+    ).called(1);
+  });
+
+  test('updateCalendar calls the API and returns an ETCalendar with no updated values', () async {
+    // Given
+    final calendar = Calendar(
+      id: '987654321',
+      title: 'Calendar',
+      color: Colors.red.toValue(),
+      isWritable: true,
+      account: Account(id: "1", name: 'Test Account', type: 'Test Type'),
+    );
+    when(
+      () => mockCalendarApi.updateCalendar(
+        calendarId: any(named: 'calendarId'),
+        title: any(named: 'title'),
+        color: any(named: 'color'),
+      ),
+    ).thenAnswer((_) async => calendar);
+
+    // When
+    await eventide.updateCalendar(calendar.toETCalendar(), title: null, color: null);
+
+    // Then
+    verify(
+      () => mockCalendarApi.updateCalendar(calendarId: calendar.id, title: calendar.title, color: calendar.color),
+    ).called(1);
+  });
+
+  test('updateCalendar throws an exception when API fails', () async {
+    // Given
+    when(
+      () => mockCalendarApi.updateCalendar(
+        calendarId: any(named: 'calendarId'),
+        title: any(named: 'title'),
+        color: any(named: 'color'),
+      ),
+    ).thenThrow(ETGenericException(message: 'API Error'));
+
+    // When
+    Future<void> call() => eventide.updateCalendar(
+      ETCalendar(
+        id: '987654321',
+        title: 'Updated Calendar',
+        color: Colors.green,
+        isWritable: true,
+        account: ETAccount(id: "1", name: 'Test Account', type: 'Test Type'),
+      ),
+      title: 'Updated Calendar',
+      color: Colors.green,
+    );
+
+    // Then
+    expect(call, throwsException);
+    verify(
+      () => mockCalendarApi.updateCalendar(
+        calendarId: '987654321',
+        title: 'Updated Calendar',
+        color: Colors.green.toValue(),
+      ),
+    ).called(1);
+  });
+
   test('deleteCalendar calls the API', () async {
     // Given
     when(() => mockCalendarApi.deleteCalendar(calendarId: any(named: 'calendarId'))).thenAnswer((_) async => {});

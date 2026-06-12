@@ -5,29 +5,35 @@
 //  Created by CHOUPAULT Alexis on 23/01/2025.
 //
 
-import UIKit
+import class UIKit.UIColor
+import struct Foundation.UUID
+import struct Foundation.Date
+import struct Foundation.TimeInterval
 @testable import eventide
 
 class MockEasyEventStore: EasyEventStoreProtocol {
-    var calendars: [MockCalendar]
+    var calendars: [Calendar]
+    var events: [Event]
     
-    init(calendars: [MockCalendar] = []) {
+    init(calendars: [Calendar] = [], events: [Event] = []) {
         self.calendars = calendars
+        self.events = events
     }
     
     func createCalendar(title: String, color: UIColor, account: Account?) throws -> eventide.Calendar {
-        let calendar = MockCalendar(
-            id: "id",
+        // TODO: source / account
+        
+        let calendar = Calendar(
+            id: UUID().uuidString,
             title: title,
-            color: color,
+            color: color.toInt64(),
             isWritable: true,
-            account: account ?? Account(id: "local", name: "local", type: "local"),
-            events: []
+            account: account ?? Account(id: "local", name: "local", type: "local")
         )
         
         calendars.append(calendar)
         
-        return calendar.toCalendar()
+        return calendar
     }
 
     func retrieveCalendars(
@@ -40,7 +46,33 @@ class MockEasyEventStore: EasyEventStoreProtocol {
                 guard let account = account else { return true }
                 return account.id == calendar.account.id && account.type == calendar.account.type
             }
-            .map { $0.toCalendar() }
+    }
+    
+    func retrieveAccounts() -> [Account] {
+        return calendars.map { $0.account }
+    }
+    
+    func updateCalendar(calendarId: String, title: String, color: UIColor) throws -> eventide.Calendar {
+        guard let index = calendars.firstIndex(where: { $0.id == calendarId }) else {
+            throw PigeonError(
+                code: "NOT_FOUND",
+                message: "Calendar not found",
+                details: "The provided calendar.id is certainly incorrect"
+            )
+        }
+        
+        guard calendars[index].isWritable else {
+            throw PigeonError(
+                code: "NOT_EDITABLE",
+                message: "Calendar not editable",
+                details: "Calendar does not allow content modifications"
+            )
+        }
+        
+        calendars[index].title = title
+        calendars[index].color = color.toInt64()
+        
+        return calendars[index]
     }
     
     func deleteCalendar(calendarId: String) throws {
@@ -60,14 +92,22 @@ class MockEasyEventStore: EasyEventStoreProtocol {
             )
         }
         
+        let calendarId = calendars[index].id
         calendars.remove(at: index)
+        events.removeAll { $0.calendarId == calendarId }
     }
     
-    func retrieveAccounts() -> [Account] {
-        return calendars.map { $0.account }
-    }
-    
-    func createEvent(calendarId: String, title: String, startDate: Date, endDate: Date, isAllDay: Bool, description: String?, url: String?, location: String?, timeIntervals: [TimeInterval]?) throws -> Event {
+    func createEvent(
+        calendarId: String,
+        title: String,
+        startDate: Date,
+        endDate: Date,
+        isAllDay: Bool,
+        description: String?,
+        url: String?,
+        location: String?,
+        timeIntervals: [TimeInterval]?
+    ) throws -> Event {
         guard let mockCalendar = calendars.first(where: { $0.id == calendarId }) else {
             throw PigeonError(
                 code: "NOT_FOUND",
@@ -76,37 +116,47 @@ class MockEasyEventStore: EasyEventStoreProtocol {
             )
         }
         
-        let mockEvent = MockEvent(
-            id: String(mockCalendar.events.count),
-            title: title,
-            startDate: startDate,
-            endDate: endDate,
+        let mockEvent = Event(
+            id: UUID().uuidString,
             calendarId: mockCalendar.id,
+            title: title,
             isAllDay: isAllDay,
+            startDate: startDate.millisecondsSince1970,
+            endDate: endDate.millisecondsSince1970,
+            reminders: timeIntervals?.map({ Int64($0) }) ?? [],
+            attendees: [],
             description: description,
-            url: url,
-            reminders: timeIntervals
+            url: url
         )
         
-        mockCalendar.events.append(mockEvent)
+        events.append(mockEvent)
         
-        return mockEvent.toEvent()
+        return mockEvent
     }
     
     func createEvent(title: String, startDate: Date, endDate: Date, isAllDay: Bool, description: String?, url: String?, location: String?, timeIntervals: [TimeInterval]?) throws {
-        let mockEvent = MockEvent(
-            id: String(calendars.first!.events.count),
+        guard let firstCalendar = calendars.first else {
+            throw PigeonError(
+                code: "NOT_FOUND",
+                message: "Default calendar not found",
+                details: "No calendar has been found"
+            )
+        }
+        
+        let mockEvent = Event(
+            id: UUID().uuidString,
+            calendarId: firstCalendar.id,
             title: title,
-            startDate: startDate,
-            endDate: endDate,
-            calendarId: calendars.first!.id,
             isAllDay: isAllDay,
+            startDate: startDate.millisecondsSince1970,
+            endDate: endDate.millisecondsSince1970,
+            reminders: timeIntervals?.map({ Int64($0) }) ?? [],
+            attendees: [],
             description: description,
-            url: url,
-            reminders: timeIntervals
+            url: url
         )
         
-        calendars.first!.events.append(mockEvent)
+        events.append(mockEvent)
     }
     
     func presentEventCreationViewController(title: String?, startDate: Date?, endDate: Date?, isAllDay: Bool?, description: String?, url: String?, location: String?, timeIntervals: [TimeInterval]?, completion: @escaping (Result<Void, any Error>) -> Void) {
@@ -122,13 +172,24 @@ class MockEasyEventStore: EasyEventStoreProtocol {
             )
         }
         
-        return mockCalendar.events
-            .filter { startDate.compare($0.startDate) == .orderedAscending && $0.endDate.compare(endDate) == .orderedAscending }
-            .map { $0.toEvent() }
+        return events
+            .filter { startDate.compare(Date(from: $0.startDate)) == .orderedAscending && Date(from: $0.endDate).compare(endDate) == .orderedAscending }
     }
     
-    func deleteEvent(eventId: String) throws {
-        guard let mockEvent = findEvent(eventId: eventId) else {
+    
+    func updateEvent(
+        eventId: String,
+        calendarId: String,
+        title: String,
+        startDate: Date,
+        endDate: Date,
+        isAllDay: Bool,
+        description: String?,
+        url: String?,
+        location: String?,
+        timeIntervals: [TimeInterval]?
+    ) throws -> eventide.Event {
+        guard let eventIndex = events.firstIndex(where: { $0.id == eventId }) else {
             throw PigeonError(
                 code: "NOT_FOUND",
                 message: "Event not found",
@@ -136,7 +197,61 @@ class MockEasyEventStore: EasyEventStoreProtocol {
             )
         }
         
-        guard let index = calendars.firstIndex(where: { $0.id == mockEvent.calendarId && $0.isWritable }) else {
+        guard let oldCalendarIndex = calendars.firstIndex(where: { $0.id == events[eventIndex].calendarId }),
+              calendars[oldCalendarIndex].isWritable else {
+            throw PigeonError(
+                code: "NOT_EDITABLE",
+                message: "Event actual calendar is not editable",
+                details: "Calendar does not allow content modifications"
+            )
+        }
+        
+        if calendarId != events[eventIndex].calendarId {
+            guard let calendarIndex = calendars.firstIndex(where: { $0.id == calendarId }) else {
+                throw PigeonError(
+                    code: "NOT_FOUND",
+                    message: "Calendar not found",
+                    details: "The provided calendar.id is certainly incorrect"
+                )
+            }
+            
+            guard calendars[calendarIndex].isWritable else {
+                throw PigeonError(
+                    code: "NOT_EDITABLE",
+                    message: "Calendar not editable",
+                    details: "Calendar does not allow content modifications"
+                )
+            }
+            
+            events[eventIndex].calendarId = calendarId
+        }
+        
+        events[eventIndex].title = title
+        events[eventIndex].startDate = startDate.millisecondsSince1970
+        events[eventIndex].endDate = endDate.millisecondsSince1970
+        events[eventIndex].isAllDay = isAllDay
+        events[eventIndex].description = description
+        events[eventIndex].url = url
+        events[eventIndex].location = location
+        
+        if let timeIntervals = timeIntervals {
+            events[eventIndex].reminders = timeIntervals.map({ Int64($0) })
+        }
+        
+        return events[eventIndex]
+    }
+    
+    func deleteEvent(eventId: String) throws {
+        guard let eventIndex = events.firstIndex(where: { $0.id == eventId }) else {
+            throw PigeonError(
+                code: "NOT_FOUND",
+                message: "Event not found",
+                details: "The provided event.id is certainly incorrect"
+            )
+        }
+        
+        guard let calendarIndex = calendars.firstIndex(where: { $0.id == events[eventIndex].calendarId }),
+              calendars[calendarIndex].isWritable else {
             throw PigeonError(
                 code: "NOT_EDITABLE",
                 message: "Calendar not editable",
@@ -144,11 +259,11 @@ class MockEasyEventStore: EasyEventStoreProtocol {
             )
         }
         
-        calendars[index].events.removeAll { $0.id == eventId }
+        events.removeAll { $0.id == eventId }
     }
     
     func createReminder(timeInterval: TimeInterval, eventId: String) throws -> Event {
-        guard let mockEvent = findEvent(eventId: eventId) else {
+        guard let eventIndex = events.firstIndex(where: { $0.id == eventId }) else {
             throw PigeonError(
                 code: "NOT_FOUND",
                 message: "Event not found",
@@ -156,17 +271,13 @@ class MockEasyEventStore: EasyEventStoreProtocol {
             )
         }
         
-        if (mockEvent.reminders == nil) {
-            mockEvent.reminders = [timeInterval]
-        } else {
-            mockEvent.reminders!.append(timeInterval)
-        }
+        events[eventIndex].reminders.append(Int64(timeInterval))
 
-        return mockEvent.toEvent()
+        return events[eventIndex]
     }
     
     func deleteReminder(timeInterval: TimeInterval, eventId: String) throws -> Event {
-        guard let mockEvent = findEvent(eventId: eventId) else {
+        guard let eventIndex = events.firstIndex(where: { $0.id == eventId }) else {
             throw PigeonError(
                 code: "NOT_FOUND",
                 message: "Event not found",
@@ -174,7 +285,7 @@ class MockEasyEventStore: EasyEventStoreProtocol {
             )
         }
         
-        guard let index = mockEvent.reminders?.firstIndex(where: { -$0 == timeInterval }) else {
+        guard let reminderIndex = events[eventIndex].reminders.firstIndex(where: { -$0 == Int64(timeInterval) }) else {
             throw PigeonError(
                 code: "NOT_FOUND",
                 message: "Reminder not found",
@@ -182,12 +293,13 @@ class MockEasyEventStore: EasyEventStoreProtocol {
             )
         }
         
-        mockEvent.reminders?.remove(at: index)
-        return mockEvent.toEvent()
+        events[eventIndex].reminders.remove(at: reminderIndex)
+        
+        return events[eventIndex]
     }
     
     func retrieveAttendees(eventId: String) throws -> [Attendee] {
-        guard let mockEvent = findEvent(eventId: eventId) else {
+        guard let eventIndex = events.firstIndex(where: { $0.id == eventId }) else {
             throw PigeonError(
                 code: "NOT_FOUND",
                 message: "Event not found",
@@ -195,116 +307,7 @@ class MockEasyEventStore: EasyEventStoreProtocol {
             )
         }
         
-        return mockEvent.attendees?.map { $0.toAttendee() } ?? []
-    }
-    
-    private func findEvent(eventId: String) -> MockEvent? {
-        for calendar in calendars {
-            for event in calendar.events {
-                if event.id == eventId {
-                    return event
-                }
-            }
-        }
-        
-        return nil
-    }
-}
-
-class MockCalendar {
-    let id: String
-    let title: String
-    let color: UIColor
-    let isWritable: Bool
-    let account: Account
-    var events: [MockEvent]
-    
-    init(id: String, title: String, color: UIColor, isWritable: Bool, account: Account, events: [MockEvent]) {
-        self.id = id
-        self.title = title
-        self.color = color
-        self.isWritable = isWritable
-        self.account = account
-        self.events = events
-    }
-    
-    fileprivate func toCalendar() -> eventide.Calendar {
-        eventide.Calendar(
-            id: id,
-            title: title,
-            color: color.toInt64(),
-            isWritable: isWritable,
-            account: account
-        )
-    }
-}
-
-class MockEvent {
-    let id: String
-    let title: String
-    let startDate: Date
-    let endDate: Date
-    let calendarId: String
-    let isAllDay: Bool
-    let description: String?
-    let url: String?
-    let location: String?
-    var reminders: [TimeInterval]?
-    let attendees: [MockAttendee]?
-
-    init(id: String, title: String, startDate: Date, endDate: Date, calendarId: String, isAllDay: Bool, description: String?, url: String?, location: String? = nil, reminders: [TimeInterval]? = nil, attendees: [MockAttendee]? = nil) {
-        self.id = id
-        self.title = title
-        self.startDate = startDate
-        self.endDate = endDate
-        self.calendarId = calendarId
-        self.isAllDay = isAllDay
-        self.description = description
-        self.url = url
-        self.location = location
-        self.reminders = reminders?.map({ $0 })
-        self.attendees = attendees
-    }
-    
-    fileprivate func toEvent() -> Event {
-        Event(
-            id: id,
-            calendarId: calendarId,
-            title: title,
-            isAllDay: isAllDay,
-            startDate: startDate.millisecondsSince1970,
-            endDate: endDate.millisecondsSince1970,
-            reminders: reminders?.map({ Int64($0) }) ?? [],
-            attendees: attendees?.map { $0.toAttendee() } ?? [],
-            description: description,
-            url: url
-        )
-    }
-}
-
-class MockAttendee {
-    let name: String
-    let email: String
-    let type: Int64
-    let role: Int64
-    let status: Int64
-    
-    init(name: String, email: String, type: Int64, role: Int64, status: Int64) {
-        self.name = name
-        self.email = email
-        self.type = type
-        self.role = role
-        self.status = status
-    }
-    
-    fileprivate func toAttendee() -> Attendee {
-        return Attendee(
-            name: name,
-            email: email,
-            type: type,
-            role: role,
-            status: status
-        )
+        return events[eventIndex].attendees
     }
 }
 

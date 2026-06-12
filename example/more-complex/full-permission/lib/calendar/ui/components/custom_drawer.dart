@@ -142,13 +142,75 @@ class CustomDrawer extends StatelessWidget {
                           onChanged: (bool? value) {
                             BlocProvider.of<CalendarCubit>(context).toggleCalendarVisibility(calendar.id);
                           },
-                          secondary: Container(
-                            width: 16,
-                            height: 16,
-                            decoration: BoxDecoration(
-                              color: calendar.color,
-                              shape: BoxShape.circle,
-                            ),
+                          secondary: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Container(
+                                width: 16,
+                                height: 16,
+                                decoration: BoxDecoration(
+                                  color: calendar.color,
+                                  shape: BoxShape.circle,
+                                ),
+                              ),
+                              if (calendar.isWritable)
+                                IconButton(
+                                  icon: const Icon(Icons.edit, size: 18),
+                                  padding: EdgeInsets.zero,
+                                  constraints: const BoxConstraints(),
+                                  onPressed: () {
+                                    final calendarCubit = BlocProvider.of<CalendarCubit>(context);
+
+                                    showDialog(
+                                      context: context,
+                                      builder: (dialogContext) {
+                                        return AlertDialog(
+                                          title: const Text('Edit Calendar'),
+                                          content: CalendarForm(
+                                            availableAccounts: const [],
+                                            initialCalendar: calendar,
+                                            onSubmit: (title, color, account) async {
+                                              try {
+                                                await calendarCubit.updateCalendar(
+                                                  calendar: calendar,
+                                                  title: title,
+                                                  color: color,
+                                                );
+
+                                                if (dialogContext.mounted) {
+                                                  Navigator.of(dialogContext).pop();
+                                                }
+
+                                                if (context.mounted) {
+                                                  ScaffoldMessenger.of(context).showSnackBar(
+                                                    SnackBar(
+                                                      content: Text('Calendar "$title" updated successfully!'),
+                                                      backgroundColor: Colors.green,
+                                                    ),
+                                                  );
+                                                }
+                                              } catch (e) {
+                                                if (dialogContext.mounted) {
+                                                  Navigator.of(dialogContext).pop();
+                                                }
+
+                                                if (context.mounted) {
+                                                  ScaffoldMessenger.of(context).showSnackBar(
+                                                    SnackBar(
+                                                      content: Text('Error updating calendar: $e'),
+                                                      backgroundColor: Colors.red,
+                                                    ),
+                                                  );
+                                                }
+                                              }
+                                            },
+                                          ),
+                                        );
+                                      },
+                                    );
+                                  },
+                                ),
+                            ],
                           ),
                           title: Text(
                             calendar.title,

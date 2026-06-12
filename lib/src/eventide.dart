@@ -88,6 +88,32 @@ class Eventide extends EventidePlatform {
     }
   }
 
+  /// Updates the given [calendar] with optional new values for [title] and [color].
+  /// Only the provided parameters will be updated, the others will remain unchanged.
+  ///
+  /// Returns the updated [ETCalendar].
+  ///
+  /// Throws a [ETPermissionException] if the user refuses to grant calendar permissions.
+  ///
+  /// Throws a [ETNotFoundException] if the calendar with the given [calendar.id] is not found.
+  ///
+  /// Throws a [ETNotEditableException] if the calendar is not editable.
+  ///
+  /// Throws a [ETGenericException] if any other error occurs during calendar update.
+  @override
+  Future<ETCalendar> updateCalendar(ETCalendar calendar, {String? title, Color? color}) async {
+    try {
+      final updatedCalendar = await _calendarApi.updateCalendar(
+        calendarId: calendar.id,
+        title: title ?? calendar.title,
+        color: color?.toValue() ?? calendar.color.toValue(),
+      );
+      return updatedCalendar.toETCalendar();
+    } on PlatformException catch (e) {
+      throw e.toETException();
+    }
+  }
+
   /// Deletes the calendar with the given [calendarId].
   ///
   /// Throws a [ETPermissionException] if the user refuses to grant calendar permissions.
@@ -255,6 +281,50 @@ class Eventide extends EventidePlatform {
         endDate: end.millisecondsSinceEpoch,
       );
       return events.toETEventList();
+    } on PlatformException catch (e) {
+      throw e.toETException();
+    }
+  }
+
+  /// Updates the given [event] with optional new values for [calendarId], [title], [startDate], [endDate], [isAllDay], [description], [url], [location], and a list of [reminders] duration.
+  /// Only the provided parameters will be updated, the others will remain unchanged.
+  ///
+  /// Returns the updated [ETEvent].
+  ///
+  /// Throws a [ETPermissionException] if the user refuses to grant calendar permissions.
+  ///
+  /// Throws a [ETNotFoundException] if the event with the given [event.id] is not found or if the new calendar with the given [calendarId] is not found.
+  ///
+  /// Throws a [ETNotEditableException] if the calendar is not editable.
+  ///
+  /// Throws a [ETGenericException] if any other error occurs during event update.
+  @override
+  Future<ETEvent> updateEvent(
+    ETEvent event, {
+    String? calendarId,
+    String? title,
+    DateTime? startDate,
+    DateTime? endDate,
+    bool? isAllDay,
+    String? description,
+    String? url,
+    String? location,
+    Iterable<Duration>? reminders,
+  }) async {
+    try {
+      final updatedEvent = await _calendarApi.updateEvent(
+        eventId: event.id,
+        calendarId: calendarId ?? event.calendarId,
+        title: title ?? event.title,
+        startDate: (startDate ?? event.startDate).toUtc().millisecondsSinceEpoch,
+        endDate: (endDate ?? event.endDate).toUtc().millisecondsSinceEpoch,
+        isAllDay: isAllDay ?? event.isAllDay,
+        description: description ?? event.description,
+        url: url ?? event.url,
+        location: location ?? event.location,
+        reminders: (reminders ?? event.reminders).map((e) => e.toNativeDuration()).toList(),
+      );
+      return updatedEvent.toETEvent();
     } on PlatformException catch (e) {
       throw e.toETException();
     }

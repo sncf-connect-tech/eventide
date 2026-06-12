@@ -44,21 +44,19 @@ final class CalendarTests: XCTestCase {
         
         let mockEasyEventStore = MockEasyEventStore(
             calendars: [
-                MockCalendar(
+                Calendar(
                     id: "1",
                     title: "title",
-                    color: UIColor.red,
+                    color: UIColor.red.toInt64(),
                     isWritable: false,
-                    account: Account(id: "local", name: "local", type: "local"),
-                    events: []
+                    account: Account(id: "local", name: "local", type: "local")
                 ),
-                MockCalendar(
+                Calendar(
                     id: "2",
                     title: "title",
-                    color: UIColor.blue,
+                    color: UIColor.blue.toInt64(),
                     isWritable: true,
-                    account: Account(id: "iCloud", name: "iCloud", type: "calDAV"),
-                    events: []
+                    account: Account(id: "iCloud", name: "iCloud", type: "calDAV")
                 )
             ]
         )
@@ -89,21 +87,19 @@ final class CalendarTests: XCTestCase {
         let account2 = Account(id: "iCloud", name: "iCloud", type: "calDAV")
         let mockEasyEventStore = MockEasyEventStore(
             calendars: [
-                MockCalendar(
+                Calendar(
                     id: "1",
                     title: "title",
-                    color: UIColor.red,
+                    color: UIColor.red.toInt64(),
                     isWritable: false,
-                    account: account1,
-                    events: []
+                    account: account1
                 ),
-                MockCalendar(
+                Calendar(
                     id: "2",
                     title: "title",
-                    color: UIColor.blue,
+                    color: UIColor.blue.toInt64(),
                     isWritable: true,
-                    account: account2,
-                    events: []
+                    account: account2
                 )
             ]
         )
@@ -133,21 +129,19 @@ final class CalendarTests: XCTestCase {
         let account2 = Account(id: "iCloud", name: "iCloud", type: "calDAV")
         let mockEasyEventStore = MockEasyEventStore(
             calendars: [
-                MockCalendar(
+                Calendar(
                     id: "1",
                     title: "title",
-                    color: UIColor.red,
+                    color: UIColor.red.toInt64(),
                     isWritable: false,
-                    account: account1,
-                    events: []
+                    account: account1
                 ),
-                MockCalendar(
+                Calendar(
                     id: "2",
                     title: "title",
-                    color: UIColor.blue,
+                    color: UIColor.blue.toInt64(),
                     isWritable: true,
-                    account: account2,
-                    events: []
+                    account: account2
                 )
             ]
         )
@@ -179,21 +173,19 @@ final class CalendarTests: XCTestCase {
         
         let mockEasyEventStore = MockEasyEventStore(
             calendars: [
-                MockCalendar(
+                Calendar(
                     id: "1",
                     title: "title",
-                    color: UIColor.red,
+                    color: UIColor.red.toInt64(),
                     isWritable: false,
-                    account: Account(id: "local", name: "local", type: "local"),
-                    events: []
+                    account: Account(id: "local", name: "local", type: "local")
                 ),
-                MockCalendar(
+                Calendar(
                     id: "2",
                     title: "title",
-                    color: UIColor.blue,
+                    color: UIColor.blue.toInt64(),
                     isWritable: true,
-                    account: Account(id: "local", name: "iCloud", type: "calDAV"),
-                    events: []
+                    account: Account(id: "local", name: "iCloud", type: "calDAV")
                 )
             ]
         )
@@ -246,13 +238,12 @@ final class CalendarTests: XCTestCase {
 
         let mockEasyEventStore = MockEasyEventStore(
             calendars: [
-                MockCalendar(
+                Calendar(
                     id: "1",
                     title: "title",
-                    color: UIColor.red,
+                    color: UIColor.red.toInt64(),
                     isWritable: true,
-                    account: Account(id: "local", name: "local", type: "local"),
-                    events: []
+                    account: Account(id: "local", name: "local", type: "local")
                 )
             ]
         )
@@ -280,13 +271,12 @@ final class CalendarTests: XCTestCase {
         
         let mockEasyEventStore = MockEasyEventStore(
             calendars: [
-                MockCalendar(
+                Calendar(
                     id: "2",
                     title: "title",
-                    color: UIColor.red,
+                    color: UIColor.red.toInt64(),
                     isWritable: false,
-                    account: Account(id: "local", name: "local", type: "local"),
-                    events: []
+                    account: Account(id: "local", name: "local", type: "local")
                 )
             ]
         )
@@ -319,13 +309,12 @@ final class CalendarTests: XCTestCase {
         
         let mockEasyEventStore = MockEasyEventStore(
             calendars: [
-                MockCalendar(
+                Calendar(
                     id: "1",
                     title: "title",
-                    color: UIColor.red,
+                    color: UIColor.red.toInt64(),
                     isWritable: false,
-                    account: Account(id: "local", name: "local", type: "local"),
-                    events: []
+                    account: Account(id: "local", name: "local", type: "local")
                 )
             ]
         )
@@ -414,13 +403,12 @@ final class CalendarTests: XCTestCase {
         
         let mockEasyEventStore = MockEasyEventStore(
             calendars: [
-                MockCalendar(
+                Calendar(
                     id: "1",
                     title: "title",
-                    color: UIColor.red,
+                    color: UIColor.red.toInt64(),
                     isWritable: true,
-                    account: Account(id: "local", name: "local", type: "local"),
-                    events: []
+                    account: Account(id: "local", name: "local", type: "local")
                 )
             ]
         )
@@ -507,13 +495,12 @@ final class CalendarTests: XCTestCase {
         
         let mockEasyEventStore = MockEasyEventStore(
             calendars: [
-                MockCalendar(
+                Calendar(
                     id: "1",
                     title: "title",
-                    color: UIColor.red,
+                    color: UIColor.red.toInt64(),
                     isWritable: true,
-                    account: Account(id: "local", name: "local", type: "local"),
-                    events: []
+                    account: Account(id: "local", name: "local", type: "local")
                 )
             ]
         )
@@ -537,6 +524,40 @@ final class CalendarTests: XCTestCase {
             }
         }
         
+        waitForExpectations(timeout: timeout)
+    }
+
+    func testUpdateCalendar_permissionGranted() {
+        let expectation = expectation(description: "Calendar has been updated")
+
+        let mockEasyEventStore = MockEasyEventStore(
+            calendars: [
+                Calendar(
+                    id: "1",
+                    title: "Old Title",
+                    color: UIColor.red.toInt64(),
+                    isWritable: true,
+                    account: Account(id: "local", name: "local", type: "local")
+                )
+            ]
+        )
+
+        calendarImplem = CalendarImplem(
+            easyEventStore: mockEasyEventStore,
+            permissionHandler: PermissionGranted()
+        )
+
+        calendarImplem.updateCalendar(withId: "1", title: "New Title", color: 0x00FF00) { result in
+            switch (result) {
+            case .success:
+                XCTAssert(mockEasyEventStore.calendars[0].title == "New Title")
+                XCTAssert(mockEasyEventStore.calendars[0].color == 0x00FF00)
+                expectation.fulfill()
+            case .failure:
+                XCTFail("Calendar should have been updated")
+            }
+        }
+
         waitForExpectations(timeout: timeout)
     }
 }

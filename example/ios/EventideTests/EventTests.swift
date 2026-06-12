@@ -20,13 +20,12 @@ final class EventTests: XCTestCase {
         
         let mockEasyEventStore = MockEasyEventStore(
             calendars: [
-                MockCalendar(
+                Calendar(
                     id: "1",
                     title: "title",
-                    color: UIColor.red,
+                    color: UIColor.red.toInt64(),
                     isWritable: true,
-                    account: Account(id: "local", name: "local", type: "local"),
-                    events: []
+                    account: Account(id: "local", name: "local", type: "local")
                 )
             ]
         )
@@ -70,13 +69,12 @@ final class EventTests: XCTestCase {
         
         let mockEasyEventStore = MockEasyEventStore(
             calendars: [
-                MockCalendar(
+                Calendar(
                     id: "2",
                     title: "title",
-                    color: UIColor.red,
+                    color: UIColor.red.toInt64(),
                     isWritable: true,
-                    account: Account(id: "local", name: "local", type: "local"),
-                    events: []
+                    account: Account(id: "local", name: "local", type: "local")
                 )
             ]
         )
@@ -121,34 +119,38 @@ final class EventTests: XCTestCase {
         
         let mockEasyEventStore = MockEasyEventStore(
             calendars: [
-                MockCalendar(
+                Calendar(
                     id: "1",
                     title: "title",
-                    color: UIColor.red,
+                    color: UIColor.red.toInt64(),
                     isWritable: true,
-                    account: Account(id: "local", name: "local", type: "local"),
-                    events: [
-                        MockEvent(
-                            id: "1",
-                            title: "title",
-                            startDate: startDate,
-                            endDate: endDate,
-                            calendarId: "1",
-                            isAllDay: false,
-                            description: "description",
-                            url: "url"
-                        ),
-                        MockEvent(
-                            id: "2",
-                            title: "title",
-                            startDate: startDate.addingTimeInterval(TimeInterval(50)),
-                            endDate: endDate.addingTimeInterval(TimeInterval(50)),
-                            calendarId: "1",
-                            isAllDay: false,
-                            description: "description",
-                            url: "url"
-                        )
-                    ]
+                    account: Account(id: "local", name: "local", type: "local")
+                )
+            ],
+            events: [
+                Event(
+                    id: "1",
+                    calendarId: "1",
+                    title: "title",
+                    isAllDay: false,
+                    startDate: startDate.millisecondsSince1970,
+                    endDate: endDate.millisecondsSince1970,
+                    reminders: [],
+                    attendees: [],
+                    description: "description",
+                    url: "url"
+                ),
+                Event(
+                    id: "2",
+                    calendarId: "1",
+                    title: "title",
+                    isAllDay: false,
+                    startDate: startDate.addingTimeInterval(TimeInterval(50)).millisecondsSince1970,
+                    endDate: endDate.addingTimeInterval(TimeInterval(50)).millisecondsSince1970,
+                    reminders: [],
+                    attendees: [],
+                    description: "description",
+                    url: "url"
                 )
             ]
         )
@@ -167,7 +169,7 @@ final class EventTests: XCTestCase {
             case .success(let events):
                 XCTAssert(events.count == 1)
                 XCTAssert(events.first!.id == "1")
-                XCTAssert(mockEasyEventStore.calendars.first!.events.first!.id == "1")
+                XCTAssert(mockEasyEventStore.events.first!.id == "1")
                 expectation.fulfill()
             case .failure:
                 XCTFail("Event should have been retrieved")
@@ -185,44 +187,46 @@ final class EventTests: XCTestCase {
         
         let mockEasyEventStore = MockEasyEventStore(
             calendars: [
-                MockCalendar(
+                Calendar(
                     id: "1",
                     title: "title",
-                    color: UIColor.red,
+                    color: UIColor.red.toInt64(),
                     isWritable: true,
-                    account: Account(id: "local", name: "local", type: "local"),
-                    events: [
-                        MockEvent(
-                            id: "1",
-                            title: "title",
-                            startDate: startDate,
-                            endDate: endDate,
-                            calendarId: "1",
-                            isAllDay: false,
-                            description: "description",
-                            url: "url"
-                        ),
-                        MockEvent(
-                            id: "2",
-                            title: "title",
-                            startDate: startDate.addingTimeInterval(TimeInterval(50)),
-                            endDate: endDate.addingTimeInterval(TimeInterval(50)),
-                            calendarId: "1",
-                            isAllDay: false,
-                            description: "description",
-                            url: "url",
-                            reminders: [TimeInterval(360), TimeInterval(3600)],
-                            attendees: [
-                                MockAttendee(
-                                    name: "John Doe",
-                                    email: "john.doe@example.com",
-                                    type: 1,
-                                    role: 1,
-                                    status: 1
-                                )
-                            ]
+                    account: Account(id: "local", name: "local", type: "local")
+                )
+            ],
+            events: [
+                Event(
+                    id: "1",
+                    calendarId: "1",
+                    title: "title",
+                    isAllDay: false,
+                    startDate: startDate.millisecondsSince1970,
+                    endDate: endDate.millisecondsSince1970,
+                    reminders: [],
+                    attendees: [],
+                    description: "description",
+                    url: "url"
+                ),
+                Event(
+                    id: "2",
+                    calendarId: "1",
+                    title: "title",
+                    isAllDay: false,
+                    startDate: startDate.addingTimeInterval(TimeInterval(50)).millisecondsSince1970,
+                    endDate: endDate.addingTimeInterval(TimeInterval(50)).millisecondsSince1970,
+                    reminders: [360, 3600],
+                    attendees: [
+                        Attendee(
+                            name: "John Doe",
+                            email: "john.doe@example.com",
+                            type: 1,
+                            role: 1,
+                            status: 1
                         )
-                    ]
+                    ],
+                    description: "description",
+                    url: "url"
                 )
             ]
         )
@@ -266,24 +270,26 @@ final class EventTests: XCTestCase {
         
         let mockEasyEventStore = MockEasyEventStore(
             calendars: [
-                MockCalendar(
+                Calendar(
                     id: "2",
                     title: "title",
-                    color: UIColor.red,
+                    color: UIColor.red.toInt64(),
                     isWritable: true,
-                    account: Account(id: "local", name: "local", type: "local"),
-                    events: [
-                        MockEvent(
-                            id: "1",
-                            title: "title",
-                            startDate: startDate,
-                            endDate: endDate,
-                            calendarId: "2",
-                            isAllDay: false,
-                            description: "description",
-                            url: "url"
-                        )
-                    ]
+                    account: Account(id: "local", name: "local", type: "local")
+                )
+            ],
+            events: [
+                Event(
+                    id: "1",
+                    calendarId: "2",
+                    title: "title",
+                    isAllDay: false,
+                    startDate: startDate.millisecondsSince1970,
+                    endDate: endDate.millisecondsSince1970,
+                    reminders: [],
+                    attendees: [],
+                    description: "description",
+                    url: "url"
                 )
             ]
         )
@@ -322,13 +328,12 @@ final class EventTests: XCTestCase {
 
         let mockEasyEventStore = MockEasyEventStore(
             calendars: [
-                MockCalendar(
+                Calendar(
                     id: "1",
                     title: "title",
-                    color: UIColor.red,
+                    color: UIColor.red.toInt64(),
                     isWritable: true,
-                    account: Account(id: "local", name: "local", type: "local"),
-                    events: []
+                    account: Account(id: "local", name: "local", type: "local")
                 )
             ]
         )
@@ -360,24 +365,26 @@ final class EventTests: XCTestCase {
 
         let mockEasyEventStore = MockEasyEventStore(
             calendars: [
-                MockCalendar(
+                Calendar(
                     id: "1",
                     title: "title",
-                    color: UIColor.red,
+                    color: UIColor.red.toInt64(),
                     isWritable: true,
-                    account: Account(id: "local", name: "local", type: "local"),
-                    events: [
-                        MockEvent(
-                            id: "1",
-                            title: "title",
-                            startDate: Date(),
-                            endDate: Date().addingTimeInterval(TimeInterval(10)),
-                            calendarId: "1",
-                            isAllDay: false,
-                            description: "description",
-                            url: "url"
-                        )
-                    ]
+                    account: Account(id: "local", name: "local", type: "local")
+                )
+            ],
+            events: [
+                Event(
+                    id: "1",
+                    calendarId: "1",
+                    title: "title",
+                    isAllDay: false,
+                    startDate: Date().millisecondsSince1970,
+                    endDate: Date().addingTimeInterval(TimeInterval(10)).millisecondsSince1970,
+                    reminders: [],
+                    attendees: [],
+                    description: "description",
+                    url: "url"
                 )
             ]
         )
@@ -390,7 +397,7 @@ final class EventTests: XCTestCase {
         calendarImplem.deleteEvent(withId: "1") { deleteEventResult in
             switch (deleteEventResult) {
             case .success:
-                XCTAssert(mockEasyEventStore.calendars.first!.events.isEmpty)
+                XCTAssert(mockEasyEventStore.events.isEmpty)
                 expectation.fulfill()
             case .failure:
                 XCTFail("Event should have been deleted")
@@ -405,24 +412,26 @@ final class EventTests: XCTestCase {
         
         let mockEasyEventStore = MockEasyEventStore(
             calendars: [
-                MockCalendar(
+                Calendar(
                     id: "1",
                     title: "title",
-                    color: UIColor.red,
+                    color: UIColor.red.toInt64(),
                     isWritable: true,
-                    account: Account(id: "local", name: "local", type: "local"),
-                    events: [
-                        MockEvent(
-                            id: "2",
-                            title: "title",
-                            startDate: Date(),
-                            endDate: Date().addingTimeInterval(TimeInterval(10)),
-                            calendarId: "1",
-                            isAllDay: false,
-                            description: "description",
-                            url: "url"
-                        )
-                    ]
+                    account: Account(id: "local", name: "local", type: "local")
+                )
+            ],
+            events: [
+                Event(
+                    id: "2",
+                    calendarId: "1",
+                    title: "title",
+                    isAllDay: false,
+                    startDate: Date().millisecondsSince1970,
+                    endDate: Date().addingTimeInterval(TimeInterval(10)).millisecondsSince1970,
+                    reminders: [],
+                    attendees: [],
+                    description: "description",
+                    url: "url"
                 )
             ]
         )
@@ -442,7 +451,7 @@ final class EventTests: XCTestCase {
                     return
                 }
                 XCTAssert(error.code == "NOT_FOUND")
-                XCTAssert(mockEasyEventStore.calendars.first!.events.count == 1)
+                XCTAssert(mockEasyEventStore.events.count == 1)
                 expectation.fulfill()
             }
         }
@@ -455,24 +464,26 @@ final class EventTests: XCTestCase {
         
         let mockEasyEventStore = MockEasyEventStore(
             calendars: [
-                MockCalendar(
+                Calendar(
                     id: "1",
                     title: "title",
-                    color: UIColor.red,
+                    color: UIColor.red.toInt64(),
                     isWritable: false,
-                    account: Account(id: "local", name: "local", type: "local"),
-                    events: [
-                        MockEvent(
-                            id: "2",
-                            title: "title",
-                            startDate: Date(),
-                            endDate: Date().addingTimeInterval(TimeInterval(10)),
-                            calendarId: "1",
-                            isAllDay: false,
-                            description: "description",
-                            url: "url"
-                        )
-                    ]
+                    account: Account(id: "local", name: "local", type: "local")
+                )
+            ],
+            events: [
+                Event(
+                    id: "2",
+                    calendarId: "1",
+                    title: "title",
+                    isAllDay: false,
+                    startDate: Date().millisecondsSince1970,
+                    endDate: Date().addingTimeInterval(TimeInterval(10)).millisecondsSince1970,
+                    reminders: [],
+                    attendees: [],
+                    description: "description",
+                    url: "url"
                 )
             ]
         )
@@ -492,7 +503,7 @@ final class EventTests: XCTestCase {
                     return
                 }
                 XCTAssert(error.code == "NOT_EDITABLE")
-                XCTAssert(mockEasyEventStore.calendars.first!.events.count == 1)
+                XCTAssert(mockEasyEventStore.events.count == 1)
                 expectation.fulfill()
             }
         }
@@ -505,13 +516,12 @@ final class EventTests: XCTestCase {
         
         let mockEasyEventStore = MockEasyEventStore(
             calendars: [
-                MockCalendar(
+                Calendar(
                     id: "1",
                     title: "title",
-                    color: UIColor.red,
+                    color: UIColor.red.toInt64(),
                     isWritable: true,
-                    account: Account(id: "local", name: "local", type: "local"),
-                    events: []
+                    account: Account(id: "local", name: "local", type: "local")
                 )
             ]
         )
@@ -541,7 +551,7 @@ final class EventTests: XCTestCase {
                     return
                 }
                 XCTAssert(error.code == "ACCESS_REFUSED")
-                XCTAssert(mockEasyEventStore.calendars.first!.events.isEmpty)
+                XCTAssert(mockEasyEventStore.events.isEmpty)
                 expectation.fulfill()
             }
         }
@@ -554,13 +564,12 @@ final class EventTests: XCTestCase {
         
         let mockEasyEventStore = MockEasyEventStore(
             calendars: [
-                MockCalendar(
+                Calendar(
                     id: "1",
                     title: "title",
-                    color: UIColor.red,
+                    color: UIColor.red.toInt64(),
                     isWritable: true,
-                    account: Account(id: "local", name: "local", type: "local"),
-                    events: []
+                    account: Account(id: "local", name: "local", type: "local")
                 )
             ]
         )
@@ -584,7 +593,7 @@ final class EventTests: XCTestCase {
                     return
                 }
                 XCTAssert(error.code == "ACCESS_REFUSED")
-                XCTAssert(mockEasyEventStore.calendars.first!.events.isEmpty)
+                XCTAssert(mockEasyEventStore.events.isEmpty)
                 expectation.fulfill()
             }
         }
@@ -597,24 +606,26 @@ final class EventTests: XCTestCase {
         
         let mockEasyEventStore = MockEasyEventStore(
             calendars: [
-                MockCalendar(
+                Calendar(
                     id: "1",
                     title: "title",
-                    color: UIColor.red,
+                    color: UIColor.red.toInt64(),
                     isWritable: true,
-                    account: Account(id: "local", name: "local", type: "local"),
-                    events: [
-                        MockEvent(
-                            id: "1",
-                            title: "title",
-                            startDate: Date(),
-                            endDate: Date().addingTimeInterval(TimeInterval(10)),
-                            calendarId: "1",
-                            isAllDay: false,
-                            description: "description",
-                            url: "url"
-                        )
-                    ]
+                    account: Account(id: "local", name: "local", type: "local")
+                )
+            ],
+            events: [
+                Event(
+                    id: "1",
+                    calendarId: "1",
+                    title: "title",
+                    isAllDay: false,
+                    startDate: Date().millisecondsSince1970,
+                    endDate: Date().addingTimeInterval(TimeInterval(10)).millisecondsSince1970,
+                    reminders: [],
+                    attendees: [],
+                    description: "description",
+                    url: "url"
                 )
             ]
         )
@@ -634,7 +645,7 @@ final class EventTests: XCTestCase {
                     return
                 }
                 XCTAssert(error.code == "ACCESS_REFUSED")
-                XCTAssert(mockEasyEventStore.calendars.first!.events.count == 1)
+                XCTAssert(mockEasyEventStore.events.count == 1)
                 expectation.fulfill()
             }
         }
@@ -647,13 +658,12 @@ final class EventTests: XCTestCase {
         
         let mockEasyEventStore = MockEasyEventStore(
             calendars: [
-                MockCalendar(
+                Calendar(
                     id: "1",
                     title: "title",
-                    color: UIColor.red,
+                    color: UIColor.red.toInt64(),
                     isWritable: true,
-                    account: Account(id: "local", name: "local", type: "local"),
-                    events: []
+                    account: Account(id: "local", name: "local", type: "local")
                 )
             ]
         )
@@ -682,7 +692,7 @@ final class EventTests: XCTestCase {
                     XCTFail("error should be of type PermissionError.PermErr")
                     return
                 }
-                XCTAssert(mockEasyEventStore.calendars.first!.events.isEmpty)
+                XCTAssert(mockEasyEventStore.events.isEmpty)
                 expectation.fulfill()
             }
         }
@@ -695,13 +705,13 @@ final class EventTests: XCTestCase {
         
         let mockEasyEventStore = MockEasyEventStore(
             calendars: [
-                MockCalendar(
+                Calendar(
                     id: "1",
                     title: "title",
-                    color: UIColor.red,
+                    color: UIColor.red.toInt64(),
                     isWritable: true,
                     account: Account(id: "local", name: "local", type: "local"),
-                    events: []
+
                 )
             ]
         )
@@ -724,7 +734,7 @@ final class EventTests: XCTestCase {
                     XCTFail("error should be of type PermissionError.PermErr")
                     return
                 }
-                XCTAssert(mockEasyEventStore.calendars.first!.events.isEmpty)
+                XCTAssert(mockEasyEventStore.events.isEmpty)
                 expectation.fulfill()
             }
         }
@@ -737,24 +747,26 @@ final class EventTests: XCTestCase {
         
         let mockEasyEventStore = MockEasyEventStore(
             calendars: [
-                MockCalendar(
+                Calendar(
                     id: "1",
                     title: "title",
-                    color: UIColor.red,
+                    color: UIColor.red.toInt64(),
                     isWritable: true,
-                    account: Account(id: "local", name: "local", type: "local"),
-                    events: [
-                        MockEvent(
-                            id: "1",
-                            title: "title",
-                            startDate: Date(),
-                            endDate: Date().addingTimeInterval(TimeInterval(10)),
-                            calendarId: "1",
-                            isAllDay: false,
-                            description: "description",
-                            url: "url"
-                        )
-                    ]
+                    account: Account(id: "local", name: "local", type: "local")
+                )
+            ],
+            events: [
+                Event(
+                    id: "1",
+                    calendarId: "1",
+                    title: "title",
+                    isAllDay: false,
+                    startDate: Date().millisecondsSince1970,
+                    endDate: Date().addingTimeInterval(TimeInterval(10)).millisecondsSince1970,
+                    reminders: [],
+                    attendees: [],
+                    description: "description",
+                    url: "url"
                 )
             ]
         )
@@ -773,7 +785,7 @@ final class EventTests: XCTestCase {
                     XCTFail("error should be of type PermissionError.PermErr")
                     return
                 }
-                XCTAssert(mockEasyEventStore.calendars.first!.events.count == 1)
+                XCTAssert(mockEasyEventStore.events.count == 1)
                 expectation.fulfill()
             }
         }
@@ -791,13 +803,12 @@ final class EventTests: XCTestCase {
 
         let mockEasyEventStore = MockEasyEventStore(
             calendars: [
-                MockCalendar(
+                Calendar(
                     id: "1",
                     title: "Default Calendar",
-                    color: UIColor.blue,
+                    color: UIColor.blue.toInt64(),
                     isWritable: true,
-                    account: Account(id: "local", name: "local", type: "local"),
-                    events: []
+                    account: Account(id: "local", name: "local", type: "local")
                 )
             ]
         )
@@ -819,8 +830,8 @@ final class EventTests: XCTestCase {
         ) { result in
             switch result {
             case .success:
-                XCTAssertEqual(mockEasyEventStore.calendars.first!.events.count, 1)
-                XCTAssertEqual(mockEasyEventStore.calendars.first!.events.first!.title, "Default Calendar Event")
+                XCTAssertEqual(mockEasyEventStore.events.count, 1)
+                XCTAssertEqual(mockEasyEventStore.events.first!.title, "Default Calendar Event")
                 expectation.fulfill()
             case .failure(let error):
                 XCTFail("Event should have been created: \(error)")
@@ -838,13 +849,12 @@ final class EventTests: XCTestCase {
 
         let mockEasyEventStore = MockEasyEventStore(
             calendars: [
-                MockCalendar(
+                Calendar(
                     id: "1",
                     title: "Default Calendar",
-                    color: UIColor.blue,
+                    color: UIColor.blue.toInt64(),
                     isWritable: true,
-                    account: Account(id: "local", name: "local", type: "local"),
-                    events: []
+                    account: Account(id: "local", name: "local", type: "local")
                 )
             ]
         )
@@ -866,8 +876,8 @@ final class EventTests: XCTestCase {
         ) { result in
             switch result {
             case .success:
-                XCTAssertEqual(mockEasyEventStore.calendars.first!.events.count, 1)
-                XCTAssertEqual(mockEasyEventStore.calendars.first!.events.first!.isAllDay, true)
+                XCTAssertEqual(mockEasyEventStore.events.count, 1)
+                XCTAssertEqual(mockEasyEventStore.events.first!.isAllDay, true)
                 expectation.fulfill()
             case .failure(let error):
                 XCTFail("Event should have been created: \(error)")
@@ -885,13 +895,12 @@ final class EventTests: XCTestCase {
 
         let mockEasyEventStore = MockEasyEventStore(
             calendars: [
-                MockCalendar(
+                Calendar(
                     id: "1",
                     title: "Default Calendar",
-                    color: UIColor.blue,
+                    color: UIColor.blue.toInt64(),
                     isWritable: true,
-                    account: Account(id: "local", name: "local", type: "local"),
-                    events: []
+                    account: Account(id: "local", name: "local", type: "local")
                 )
             ]
         )
@@ -913,8 +922,8 @@ final class EventTests: XCTestCase {
         ) { result in
             switch result {
             case .success:
-                XCTAssertEqual(mockEasyEventStore.calendars.first!.events.count, 1)
-                XCTAssertNil(mockEasyEventStore.calendars.first!.events.first!.description)
+                XCTAssertEqual(mockEasyEventStore.events.count, 1)
+                XCTAssertNil(mockEasyEventStore.events.first!.description)
                 expectation.fulfill()
             case .failure(let error):
                 XCTFail("Event should have been created: \(error)")
@@ -931,13 +940,12 @@ final class EventTests: XCTestCase {
         
         let mockEasyEventStore = MockEasyEventStore(
             calendars: [
-                MockCalendar(
+                Calendar(
                     id: "1",
                     title: "Test Calendar",
-                    color: UIColor.blue,
+                    color: UIColor.blue.toInt64(),
                     isWritable: true,
-                    account: Account(id: "local", name: "local", type: "local"),
-                    events: []
+                    account: Account(id: "local", name: "local", type: "local")
                 )
             ]
         )
@@ -1151,6 +1159,70 @@ final class EventTests: XCTestCase {
             }
         }
         
+        waitForExpectations(timeout: timeout)
+    }
+
+    func testUpdateEvent_permissionGranted() {
+        let expectation = expectation(description: "Event has been updated")
+
+        let startDate = Date().millisecondsSince1970
+        let endDate = Date().addingTimeInterval(TimeInterval(10)).millisecondsSince1970
+
+        let mockCalendar = Calendar(
+            id: "1",
+            title: "title",
+            color: UIColor.red.toInt64(),
+            isWritable: true,
+            account: Account(id: "local", name: "local", type: "local")
+        )
+        
+        let mockEvent = Event(
+            id: "event1",
+            calendarId: "1",
+            title: "Old Title",
+            isAllDay: false,
+            startDate: Date(from: startDate).millisecondsSince1970,
+            endDate: Date(from: endDate).millisecondsSince1970,
+            reminders: [],
+            attendees: [],
+            description: "Old Desc",
+            url: "Old URL",
+            location: "Old Loc",
+        )
+
+        let mockEasyEventStore = MockEasyEventStore(calendars: [mockCalendar], events: [mockEvent])
+
+        calendarImplem = CalendarImplem(
+            easyEventStore: mockEasyEventStore,
+            permissionHandler: PermissionGranted()
+        )
+
+        calendarImplem.updateEvent(
+            withId: "event1",
+            calendarId: "1",
+            title: "New Title",
+            startDate: startDate + 1000,
+            endDate: endDate + 1000,
+            isAllDay: true,
+            description: "New Desc",
+            url: "New URL",
+            location: "New Loc",
+            reminders: [10]
+        ) { result in
+            switch (result) {
+            case .success:
+                let updatedEvent = mockEasyEventStore.events.first!
+                XCTAssert(updatedEvent.title == "New Title")
+                XCTAssert(updatedEvent.startDate == startDate + 1000)
+                XCTAssert(updatedEvent.isAllDay == true)
+                XCTAssert(updatedEvent.description == "New Desc")
+                XCTAssert(updatedEvent.reminders == [-10])
+                expectation.fulfill()
+            case .failure:
+                XCTFail("Event should have been updated")
+            }
+        }
+
         waitForExpectations(timeout: timeout)
     }
 }

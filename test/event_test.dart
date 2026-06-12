@@ -786,6 +786,172 @@ void main() {
       expect(etEvents.length, 1);
       expect(etEvents.first.id, '1');
     });
+
+    test('updateEvent calls the API and returns an ETEvent with updated values', () async {
+      // Given
+      final originalEvent = Event(
+        id: '1',
+        title: 'Test Event',
+        isAllDay: false,
+        startDate: DateTime(2023, 10, 1).millisecondsSinceEpoch,
+        endDate: DateTime(2023, 10, 2).millisecondsSinceEpoch,
+        calendarId: '19',
+        description: 'Test Description',
+        url: 'http://test.com',
+        reminders: [10, 20],
+        attendees: [],
+      );
+
+      final updatedStartDate = DateTime(2023, 10, 5);
+      final updatedEndDate = DateTime(2023, 10, 6);
+
+      when(
+        () => mockCalendarApi.updateEvent(
+          eventId: any(named: 'eventId'),
+          title: any(named: 'title'),
+          isAllDay: any(named: 'isAllDay'),
+          startDate: any(named: 'startDate'),
+          endDate: any(named: 'endDate'),
+          calendarId: any(named: 'calendarId'),
+          description: any(named: 'description'),
+          url: any(named: 'url'),
+          location: any(named: 'location'),
+          reminders: any(named: 'reminders'),
+        ),
+      ).thenAnswer((_) async => originalEvent);
+
+      // When
+      await eventide.updateEvent(
+        originalEvent.toETEvent(),
+        title: 'Updated Test Event',
+        startDate: updatedStartDate,
+        endDate: updatedEndDate,
+        description: 'Updated Description',
+        url: 'http://updated.com',
+      );
+
+      // Then
+      verify(
+        () => mockCalendarApi.updateEvent(
+          eventId: '1',
+          title: 'Updated Test Event',
+          isAllDay: originalEvent.isAllDay,
+          startDate: updatedStartDate.toUtc().millisecondsSinceEpoch,
+          endDate: updatedEndDate.toUtc().millisecondsSinceEpoch,
+          calendarId: '19',
+          description: 'Updated Description',
+          url: 'http://updated.com',
+          location: originalEvent.location,
+          reminders: originalEvent.reminders,
+        ),
+      ).called(1);
+    });
+
+    test('updateEvent calls the API and returns an ETEvent with no updated values', () async {
+      // Given
+      final originalEvent = Event(
+        id: '1',
+        title: 'Test Event',
+        isAllDay: false,
+        startDate: DateTime(2023, 10, 1).millisecondsSinceEpoch,
+        endDate: DateTime(2023, 10, 2).millisecondsSinceEpoch,
+        calendarId: '19',
+        description: 'Test Description',
+        url: 'http://test.com',
+        reminders: [10, 20],
+        attendees: [],
+      );
+
+      when(
+        () => mockCalendarApi.updateEvent(
+          eventId: any(named: 'eventId'),
+          title: any(named: 'title'),
+          isAllDay: any(named: 'isAllDay'),
+          startDate: any(named: 'startDate'),
+          endDate: any(named: 'endDate'),
+          calendarId: any(named: 'calendarId'),
+          description: any(named: 'description'),
+          url: any(named: 'url'),
+          location: any(named: 'location'),
+          reminders: any(named: 'reminders'),
+        ),
+      ).thenAnswer((_) async => originalEvent);
+
+      // When
+      await eventide.updateEvent(originalEvent.toETEvent());
+
+      // Then
+      verify(
+        () => mockCalendarApi.updateEvent(
+          eventId: '1',
+          title: originalEvent.title,
+          isAllDay: originalEvent.isAllDay,
+          startDate: originalEvent.startDate,
+          endDate: originalEvent.endDate,
+          calendarId: originalEvent.calendarId,
+          description: originalEvent.description,
+          url: originalEvent.url,
+          location: originalEvent.location,
+          reminders: originalEvent.reminders,
+        ),
+      ).called(1);
+    });
+
+    test('updateEvent throws an exception when API fails', () async {
+      // Given
+      final originalEvent = Event(
+        id: '1',
+        title: 'Test Event',
+        isAllDay: false,
+        startDate: DateTime.now().millisecondsSinceEpoch,
+        endDate: DateTime.now().add(Duration(days: 1)).millisecondsSinceEpoch,
+        calendarId: '19',
+        description: 'Test Description',
+        url: 'http://test.com',
+        reminders: [10, 20],
+        attendees: [],
+      );
+
+      when(
+        () => mockCalendarApi.updateEvent(
+          eventId: any(named: 'eventId'),
+          title: any(named: 'title'),
+          isAllDay: any(named: 'isAllDay'),
+          startDate: any(named: 'startDate'),
+          endDate: any(named: 'endDate'),
+          calendarId: any(named: 'calendarId'),
+          description: any(named: 'description'),
+          url: any(named: 'url'),
+          location: any(named: 'location'),
+          reminders: any(named: 'reminders'),
+        ),
+      ).thenThrow(ETGenericException(message: 'API Error'));
+
+      // When
+      Future<void> call() => eventide.updateEvent(
+        originalEvent.toETEvent(),
+        title: 'Updated test Event',
+        startDate: DateTime.now().add(Duration(days: 2)),
+        endDate: DateTime.now().add(Duration(days: 3)),
+      );
+
+      // Then
+      expect(call, throwsException);
+      verify(
+        () => mockCalendarApi.updateEvent(
+          eventId: any(named: 'eventId'),
+          title: any(named: 'title'),
+          isAllDay: any(named: 'isAllDay'),
+          startDate: any(named: 'startDate'),
+          endDate: any(named: 'endDate'),
+          calendarId: any(named: 'calendarId'),
+          description: any(named: 'description'),
+          url: any(named: 'url'),
+          location: any(named: 'location'),
+          reminders: any(named: 'reminders'),
+        ),
+      ).called(1);
+    });
   });
 
   group('ETEventCopy tests', () {

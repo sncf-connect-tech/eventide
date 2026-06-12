@@ -161,4 +161,67 @@ final class CalendarCubit extends Cubit<CalendarState> {
       emit(Value.success(data.copyWith(visibleCalendarIds: newVisibleIds)));
     }
   }
+
+  Future<void> updateCalendar({
+    required ETCalendar calendar,
+    required String title,
+    required Color color,
+  }) async {
+    if (state case Value(:final data?)) {
+      await state.fetchFrom(() async {
+        final updatedCalendar = await _eventide.updateCalendar(
+          calendar,
+          title: title,
+          color: color,
+        );
+
+        final updatedCalendars = <ETCalendar, Iterable<ETEvent>>{};
+        for (final entry in data.calendars.entries) {
+          if (entry.key.id == calendar.id) {
+            updatedCalendars[updatedCalendar] = entry.value;
+          } else {
+            updatedCalendars[entry.key] = entry.value;
+          }
+        }
+
+        return data.copyWith(calendars: updatedCalendars);
+      }).forEach(emit);
+    }
+  }
+
+  Future<void> updateEvent({
+    required ETCalendar calendar,
+    required ETEvent event,
+    required String title,
+    required String description,
+    required bool isAllDay,
+    required TZDateTime startDate,
+    required TZDateTime endDate,
+  }) async {
+    if (state case Value(:final data?)) {
+      await state.fetchFrom(() async {
+        final updatedEvent = await _eventide.updateEvent(
+          event,
+          title: title,
+          description: description,
+          isAllDay: isAllDay,
+          startDate: startDate,
+          endDate: endDate,
+        );
+
+        final updatedCalendars = Map<ETCalendar, List<ETEvent>>.from(
+          data.calendars.map((k, v) => MapEntry(k, v.toList())),
+        );
+        final events = updatedCalendars[calendar];
+        if (events != null) {
+          final index = events.indexWhere((e) => e.id == event.id);
+          if (index != -1) {
+            events[index] = updatedEvent;
+          }
+        }
+
+        return data.copyWith(calendars: updatedCalendars);
+      }).forEach(emit);
+    }
+  }
 }

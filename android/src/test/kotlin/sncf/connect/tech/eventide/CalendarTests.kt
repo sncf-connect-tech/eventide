@@ -506,4 +506,62 @@ class CalendarTests {
         assertTrue(result!!.isFailure)
         assertEquals("NOT_FOUND", (result.exceptionOrNull() as FlutterError).code)
     }
+
+    @Test
+    fun updateCalendar_withGrantedPermission_updatesCalendarSuccessfully() = runTest {
+        mockPermissionGranted(permissionHandler)
+        mockWritableCalendar()
+
+        every { contentResolver.update(calendarContentUri, any(), any(), any()) } returns 1
+
+        var result: Result<Calendar>? = null
+        val latch = CountDownLatch(1)
+        calendarImplem.updateCalendar("1", "New Title", 0xFF0000) {
+            result = it
+            latch.countDown()
+        }
+
+        latch.await()
+
+        assertTrue(result!!.isSuccess)
+        verify {
+            contentResolver.update(calendarContentUri, any(), any(), any())
+        }
+    }
+
+    @Test
+    fun updateCalendar_withNotWritableCalendar_returnsNotEditableError() = runTest {
+        mockPermissionGranted(permissionHandler)
+        mockNotWritableCalendar()
+
+        var result: Result<Calendar>? = null
+        val latch = CountDownLatch(1)
+        calendarImplem.updateCalendar("1", "New Title", 0xFF0000) {
+            result = it
+            latch.countDown()
+        }
+
+        latch.await()
+
+        assertTrue(result!!.isFailure)
+        assertEquals("NOT_EDITABLE", (result.exceptionOrNull() as FlutterError).code)
+    }
+
+    @Test
+    fun updateCalendar_withNotFoundCalendar_returnsNotFoundError() = runTest {
+        mockPermissionGranted(permissionHandler)
+        mockCalendarNotFound()
+
+        var result: Result<Calendar>? = null
+        val latch = CountDownLatch(1)
+        calendarImplem.updateCalendar("1", "New Title", 0xFF0000) {
+            result = it
+            latch.countDown()
+        }
+
+        latch.await()
+
+        assertTrue(result!!.isFailure)
+        assertEquals("NOT_FOUND", (result.exceptionOrNull() as FlutterError).code)
+    }
 }

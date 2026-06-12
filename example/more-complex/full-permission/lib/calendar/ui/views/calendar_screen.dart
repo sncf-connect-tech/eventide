@@ -79,6 +79,7 @@ final class _CalendarScreenState extends State<CalendarScreen> with SingleTicker
                         event: event,
                         title: event.title,
                         date: event.startDate,
+                        endDate: event.endDate,
                         color: calendar.color,
                         startTime: event.startDate,
                         endTime: event.endDate,
@@ -132,15 +133,18 @@ final class _CalendarScreenState extends State<CalendarScreen> with SingleTicker
                         if (event is ETEvent) {
                           final relatedCalendar =
                               data.calendars.keys.singleWhere((calendar) => calendar.id == event.calendarId);
+                          final calendarCubit = BlocProvider.of<CalendarCubit>(context);
 
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (context) => EventDetailsScreen(
-                                event: event,
-                                isCalendarWritable: relatedCalendar.isWritable,
-                              ),
-                            ),
-                          );
+                          Navigator.of(context)
+                              .push(
+                                MaterialPageRoute(
+                                  builder: (context) => EventDetailsScreen(
+                                    event: event,
+                                    isCalendarWritable: relatedCalendar.isWritable,
+                                  ),
+                                ),
+                              )
+                              .then((_) => calendarCubit.loadFullContent());
                         }
                       }
                     },
