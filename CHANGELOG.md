@@ -1,6 +1,6 @@
 ## 2.3.0
 * **Edit feature** for calendars and events.
-* **Refactored ETException** with composite pattern.
+* Refactored ETException as a sealed class hierarchy.
 
 ## 2.2.1
 * **Fix createEventThroughNativePlatform on Android** by enforcing ICS compatibility. IcsEventManager.generateIcsContent had three RFC 5545 violations.
