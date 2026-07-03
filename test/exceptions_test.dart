@@ -68,4 +68,19 @@ void main() {
       expect(etException.message, 'Cannot present event creation view');
     });
   });
+
+  group('ETException.toString tests', () {
+    test('includes code, message and details when all are set', () {
+      const exception = ETPermissionException(message: 'Permission denied', details: 'some details');
+      expect(
+        exception.toString(),
+        'ETException(code: ACCESS_REFUSED, message: Permission denied, details: some details)',
+      );
+    });
+
+    test('includes null message and details when not set', () {
+      const exception = ETPermissionException(message: null);
+      expect(exception.toString(), 'ETException(code: ACCESS_REFUSED, message: null, details: null)');
+    });
+  });
 }

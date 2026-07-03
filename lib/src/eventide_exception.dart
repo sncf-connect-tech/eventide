@@ -1,7 +1,7 @@
 import 'package:flutter/services.dart';
 
 /// An exception thrown by eventide plugin.
-abstract class ETException implements Exception {
+sealed class ETException implements Exception {
   /// The error code associated with this exception.
   final String code;
 
