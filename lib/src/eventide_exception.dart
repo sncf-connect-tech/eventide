@@ -12,6 +12,11 @@ abstract class ETException implements Exception {
   final Object? details;
 
   const ETException({required this.code, this.message, this.details});
+
+  @override
+  String toString() {
+    return 'ETException(code: $code, message: $message, details: $details)';
+  }
 }
 
 /// An exception thrown when the user refuses to grant calendar permissions.
