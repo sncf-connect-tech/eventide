@@ -198,13 +198,13 @@ Updates an existing event. Only the provided optional parameters will be updated
 
 > ⚠️ **Note:** A `Duration` in seconds will not be supported by Android due to API limitations.
 
-Throws a `ETPermissionException` if the user refuses to grant calendar permissions.
+Throws an ETPermissionException if the user refuses to grant calendar permissions.
 
-Throws a `ETNotFoundException` if the event or the target calendar is not found.
+Throws an ETNotFoundException if the event or the target calendar is not found.
 
-Throws a `ETNotEditableException` if the calendar is not editable.
+Throws an ETNotEditableException if the calendar is not editable.
 
-Throws a `ETGenericException` if any other error occurs.
+Throws an ETGenericException if any other error occurs.
 
 ### Delete Event
 
