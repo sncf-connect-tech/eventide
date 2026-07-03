@@ -16,8 +16,8 @@ Eventide provides an easy-to-use flutter interface to access & modify native dev
 :white_check_mark: | Create/delete reminders
 :white_check_mark: | Custom exceptions
 :white_check_mark: | Attendees
-:building_construction: | Edit calendars/events
-:bulb: | Recurring events
+:white_check_mark: | Edit calendars/events
+:building_construction: | Event recurrence
 
 ---
 

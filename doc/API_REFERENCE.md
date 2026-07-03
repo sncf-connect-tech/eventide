@@ -8,12 +8,14 @@ Detailed documentation for all Eventide API methods.
 - [Calendars](#calendars)
   - [createCalendar](#create-calendar)
   - [retrieveCalendars](#retrieve-calendars)
+  - [updateCalendar](#update-calendar)
   - [deleteCalendar](#delete-calendar)
 - [Events](#events)
   - [createEvent](#create-event)
   - [createEventInDefaultCalendar](#create-event-in-default-calendar)
   - [createEventThroughNativePlatform](#create-event-through-native-platform)
   - [retrieveEvents](#retrieve-events)
+  - [updateEvent](#update-event)
   - [deleteEvent](#delete-event)
 - [Reminders](#reminders)
   - [createReminder](#create-reminder)
@@ -66,6 +68,26 @@ Future<Iterable<ETCalendar>> retrieveCalendars({
 ```
 
 Retrieves a list of calendars, optionally filtered by account and calendar writability.
+
+### Update Calendar
+
+```dart
+Future<ETCalendar> updateCalendar(
+  ETCalendar calendar, {
+  String? title,
+  Color? color,
+})
+```
+
+Updates an existing calendar. Only the provided optional parameters will be updated; the others remain unchanged.
+
+Throws a `ETPermissionException` if the user refuses to grant calendar permissions.
+
+Throws a `ETNotFoundException` if the calendar is not found.
+
+Throws a `ETNotEditableException` if the calendar is not editable.
+
+Throws a `ETGenericException` if any other error occurs.
 
 ### Delete Calendar
 
@@ -154,6 +176,35 @@ final events = await eventide.retrieveEvents(
 ```
 
 Retrieves events from a calendar within the specified date range.
+
+### Update Event
+
+```dart
+Future<ETEvent> updateEvent(
+  ETEvent event, {
+  String? calendarId,
+  String? title,
+  DateTime? startDate,
+  DateTime? endDate,
+  bool? isAllDay,
+  String? description,
+  String? url,
+  String? location,
+  Iterable<Duration>? reminders,
+})
+```
+
+Updates an existing event. Only the provided optional parameters will be updated; the others remain unchanged.
+
+> ⚠️ **Note:** A `Duration` in seconds will not be supported by Android due to API limitations.
+
+Throws a `ETPermissionException` if the user refuses to grant calendar permissions.
+
+Throws a `ETNotFoundException` if the event or the target calendar is not found.
+
+Throws a `ETNotEditableException` if the calendar is not editable.
+
+Throws a `ETGenericException` if any other error occurs.
 
 ### Delete Event
 
