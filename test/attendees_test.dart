@@ -69,7 +69,12 @@ void main() {
         status: ETAttendanceStatus.unknown,
       );
 
-      when(() => mockCalendarApi.deleteAttendee(eventId: any(named: 'eventId'), email: any(named: 'email'))).thenAnswer(
+      when(
+        () => mockCalendarApi.deleteAttendee(
+          eventId: any(named: 'eventId'),
+          email: any(named: 'email'),
+        ),
+      ).thenAnswer(
         (_) async => Event(
           id: 'id',
           title: 'title',
@@ -101,14 +106,13 @@ void main() {
       const tuples = [(0, 0), (1, 1), (1, 2), (1, 3), (3, 1), (2, 1), (4, 1), (1, 4)];
 
       final results = tuples.map(
-        (e) =>
-            Attendee(
-              name: 'John Doe',
-              email: 'john.doe@example.com',
-              type: e.$1,
-              role: e.$2,
-              status: 2,
-            ).toETAttendee().type,
+        (e) => Attendee(
+          name: 'John Doe',
+          email: 'john.doe@example.com',
+          type: e.$1,
+          role: e.$2,
+          status: 2,
+        ).toETAttendee().type,
       );
 
       expect(results, [
@@ -127,14 +131,13 @@ void main() {
       const statuses = [0, 1, 2, 3, 4];
 
       final results = statuses.map(
-        (status) =>
-            Attendee(
-              name: 'John Doe',
-              email: 'john.doe@example.com',
-              type: 1,
-              role: 1,
-              status: status,
-            ).parseETAttendanceStatus(),
+        (status) => Attendee(
+          name: 'John Doe',
+          email: 'john.doe@example.com',
+          type: 1,
+          role: 1,
+          status: status,
+        ).parseETAttendanceStatus(),
       );
 
       expect(results, [
@@ -257,14 +260,13 @@ void main() {
       const tuples = [(0, 0), (1, 1), (2, 1), (1, 2), (3, 1), (1, 4), (1, 3)];
 
       final results = tuples.map(
-        (e) =>
-            Attendee(
-              name: 'John Doe',
-              email: 'john.doe@example.com',
-              type: e.$1,
-              role: e.$2,
-              status: 2,
-            ).toETAttendee().type,
+        (e) => Attendee(
+          name: 'John Doe',
+          email: 'john.doe@example.com',
+          type: e.$1,
+          role: e.$2,
+          status: 2,
+        ).toETAttendee().type,
       );
 
       expect(results, [
@@ -282,14 +284,13 @@ void main() {
       const statuses = [0, 1, 2, 3, 4];
 
       final results = statuses.map(
-        (status) =>
-            Attendee(
-              name: 'John Doe',
-              email: 'john.doe@example.com',
-              type: 1,
-              role: 1,
-              status: status,
-            ).parseETAttendanceStatus(),
+        (status) => Attendee(
+          name: 'John Doe',
+          email: 'john.doe@example.com',
+          type: 1,
+          role: 1,
+          status: status,
+        ).parseETAttendanceStatus(),
       );
 
       expect(results, [

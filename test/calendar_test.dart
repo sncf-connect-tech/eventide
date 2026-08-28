@@ -61,7 +61,11 @@ void main() {
     // Given
     final account = Account(id: 'Test account', name: 'Test account', type: 'local');
     when(
-      () => mockCalendarApi.createCalendar(title: any(named: 'title'), color: any(named: 'color'), account: account),
+      () => mockCalendarApi.createCalendar(
+        title: any(named: 'title'),
+        color: any(named: 'color'),
+        account: account,
+      ),
     ).thenThrow(ETGenericException(message: 'API Error'));
     // When
     Future<ETCalendar> call() =>

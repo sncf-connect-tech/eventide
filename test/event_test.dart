@@ -360,7 +360,10 @@ void main() {
         ),
       ).thenAnswer((_) async => event);
       when(
-        () => mockCalendarApi.createReminder(reminder: any(named: 'reminder'), eventId: any(named: 'eventId')),
+        () => mockCalendarApi.createReminder(
+          reminder: any(named: 'reminder'),
+          eventId: any(named: 'eventId'),
+        ),
       ).thenAnswer((_) async => event.copyWithReminders(reminders.toNativeList()));
 
       // When
@@ -413,7 +416,10 @@ void main() {
         ),
       ).thenAnswer((_) async => event);
       when(
-        () => mockCalendarApi.createReminder(reminder: any(named: 'reminder'), eventId: any(named: 'eventId')),
+        () => mockCalendarApi.createReminder(
+          reminder: any(named: 'reminder'),
+          eventId: any(named: 'eventId'),
+        ),
       ).thenAnswer((_) async => event.copyWithReminders(reminders.toNativeList()));
 
       // When
@@ -470,7 +476,10 @@ void main() {
         ),
       ).thenAnswer((_) async => event);
       when(
-        () => mockCalendarApi.createReminder(reminder: any(named: 'reminder'), eventId: any(named: 'eventId')),
+        () => mockCalendarApi.createReminder(
+          reminder: any(named: 'reminder'),
+          eventId: any(named: 'eventId'),
+        ),
       ).thenAnswer((_) async => event.copyWithReminders(reminders.toNativeList()));
 
       // When

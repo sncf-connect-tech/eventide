@@ -1,3 +1,7 @@
+## 2.4.0
+* **Upgrade to AGP 9.3.2 & Gradle 9.7.1** on Android (internal build tooling upgrade, no public API changes).
+* **Bump Flutter minimum version to 3.44.0**
+
 ## 2.3.0
 * **Edit feature** for calendars and events.
 * Refactored ETException as a sealed class hierarchy.
