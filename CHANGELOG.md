@@ -1,3 +1,6 @@
+## 2.3.1
+* **AGP 9 / Built-in Kotlin support:** the Android plugin no longer applies the Kotlin Gradle Plugin when the host app builds with AGP 9 or later, so apps can now set `android.builtInKotlin=true`. KGP is still applied on AGP 8 and earlier. `kotlinOptions` was replaced by `kotlin.compilerOptions` (JVM 17) and the bundled KGP fallback was bumped from 1.7.10 to 2.1.0.
+
 ## 2.3.0
 * **Edit feature** for calendars and events.
 * Refactored ETException as a sealed class hierarchy.
