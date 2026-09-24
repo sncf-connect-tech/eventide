@@ -159,6 +159,8 @@ class Event {
     this.description,
     this.url,
     this.location,
+    this.recurrenceRule,
+    this.originalInstanceTime,
   });
 
   String id;
@@ -183,6 +185,10 @@ class Event {
 
   String? location;
 
+  String? recurrenceRule;
+
+  int? originalInstanceTime;
+
   List<Object?> _toList() {
     return <Object?>[
       id,
@@ -196,6 +202,8 @@ class Event {
       description,
       url,
       location,
+      recurrenceRule,
+      originalInstanceTime,
     ];
   }
 
@@ -217,6 +225,8 @@ class Event {
       description: result[8] as String?,
       url: result[9] as String?,
       location: result[10] as String?,
+      recurrenceRule: result[11] as String?,
+      originalInstanceTime: result[12] as int?,
     );
   }
 
@@ -239,7 +249,9 @@ class Event {
         _deepEquals(attendees, other.attendees) &&
         _deepEquals(description, other.description) &&
         _deepEquals(url, other.url) &&
-        _deepEquals(location, other.location);
+        _deepEquals(location, other.location) &&
+        _deepEquals(recurrenceRule, other.recurrenceRule) &&
+        _deepEquals(originalInstanceTime, other.originalInstanceTime);
   }
 
   @override
@@ -493,6 +505,7 @@ class CalendarApi {
     required String? url,
     required String? location,
     required List<int>? reminders,
+    required String? recurrenceRule,
   }) async {
     final pigeonVar_channelName = 'dev.flutter.pigeon.eventide.CalendarApi.createEvent$pigeonVar_messageChannelSuffix';
     final pigeonVar_channel = BasicMessageChannel<Object?>(
@@ -510,6 +523,7 @@ class CalendarApi {
       url,
       location,
       reminders,
+      recurrenceRule,
     ]);
     final pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
 
@@ -532,6 +546,9 @@ class CalendarApi {
     required String? url,
     required String? location,
     required List<int>? reminders,
+    required String? recurrenceRule,
+    required String span,
+    required int? originalInstanceTime,
   }) async {
     final pigeonVar_channelName = 'dev.flutter.pigeon.eventide.CalendarApi.updateEvent$pigeonVar_messageChannelSuffix';
     final pigeonVar_channel = BasicMessageChannel<Object?>(
@@ -550,6 +567,9 @@ class CalendarApi {
       url,
       location,
       reminders,
+      recurrenceRule,
+      span,
+      originalInstanceTime,
     ]);
     final pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
 
@@ -570,6 +590,7 @@ class CalendarApi {
     required String? url,
     required String? location,
     required List<int>? reminders,
+    required String? recurrenceRule,
   }) async {
     final pigeonVar_channelName =
         'dev.flutter.pigeon.eventide.CalendarApi.createEventInDefaultCalendar$pigeonVar_messageChannelSuffix';
@@ -587,6 +608,7 @@ class CalendarApi {
       url,
       location,
       reminders,
+      recurrenceRule,
     ]);
     final pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
 
@@ -602,6 +624,7 @@ class CalendarApi {
     String? url,
     String? location,
     List<int>? reminders,
+    String? recurrenceRule,
   }) async {
     final pigeonVar_channelName =
         'dev.flutter.pigeon.eventide.CalendarApi.createEventThroughNativePlatform$pigeonVar_messageChannelSuffix';
@@ -619,6 +642,7 @@ class CalendarApi {
       url,
       location,
       reminders,
+      recurrenceRule,
     ]);
     final pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
 
@@ -644,14 +668,14 @@ class CalendarApi {
     return (pigeonVar_replyValue! as List<Object?>).cast<Event>();
   }
 
-  Future<void> deleteEvent({required String eventId}) async {
+  Future<void> deleteEvent({required String eventId, required String span, required int? originalInstanceTime}) async {
     final pigeonVar_channelName = 'dev.flutter.pigeon.eventide.CalendarApi.deleteEvent$pigeonVar_messageChannelSuffix';
     final pigeonVar_channel = BasicMessageChannel<Object?>(
       pigeonVar_channelName,
       pigeonChannelCodec,
       binaryMessenger: pigeonVar_binaryMessenger,
     );
-    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(<Object?>[eventId]);
+    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(<Object?>[eventId, span, originalInstanceTime]);
     final pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
 
     _extractReplyValueOrThrow(pigeonVar_replyList, pigeonVar_channelName, isNullValid: true);

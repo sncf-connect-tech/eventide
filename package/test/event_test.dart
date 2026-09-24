@@ -68,6 +68,7 @@ void main() {
         url: any(named: 'url'),
         location: any(named: 'location'),
         reminders: any(named: 'reminders'),
+        recurrenceRule: any(named: 'recurrenceRule'),
       ),
     ).thenAnswer((_) async => event);
 
@@ -93,6 +94,7 @@ void main() {
         url: any(named: 'url'),
         location: any(named: 'location'),
         reminders: any(named: 'reminders'),
+        recurrenceRule: any(named: 'recurrenceRule'),
       ),
     ).called(1);
   });
@@ -122,6 +124,7 @@ void main() {
         url: any(named: 'url'),
         location: any(named: 'location'),
         reminders: any(named: 'reminders'),
+        recurrenceRule: any(named: 'recurrenceRule'),
       ),
     ).thenAnswer((_) async => event);
 
@@ -147,6 +150,7 @@ void main() {
         url: any(named: 'url'),
         location: '1 Place Bellecour, 69002 Lyon',
         reminders: any(named: 'reminders'),
+        recurrenceRule: any(named: 'recurrenceRule'),
       ),
     ).called(1);
   });
@@ -164,6 +168,7 @@ void main() {
         url: any(named: 'url'),
         location: any(named: 'location'),
         reminders: any(named: 'reminders'),
+        recurrenceRule: any(named: 'recurrenceRule'),
       ),
     ).thenThrow(ETGenericException(message: 'API Error'));
 
@@ -184,6 +189,7 @@ void main() {
         url: any(named: 'url'),
         location: any(named: 'location'),
         reminders: any(named: 'reminders'),
+        recurrenceRule: any(named: 'recurrenceRule'),
       ),
     ).called(1);
   });
@@ -213,6 +219,7 @@ void main() {
         url: any(named: 'url'),
         location: any(named: 'location'),
         reminders: any(named: 'reminders'),
+        recurrenceRule: any(named: 'recurrenceRule'),
       ),
     ).thenAnswer((_) async => event);
 
@@ -236,6 +243,7 @@ void main() {
         url: 'http://test.com',
         location: null,
         reminders: null,
+        recurrenceRule: any(named: 'recurrenceRule'),
       ),
     ).called(1);
   });
@@ -263,6 +271,7 @@ void main() {
         url: any(named: 'url'),
         location: any(named: 'location'),
         reminders: any(named: 'reminders'),
+        recurrenceRule: any(named: 'recurrenceRule'),
       ),
     ).thenAnswer((_) async => event);
 
@@ -285,6 +294,7 @@ void main() {
         url: null,
         location: null,
         reminders: null,
+        recurrenceRule: any(named: 'recurrenceRule'),
       ),
     ).called(1);
   });
@@ -301,6 +311,7 @@ void main() {
         url: any(named: 'url'),
         location: any(named: 'location'),
         reminders: any(named: 'reminders'),
+        recurrenceRule: any(named: 'recurrenceRule'),
       ),
     ).thenThrow(ETGenericException(message: 'API Error'));
 
@@ -320,6 +331,7 @@ void main() {
         url: null,
         location: null,
         reminders: null,
+        recurrenceRule: any(named: 'recurrenceRule'),
       ),
     ).called(1);
   });
@@ -357,6 +369,7 @@ void main() {
           url: any(named: 'url'),
           location: any(named: 'location'),
           reminders: any(named: 'reminders'),
+          recurrenceRule: any(named: 'recurrenceRule'),
         ),
       ).thenAnswer((_) async => event);
       when(
@@ -385,6 +398,7 @@ void main() {
           url: null,
           location: null,
           reminders: [10 * 60, 20 * 60],
+          recurrenceRule: null,
         ),
       ).called(1);
     });
@@ -413,6 +427,7 @@ void main() {
           url: any(named: 'url'),
           location: any(named: 'location'),
           reminders: any(named: 'reminders'),
+          recurrenceRule: any(named: 'recurrenceRule'),
         ),
       ).thenAnswer((_) async => event);
       when(
@@ -444,6 +459,7 @@ void main() {
           url: any(named: 'url'),
           location: any(named: 'location'),
           reminders: [10, 20],
+          recurrenceRule: null,
         ),
       ).called(1);
     });
@@ -473,6 +489,7 @@ void main() {
           url: any(named: 'url'),
           location: any(named: 'location'),
           reminders: any(named: 'reminders'),
+          recurrenceRule: any(named: 'recurrenceRule'),
         ),
       ).thenAnswer((_) async => event);
       when(
@@ -501,6 +518,7 @@ void main() {
           url: null,
           location: null,
           reminders: [10, 20],
+          recurrenceRule: null,
         ),
       ).called(1);
     });
@@ -518,6 +536,7 @@ void main() {
         url: any(named: 'url'),
         location: any(named: 'location'),
         reminders: any(named: 'reminders'),
+        recurrenceRule: any(named: 'recurrenceRule'),
       ),
     ).thenAnswer((_) async {});
 
@@ -707,6 +726,7 @@ void main() {
         url: any(named: 'url'),
         location: any(named: 'location'),
         reminders: any(named: 'reminders'),
+        recurrenceRule: any(named: 'recurrenceRule'),
       ),
     ).thenAnswer((_) async => mockEvent);
 
@@ -728,6 +748,7 @@ void main() {
         url: null,
         location: null,
         reminders: null,
+        recurrenceRule: any(named: 'recurrenceRule'),
       ),
     ).called(1);
   });
@@ -826,6 +847,9 @@ void main() {
           url: any(named: 'url'),
           location: any(named: 'location'),
           reminders: any(named: 'reminders'),
+          recurrenceRule: any(named: 'recurrenceRule'),
+          span: any(named: 'span'),
+          originalInstanceTime: any(named: 'originalInstanceTime'),
         ),
       ).thenAnswer((_) async => originalEvent);
 
@@ -852,6 +876,9 @@ void main() {
           url: 'http://updated.com',
           location: originalEvent.location,
           reminders: originalEvent.reminders,
+          recurrenceRule: originalEvent.recurrenceRule,
+          span: 'thisEvent',
+          originalInstanceTime: null,
         ),
       ).called(1);
     });
@@ -883,6 +910,9 @@ void main() {
           url: any(named: 'url'),
           location: any(named: 'location'),
           reminders: any(named: 'reminders'),
+          recurrenceRule: any(named: 'recurrenceRule'),
+          span: any(named: 'span'),
+          originalInstanceTime: any(named: 'originalInstanceTime'),
         ),
       ).thenAnswer((_) async => originalEvent);
 
@@ -902,6 +932,9 @@ void main() {
           url: originalEvent.url,
           location: originalEvent.location,
           reminders: originalEvent.reminders,
+          recurrenceRule: originalEvent.recurrenceRule,
+          span: 'thisEvent',
+          originalInstanceTime: null,
         ),
       ).called(1);
     });
@@ -933,6 +966,9 @@ void main() {
           url: any(named: 'url'),
           location: any(named: 'location'),
           reminders: any(named: 'reminders'),
+          recurrenceRule: any(named: 'recurrenceRule'),
+          span: any(named: 'span'),
+          originalInstanceTime: any(named: 'originalInstanceTime'),
         ),
       ).thenThrow(ETGenericException(message: 'API Error'));
 
@@ -958,8 +994,109 @@ void main() {
           url: any(named: 'url'),
           location: any(named: 'location'),
           reminders: any(named: 'reminders'),
+          recurrenceRule: any(named: 'recurrenceRule'),
+          span: any(named: 'span'),
+          originalInstanceTime: any(named: 'originalInstanceTime'),
         ),
       ).called(1);
+    });
+  });
+
+  group('ETEvent with recurrence', () {
+    test('toETEvent maps recurrenceRule', () {
+      final raw = Event(
+        id: '1',
+        title: 'T',
+        isAllDay: false,
+        startDate: 0,
+        endDate: 3600000,
+        calendarId: 'cal1',
+        reminders: [],
+        attendees: [],
+        description: null,
+        url: null,
+        location: null,
+        recurrenceRule: 'FREQ=WEEKLY;BYDAY=MO',
+        originalInstanceTime: 1751788800000,
+      );
+      final etEvent = raw.toETEvent();
+      expect(etEvent.recurrenceRule, equals('FREQ=WEEKLY;BYDAY=MO'));
+    });
+
+    test('toETEvent maps originalInstanceTime to DateTime', () {
+      final raw = Event(
+        id: '1',
+        title: 'T',
+        isAllDay: false,
+        startDate: 0,
+        endDate: 3600000,
+        calendarId: 'cal1',
+        reminders: [],
+        attendees: [],
+        description: null,
+        url: null,
+        location: null,
+        recurrenceRule: 'FREQ=DAILY',
+        originalInstanceTime: 1751788800000,
+      );
+      final etEvent = raw.toETEvent();
+      expect(etEvent.originalInstanceTime, equals(DateTime.fromMillisecondsSinceEpoch(1751788800000, isUtc: true)));
+    });
+
+    test('toETEvent sets originalInstanceTime to null for non-recurring', () {
+      final raw = Event(
+        id: '1',
+        title: 'T',
+        isAllDay: false,
+        startDate: 0,
+        endDate: 3600000,
+        calendarId: 'cal1',
+        reminders: [],
+        attendees: [],
+        description: null,
+        url: null,
+        location: null,
+        recurrenceRule: null,
+        originalInstanceTime: null,
+      );
+      final etEvent = raw.toETEvent();
+      expect(etEvent.originalInstanceTime, isNull);
+      expect(etEvent.recurrenceRule, isNull);
+    });
+
+    test('ETEvent equality includes recurrenceRule and originalInstanceTime', () {
+      final dt = DateTime.fromMillisecondsSinceEpoch(1751788800000, isUtc: true);
+      final a = ETEvent(
+        id: '1',
+        title: 'T',
+        isAllDay: false,
+        startDate: DateTime(2026, 7, 7),
+        endDate: DateTime(2026, 7, 7, 1),
+        calendarId: 'cal1',
+        reminders: [],
+        attendees: [],
+        description: null,
+        url: null,
+        location: null,
+        recurrenceRule: 'FREQ=DAILY',
+        originalInstanceTime: dt,
+      );
+      final b = ETEvent(
+        id: '1',
+        title: 'T',
+        isAllDay: false,
+        startDate: DateTime(2026, 7, 7),
+        endDate: DateTime(2026, 7, 7, 1),
+        calendarId: 'cal1',
+        reminders: [],
+        attendees: [],
+        description: null,
+        url: null,
+        location: null,
+        recurrenceRule: 'FREQ=DAILY',
+        originalInstanceTime: dt,
+      );
+      expect(a, equals(b));
     });
   });
 

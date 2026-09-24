@@ -44,10 +44,13 @@ abstract class CalendarApi {
     required String? url,
     required String? location,
     required List<int>? reminders,
+    required String? recurrenceRule,
   });
 
   @async
-  @SwiftFunction('updateEvent(withId:calendarId:title:startDate:endDate:isAllDay:description:url:location:reminders:)')
+  @SwiftFunction(
+    'updateEvent(withId:calendarId:title:startDate:endDate:isAllDay:description:url:location:reminders:recurrenceRule:span:originalInstanceTime:)',
+  )
   Event updateEvent({
     required String eventId,
     required String calendarId,
@@ -59,6 +62,9 @@ abstract class CalendarApi {
     required String? url,
     required String? location,
     required List<int>? reminders,
+    required String? recurrenceRule,
+    required String span,
+    required int? originalInstanceTime,
   });
 
   @async
@@ -71,6 +77,7 @@ abstract class CalendarApi {
     required String? url,
     required String? location,
     required List<int>? reminders,
+    required String? recurrenceRule,
   });
 
   @async
@@ -83,14 +90,15 @@ abstract class CalendarApi {
     String? url,
     String? location,
     List<int>? reminders,
+    String? recurrenceRule,
   });
 
   @async
   List<Event> retrieveEvents({required String calendarId, required int startDate, required int endDate});
 
   @async
-  @SwiftFunction('deleteEvent(withId:)')
-  void deleteEvent({required String eventId});
+  @SwiftFunction('deleteEvent(withId:span:originalInstanceTime:)')
+  void deleteEvent({required String eventId, required String span, required int? originalInstanceTime});
 
   @async
   @SwiftFunction('createReminder(_:forEventId:)')
@@ -141,6 +149,8 @@ final class Event {
   final String? description;
   final String? url;
   final String? location;
+  final String? recurrenceRule;
+  final int? originalInstanceTime;
 
   const Event({
     required this.id,
@@ -154,6 +164,8 @@ final class Event {
     required this.description,
     required this.url,
     required this.location,
+    required this.recurrenceRule,
+    required this.originalInstanceTime,
   });
 }
 

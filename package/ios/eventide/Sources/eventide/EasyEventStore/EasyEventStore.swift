@@ -150,7 +150,8 @@ final class EasyEventStore: EasyEventStoreProtocol {
         description: String?,
         url: String?,
         location: String?,
-        timeIntervals: [TimeInterval]?
+        timeIntervals: [TimeInterval]?,
+        recurrenceRule: String?
     ) throws -> Event {
         let ekEvent = EKEvent(eventStore: eventStore)
 
@@ -171,6 +172,11 @@ final class EasyEventStore: EasyEventStoreProtocol {
         ekEvent.isAllDay = isAllDay
         ekEvent.alarms = timeIntervals?.compactMap({ EKAlarm(relativeOffset: $0) })
         ekEvent.location = location
+
+        if let rrule = recurrenceRule,
+           let ekRule = RRuleParser.parse(rrule) {
+            ekEvent.recurrenceRules = [ekRule]
+        }
 
         if url != nil {
             ekEvent.url = URL(string: url!)
@@ -198,7 +204,8 @@ final class EasyEventStore: EasyEventStoreProtocol {
         description: String?,
         url: String?,
         location: String?,
-        timeIntervals: [TimeInterval]?
+        timeIntervals: [TimeInterval]?,
+        recurrenceRule: String?
     ) throws {
         let ekEvent = EKEvent(eventStore: eventStore)
 
@@ -211,6 +218,11 @@ final class EasyEventStore: EasyEventStoreProtocol {
         ekEvent.isAllDay = isAllDay
         ekEvent.alarms = timeIntervals?.compactMap({ EKAlarm(relativeOffset: $0) })
         ekEvent.location = location
+
+        if let rrule = recurrenceRule,
+           let ekRule = RRuleParser.parse(rrule) {
+            ekEvent.recurrenceRules = [ekRule]
+        }
 
         if url != nil {
             ekEvent.url = URL(string: url!)
@@ -238,6 +250,7 @@ final class EasyEventStore: EasyEventStoreProtocol {
         url: String?,
         location: String?,
         timeIntervals: [TimeInterval]?,
+        recurrenceRule: String?,
         completion: @escaping (Result<Void, Error>) -> Void
     ) {
         eventEditManager.presentEventEditViewController(
@@ -249,6 +262,7 @@ final class EasyEventStore: EasyEventStoreProtocol {
             url: url,
             location: location,
             timeIntervals: timeIntervals,
+            recurrenceRule: recurrenceRule,
             completion: completion
         )
     }
@@ -281,16 +295,44 @@ final class EasyEventStore: EasyEventStoreProtocol {
         description: String?,
         url: String?,
         location: String?,
-        timeIntervals: [TimeInterval]?
+        timeIntervals: [TimeInterval]?,
+        recurrenceRule: String?,
+        span: String,
+        originalInstanceTime: Int64?
     ) throws -> Event {
-        guard let ekEvent = eventStore.event(withIdentifier: eventId) else {
-            throw PigeonError(
-                code: "NOT_FOUND",
-                message: "Event not found",
-                details: "The provided event.id is certainly incorrect"
-            )
+        let ekEvent: EKEvent
+        var resolvedOccurrence = false
+
+        switch span {
+        case "thisEvent", "thisAndFuture":
+            if let instanceTime = originalInstanceTime,
+               let occurrence = findOccurrence(eventId: eventId, originalInstanceTimeMs: instanceTime) {
+                ekEvent = occurrence
+                resolvedOccurrence = true
+            } else {
+                // No originalInstanceTime provided (e.g. non-recurring event, legacy caller) —
+                // fall back to operating on the master event, matching "allEvents" semantics.
+                guard let master = eventStore.event(withIdentifier: eventId) else {
+                    throw PigeonError(
+                        code: "NOT_FOUND",
+                        message: "Event not found",
+                        details: "The provided event.id is certainly incorrect"
+                    )
+                }
+                ekEvent = master
+            }
+
+        default: // "allEvents" and unrecognized spans fall back to the master event
+            guard let master = eventStore.event(withIdentifier: eventId) else {
+                throw PigeonError(
+                    code: "NOT_FOUND",
+                    message: "Event not found",
+                    details: "The provided event.id is certainly incorrect"
+                )
+            }
+            ekEvent = master
         }
-        
+
         guard ekEvent.calendar.allowsContentModifications else {
             throw PigeonError(
                 code: "NOT_EDITABLE",
@@ -337,8 +379,17 @@ final class EasyEventStore: EasyEventStoreProtocol {
             ekEvent.alarms = timeIntervals.map({ EKAlarm(relativeOffset: $0) })
         }
 
+        if let rrule = recurrenceRule, let ekRule = RRuleParser.parse(rrule) {
+            ekEvent.recurrenceRules = [ekRule]
+        }
+
+        // Only apply "future events" span semantics when we actually resolved a
+        // specific occurrence; a fallback to the master event (missing/invalid
+        // originalInstanceTime) always saves with `.thisEvent`.
+        let ekSpan: EKSpan = (span == "thisAndFuture" && resolvedOccurrence) ? .futureEvents : .thisEvent
+
         do {
-            try eventStore.save(ekEvent, span: EKSpan.thisEvent, commit: true)
+            try eventStore.save(ekEvent, span: ekSpan, commit: true)
             return ekEvent.toEvent()
             
         } catch {
@@ -351,7 +402,72 @@ final class EasyEventStore: EasyEventStoreProtocol {
         }
     }
     
-    func deleteEvent(eventId: String) throws {
+    func deleteEvent(eventId: String, span: String, originalInstanceTime: Int64?) throws {
+        switch span {
+        case "thisEvent":
+            if let instanceTime = originalInstanceTime,
+               let occurrence = findOccurrence(eventId: eventId, originalInstanceTimeMs: instanceTime) {
+                guard occurrence.calendar.allowsContentModifications else {
+                    throw PigeonError(
+                        code: "NOT_EDITABLE",
+                        message: "Calendar not editable",
+                        details: "The calendar related to this event does not allow content modifications"
+                    )
+                }
+
+                do {
+                    try eventStore.remove(occurrence, span: .thisEvent)
+                } catch {
+                    eventStore.reset()
+                    throw PigeonError(
+                        code: "GENERIC_ERROR",
+                        message: "An error occurred",
+                        details: error.localizedDescription
+                    )
+                }
+            } else {
+                // No originalInstanceTime provided (e.g. non-recurring event, legacy caller) —
+                // fall back to removing the master event, matching "allEvents" semantics.
+                try deleteMasterEvent(eventId: eventId)
+            }
+
+        case "thisAndFuture":
+            if let instanceTime = originalInstanceTime,
+               let occurrence = findOccurrence(eventId: eventId, originalInstanceTimeMs: instanceTime) {
+                guard occurrence.calendar.allowsContentModifications else {
+                    throw PigeonError(
+                        code: "NOT_EDITABLE",
+                        message: "Calendar not editable",
+                        details: "The calendar related to this event does not allow content modifications"
+                    )
+                }
+
+                do {
+                    try eventStore.remove(occurrence, span: .futureEvents)
+                } catch {
+                    eventStore.reset()
+                    throw PigeonError(
+                        code: "GENERIC_ERROR",
+                        message: "An error occurred",
+                        details: error.localizedDescription
+                    )
+                }
+            } else {
+                // No originalInstanceTime provided (e.g. non-recurring event, legacy caller) —
+                // fall back to removing the master event, matching "allEvents" semantics.
+                try deleteMasterEvent(eventId: eventId)
+            }
+
+        default: // "allEvents" and unrecognized spans fall back to removing the whole series
+            try deleteMasterEvent(eventId: eventId)
+        }
+    }
+
+    /// Removes the master event (and, transitively, its whole recurring series)
+    /// identified by [eventId]. Used for the "allEvents" span, and as a safe
+    /// fallback for "thisEvent"/"thisAndFuture" when no originalInstanceTime is
+    /// provided (e.g. non-recurring events, or legacy pre-recurrence callers).
+    private func deleteMasterEvent(eventId: String) throws {
         guard let event = eventStore.event(withIdentifier: eventId) else {
             throw PigeonError(
                 code: "NOT_FOUND",
@@ -359,7 +475,7 @@ final class EasyEventStore: EasyEventStoreProtocol {
                 details: "The provided event.id is certainly incorrect"
             )
         }
-        
+
         guard event.calendar.allowsContentModifications else {
             throw PigeonError(
                 code: "NOT_EDITABLE",
@@ -367,10 +483,10 @@ final class EasyEventStore: EasyEventStoreProtocol {
                 details: "The calendar related to this event does not allow content modifications"
             )
         }
-            
+
         do {
             try eventStore.remove(event, span: .thisEvent)
-            
+
         } catch {
             eventStore.reset()
             throw PigeonError(
@@ -474,6 +590,21 @@ final class EasyEventStore: EasyEventStoreProtocol {
         return attendees
     }
     
+    /// Fetches the specific EKEvent occurrence for [eventId] whose occurrenceDate
+    /// matches [originalInstanceTimeMs] (within a 1-second tolerance).
+    private func findOccurrence(eventId: String, originalInstanceTimeMs: Int64) -> EKEvent? {
+        let targetDate = Date(from: originalInstanceTimeMs)
+        let predicate = eventStore.predicateForEvents(
+            withStart: targetDate.addingTimeInterval(-1),
+            end: targetDate.addingTimeInterval(86401),
+            calendars: nil
+        )
+        return eventStore.events(matching: predicate).first {
+            $0.eventIdentifier == eventId &&
+            abs($0.occurrenceDate.timeIntervalSince(targetDate)) < 1.0
+        }
+    }
+
     private func getSource(for account: Account? = nil) -> EKSource? {
         guard let defaultSource = eventStore.defaultCalendarForNewEvents?.source else {
             // if eventStore.defaultCalendarForNewEvents?.source is nil then eventStore.sources is empty
@@ -532,7 +663,9 @@ fileprivate extension EKEvent {
             } ?? [],
             description: notes,
             url: url?.absoluteString,
-            location: location
+            location: location,
+            recurrenceRule: recurrenceRules?.first.map { RRuleSerializer.serialize($0) },
+            originalInstanceTime: (recurrenceRules?.isEmpty == false) ? occurrenceDate.millisecondsSince1970 : nil
         )
     }
 }
