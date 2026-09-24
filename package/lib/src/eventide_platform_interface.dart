@@ -1,11 +1,10 @@
 import 'dart:ui';
 
+import 'package:eventide/eventide.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
-
-import 'eventide.dart';
 
 abstract class EventidePlatform extends PlatformInterface {
   EventidePlatform() : super(token: _token);
@@ -41,6 +40,7 @@ abstract class EventidePlatform extends PlatformInterface {
     String? url,
     String? location,
     Iterable<Duration>? reminders,
+    String? recurrenceRule,
   });
 
   Future<void> createEventInDefaultCalendar({
@@ -52,6 +52,7 @@ abstract class EventidePlatform extends PlatformInterface {
     String? url,
     String? location,
     Iterable<Duration>? reminders,
+    String? recurrenceRule,
   });
 
   Future<void> createEventThroughNativePlatform({
@@ -63,6 +64,7 @@ abstract class EventidePlatform extends PlatformInterface {
     String? url,
     String? location,
     Iterable<Duration>? reminders,
+    String? recurrenceRule,
   });
 
   Future<Iterable<ETEvent>> retrieveEvents({required String calendarId, DateTime? startDate, DateTime? endDate});
@@ -78,9 +80,12 @@ abstract class EventidePlatform extends PlatformInterface {
     String? url,
     String? location,
     Iterable<Duration>? reminders,
+    String? recurrenceRule,
+    ETSpan span = ETSpan.thisEvent,
+    DateTime? originalInstanceTime,
   });
 
-  Future<void> deleteEvent({required String eventId});
+  Future<void> deleteEvent({required String eventId, ETSpan span = ETSpan.thisEvent, DateTime? originalInstanceTime});
 
   Future<ETEvent> createReminder({required String eventId, required Duration durationBeforeEvent});
 
@@ -156,6 +161,10 @@ final class ETCalendar {
 /// [location] is the location of the event.
 ///
 /// [reminders] is a list of [Duration] before the event.
+///
+/// [recurrenceRule] is the RRULE string describing the recurrence pattern of the event, if any.
+///
+/// [originalInstanceTime] is the original start time of this instance within a recurring series, if any.
 final class ETEvent {
   final String id;
   final String title;
@@ -168,6 +177,8 @@ final class ETEvent {
   final String? description;
   final String? url;
   final String? location;
+  final String? recurrenceRule;
+  final DateTime? originalInstanceTime;
 
   @override
   int get hashCode => Object.hashAll([
@@ -182,6 +193,8 @@ final class ETEvent {
     description,
     url,
     location,
+    recurrenceRule,
+    originalInstanceTime,
   ]);
 
   const ETEvent({
@@ -196,6 +209,8 @@ final class ETEvent {
     this.description,
     this.url,
     this.location,
+    this.recurrenceRule,
+    this.originalInstanceTime,
   });
 
   @override
@@ -213,7 +228,9 @@ final class ETEvent {
           listEquals(List.from(other.reminders), List.from(reminders)) &&
           other.description == description &&
           other.url == url &&
-          other.location == location;
+          other.location == location &&
+          other.recurrenceRule == recurrenceRule &&
+          other.originalInstanceTime == originalInstanceTime;
 }
 
 /// Represents an account.

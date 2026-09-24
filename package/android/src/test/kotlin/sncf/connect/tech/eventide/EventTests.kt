@@ -39,6 +39,7 @@ class EventTests {
     private lateinit var eventContentUri: Uri
     private lateinit var remindersContentUri: Uri
     private lateinit var attendeesContentUri: Uri
+    private lateinit var instancesContentUri: Uri
 
     @BeforeEach
     fun setup() {
@@ -53,6 +54,7 @@ class EventTests {
         eventContentUri = mockk(relaxed = true)
         remindersContentUri = mockk(relaxed = true)
         attendeesContentUri = mockk(relaxed = true)
+        instancesContentUri = mockk(relaxed = true)
 
         calendarImplem = CalendarImplem(
             context,
@@ -65,7 +67,8 @@ class EventTests {
             calendarContentUri,
             eventContentUri,
             remindersContentUri,
-            attendeesContentUri
+            attendeesContentUri,
+            instancesContentUri
         )
     }
 
@@ -125,7 +128,8 @@ class EventTests {
             description = "Description",
             url = null,
             location = null,
-            reminders = null
+            reminders = null,
+            recurrenceRule = null
         ) {
             result = it
             latch.countDown()
@@ -163,7 +167,8 @@ class EventTests {
             description = "Description",
             url = null,
             location = null,
-            reminders = null
+            reminders = null,
+            recurrenceRule = null
         ) {
             result = it
             latch.countDown()
@@ -191,7 +196,8 @@ class EventTests {
             description = "Description",
             url = null,
             location = null,
-            reminders = null
+            reminders = null,
+            recurrenceRule = null
         ) {
             result = it
             latch.countDown()
@@ -217,7 +223,8 @@ class EventTests {
             description = "Description",
             url = null,
             location = null,
-            reminders = null
+            reminders = null,
+            recurrenceRule = null
         ) {
             result = it
         }
@@ -244,7 +251,8 @@ class EventTests {
             description = "Description",
             url = null,
             location = null,
-            reminders = null
+            reminders = null,
+            recurrenceRule = null
         ) {
             result = it
             latch.countDown()
@@ -260,7 +268,29 @@ class EventTests {
     fun retrieveEvents_withGrantedPermission_returnsEvents() = runTest {
         mockPermissionGranted(permissionHandler)
 
-        mockRetrieveEvents(contentResolver, eventContentUri)
+        // retrieveEvents now queries CalendarContract.Instances (expanded occurrences)
+        // via a URI built from `instancesContentUri.buildUpon()...`, rather than the
+        // injected `eventContentUri` directly, so we match on any() URI here.
+        val instancesCursor = mockk<Cursor>(relaxed = true)
+        every { contentResolver.query(any(), any(), any(), any(), any()) } returns instancesCursor
+        every { instancesCursor.moveToNext() } returnsMany listOf(true, false)
+        every { instancesCursor.getColumnIndexOrThrow(CalendarContract.Instances.EVENT_ID) } returns 0
+        every { instancesCursor.getColumnIndexOrThrow(CalendarContract.Instances.TITLE) } returns 1
+        every { instancesCursor.getColumnIndexOrThrow(CalendarContract.Instances.DESCRIPTION) } returns 2
+        every { instancesCursor.getColumnIndexOrThrow(CalendarContract.Instances.EVENT_LOCATION) } returns 3
+        every { instancesCursor.getColumnIndexOrThrow(CalendarContract.Instances.BEGIN) } returns 4
+        every { instancesCursor.getColumnIndexOrThrow(CalendarContract.Instances.END) } returns 5
+        every { instancesCursor.getColumnIndexOrThrow(CalendarContract.Instances.RRULE) } returns 6
+        every { instancesCursor.getColumnIndexOrThrow(CalendarContract.Instances.ALL_DAY) } returns 7
+        every { instancesCursor.getString(0) } returns "eventId"
+        every { instancesCursor.getString(1) } returns "eventTitle"
+        every { instancesCursor.getString(2) } returns "eventDescription"
+        every { instancesCursor.getString(3) } returns "location"
+        every { instancesCursor.getLong(4) } returns 1L
+        every { instancesCursor.getLong(5) } returns 1L
+        every { instancesCursor.getString(6) } returns null
+        every { instancesCursor.getInt(7) } returns 0
+
         mockRetrieveAttendees(contentResolver, attendeesContentUri)
         mockRetrieveReminders(contentResolver, remindersContentUri)
 
@@ -295,7 +325,7 @@ class EventTests {
         mockPermissionGranted(permissionHandler)
 
         val cursor = mockk<Cursor>(relaxed = true)
-        every { contentResolver.query(eventContentUri, any(), any(), any(), any()) } returns cursor
+        every { contentResolver.query(any(), any(), any(), any(), any()) } returns cursor
         every { cursor.moveToNext() } returns false
 
         var result: Result<List<Event>>? = null
@@ -315,7 +345,7 @@ class EventTests {
     fun retrieveEvents_withException_returnsGenericError() = runTest {
         mockPermissionGranted(permissionHandler)
 
-        every { contentResolver.query(eventContentUri, any(), any(), any(), any()) } throws Exception("Query failed")
+        every { contentResolver.query(any(), any(), any(), any(), any()) } throws Exception("Query failed")
 
         var result: Result<List<Event>>? = null
         val latch = CountDownLatch(1)
@@ -340,7 +370,7 @@ class EventTests {
 
         var result: Result<Unit>? = null
         val latch = CountDownLatch(1)
-        calendarImplem.deleteEvent("1") {
+        calendarImplem.deleteEvent("1", "allEvents", null) {
             result = it
             latch.countDown()
         }
@@ -355,7 +385,7 @@ class EventTests {
         mockPermissionDenied(permissionHandler)
 
         var result: Result<Unit>? = null
-        calendarImplem.deleteEvent("1") {
+        calendarImplem.deleteEvent("1", "allEvents", null) {
             result = it
         }
 
@@ -372,7 +402,7 @@ class EventTests {
 
         var result: Result<Unit>? = null
         val latch = CountDownLatch(1)
-        calendarImplem.deleteEvent("1") {
+        calendarImplem.deleteEvent("1", "allEvents", null) {
             result = it
             latch.countDown()
         }
@@ -393,7 +423,7 @@ class EventTests {
 
         var result: Result<Unit>? = null
         val latch = CountDownLatch(1)
-        calendarImplem.deleteEvent("1") {
+        calendarImplem.deleteEvent("1", "allEvents", null) {
             result = it
             latch.countDown()
         }
@@ -411,7 +441,7 @@ class EventTests {
 
         var result: Result<Unit>? = null
         val latch = CountDownLatch(1)
-        calendarImplem.deleteEvent("1") {
+        calendarImplem.deleteEvent("1", "allEvents", null) {
             result = it
             latch.countDown()
         }
@@ -445,7 +475,8 @@ class EventTests {
             description = "Test Description",
             url = "https://example.com",
             location = null,
-            reminders = emptyList()
+            reminders = emptyList(),
+            recurrenceRule = null
         ) {
             result = it
             latch.countDown()
@@ -491,7 +522,8 @@ class EventTests {
             description = "All day description",
             url = "https://example.com",
             location = null,
-            reminders = listOf(10L, 30L)
+            reminders = listOf(10L, 30L),
+            recurrenceRule = null
         ) {
             result = it
             latch.countDown()
@@ -537,7 +569,8 @@ class EventTests {
             description = null,
             url = null,
             location = null,
-            reminders = null
+            reminders = null,
+            recurrenceRule = null
         ) {
             result = it
             latch.countDown()
@@ -583,7 +616,8 @@ class EventTests {
             description = "Test Description",
             url = "https://example.com",
             location = null,
-            reminders = emptyList()
+            reminders = emptyList(),
+            recurrenceRule = null
         ) {
             result = it
             latch.countDown()
@@ -629,7 +663,8 @@ class EventTests {
             description = "All day description",
             url = "https://example.com",
             location = null,
-            reminders = listOf(10L, 30L)
+            reminders = listOf(10L, 30L),
+            recurrenceRule = null
         ) {
             result = it
             latch.countDown()
@@ -675,7 +710,8 @@ class EventTests {
             description = null,
             url = null,
             location = null,
-            reminders = null
+            reminders = null,
+            recurrenceRule = null
         ) {
             result = it
             latch.countDown()
@@ -721,6 +757,9 @@ class EventTests {
             "Description",
             "url",
             "location",
+            null,
+            null,
+            "allEvents",
             null
         ) {
             result = it
@@ -760,7 +799,10 @@ class EventTests {
             "Description",
             "url",
             "location",
-            listOf(10L, 20L)
+            listOf(10L, 20L),
+            null,
+            "allEvents",
+            null
         ) {
             result = it
             latch.countDown()
