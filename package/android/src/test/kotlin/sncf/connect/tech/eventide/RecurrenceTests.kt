@@ -210,6 +210,7 @@ class RecurrenceTests {
         every { instancesCursor.getLong(5) } returns instanceEnd // END
         every { instancesCursor.getString(6) } returns "FREQ=WEEKLY;BYDAY=MO" // RRULE
         every { instancesCursor.getInt(7) } returns 0
+        mockNoExceptionColumns(instancesCursor)
 
         // Reminders/attendees are still looked up by the master EVENT_ID, unchanged.
         val emptyCursor = mockk<Cursor>(relaxed = true)
@@ -266,6 +267,7 @@ class RecurrenceTests {
         every { instancesCursor.getLong(5) } returns instanceEnd // END
         every { instancesCursor.getString(6) } returns null // RRULE -> non-recurring
         every { instancesCursor.getInt(7) } returns 0
+        mockNoExceptionColumns(instancesCursor)
 
         val emptyCursor = mockk<Cursor>(relaxed = true)
         every { emptyCursor.moveToNext() } returns false
@@ -295,6 +297,223 @@ class RecurrenceTests {
     // ------------------------------------------------------------------
     // RecurrenceHelper.patchWithUntil - pure function, no mocking needed
     // ------------------------------------------------------------------
+
+    /** The RDATE / ORIGINAL_ID / ORIGINAL_INSTANCE_TIME columns of an occurrence that is not an exception. */
+    private fun mockNoExceptionColumns(cursor: Cursor) {
+        every { cursor.getColumnIndexOrThrow(CalendarContract.Instances.RDATE) } returns 8
+        every { cursor.getColumnIndexOrThrow(CalendarContract.Instances.ORIGINAL_ID) } returns 9
+        every { cursor.getColumnIndexOrThrow(CalendarContract.Instances.ORIGINAL_INSTANCE_TIME) } returns 10
+        every { cursor.getString(8) } returns null
+        every { cursor.isNull(9) } returns true
+        every { cursor.isNull(10) } returns true
+    }
+
+    /** One Instances row per entry: (EVENT_ID, BEGIN, RRULE, RDATE, ORIGINAL_ID, ORIGINAL_INSTANCE_TIME). */
+    private companion object {
+        /** kotlinx.coroutines' Dispatchers.IO default parallelism. */
+        const val IO_POOL_THREADS = 64
+    }
+
+    private data class InstanceRow(
+        val eventId: String,
+        val begin: Long,
+        val rrule: String? = null,
+        val rdate: String? = null,
+        val originalId: String? = null,
+        val originalInstanceTime: Long? = null,
+    )
+
+    private fun mockInstances(vararg rows: InstanceRow): Cursor {
+        val cursor = mockk<Cursor>(relaxed = true)
+        every { contentResolver.query(any(), any(), any(), any(), any()) } returns cursor
+        every { cursor.moveToNext() } returnsMany List(rows.size) { true } + false
+        val columns = listOf(
+            CalendarContract.Instances.EVENT_ID, CalendarContract.Instances.TITLE,
+            CalendarContract.Instances.DESCRIPTION, CalendarContract.Instances.EVENT_LOCATION,
+            CalendarContract.Instances.BEGIN, CalendarContract.Instances.END, CalendarContract.Instances.RRULE,
+            CalendarContract.Instances.ALL_DAY, CalendarContract.Instances.RDATE,
+            CalendarContract.Instances.ORIGINAL_ID, CalendarContract.Instances.ORIGINAL_INSTANCE_TIME,
+        )
+        columns.forEachIndexed { index, column -> every { cursor.getColumnIndexOrThrow(column) } returns index }
+        every { cursor.getString(0) } returnsMany rows.map { it.eventId }
+        every { cursor.getString(1) } returns "Standup"
+        every { cursor.getLong(4) } returnsMany rows.map { it.begin }
+        every { cursor.getLong(5) } returnsMany rows.map { it.begin + 3_600_000L }
+        every { cursor.getString(6) } returnsMany rows.map { it.rrule }
+        every { cursor.getString(8) } returnsMany rows.map { it.rdate }
+        every { cursor.isNull(9) } returnsMany rows.map { it.originalId == null }
+        every { cursor.getString(9) } returnsMany rows.map { it.originalId }
+        every { cursor.isNull(10) } returnsMany rows.map { it.originalInstanceTime == null }
+        every { cursor.getLong(10) } returnsMany rows.map { it.originalInstanceTime ?: 0L }
+        return cursor
+    }
+
+    private fun mockNoDetails() {
+        val emptyCursor = mockk<Cursor>(relaxed = true)
+        every { emptyCursor.moveToNext() } returns false
+        every { contentResolver.query(attendeesContentUri, any(), any(), any(), any()) } returns emptyCursor
+        every { contentResolver.query(remindersContentUri, any(), any(), any(), any()) } returns emptyCursor
+    }
+
+    private fun retrieve(): Result<List<Event>> {
+        var result: Result<List<Event>>? = null
+        val latch = CountDownLatch(1)
+        calendarImplem.retrieveEvents(calendarId = "1", startDate = 0L, endDate = 1L) {
+            result = it
+            latch.countDown()
+        }
+        assertTrue(latch.await(5, java.util.concurrent.TimeUnit.SECONDS), "retrieveEvents never called back")
+        return result!!
+    }
+
+    @Test
+    fun `retrieveEvents keys an occurrence moved on its own on its series and its original start`() = runTest {
+        mockPermissionGranted(permissionHandler)
+        val originalStart = 1751880000000L
+        val movedStart = originalStart + 7_200_000L
+        mockInstances(InstanceRow("77", movedStart, originalId = "42", originalInstanceTime = originalStart))
+        mockNoDetails()
+
+        val event = retrieve().getOrThrow().single()
+
+        assertEquals("42", event.id)
+        assertEquals(originalStart, event.originalInstanceTime)
+        assertEquals(movedStart, event.startDate)
+    }
+
+    @Test
+    fun `retrieveEvents treats an RDATE-only series as recurring`() = runTest {
+        mockPermissionGranted(permissionHandler)
+        mockInstances(InstanceRow("42", 1751880000000L, rdate = "20250707T090000Z,20250714T090000Z"))
+        mockNoDetails()
+
+        assertEquals(1751880000000L, retrieve().getOrThrow().single().originalInstanceTime)
+    }
+
+    @Test
+    fun `retrieveEvents reads a series' attendees and reminders once, not once per occurrence`() = runTest {
+        mockPermissionGranted(permissionHandler)
+        val week = 7 * 24 * 3_600_000L
+        mockInstances(
+            InstanceRow("42", 1751880000000L, rrule = "FREQ=WEEKLY"),
+            InstanceRow("42", 1751880000000L + week, rrule = "FREQ=WEEKLY"),
+            InstanceRow("42", 1751880000000L + 2 * week, rrule = "FREQ=WEEKLY"),
+        )
+        mockNoDetails()
+
+        assertEquals(3, retrieve().getOrThrow().size)
+        verify(exactly = 1) { contentResolver.query(attendeesContentUri, any(), any(), any(), any()) }
+        verify(exactly = 1) { contentResolver.query(remindersContentUri, any(), any(), any(), any()) }
+    }
+
+    @Test
+    fun `retrieveEvents leaves out deleted events and cancelled ones`() = runTest {
+        mockPermissionGranted(permissionHandler)
+        mockInstances()
+        mockNoDetails()
+        val selection = io.mockk.slot<String>()
+        every { contentResolver.query(any(), any(), capture(selection), any(), any()) } returns
+            mockk<Cursor>(relaxed = true).also { every { it.moveToNext() } returns false }
+
+        retrieve()
+
+        assertTrue(selection.captured.contains("${CalendarContract.Events.DELETED} = 0"), selection.captured)
+        assertTrue(
+            selection.captured.contains("${CalendarContract.Instances.STATUS} != ${CalendarContract.Events.STATUS_CANCELED}"),
+            selection.captured,
+        )
+    }
+
+    /**
+     * A failed attendee read used to report its failure and leave retrieveEvents' IO coroutine waiting on a latch
+     * nobody counted down: one parked Dispatchers.IO thread per failure, until the pool (64 threads) is gone and
+     * the next read never runs.
+     */
+    @Test
+    fun `retrieveEvents reports failed attendee reads without parking an IO thread on each`() = runTest {
+        mockPermissionGranted(permissionHandler)
+        repeat(IO_POOL_THREADS + 1) {
+            mockInstances(InstanceRow("42", 1751880000000L))
+            every { contentResolver.query(attendeesContentUri, any(), any(), any(), any()) } throws
+                IllegalStateException("provider gone")
+
+            assertTrue(retrieve().isFailure)
+        }
+    }
+
+    /** The exception row (id 77) already standing for series 42's occurrence at [originalInstanceTime]. */
+    private fun mockExistingException(originalInstanceTime: Long) {
+        val exceptionCursor = mockk<Cursor>(relaxed = true)
+        every {
+            contentResolver.query(
+                eventContentUri,
+                arrayOf(CalendarContract.Events._ID),
+                any(),
+                arrayOf("42", originalInstanceTime.toString()),
+                null,
+            )
+        } returns exceptionCursor
+        every { exceptionCursor.moveToFirst() } returns true
+        every { exceptionCursor.getString(0) } returns "77"
+    }
+
+    @Test
+    fun `deleteEvent with thisEvent span cancels the occurrence's existing exception instead of adding one`() = runTest {
+        mockPermissionGranted(permissionHandler)
+        mockCalendarIdFound()
+        mockWritableCalendar()
+        mockExistingException(1751880000000L)
+        every { contentResolver.update(eventContentUri, any(), "_id = ?", arrayOf("77")) } returns 1
+
+        var result: Result<Unit>? = null
+        val latch = CountDownLatch(1)
+        calendarImplem.deleteEvent(eventId = "42", span = "thisEvent", originalInstanceTime = 1751880000000L) {
+            result = it
+            latch.countDown()
+        }
+        latch.await()
+
+        assertTrue(result!!.isSuccess)
+        verify { contentResolver.update(eventContentUri, any(), "_id = ?", arrayOf("77")) }
+        verify(exactly = 0) { contentResolver.insert(any(), any()) }
+    }
+
+    @Test
+    fun `updateEvent with thisEvent span updates the occurrence's existing exception instead of adding one`() = runTest {
+        mockPermissionGranted(permissionHandler)
+        mockWritableCalendar()
+        mockRetrieveEvents(contentResolver, eventContentUri)
+        mockRetrieveAttendees(contentResolver, attendeesContentUri)
+        mockRetrieveReminders(contentResolver, remindersContentUri)
+        mockExistingException(1751880000000L)
+        every { contentResolver.update(eventContentUri, any(), "_id = ?", arrayOf("77")) } returns 1
+
+        var result: Result<Event>? = null
+        val latch = CountDownLatch(1)
+        calendarImplem.updateEvent(
+            eventId = "42",
+            calendarId = "1",
+            title = "Moved again",
+            startDate = 1751887200000L,
+            endDate = 1751890800000L,
+            isAllDay = false,
+            description = null,
+            url = null,
+            location = null,
+            reminders = null,
+            recurrenceRule = null,
+            span = "thisEvent",
+            originalInstanceTime = 1751880000000L,
+        ) {
+            result = it
+            latch.countDown()
+        }
+        latch.await()
+
+        assertTrue(result!!.isSuccess)
+        verify { contentResolver.update(eventContentUri, any(), "_id = ?", arrayOf("77")) }
+        verify(exactly = 0) { contentResolver.insert(eventContentUri, any()) }
+    }
 
     @Test
     fun `patchWithUntil appends UNTIL to a rrule with no COUNT or UNTIL`() {

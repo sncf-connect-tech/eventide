@@ -744,8 +744,6 @@ class CalendarImplem(
         val mergedDescription = descriptionUrlHelper.mergeDescriptionAndUrl(description, url)
 
         val values = ContentValues().apply {
-            put(CalendarContract.Events.ORIGINAL_ID, eventId.toLong())
-            put(CalendarContract.Events.ORIGINAL_INSTANCE_TIME, originalInstanceTime)
             put(CalendarContract.Events.DTSTART, startDate)
             put(CalendarContract.Events.DTEND, endDate)
             put(CalendarContract.Events.ALL_DAY, if (isAllDay) 1 else 0)
@@ -757,8 +755,15 @@ class CalendarImplem(
             put(CalendarContract.Events.STATUS, CalendarContract.Events.STATUS_CONFIRMED)
         }
 
-        val uri = contentResolver.insert(eventContentUri, values)
-        val newId = uri?.lastPathSegment ?: eventId
+        val existing = existingException(eventId, originalInstanceTime)
+        val newId = if (existing != null) {
+            contentResolver.update(eventContentUri, values, CalendarContract.Events._ID + " = ?", arrayOf(existing))
+            existing
+        } else {
+            values.put(CalendarContract.Events.ORIGINAL_ID, eventId.toLong())
+            values.put(CalendarContract.Events.ORIGINAL_INSTANCE_TIME, originalInstanceTime)
+            contentResolver.insert(eventContentUri, values)?.lastPathSegment ?: eventId
+        }
 
         replaceReminders(newId, reminders)
 
@@ -907,17 +912,28 @@ class CalendarImplem(
                         CalendarContract.Instances.END,
                         CalendarContract.Instances.RRULE,
                         CalendarContract.Instances.ALL_DAY,
+                        CalendarContract.Instances.RDATE,
+                        CalendarContract.Instances.ORIGINAL_ID,
+                        CalendarContract.Instances.ORIGINAL_INSTANCE_TIME,
                     )
-                    val selection = CalendarContract.Instances.CALENDAR_ID + " = ?"
+                    // Deleted events (awaiting their sync adapter) and cancelled ones are not shown by the calendar.
+                    val selection = CalendarContract.Instances.CALENDAR_ID + " = ? AND " +
+                        CalendarContract.Events.DELETED + " = 0 AND (" +
+                        CalendarContract.Instances.STATUS + " IS NULL OR " +
+                        CalendarContract.Instances.STATUS + " != " + CalendarContract.Events.STATUS_CANCELED + ")"
                     val selectionArgs = arrayOf(calendarId)
 
                     val cursor = contentResolver.query(instancesUri, projection, selection, selectionArgs, null)
                     val events = mutableListOf<Event>()
+                    // A series' occurrences share their event's attendees and reminders: read once per event row.
+                    val details = mutableMapOf<String, Pair<List<Attendee>, List<Long>>>()
 
                     cursor?.use { c ->
                         val descriptionUrlHelper = DescriptionUrlHelper()
+                        val originalIdColumn = c.getColumnIndexOrThrow(CalendarContract.Instances.ORIGINAL_ID)
+                        val originalTimeColumn = c.getColumnIndexOrThrow(CalendarContract.Instances.ORIGINAL_INSTANCE_TIME)
                         while (c.moveToNext()) {
-                            val id = c.getString(c.getColumnIndexOrThrow(CalendarContract.Instances.EVENT_ID))
+                            val rowEventId = c.getString(c.getColumnIndexOrThrow(CalendarContract.Instances.EVENT_ID))
                             val title = c.getString(c.getColumnIndexOrThrow(CalendarContract.Instances.TITLE))
                             val storedDescription =
                                 c.getString(c.getColumnIndexOrThrow(CalendarContract.Instances.DESCRIPTION))
@@ -926,38 +942,29 @@ class CalendarImplem(
                             val start = c.getLong(c.getColumnIndexOrThrow(CalendarContract.Instances.BEGIN))
                             val end = c.getLong(c.getColumnIndexOrThrow(CalendarContract.Instances.END))
                             val recurrenceRule = c.getString(c.getColumnIndexOrThrow(CalendarContract.Instances.RRULE))
+                            val recurrenceDates = c.getString(c.getColumnIndexOrThrow(CalendarContract.Instances.RDATE))
                             val isAllDay = c.getInt(c.getColumnIndexOrThrow(CalendarContract.Instances.ALL_DAY)).toBoolean()
 
-                            val attendees = mutableListOf<Attendee>()
-                            val attendeesLatch = CountDownLatch(1)
-                            retrieveAttendees(id) { result ->
-                                result.onSuccess {
-                                    attendees.addAll(it)
-                                    attendeesLatch.countDown()
-                                }
-                                result.onFailure { error ->
-                                    callback(Result.failure(error))
-                                }
+                            // An occurrence moved on its own is an exception row: it belongs to its series (ORIGINAL_ID)
+                            // at the start it was scheduled for (ORIGINAL_INSTANCE_TIME), like any other occurrence.
+                            val movedFromSeries =
+                                if (c.isNull(originalIdColumn) || c.isNull(originalTimeColumn)) null
+                                else c.getString(originalIdColumn)
+                            val recurring = !recurrenceRule.isNullOrEmpty() || !recurrenceDates.isNullOrEmpty()
+                            val originalInstanceTime = when {
+                                movedFromSeries != null -> c.getLong(originalTimeColumn)
+                                recurring -> start
+                                else -> null
                             }
 
-                            val reminders = mutableListOf<Long>()
-                            val remindersLatch = CountDownLatch(1)
-                            retrieveReminders(id) { result ->
-                                result.onSuccess {
-                                    reminders.addAll(it)
-                                    remindersLatch.countDown()
-                                }
-                                result.onFailure { error ->
-                                    callback(Result.failure(error))
-                                }
+                            val (attendees, reminders) = details.getOrPut(rowEventId) {
+                                readNow<List<Attendee>> { retrieveAttendees(rowEventId, it) }.getOrThrow() to
+                                    readNow<List<Long>> { retrieveReminders(rowEventId, it) }.getOrThrow()
                             }
-
-                            attendeesLatch.await()
-                            remindersLatch.await()
 
                             events.add(
                                 Event(
-                                    id = id,
+                                    id = movedFromSeries ?: rowEventId,
                                     title = title,
                                     startDate = start,
                                     endDate = end,
@@ -969,7 +976,7 @@ class CalendarImplem(
                                     reminders = reminders,
                                     attendees = attendees,
                                     recurrenceRule = recurrenceRule,
-                                    originalInstanceTime = if (recurrenceRule != null) start else null
+                                    originalInstanceTime = originalInstanceTime
                                 )
                             )
                         }
@@ -977,6 +984,8 @@ class CalendarImplem(
 
                     callback(Result.success(events))
 
+                } catch (e: FlutterError) {
+                    callback(Result.failure(e))
                 } catch (e: Exception) {
                     callback(
                         Result.failure(
@@ -1090,6 +1099,15 @@ class CalendarImplem(
         originalInstanceTime: Long,
         callback: (Result<Unit>) -> Unit,
     ) {
+        existingException(eventId, originalInstanceTime)?.let { exceptionId ->
+            val cancelled = ContentValues().apply {
+                put(CalendarContract.Events.STATUS, CalendarContract.Events.STATUS_CANCELED)
+            }
+            contentResolver.update(eventContentUri, cancelled, CalendarContract.Events._ID + " = ?", arrayOf(exceptionId))
+            callback(Result.success(Unit))
+            return
+        }
+
         val durationMs = RecurrenceHelper.getMasterEventDurationMs(contentResolver, eventContentUri, eventId)
 
         val values = ContentValues().apply {
@@ -1485,32 +1503,8 @@ class CalendarImplem(
                     val endDate = it.getLong(it.getColumnIndexOrThrow(CalendarContract.Events.DTEND))
                     val calendarId = it.getString(it.getColumnIndexOrThrow(CalendarContract.Events.CALENDAR_ID))
 
-                    val attendees = mutableListOf<Attendee>()
-                    val attendeesLatch = CountDownLatch(1)
-                    retrieveAttendees(id) { result ->
-                        result.onSuccess {
-                            attendees.addAll(it)
-                            attendeesLatch.countDown()
-                        }
-                        result.onFailure { error ->
-                            callback(Result.failure(error))
-                        }
-                    }
-
-                    val reminders = mutableListOf<Long>()
-                    val remindersLatch = CountDownLatch(1)
-                    retrieveReminders(id) { result ->
-                        result.onSuccess {
-                            reminders.addAll(it)
-                            remindersLatch.countDown()
-                        }
-                        result.onFailure { error ->
-                            callback(Result.failure(error))
-                        }
-                    }
-
-                    attendeesLatch.await()
-                    remindersLatch.await()
+                    val attendees = readNow<List<Attendee>> { retrieveAttendees(id, it) }.getOrThrow()
+                    val reminders = readNow<List<Long>> { retrieveReminders(id, it) }.getOrThrow()
 
                     event = Event(
                         id = id,
@@ -1540,8 +1534,8 @@ class CalendarImplem(
             } else {
                 callback(Result.success(event))
             }
-
-
+        } catch (e: FlutterError) {
+            callback(Result.failure(e))
         } catch (e: Exception) {
             callback(
                 Result.failure(
@@ -1553,6 +1547,32 @@ class CalendarImplem(
                 )
             )
         }
+    }
+
+    /**
+     * The exception row already standing for [seriesId]'s occurrence scheduled at [originalInstanceTime] (moved or
+     * edited on its own), if any. That occurrence IS that row now: a delete or an edit of it changes the row, since
+     * a second exception for the same occurrence leaves the first one showing.
+     */
+    private fun existingException(seriesId: String, originalInstanceTime: Long): String? =
+        contentResolver.query(
+            eventContentUri,
+            arrayOf(CalendarContract.Events._ID),
+            CalendarContract.Events.ORIGINAL_ID + " = ? AND " +
+                CalendarContract.Events.ORIGINAL_INSTANCE_TIME + " = ? AND " +
+                CalendarContract.Events.DELETED + " = 0",
+            arrayOf(seriesId, originalInstanceTime.toString()),
+            null,
+        )?.use { if (it.moveToFirst()) it.getString(0) else null }
+
+    /**
+     * The result of [read], whose callback runs before it returns (the attendee and reminder reads below are
+     * synchronous): no latch to await, so a failure can never leave a caller waiting.
+     */
+    private fun <T> readNow(read: ((Result<T>) -> Unit) -> Unit): Result<T> {
+        var result: Result<T>? = null
+        read { result = it }
+        return checkNotNull(result) { "read did not call back" }
     }
 
     private fun retrieveReminders(eventId: String, callback: (Result<List<Long>>) -> Unit) {
