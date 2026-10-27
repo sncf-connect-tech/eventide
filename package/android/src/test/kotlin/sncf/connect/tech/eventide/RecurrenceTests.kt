@@ -2,6 +2,7 @@ package sncf.connect.tech.eventide
 
 import android.accounts.AccountManager
 import android.content.ContentResolver
+import android.content.ContentValues
 import android.content.Context
 import android.content.pm.PackageManager
 import android.database.Cursor
@@ -9,6 +10,7 @@ import android.net.Uri
 import android.provider.CalendarContract
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.slot
 import io.mockk.verify
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -47,6 +49,7 @@ class RecurrenceTests {
     private lateinit var remindersContentUri: Uri
     private lateinit var attendeesContentUri: Uri
     private lateinit var instancesContentUri: Uri
+    private lateinit var exceptionContentUri: Uri
 
     @BeforeEach
     fun setup() {
@@ -62,6 +65,7 @@ class RecurrenceTests {
         remindersContentUri = mockk(relaxed = true)
         attendeesContentUri = mockk(relaxed = true)
         instancesContentUri = mockk(relaxed = true)
+        exceptionContentUri = mockk(relaxed = true)
 
         calendarImplem = CalendarImplem(
             context,
@@ -75,7 +79,8 @@ class RecurrenceTests {
             eventContentUri,
             remindersContentUri,
             attendeesContentUri,
-            instancesContentUri
+            instancesContentUri,
+            exceptionContentUri
         )
     }
 
@@ -181,7 +186,7 @@ class RecurrenceTests {
     }
 
     @Test
-    fun `retrieveEvents returns recurrenceRule and originalInstanceTime from Instances BEGIN`() = runTest {
+    fun `retrieveEvents returns recurrenceRule and originalInstanceDate from Instances BEGIN`() = runTest {
         mockPermissionGranted(permissionHandler)
 
         val instanceStart = 1751880000000L
@@ -235,12 +240,12 @@ class RecurrenceTests {
         val event = result.getOrNull()?.firstOrNull()
         assertEquals("42", event?.id)
         assertEquals("FREQ=WEEKLY;BYDAY=MO", event?.recurrenceRule)
-        assertEquals(instanceStart, event?.originalInstanceTime)
+        assertEquals(instanceStart, event?.originalInstanceDate)
         assertEquals(instanceStart, event?.startDate)
     }
 
     @Test
-    fun `retrieveEvents returns a null originalInstanceTime for non-recurring events (no RRULE)`() = runTest {
+    fun `retrieveEvents returns a null originalInstanceDate for non-recurring events (no RRULE)`() = runTest {
         mockPermissionGranted(permissionHandler)
 
         val instanceStart = 1751880000000L
@@ -291,7 +296,7 @@ class RecurrenceTests {
         val event = result.getOrNull()?.firstOrNull()
         assertEquals("43", event?.id)
         assertNull(event?.recurrenceRule)
-        assertNull(event?.originalInstanceTime)
+        assertNull(event?.originalInstanceDate)
     }
 
     // ------------------------------------------------------------------
@@ -320,7 +325,7 @@ class RecurrenceTests {
         val rrule: String? = null,
         val rdate: String? = null,
         val originalId: String? = null,
-        val originalInstanceTime: Long? = null,
+        val originalInstanceDate: Long? = null,
     )
 
     private fun mockInstances(vararg rows: InstanceRow): Cursor {
@@ -343,8 +348,8 @@ class RecurrenceTests {
         every { cursor.getString(8) } returnsMany rows.map { it.rdate }
         every { cursor.isNull(9) } returnsMany rows.map { it.originalId == null }
         every { cursor.getString(9) } returnsMany rows.map { it.originalId }
-        every { cursor.isNull(10) } returnsMany rows.map { it.originalInstanceTime == null }
-        every { cursor.getLong(10) } returnsMany rows.map { it.originalInstanceTime ?: 0L }
+        every { cursor.isNull(10) } returnsMany rows.map { it.originalInstanceDate == null }
+        every { cursor.getLong(10) } returnsMany rows.map { it.originalInstanceDate ?: 0L }
         return cursor
     }
 
@@ -371,13 +376,13 @@ class RecurrenceTests {
         mockPermissionGranted(permissionHandler)
         val originalStart = 1751880000000L
         val movedStart = originalStart + 7_200_000L
-        mockInstances(InstanceRow("77", movedStart, originalId = "42", originalInstanceTime = originalStart))
+        mockInstances(InstanceRow("77", movedStart, originalId = "42", originalInstanceDate = originalStart))
         mockNoDetails()
 
         val event = retrieve().getOrThrow().single()
 
         assertEquals("42", event.id)
-        assertEquals(originalStart, event.originalInstanceTime)
+        assertEquals(originalStart, event.originalInstanceDate)
         assertEquals(movedStart, event.startDate)
     }
 
@@ -387,7 +392,7 @@ class RecurrenceTests {
         mockInstances(InstanceRow("42", 1751880000000L, rdate = "20250707T090000Z,20250714T090000Z"))
         mockNoDetails()
 
-        assertEquals(1751880000000L, retrieve().getOrThrow().single().originalInstanceTime)
+        assertEquals(1751880000000L, retrieve().getOrThrow().single().originalInstanceDate)
     }
 
     @Test
@@ -441,20 +446,37 @@ class RecurrenceTests {
         }
     }
 
-    /** The exception row (id 77) already standing for series 42's occurrence at [originalInstanceTime]. */
-    private fun mockExistingException(originalInstanceTime: Long) {
+    /** The exception row (id 77) already standing for series 42's occurrence at [originalInstanceDate]. */
+    private fun mockExistingException(originalInstanceDate: Long) {
         val exceptionCursor = mockk<Cursor>(relaxed = true)
         every {
             contentResolver.query(
                 eventContentUri,
                 arrayOf(CalendarContract.Events._ID),
                 any(),
-                arrayOf("42", originalInstanceTime.toString()),
+                arrayOf("42", originalInstanceDate.toString()),
                 null,
             )
         } returns exceptionCursor
         every { exceptionCursor.moveToFirst() } returns true
         every { exceptionCursor.getString(0) } returns "77"
+    }
+
+    private fun mockMasterSyncId(syncId: String = "sync_42") {
+        val cursor = mockk<Cursor>(relaxed = true)
+        every {
+            contentResolver.query(
+                eventContentUri,
+                arrayOf(CalendarContract.Events._SYNC_ID),
+                CalendarContract.Events._ID + " = ?",
+                arrayOf("42"),
+                null,
+            )
+        } returns cursor
+        every { cursor.moveToFirst() } returns true
+        every { cursor.moveToNext() } returns true
+        every { cursor.isNull(0) } returns false
+        every { cursor.getString(0) } returns syncId
     }
 
     @Test
@@ -467,7 +489,7 @@ class RecurrenceTests {
 
         var result: Result<Unit>? = null
         val latch = CountDownLatch(1)
-        calendarImplem.deleteEvent(eventId = "42", span = "thisEvent", originalInstanceTime = 1751880000000L) {
+        calendarImplem.deleteEvent(eventId = "42", span = Span.THIS_EVENT, originalInstanceDate = 1751880000000L) {
             result = it
             latch.countDown()
         }
@@ -502,8 +524,8 @@ class RecurrenceTests {
             location = null,
             reminders = null,
             recurrenceRule = null,
-            span = "thisEvent",
-            originalInstanceTime = 1751880000000L,
+            span = Span.THIS_EVENT,
+            originalInstanceDate = 1751880000000L,
         ) {
             result = it
             latch.countDown()
@@ -512,7 +534,7 @@ class RecurrenceTests {
 
         assertTrue(result!!.isSuccess)
         verify { contentResolver.update(eventContentUri, any(), "_id = ?", arrayOf("77")) }
-        verify(exactly = 0) { contentResolver.insert(eventContentUri, any()) }
+        verify(exactly = 0) { contentResolver.insert(any(), any()) }
     }
 
     @Test
@@ -552,6 +574,27 @@ class RecurrenceTests {
         val stripped = RecurrenceHelper.stripUntilAndCount("FREQ=WEEKLY;BYDAY=MO")
 
         assertEquals("FREQ=WEEKLY;BYDAY=MO", stripped)
+    }
+
+    @Test
+    fun `getUntilString extracts UNTIL part from RRULE`() {
+        assertEquals("UNTIL=20251231T235959Z", RecurrenceHelper.getUntilString("FREQ=WEEKLY;BYDAY=MO;UNTIL=20251231T235959Z"))
+        assertNull(RecurrenceHelper.getUntilString("FREQ=WEEKLY;BYDAY=MO"))
+    }
+
+    @Test
+    fun `appendExdate formats date in UTC and appends with comma`() {
+        val firstExdate = RecurrenceHelper.appendExdate(null, 1751880000000L, isAllDay = false)
+        assertEquals("20250707T092000Z", firstExdate)
+
+        val secondExdate = RecurrenceHelper.appendExdate(firstExdate, 1752484800000L, isAllDay = false)
+        assertEquals("20250707T092000Z,20250714T092000Z", secondExdate)
+    }
+
+    @Test
+    fun `appendExdate formats allDay date with yyyyMMdd`() {
+        val exdate = RecurrenceHelper.appendExdate(null, 1751880000000L, isAllDay = true)
+        assertEquals("20250707", exdate)
     }
 
     // ------------------------------------------------------------------
@@ -630,7 +673,7 @@ class RecurrenceTests {
     // ------------------------------------------------------------------
 
     @Test
-    fun `deleteEvent with allEvents span deletes the master event row`() = runTest {
+    fun `deleteEvent with null span deletes the master event row`() = runTest {
         mockPermissionGranted(permissionHandler)
         mockCalendarIdFound()
         mockWritableCalendar()
@@ -641,8 +684,8 @@ class RecurrenceTests {
         val latch = CountDownLatch(1)
         calendarImplem.deleteEvent(
             eventId = "42",
-            span = "allEvents",
-            originalInstanceTime = null,
+            span = null,
+            originalInstanceDate = null,
         ) {
             result = it
             latch.countDown()
@@ -655,60 +698,21 @@ class RecurrenceTests {
     }
 
     @Test
-    fun `deleteEvent with an unrecognized span falls back to deleting the master event row`() = runTest {
+    fun `deleteEvent with thisEvent span inserts a STATUS_CANCELED exception into CONTENT_EXCEPTION_URI`() = runTest {
         mockPermissionGranted(permissionHandler)
         mockCalendarIdFound()
         mockWritableCalendar()
+        mockMasterSyncId()
 
-        every { contentResolver.delete(eventContentUri, "_id = ?", arrayOf("42")) } returns 1
-
-        var result: Result<Unit>? = null
-        val latch = CountDownLatch(1)
-        calendarImplem.deleteEvent(
-            eventId = "42",
-            span = "somethingUnexpected",
-            originalInstanceTime = null,
-        ) {
-            result = it
-            latch.countDown()
-        }
-
-        latch.await()
-
-        assertTrue(result!!.isSuccess)
-        verify { contentResolver.delete(eventContentUri, "_id = ?", arrayOf("42")) }
-    }
-
-    @Test
-    fun `deleteEvent with thisEvent span inserts a STATUS_CANCELED exception row instead of deleting`() = runTest {
-        mockPermissionGranted(permissionHandler)
-        mockCalendarIdFound()
-        mockWritableCalendar()
-
-        // getMasterEventDurationMs query
-        val durationCursor = mockk<Cursor>(relaxed = true)
-        every {
-            contentResolver.query(
-                eventContentUri,
-                arrayOf(CalendarContract.Events.DTSTART, CalendarContract.Events.DTEND),
-                "_id = ?",
-                arrayOf("42"),
-                null,
-            )
-        } returns durationCursor
-        every { durationCursor.moveToFirst() } returns true
-        every { durationCursor.getLong(0) } returns 1751880000000L // DTSTART
-        every { durationCursor.getLong(1) } returns 1751883600000L // DTEND
-
-        every { contentResolver.insert(eventContentUri, any()) } returns
+        every { contentResolver.insert(any(), any()) } returns
             mockk<Uri>(relaxed = true)
 
         var result: Result<Unit>? = null
         val latch = CountDownLatch(1)
         calendarImplem.deleteEvent(
             eventId = "42",
-            span = "thisEvent",
-            originalInstanceTime = 1751880000000L,
+            span = Span.THIS_EVENT,
+            originalInstanceDate = 1751880000000L,
         ) {
             result = it
             latch.countDown()
@@ -717,7 +721,7 @@ class RecurrenceTests {
         latch.await()
 
         assertTrue(result!!.isSuccess)
-        verify { contentResolver.insert(eventContentUri, any()) }
+        verify { contentResolver.insert(any(), any()) }
         verify(exactly = 0) { contentResolver.delete(any(), any(), any()) }
     }
 
@@ -740,8 +744,8 @@ class RecurrenceTests {
         val latch = CountDownLatch(1)
         calendarImplem.deleteEvent(
             eventId = "42",
-            span = "thisAndFuture",
-            originalInstanceTime = 1751880000000L,
+            span = Span.THIS_AND_FUTURE,
+            originalInstanceDate = 1751880000000L,
         ) {
             result = it
             latch.countDown()
@@ -755,7 +759,7 @@ class RecurrenceTests {
     }
 
     @Test
-    fun `deleteEvent with thisEvent span and null originalInstanceTime falls back to deleting the master row (backward compat for pre-recurrence callers)`() = runTest {
+    fun `deleteEvent with thisEvent span and null originalInstanceDate falls back to deleting the master row (backward compat for pre-recurrence callers)`() = runTest {
         mockPermissionGranted(permissionHandler)
         mockCalendarIdFound()
         mockWritableCalendar()
@@ -766,8 +770,8 @@ class RecurrenceTests {
         val latch = CountDownLatch(1)
         calendarImplem.deleteEvent(
             eventId = "42",
-            span = "thisEvent",
-            originalInstanceTime = null,
+            span = Span.THIS_EVENT,
+            originalInstanceDate = null,
         ) {
             result = it
             latch.countDown()
@@ -781,7 +785,7 @@ class RecurrenceTests {
     }
 
     @Test
-    fun `deleteEvent with thisAndFuture span and null originalInstanceTime falls back to deleting the master row (backward compat for pre-recurrence callers)`() = runTest {
+    fun `deleteEvent with thisAndFuture span and null originalInstanceDate falls back to deleting the master row (backward compat for pre-recurrence callers)`() = runTest {
         mockPermissionGranted(permissionHandler)
         mockCalendarIdFound()
         mockWritableCalendar()
@@ -792,8 +796,8 @@ class RecurrenceTests {
         val latch = CountDownLatch(1)
         calendarImplem.deleteEvent(
             eventId = "42",
-            span = "thisAndFuture",
-            originalInstanceTime = null,
+            span = Span.THIS_AND_FUTURE,
+            originalInstanceDate = null,
         ) {
             result = it
             latch.countDown()
@@ -824,8 +828,8 @@ class RecurrenceTests {
         val latch = CountDownLatch(1)
         calendarImplem.deleteEvent(
             eventId = "42",
-            span = "thisAndFuture",
-            originalInstanceTime = 1751880000000L,
+            span = Span.THIS_AND_FUTURE,
+            originalInstanceDate = 1751880000000L,
         ) {
             result = it
             latch.countDown()
@@ -843,7 +847,7 @@ class RecurrenceTests {
     // ------------------------------------------------------------------
 
     @Test
-    fun `updateEvent with allEvents span updates the master event row in place`() = runTest {
+    fun `updateEvent with null span updates the master event row in place`() = runTest {
         mockPermissionGranted(permissionHandler)
         mockWritableCalendar()
 
@@ -867,8 +871,8 @@ class RecurrenceTests {
             location = null,
             reminders = null,
             recurrenceRule = "FREQ=WEEKLY;BYDAY=MO,WE",
-            span = "allEvents",
-            originalInstanceTime = null,
+            span = null,
+            originalInstanceDate = null,
         ) {
             result = it
             latch.countDown()
@@ -882,46 +886,7 @@ class RecurrenceTests {
     }
 
     @Test
-    fun `updateEvent with an unrecognized span falls back to updating the master event row in place`() = runTest {
-        mockPermissionGranted(permissionHandler)
-        mockWritableCalendar()
-
-        every { contentResolver.update(eventContentUri, any(), "_id = ?", arrayOf("42")) } returns 1
-
-        mockRetrieveEvents(contentResolver, eventContentUri)
-        mockRetrieveAttendees(contentResolver, attendeesContentUri)
-        mockRetrieveReminders(contentResolver, remindersContentUri)
-
-        var result: Result<Event>? = null
-        val latch = CountDownLatch(1)
-        calendarImplem.updateEvent(
-            eventId = "42",
-            calendarId = "1",
-            title = "Updated Standup",
-            startDate = 1751880000000L,
-            endDate = 1751883600000L,
-            isAllDay = false,
-            description = null,
-            url = null,
-            location = null,
-            reminders = null,
-            recurrenceRule = null,
-            span = "somethingUnexpected",
-            originalInstanceTime = null,
-        ) {
-            result = it
-            latch.countDown()
-        }
-
-        latch.await()
-
-        assertTrue(result!!.isSuccess)
-        verify { contentResolver.update(eventContentUri, any(), "_id = ?", arrayOf("42")) }
-        verify(exactly = 0) { contentResolver.insert(eventContentUri, any()) }
-    }
-
-    @Test
-    fun `updateEvent with thisEvent span and null originalInstanceTime falls back to updating the master row (backward compat for pre-recurrence callers)`() = runTest {
+    fun `updateEvent with thisEvent span and null originalInstanceDate falls back to updating the master row (backward compat for pre-recurrence callers)`() = runTest {
         mockPermissionGranted(permissionHandler)
         mockWritableCalendar()
 
@@ -945,8 +910,8 @@ class RecurrenceTests {
             location = null,
             reminders = null,
             recurrenceRule = null,
-            span = "thisEvent",
-            originalInstanceTime = null,
+            span = Span.THIS_EVENT,
+            originalInstanceDate = null,
         ) {
             result = it
             latch.countDown()
@@ -960,7 +925,7 @@ class RecurrenceTests {
     }
 
     @Test
-    fun `updateEvent with thisAndFuture span and null originalInstanceTime falls back to updating the master row (backward compat for pre-recurrence callers)`() = runTest {
+    fun `updateEvent with thisAndFuture span and null originalInstanceDate falls back to updating the master row (backward compat for pre-recurrence callers)`() = runTest {
         mockPermissionGranted(permissionHandler)
         mockWritableCalendar()
 
@@ -984,8 +949,8 @@ class RecurrenceTests {
             location = null,
             reminders = null,
             recurrenceRule = null,
-            span = "thisAndFuture",
-            originalInstanceTime = null,
+            span = Span.THIS_AND_FUTURE,
+            originalInstanceDate = null,
         ) {
             result = it
             latch.countDown()
@@ -999,17 +964,19 @@ class RecurrenceTests {
     }
 
     @Test
-    fun `updateEvent with thisEvent span inserts a new exception row instead of updating the master`() = runTest {
+    fun `updateEvent with thisEvent span inserts an exception into CONTENT_EXCEPTION_URI`() = runTest {
         mockPermissionGranted(permissionHandler)
         mockWritableCalendar()
+
+        mockRetrieveEvents(contentResolver, eventContentUri)
+        mockRetrieveAttendees(contentResolver, attendeesContentUri)
+        mockRetrieveReminders(contentResolver, remindersContentUri)
+
+        mockMasterSyncId()
 
         val insertedUri = mockk<Uri>(relaxed = true)
-        every { contentResolver.insert(eventContentUri, any()) } returns insertedUri
+        every { contentResolver.insert(any(), any()) } returns insertedUri
         every { insertedUri.lastPathSegment } returns "99"
-
-        mockRetrieveEvents(contentResolver, eventContentUri)
-        mockRetrieveAttendees(contentResolver, attendeesContentUri)
-        mockRetrieveReminders(contentResolver, remindersContentUri)
 
         var result: Result<Event>? = null
         val latch = CountDownLatch(1)
@@ -1025,8 +992,8 @@ class RecurrenceTests {
             location = null,
             reminders = null,
             recurrenceRule = null,
-            span = "thisEvent",
-            originalInstanceTime = 1751880000000L,
+            span = Span.THIS_EVENT,
+            originalInstanceDate = 1751880000000L,
         ) {
             result = it
             latch.countDown()
@@ -1035,12 +1002,11 @@ class RecurrenceTests {
         latch.await()
 
         assertTrue(result!!.isSuccess)
-        verify { contentResolver.insert(eventContentUri, any()) }
-        verify(exactly = 0) { contentResolver.update(eventContentUri, any(), any(), any()) }
+        verify { contentResolver.insert(any(), any()) }
     }
 
     @Test
-    fun `updateEvent with thisAndFuture span truncates the master series and inserts a new one starting at originalInstanceTime`() = runTest {
+    fun `updateEvent with thisAndFuture span truncates the master series and inserts a new one starting at startDate`() = runTest {
         mockPermissionGranted(permissionHandler)
         mockWritableCalendar()
 
@@ -1079,8 +1045,8 @@ class RecurrenceTests {
             location = null,
             reminders = null,
             recurrenceRule = "FREQ=WEEKLY;BYDAY=MO,WE",
-            span = "thisAndFuture",
-            originalInstanceTime = 1751880000000L,
+            span = Span.THIS_AND_FUTURE,
+            originalInstanceDate = 1751880000000L,
         ) {
             result = it
             latch.countDown()
@@ -1092,6 +1058,57 @@ class RecurrenceTests {
         // Master series truncated (UNTIL patch) via update...
         verify { contentResolver.update(eventContentUri, any(), "_id = ?", arrayOf("42")) }
         // ...and a new master row inserted to continue the series.
+        verify { contentResolver.insert(eventContentUri, any()) }
+    }
+
+    @Test
+    fun `updateEvent with thisAndFuture span preserves original UNTIL on new series`() = runTest {
+        mockPermissionGranted(permissionHandler)
+        mockWritableCalendar()
+
+        mockRetrieveEvents(contentResolver, eventContentUri)
+        mockRetrieveAttendees(contentResolver, attendeesContentUri)
+        mockRetrieveReminders(contentResolver, remindersContentUri)
+
+        val rruleCursor = mockk<Cursor>(relaxed = true)
+        every {
+            contentResolver.query(eventContentUri, arrayOf(CalendarContract.Events.RRULE), "_id = ?", arrayOf("42"), null)
+        } returns rruleCursor
+        every { rruleCursor.moveToFirst() } returns true
+        every { rruleCursor.getString(0) } returns "FREQ=WEEKLY;UNTIL=20251231T235959Z"
+
+        every { contentResolver.update(eventContentUri, any(), "_id = ?", arrayOf("42")) } returns 1
+
+        val insertedUri = mockk<Uri>(relaxed = true)
+        val insertedValuesSlot = slot<ContentValues>()
+        every { contentResolver.insert(eventContentUri, capture(insertedValuesSlot)) } returns insertedUri
+        every { insertedUri.lastPathSegment } returns "99"
+
+        var result: Result<Event>? = null
+        val latch = CountDownLatch(1)
+        calendarImplem.updateEvent(
+            eventId = "42",
+            calendarId = "1",
+            title = "Updated Standup",
+            startDate = 1751880000000L,
+            endDate = 1751883600000L,
+            isAllDay = false,
+            description = null,
+            url = null,
+            location = null,
+            reminders = null,
+            recurrenceRule = "FREQ=WEEKLY;BYDAY=MO,WE",
+            span = Span.THIS_AND_FUTURE,
+            originalInstanceDate = 1751880000000L,
+        ) {
+            result = it
+            latch.countDown()
+        }
+
+        latch.await()
+
+        assertTrue(result!!.isSuccess)
+        verify { contentResolver.update(eventContentUri, any(), "_id = ?", arrayOf("42")) }
         verify { contentResolver.insert(eventContentUri, any()) }
     }
 
@@ -1130,8 +1147,8 @@ class RecurrenceTests {
             location = null,
             reminders = null,
             recurrenceRule = null,
-            span = "thisAndFuture",
-            originalInstanceTime = 1751880000000L,
+            span = Span.THIS_AND_FUTURE,
+            originalInstanceDate = 1751880000000L,
         ) {
             result = it
             latch.countDown()

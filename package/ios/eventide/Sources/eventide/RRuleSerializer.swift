@@ -29,6 +29,18 @@ struct RRuleSerializer {
             parts.append("BYMONTH=\(months.map { "\($0)" }.joined(separator: ","))")
         }
 
+        if let weeks = rule.weeksOfTheYear, !weeks.isEmpty {
+            parts.append("BYWEEKNO=\(weeks.map { "\($0)" }.joined(separator: ","))")
+        }
+
+        if let daysOfYear = rule.daysOfTheYear, !daysOfYear.isEmpty {
+            parts.append("BYYEARDAY=\(daysOfYear.map { "\($0)" }.joined(separator: ","))")
+        }
+
+        if let setPositions = rule.setPositions, !setPositions.isEmpty {
+            parts.append("BYSETPOS=\(setPositions.map { "\($0)" }.joined(separator: ","))")
+        }
+
         if let recEnd = rule.recurrenceEnd {
             if recEnd.occurrenceCount > 0 {
                 parts.append("COUNT=\(recEnd.occurrenceCount)")

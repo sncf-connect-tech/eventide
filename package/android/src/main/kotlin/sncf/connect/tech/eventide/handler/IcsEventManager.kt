@@ -47,7 +47,14 @@ class IcsEventManager(private val context: Context) {
             crlf("DTEND:${icsDateTimeFormat.format(Date(endDate))}")
         }
 
-        recurrenceRule?.let { crlf("RRULE:$it") }
+        recurrenceRule?.let { rule ->
+            val cleanRule = rule.trim()
+            if (cleanRule.startsWith("RRULE:", ignoreCase = true)) {
+                crlf(cleanRule)
+            } else {
+                crlf("RRULE:$cleanRule")
+            }
+        }
 
         title?.let { append(foldLine("SUMMARY:${escape(it)}")) }
         description?.let { append(foldLine("DESCRIPTION:${escape(it)}")) }

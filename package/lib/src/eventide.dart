@@ -2,7 +2,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
 import 'package:eventide/src/calendar_api.g.dart';
-import 'package:eventide/src/et_span.dart';
 import 'package:eventide/src/eventide_exception.dart';
 import 'package:eventide/src/eventide_platform_interface.dart';
 import 'package:eventide/src/extensions/account_extensions.dart';
@@ -16,12 +15,6 @@ class Eventide extends EventidePlatform {
   final CalendarApi _calendarApi;
 
   Eventide({@visibleForTesting CalendarApi? calendarApi}) : _calendarApi = calendarApi ?? CalendarApi();
-
-  String _spanToString(ETSpan span) => switch (span) {
-    ETSpan.thisEvent => 'thisEvent',
-    ETSpan.thisAndFuture => 'thisAndFuture',
-    ETSpan.allEvents => 'allEvents',
-  };
 
   /// Creates a new calendar with the given [title], [color] and optional [account].
   ///
@@ -325,7 +318,7 @@ class Eventide extends EventidePlatform {
     Iterable<Duration>? reminders,
     String? recurrenceRule,
     ETSpan span = ETSpan.thisEvent,
-    DateTime? originalInstanceTime,
+    DateTime? originalInstanceDate,
   }) async {
     try {
       final updatedEvent = await _calendarApi.updateEvent(
@@ -340,10 +333,10 @@ class Eventide extends EventidePlatform {
         location: location ?? event.location,
         reminders: (reminders ?? event.reminders).map((e) => e.toNativeDuration()).toList(),
         recurrenceRule: recurrenceRule ?? event.recurrenceRule,
-        span: _spanToString(span),
-        originalInstanceTime:
-            originalInstanceTime?.toUtc().millisecondsSinceEpoch ??
-            event.originalInstanceTime?.toUtc().millisecondsSinceEpoch,
+        span: span.toSpan(),
+        originalInstanceDate:
+            originalInstanceDate?.toUtc().millisecondsSinceEpoch ??
+            event.originalInstanceDate?.toUtc().millisecondsSinceEpoch,
       );
       return updatedEvent.toETEvent();
     } on PlatformException catch (e) {
@@ -364,13 +357,13 @@ class Eventide extends EventidePlatform {
   Future<void> deleteEvent({
     required String eventId,
     ETSpan span = ETSpan.thisEvent,
-    DateTime? originalInstanceTime,
+    DateTime? originalInstanceDate,
   }) async {
     try {
       await _calendarApi.deleteEvent(
         eventId: eventId,
-        span: _spanToString(span),
-        originalInstanceTime: originalInstanceTime?.toUtc().millisecondsSinceEpoch,
+        span: span.toSpan(),
+        originalInstanceDate: originalInstanceDate?.toUtc().millisecondsSinceEpoch,
       );
     } on PlatformException catch (e) {
       throw e.toETException();

@@ -2,6 +2,33 @@ import 'package:eventide/eventide.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:timezone/timezone.dart';
 
+enum RecurrenceOption {
+  never(null, 'Never'),
+  everyDay('FREQ=DAILY', 'Every Day'),
+  everyWeek('FREQ=WEEKLY', 'Every Week'),
+  every2Weeks('FREQ=WEEKLY;INTERVAL=2', 'Every 2 Weeks'),
+  everyMonth('FREQ=MONTHLY', 'Every Month'),
+  everyYear('FREQ=YEARLY', 'Every Year');
+
+  final String? rule;
+  final String label;
+
+  const RecurrenceOption(this.rule, this.label);
+
+  static RecurrenceOption fromRule(String? rule) {
+    if (rule == null) return RecurrenceOption.never;
+    final upper = rule.toUpperCase();
+    if (upper.contains('FREQ=DAILY')) return RecurrenceOption.everyDay;
+    if (upper.contains('FREQ=WEEKLY')) {
+      if (upper.contains('INTERVAL=2')) return RecurrenceOption.every2Weeks;
+      return RecurrenceOption.everyWeek;
+    }
+    if (upper.contains('FREQ=MONTHLY')) return RecurrenceOption.everyMonth;
+    if (upper.contains('FREQ=YEARLY')) return RecurrenceOption.everyYear;
+    return RecurrenceOption.values.firstWhere((opt) => opt.rule == rule, orElse: () => RecurrenceOption.never);
+  }
+}
+
 typedef OnEventFormSubmit = void Function(
   ETCalendar? selectedCalendar,
   String title,
@@ -9,6 +36,7 @@ typedef OnEventFormSubmit = void Function(
   bool isAllDay,
   TZDateTime startDate,
   TZDateTime endDate,
+  String? recurrenceRule,
 );
 
 final class EventForm extends StatefulWidget {
@@ -38,6 +66,7 @@ final class _EventFormState extends State<EventForm> {
   DateTime _selectedStartDate = DateTime.now();
   DateTime _selectedEndDate = DateTime.now().add(const Duration(hours: 1));
   bool isAllDay = false;
+  RecurrenceOption _selectedRecurrence = RecurrenceOption.never;
 
   @override
   void initState() {
@@ -45,6 +74,7 @@ final class _EventFormState extends State<EventForm> {
     _titleController = TextEditingController(text: widget.initialEvent?.title ?? '');
     _descriptionController = TextEditingController(text: widget.initialEvent?.description ?? '');
     _selectedCalendar = widget.initialCalendar;
+    _selectedRecurrence = RecurrenceOption.fromRule(widget.initialEvent?.recurrenceRule);
 
     if (widget.initialEvent != null) {
       _selectedStartDate = widget.initialEvent!.startDate;
@@ -117,108 +147,78 @@ final class _EventFormState extends State<EventForm> {
             ],
           ),
           const SizedBox(height: 16),
-          Text('Start date: ${_selectedStartDate.toLocal()}'),
-          Row(
-            children: [
-              Expanded(
-                child: ElevatedButton(
-                  onPressed: () async {
-                    final lastDate = _selectedEndDate;
-                    final firstDate = widget.initialEvent != null ? DateTime(2000) : DateTime.now();
-                    final pickedDate = await showDatePicker(
-                      context: context,
-                      initialDate: _selectedStartDate,
-                      firstDate: firstDate,
-                      lastDate: lastDate,
-                    );
-
-                    if (pickedDate != null) {
-                      final timeOfDay = TimeOfDay.fromDateTime(_selectedStartDate);
-                      final duration = Duration(hours: timeOfDay.hour, minutes: timeOfDay.minute);
-
-                      setState(() {
-                        _selectedStartDate = pickedDate.add(duration);
-                      });
-                    }
-                  },
-                  child: const Icon(Icons.calendar_month),
-                ),
-              ),
-              if (!isAllDay) ...[
-                const SizedBox(width: 16),
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: () async {
-                      final timeOfDay = await showTimePicker(
-                        context: context,
-                        initialTime: TimeOfDay.fromDateTime(_selectedStartDate),
-                      );
-
-                      if (timeOfDay != null) {
-                        setState(() {
-                          _selectedStartDate = (_selectedStartDate).copyWith(time: timeOfDay);
-                        });
-                      }
-                    },
-                    child: const Icon(Icons.access_time),
-                  ),
-                ),
-              ],
-            ],
+          DropdownMenu<RecurrenceOption>(
+            initialSelection: _selectedRecurrence,
+            label: const Text('Recurrence :'),
+            dropdownMenuEntries: RecurrenceOption.values.map((option) {
+              return DropdownMenuEntry(value: option, label: option.label);
+            }).toList(),
+            onSelected: (RecurrenceOption? value) {
+              setState(() {
+                _selectedRecurrence = value ?? RecurrenceOption.never;
+              });
+            },
           ),
           const SizedBox(height: 16),
-          Text('End date: ${_selectedEndDate.toLocal()}'),
-          Row(
-            children: [
-              Expanded(
-                child: ElevatedButton(
-                  onPressed: () async {
-                    final firstDate = _selectedStartDate;
-                    final pickedDate = await showDatePicker(
-                      context: context,
-                      initialDate: _selectedEndDate.isBefore(firstDate) ? firstDate : _selectedEndDate,
-                      firstDate: firstDate,
-                      lastDate: firstDate.add(const Duration(days: 365)),
-                    );
+          Text('Start date: ${_selectedStartDate.toLocal()}'),
+          if (!isAllDay) ...[
+            const SizedBox(height: 8),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                icon: const Icon(Icons.access_time),
+                label: const Text('Pick start time'),
+                onPressed: () async {
+                  final timeOfDay = await showTimePicker(
+                    context: context,
+                    initialTime: TimeOfDay.fromDateTime(_selectedStartDate),
+                  );
 
-                    if (pickedDate != null) {
-                      final timeOfDay = TimeOfDay.fromDateTime(_selectedEndDate);
-                      final duration = Duration(hours: timeOfDay.hour, minutes: timeOfDay.minute);
-
-                      setState(() {
-                        _selectedEndDate = pickedDate.add(duration);
-                      });
-                    }
-                  },
-                  child: const Icon(Icons.calendar_month),
-                ),
-              ),
-              if (!isAllDay) ...[
-                const SizedBox(width: 16),
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: () async {
-                      final timeOfDay = await showTimePicker(
-                        context: context,
-                        initialTime: TimeOfDay.fromDateTime(_selectedEndDate),
-                      );
-
-                      if (timeOfDay != null) {
-                        setState(() {
-                          _selectedEndDate = (_selectedEndDate).copyWith(time: timeOfDay);
-                        });
+                  if (timeOfDay != null) {
+                    setState(() {
+                      final newStartDate = (_selectedStartDate).copyWith(time: timeOfDay);
+                      _selectedStartDate = newStartDate;
+                      if (_selectedEndDate.isBefore(newStartDate)) {
+                        _selectedEndDate = newStartDate.add(const Duration(hours: 1));
                       }
-                    },
-                    child: const Icon(Icons.access_time),
-                  ),
-                ),
-              ],
-            ],
-          ),
+                    });
+                  }
+                },
+              ),
+            ),
+          ],
+          const SizedBox(height: 16),
+          Text('End date: ${_selectedEndDate.toLocal()}'),
+          if (!isAllDay) ...[
+            const SizedBox(height: 8),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                icon: const Icon(Icons.access_time),
+                label: const Text('Pick end time'),
+                onPressed: () async {
+                  final timeOfDay = await showTimePicker(
+                    context: context,
+                    initialTime: TimeOfDay.fromDateTime(_selectedEndDate),
+                  );
+
+                  if (timeOfDay != null) {
+                    setState(() {
+                      _selectedEndDate = (_selectedEndDate).copyWith(time: timeOfDay);
+                    });
+                  }
+                },
+              ),
+            ),
+          ],
           const SizedBox(height: 16),
           ElevatedButton(
             onPressed: widget.calendars.isEmpty || _selectedCalendar != null
                 ? () {
+                    final recurrenceRule =
+                        (_selectedRecurrence == RecurrenceOption.fromRule(widget.initialEvent?.recurrenceRule))
+                        ? widget.initialEvent?.recurrenceRule
+                        : _selectedRecurrence.rule;
                     widget.onSubmit(
                       _selectedCalendar,
                       _titleController.text,
@@ -226,6 +226,7 @@ final class _EventFormState extends State<EventForm> {
                       isAllDay,
                       TZDateTime.from(_selectedStartDate, getLocation('Europe/Paris')),
                       TZDateTime.from(_selectedEndDate, getLocation('Europe/Paris')),
+                      recurrenceRule,
                     );
                   }
                 : null,
@@ -243,6 +244,7 @@ final class _EventFormState extends State<EventForm> {
                         false,
                         TZDateTime(getLocation('Europe/Paris'), 2025, 9, 8, 13, 30, 0),
                         TZDateTime(getLocation('America/Montreal'), 2025, 9, 8, 15, 0, 0),
+                        _selectedRecurrence.rule,
                       );
                     }
                   : null,

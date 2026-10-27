@@ -26,7 +26,7 @@ void main() {
     url: null,
     location: null,
     recurrenceRule: 'FREQ=WEEKLY;BYDAY=MO',
-    originalInstanceTime: startDate.toUtc().millisecondsSinceEpoch,
+    originalInstanceDate: startDate.toUtc().millisecondsSinceEpoch,
   );
 
   setUp(() {
@@ -78,39 +78,23 @@ void main() {
   });
 
   group('deleteEvent with span', () {
-    test('forwards thisEvent span and originalInstanceTime', () async {
+    test('forwards thisEvent span and originalInstanceDate', () async {
       when(
         () => mockCalendarApi.deleteEvent(
           eventId: any(named: 'eventId'),
           span: any(named: 'span'),
-          originalInstanceTime: any(named: 'originalInstanceTime'),
+          originalInstanceDate: any(named: 'originalInstanceDate'),
         ),
       ).thenAnswer((_) async {});
 
-      await eventide.deleteEvent(eventId: 'master1', span: ETSpan.thisEvent, originalInstanceTime: startDate);
+      await eventide.deleteEvent(eventId: 'master1', span: .thisEvent, originalInstanceDate: startDate);
 
       verify(
         () => mockCalendarApi.deleteEvent(
           eventId: 'master1',
-          span: 'thisEvent',
-          originalInstanceTime: startDate.toUtc().millisecondsSinceEpoch,
+          span: .thisEvent,
+          originalInstanceDate: startDate.toUtc().millisecondsSinceEpoch,
         ),
-      ).called(1);
-    });
-
-    test('forwards allEvents span with null originalInstanceTime', () async {
-      when(
-        () => mockCalendarApi.deleteEvent(
-          eventId: any(named: 'eventId'),
-          span: any(named: 'span'),
-          originalInstanceTime: any(named: 'originalInstanceTime'),
-        ),
-      ).thenAnswer((_) async {});
-
-      await eventide.deleteEvent(eventId: 'master1', span: ETSpan.allEvents);
-
-      verify(
-        () => mockCalendarApi.deleteEvent(eventId: 'master1', span: 'allEvents', originalInstanceTime: null),
       ).called(1);
     });
 
@@ -119,17 +103,17 @@ void main() {
         () => mockCalendarApi.deleteEvent(
           eventId: any(named: 'eventId'),
           span: any(named: 'span'),
-          originalInstanceTime: any(named: 'originalInstanceTime'),
+          originalInstanceDate: any(named: 'originalInstanceDate'),
         ),
       ).thenAnswer((_) async {});
 
-      await eventide.deleteEvent(eventId: 'master1', span: ETSpan.thisAndFuture, originalInstanceTime: startDate);
+      await eventide.deleteEvent(eventId: 'master1', span: .thisAndFuture, originalInstanceDate: startDate);
 
       verify(
         () => mockCalendarApi.deleteEvent(
           eventId: 'master1',
-          span: 'thisAndFuture',
-          originalInstanceTime: startDate.toUtc().millisecondsSinceEpoch,
+          span: .thisAndFuture,
+          originalInstanceDate: startDate.toUtc().millisecondsSinceEpoch,
         ),
       ).called(1);
     });

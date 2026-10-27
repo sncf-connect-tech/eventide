@@ -370,7 +370,7 @@ class EventTests {
 
         var result: Result<Unit>? = null
         val latch = CountDownLatch(1)
-        calendarImplem.deleteEvent("1", "allEvents", null) {
+        calendarImplem.deleteEvent("1", null, null) {
             result = it
             latch.countDown()
         }
@@ -385,7 +385,7 @@ class EventTests {
         mockPermissionDenied(permissionHandler)
 
         var result: Result<Unit>? = null
-        calendarImplem.deleteEvent("1", "allEvents", null) {
+        calendarImplem.deleteEvent("1", null, null) {
             result = it
         }
 
@@ -402,7 +402,7 @@ class EventTests {
 
         var result: Result<Unit>? = null
         val latch = CountDownLatch(1)
-        calendarImplem.deleteEvent("1", "allEvents", null) {
+        calendarImplem.deleteEvent("1", null, null) {
             result = it
             latch.countDown()
         }
@@ -423,7 +423,7 @@ class EventTests {
 
         var result: Result<Unit>? = null
         val latch = CountDownLatch(1)
-        calendarImplem.deleteEvent("1", "allEvents", null) {
+        calendarImplem.deleteEvent("1", null, null) {
             result = it
             latch.countDown()
         }
@@ -441,7 +441,7 @@ class EventTests {
 
         var result: Result<Unit>? = null
         val latch = CountDownLatch(1)
-        calendarImplem.deleteEvent("1", "allEvents", null) {
+        calendarImplem.deleteEvent("1", null, null) {
             result = it
             latch.countDown()
         }
@@ -759,7 +759,7 @@ class EventTests {
             "location",
             null,
             null,
-            "allEvents",
+            null,
             null
         ) {
             result = it
@@ -801,7 +801,7 @@ class EventTests {
             "location",
             listOf(10L, 20L),
             null,
-            "allEvents",
+            null,
             null
         ) {
             result = it

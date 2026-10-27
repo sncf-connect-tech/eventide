@@ -7,14 +7,22 @@ import EventKit
 
 struct RRuleParser {
     static func parse(_ rrule: String) -> EKRecurrenceRule? {
+        var cleanRrule = rrule.trimmingCharacters(in: .whitespacesAndNewlines)
+        if cleanRrule.uppercased().hasPrefix("RRULE:") {
+            cleanRrule = String(cleanRrule.dropFirst(6))
+        }
+
         var frequency: EKRecurrenceFrequency?
         var interval = 1
         var daysOfWeek: [EKRecurrenceDayOfWeek]?
         var daysOfMonth: [NSNumber]?
         var monthsOfYear: [NSNumber]?
+        var weeksOfYear: [NSNumber]?
+        var daysOfYear: [NSNumber]?
+        var setPositions: [NSNumber]?
         var end: EKRecurrenceEnd?
 
-        for component in rrule.components(separatedBy: ";") {
+        for component in cleanRrule.components(separatedBy: ";") {
             let parts = component.components(separatedBy: "=")
             guard parts.count == 2 else { continue }
             let key = parts[0].uppercased()
@@ -32,6 +40,15 @@ struct RRuleParser {
                     .compactMap { Int($0) as NSNumber? }
             case "BYMONTH":
                 monthsOfYear = value.components(separatedBy: ",")
+                    .compactMap { Int($0) as NSNumber? }
+            case "BYWEEKNO":
+                weeksOfYear = value.components(separatedBy: ",")
+                    .compactMap { Int($0) as NSNumber? }
+            case "BYYEARDAY":
+                daysOfYear = value.components(separatedBy: ",")
+                    .compactMap { Int($0) as NSNumber? }
+            case "BYSETPOS":
+                setPositions = value.components(separatedBy: ",")
                     .compactMap { Int($0) as NSNumber? }
             case "COUNT":
                 if let count = Int(value) {
@@ -54,9 +71,9 @@ struct RRuleParser {
             daysOfTheWeek: daysOfWeek,
             daysOfTheMonth: daysOfMonth,
             monthsOfTheYear: monthsOfYear,
-            weeksOfTheYear: nil,
-            daysOfTheYear: nil,
-            setPositions: nil,
+            weeksOfTheYear: weeksOfYear,
+            daysOfTheYear: daysOfYear,
+            setPositions: setPositions,
             end: end
         )
     }
@@ -93,6 +110,8 @@ struct RRuleParser {
         formatter.dateFormat = "yyyyMMdd'T'HHmmss'Z'"
         if let date = formatter.date(from: value) { return date }
         formatter.dateFormat = "yyyyMMdd"
+        if let date = formatter.date(from: value) { return date }
+        formatter.dateFormat = "yyyyMMdd'T'HHmmss"
         return formatter.date(from: value)
     }
 }

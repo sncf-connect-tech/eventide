@@ -849,7 +849,7 @@ void main() {
           reminders: any(named: 'reminders'),
           recurrenceRule: any(named: 'recurrenceRule'),
           span: any(named: 'span'),
-          originalInstanceTime: any(named: 'originalInstanceTime'),
+          originalInstanceDate: any(named: 'originalInstanceDate'),
         ),
       ).thenAnswer((_) async => originalEvent);
 
@@ -877,8 +877,8 @@ void main() {
           location: originalEvent.location,
           reminders: originalEvent.reminders,
           recurrenceRule: originalEvent.recurrenceRule,
-          span: 'thisEvent',
-          originalInstanceTime: null,
+          span: .thisEvent,
+          originalInstanceDate: null,
         ),
       ).called(1);
     });
@@ -912,7 +912,7 @@ void main() {
           reminders: any(named: 'reminders'),
           recurrenceRule: any(named: 'recurrenceRule'),
           span: any(named: 'span'),
-          originalInstanceTime: any(named: 'originalInstanceTime'),
+          originalInstanceDate: any(named: 'originalInstanceDate'),
         ),
       ).thenAnswer((_) async => originalEvent);
 
@@ -933,8 +933,8 @@ void main() {
           location: originalEvent.location,
           reminders: originalEvent.reminders,
           recurrenceRule: originalEvent.recurrenceRule,
-          span: 'thisEvent',
-          originalInstanceTime: null,
+          span: .thisEvent,
+          originalInstanceDate: null,
         ),
       ).called(1);
     });
@@ -968,7 +968,7 @@ void main() {
           reminders: any(named: 'reminders'),
           recurrenceRule: any(named: 'recurrenceRule'),
           span: any(named: 'span'),
-          originalInstanceTime: any(named: 'originalInstanceTime'),
+          originalInstanceDate: any(named: 'originalInstanceDate'),
         ),
       ).thenThrow(ETGenericException(message: 'API Error'));
 
@@ -996,7 +996,7 @@ void main() {
           reminders: any(named: 'reminders'),
           recurrenceRule: any(named: 'recurrenceRule'),
           span: any(named: 'span'),
-          originalInstanceTime: any(named: 'originalInstanceTime'),
+          originalInstanceDate: any(named: 'originalInstanceDate'),
         ),
       ).called(1);
     });
@@ -1017,13 +1017,13 @@ void main() {
         url: null,
         location: null,
         recurrenceRule: 'FREQ=WEEKLY;BYDAY=MO',
-        originalInstanceTime: 1751788800000,
+        originalInstanceDate: 1751788800000,
       );
       final etEvent = raw.toETEvent();
       expect(etEvent.recurrenceRule, equals('FREQ=WEEKLY;BYDAY=MO'));
     });
 
-    test('toETEvent maps originalInstanceTime to DateTime', () {
+    test('toETEvent maps originalInstanceDate to DateTime', () {
       final raw = Event(
         id: '1',
         title: 'T',
@@ -1037,13 +1037,13 @@ void main() {
         url: null,
         location: null,
         recurrenceRule: 'FREQ=DAILY',
-        originalInstanceTime: 1751788800000,
+        originalInstanceDate: 1751788800000,
       );
       final etEvent = raw.toETEvent();
-      expect(etEvent.originalInstanceTime, equals(DateTime.fromMillisecondsSinceEpoch(1751788800000, isUtc: true)));
+      expect(etEvent.originalInstanceDate, equals(DateTime.fromMillisecondsSinceEpoch(1751788800000, isUtc: true)));
     });
 
-    test('toETEvent sets originalInstanceTime to null for non-recurring', () {
+    test('toETEvent sets originalInstanceDate to null for non-recurring', () {
       final raw = Event(
         id: '1',
         title: 'T',
@@ -1057,14 +1057,14 @@ void main() {
         url: null,
         location: null,
         recurrenceRule: null,
-        originalInstanceTime: null,
+        originalInstanceDate: null,
       );
       final etEvent = raw.toETEvent();
-      expect(etEvent.originalInstanceTime, isNull);
+      expect(etEvent.originalInstanceDate, isNull);
       expect(etEvent.recurrenceRule, isNull);
     });
 
-    test('ETEvent equality includes recurrenceRule and originalInstanceTime', () {
+    test('ETEvent equality includes recurrenceRule and originalInstanceDate', () {
       final dt = DateTime.fromMillisecondsSinceEpoch(1751788800000, isUtc: true);
       final a = ETEvent(
         id: '1',
@@ -1079,7 +1079,7 @@ void main() {
         url: null,
         location: null,
         recurrenceRule: 'FREQ=DAILY',
-        originalInstanceTime: dt,
+        originalInstanceDate: dt,
       );
       final b = ETEvent(
         id: '1',
@@ -1094,7 +1094,7 @@ void main() {
         url: null,
         location: null,
         recurrenceRule: 'FREQ=DAILY',
-        originalInstanceTime: dt,
+        originalInstanceDate: dt,
       );
       expect(a, equals(b));
     });

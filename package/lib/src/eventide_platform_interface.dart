@@ -82,10 +82,10 @@ abstract class EventidePlatform extends PlatformInterface {
     Iterable<Duration>? reminders,
     String? recurrenceRule,
     ETSpan span = ETSpan.thisEvent,
-    DateTime? originalInstanceTime,
+    DateTime? originalInstanceDate,
   });
 
-  Future<void> deleteEvent({required String eventId, ETSpan span = ETSpan.thisEvent, DateTime? originalInstanceTime});
+  Future<void> deleteEvent({required String eventId, ETSpan span = ETSpan.thisEvent, DateTime? originalInstanceDate});
 
   Future<ETEvent> createReminder({required String eventId, required Duration durationBeforeEvent});
 
@@ -164,7 +164,7 @@ final class ETCalendar {
 ///
 /// [recurrenceRule] is the RRULE string describing the recurrence pattern of the event, if any.
 ///
-/// [originalInstanceTime] is the original start time of this instance within a recurring series, if any.
+/// [originalInstanceDate] is the original start time of this instance within a recurring series, if any.
 final class ETEvent {
   final String id;
   final String title;
@@ -178,7 +178,7 @@ final class ETEvent {
   final String? url;
   final String? location;
   final String? recurrenceRule;
-  final DateTime? originalInstanceTime;
+  final DateTime? originalInstanceDate;
 
   @override
   int get hashCode => Object.hashAll([
@@ -194,7 +194,7 @@ final class ETEvent {
     url,
     location,
     recurrenceRule,
-    originalInstanceTime,
+    originalInstanceDate,
   ]);
 
   const ETEvent({
@@ -210,7 +210,7 @@ final class ETEvent {
     this.url,
     this.location,
     this.recurrenceRule,
-    this.originalInstanceTime,
+    this.originalInstanceDate,
   });
 
   @override
@@ -230,7 +230,7 @@ final class ETEvent {
           other.url == url &&
           other.location == location &&
           other.recurrenceRule == recurrenceRule &&
-          other.originalInstanceTime == originalInstanceTime;
+          other.originalInstanceDate == originalInstanceDate;
 }
 
 /// Represents an account.
@@ -352,4 +352,13 @@ enum ETAttendanceStatus {
   final int androidStatus;
 
   const ETAttendanceStatus({required this.iosStatus, required this.androidStatus});
+}
+
+/// The scope of a delete or update operation on a recurring event instance.
+enum ETSpan {
+  /// Affects only this specific occurrence.
+  thisEvent,
+
+  /// Affects this occurrence and all future occurrences in the series.
+  thisAndFuture,
 }
