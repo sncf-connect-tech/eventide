@@ -11,11 +11,7 @@ class CalendarData {
   final Set<String> visibleCalendarIds;
   final Iterable<ETAccount> availableAccounts;
 
-  CalendarData({
-    required this.calendars,
-    required this.visibleCalendarIds,
-    this.availableAccounts = const [],
-  });
+  CalendarData({required this.calendars, required this.visibleCalendarIds, this.availableAccounts = const []});
 
   CalendarData copyWith({
     Map<ETCalendar, Iterable<ETEvent>>? calendars,
@@ -37,85 +33,72 @@ class CalendarData {
 final class CalendarCubit extends Cubit<CalendarState> {
   final Eventide _eventide;
 
-  CalendarCubit({
-    required Eventide eventide,
-  })  : _eventide = eventide,
-        super(Value.initial());
+  CalendarCubit({required this._eventide}) : super(Value.initial());
 
   Future<void> loadAvailableAccounts() async {
     final accounts = await _eventide.retrieveAccounts();
 
     if (state case Value(:final data?)) {
-      emit(Value.success(data.copyWith(
-        availableAccounts: accounts,
-      )));
+      emit(Value.success(data.copyWith(availableAccounts: accounts)));
     } else {
-      emit(Value.success(CalendarData(
-        calendars: {},
-        visibleCalendarIds: {},
-        availableAccounts: accounts,
-      )));
+      emit(Value.success(CalendarData(calendars: {}, visibleCalendarIds: {}, availableAccounts: accounts)));
     }
   }
 
   Future<void> loadFullContent() async {
-    await state.fetchFrom(() async {
-      var calendars = <ETCalendar, Iterable<ETEvent>>{};
+    await state
+        .fetchFrom(() async {
+          var calendars = <ETCalendar, Iterable<ETEvent>>{};
 
-      for (final calendar in await _eventide.retrieveCalendars()) {
-        final events = await _eventide.retrieveEvents(
-          calendarId: calendar.id,
-          startDate: DateTime.now().add(const Duration(days: -3)),
-          endDate: DateTime.now().add(const Duration(days: 7)),
-        );
-        calendars[calendar] = events;
-      }
+          for (final calendar in await _eventide.retrieveCalendars()) {
+            final events = await _eventide.retrieveEvents(
+              calendarId: calendar.id,
+              startDate: DateTime.now().add(const Duration(days: -3)),
+              endDate: DateTime.now().add(const Duration(days: 7)),
+            );
+            calendars[calendar] = events;
+          }
 
-      final visibleCalendarIds = calendars.keys.map((cal) => cal.id).toSet();
+          final visibleCalendarIds = calendars.keys.map((cal) => cal.id).toSet();
 
-      final currentData = state.data;
-      return CalendarData(
-        calendars: calendars,
-        visibleCalendarIds: visibleCalendarIds,
-        availableAccounts: currentData?.availableAccounts ?? [],
-      );
-    }).forEach(emit);
+          final currentData = state.data;
+          return CalendarData(
+            calendars: calendars,
+            visibleCalendarIds: visibleCalendarIds,
+            availableAccounts: currentData?.availableAccounts ?? [],
+          );
+        })
+        .forEach(emit);
   }
 
-  Future<void> createCalendar({
-    required String title,
-    required Color color,
-    ETAccount? account,
-  }) async {
-    await state.fetchFrom(() async {
-      await _eventide.createCalendar(
-        title: title,
-        color: color,
-        account: account,
-      );
+  Future<void> createCalendar({required String title, required Color color, ETAccount? account}) async {
+    await state
+        .fetchFrom(() async {
+          await _eventide.createCalendar(title: title, color: color, account: account);
 
-      var calendars = <ETCalendar, Iterable<ETEvent>>{};
-      for (final calendar in await _eventide.retrieveCalendars()) {
-        final events = await _eventide.retrieveEvents(
-          calendarId: calendar.id,
-          startDate: DateTime.now().add(const Duration(days: -3)),
-          endDate: DateTime.now().add(const Duration(days: 7)),
-        );
-        calendars[calendar] = events;
-      }
+          var calendars = <ETCalendar, Iterable<ETEvent>>{};
+          for (final calendar in await _eventide.retrieveCalendars()) {
+            final events = await _eventide.retrieveEvents(
+              calendarId: calendar.id,
+              startDate: DateTime.now().add(const Duration(days: -3)),
+              endDate: DateTime.now().add(const Duration(days: 7)),
+            );
+            calendars[calendar] = events;
+          }
 
-      final currentData = state.data;
-      final visibleCalendarIds = currentData?.visibleCalendarIds ?? <String>{};
-      final allCalendarIds = calendars.keys.map((cal) => cal.id).toSet();
+          final currentData = state.data;
+          final visibleCalendarIds = currentData?.visibleCalendarIds ?? <String>{};
+          final allCalendarIds = calendars.keys.map((cal) => cal.id).toSet();
 
-      visibleCalendarIds.addAll(allCalendarIds);
+          visibleCalendarIds.addAll(allCalendarIds);
 
-      return CalendarData(
-        calendars: calendars,
-        visibleCalendarIds: visibleCalendarIds,
-        availableAccounts: currentData?.availableAccounts ?? [],
-      );
-    }).forEach(emit);
+          return CalendarData(
+            calendars: calendars,
+            visibleCalendarIds: visibleCalendarIds,
+            availableAccounts: currentData?.availableAccounts ?? [],
+          );
+        })
+        .forEach(emit);
   }
 
   Future<void> createEvent({
@@ -127,25 +110,24 @@ final class CalendarCubit extends Cubit<CalendarState> {
     required TZDateTime endDate,
   }) async {
     if (state case Value(:final data?)) {
-      await state.fetchFrom(() async {
-        final event = await _eventide.createEvent(
-          title: title,
-          description: description,
-          isAllDay: isAllDay,
-          startDate: startDate,
-          endDate: endDate,
-          calendarId: calendar.id,
-          reminders: [
-            Duration(hours: 1),
-            Duration(minutes: 10),
-          ],
-        );
+      await state
+          .fetchFrom(() async {
+            final event = await _eventide.createEvent(
+              title: title,
+              description: description,
+              isAllDay: isAllDay,
+              startDate: startDate,
+              endDate: endDate,
+              calendarId: calendar.id,
+              reminders: [Duration(hours: 1), Duration(minutes: 10)],
+            );
 
-        final updatedCalendars = Map<ETCalendar, List<ETEvent>>.from(data.calendars);
-        updatedCalendars[calendar] = [...data.calendars[calendar] ?? [], event];
+            final updatedCalendars = Map<ETCalendar, List<ETEvent>>.from(data.calendars);
+            updatedCalendars[calendar] = [...data.calendars[calendar] ?? [], event];
 
-        return data.copyWith(calendars: updatedCalendars);
-      }).forEach(emit);
+            return data.copyWith(calendars: updatedCalendars);
+          })
+          .forEach(emit);
     }
   }
 
@@ -162,30 +144,24 @@ final class CalendarCubit extends Cubit<CalendarState> {
     }
   }
 
-  Future<void> updateCalendar({
-    required ETCalendar calendar,
-    required String title,
-    required Color color,
-  }) async {
+  Future<void> updateCalendar({required ETCalendar calendar, required String title, required Color color}) async {
     if (state case Value(:final data?)) {
-      await state.fetchFrom(() async {
-        final updatedCalendar = await _eventide.updateCalendar(
-          calendar,
-          title: title,
-          color: color,
-        );
+      await state
+          .fetchFrom(() async {
+            final updatedCalendar = await _eventide.updateCalendar(calendar, title: title, color: color);
 
-        final updatedCalendars = <ETCalendar, Iterable<ETEvent>>{};
-        for (final entry in data.calendars.entries) {
-          if (entry.key.id == calendar.id) {
-            updatedCalendars[updatedCalendar] = entry.value;
-          } else {
-            updatedCalendars[entry.key] = entry.value;
-          }
-        }
+            final updatedCalendars = <ETCalendar, Iterable<ETEvent>>{};
+            for (final entry in data.calendars.entries) {
+              if (entry.key.id == calendar.id) {
+                updatedCalendars[updatedCalendar] = entry.value;
+              } else {
+                updatedCalendars[entry.key] = entry.value;
+              }
+            }
 
-        return data.copyWith(calendars: updatedCalendars);
-      }).forEach(emit);
+            return data.copyWith(calendars: updatedCalendars);
+          })
+          .forEach(emit);
     }
   }
 
@@ -199,29 +175,31 @@ final class CalendarCubit extends Cubit<CalendarState> {
     required TZDateTime endDate,
   }) async {
     if (state case Value(:final data?)) {
-      await state.fetchFrom(() async {
-        final updatedEvent = await _eventide.updateEvent(
-          event,
-          title: title,
-          description: description,
-          isAllDay: isAllDay,
-          startDate: startDate,
-          endDate: endDate,
-        );
+      await state
+          .fetchFrom(() async {
+            final updatedEvent = await _eventide.updateEvent(
+              event,
+              title: title,
+              description: description,
+              isAllDay: isAllDay,
+              startDate: startDate,
+              endDate: endDate,
+            );
 
-        final updatedCalendars = Map<ETCalendar, List<ETEvent>>.from(
-          data.calendars.map((k, v) => MapEntry(k, v.toList())),
-        );
-        final events = updatedCalendars[calendar];
-        if (events != null) {
-          final index = events.indexWhere((e) => e.id == event.id);
-          if (index != -1) {
-            events[index] = updatedEvent;
-          }
-        }
+            final updatedCalendars = Map<ETCalendar, List<ETEvent>>.from(
+              data.calendars.map((k, v) => MapEntry(k, v.toList())),
+            );
+            final events = updatedCalendars[calendar];
+            if (events != null) {
+              final index = events.indexWhere((e) => e.id == event.id);
+              if (index != -1) {
+                events[index] = updatedEvent;
+              }
+            }
 
-        return data.copyWith(calendars: updatedCalendars);
-      }).forEach(emit);
+            return data.copyWith(calendars: updatedCalendars);
+          })
+          .forEach(emit);
     }
   }
 }

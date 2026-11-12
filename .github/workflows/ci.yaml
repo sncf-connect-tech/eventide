@@ -9,7 +9,7 @@ on:
   pull_request:
 
 env:
-  FLUTTER_MINIMUM_VERSION: 3.44.0
+  FLUTTER_MINIMUM_VERSION: 3.47.0
   JAVA_VERSION: 17
   JAVA_DISTRIBUTION: corretto
   PACKAGE_PATH: ./package
