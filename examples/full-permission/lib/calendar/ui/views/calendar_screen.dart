@@ -4,7 +4,7 @@ import '../../logic/calendar_cubit.dart';
 import '../components/custom_drawer.dart';
 import '../../../event_details/ui/views/event_details_screen.dart';
 import '../components/event_form.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:value_state/value_state.dart';
 

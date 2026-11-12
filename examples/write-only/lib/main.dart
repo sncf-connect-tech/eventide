@@ -1,6 +1,6 @@
 import 'package:eventide/eventide.dart';
 import 'event_form.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:timezone/data/latest.dart' as tz;
 
 void main() {

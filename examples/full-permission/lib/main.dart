@@ -1,7 +1,7 @@
 import 'package:eventide/eventide.dart';
 import 'calendar/logic/calendar_cubit.dart';
 import 'calendar/ui/views/calendar_screen.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
 import 'package:timezone/data/latest.dart' as tz;

@@ -1,7 +1,7 @@
 // ignore_for_file: deprecated_member_use
 
 import 'package:eventide/eventide.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 typedef OnCalendarFormSubmit = void Function(String title, Color color, ETAccount? account);
 
