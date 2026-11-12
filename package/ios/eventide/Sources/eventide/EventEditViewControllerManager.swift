@@ -27,6 +27,7 @@ class EventEditViewControllerManager: NSObject {
         url: String?,
         location: String?,
         timeIntervals: [TimeInterval]?,
+        recurrenceRule: String?,
         completion: @escaping (Result<Void, Error>) -> Void
     ) {
         self.completion = completion
@@ -67,6 +68,11 @@ class EventEditViewControllerManager: NSObject {
 
         if let timeIntervals = timeIntervals {
             event.alarms = timeIntervals.compactMap { EKAlarm(relativeOffset: $0) }
+        }
+
+        if let rrule = recurrenceRule,
+           let ekRule = RRuleParser.parse(rrule) {
+            event.recurrenceRules = [ekRule]
         }
         
         let eventEditVC = EKEventEditViewController()

@@ -192,6 +192,17 @@ class FlutterError (
   val details: Any? = null
 ) : RuntimeException()
 
+enum class Span(val raw: Int) {
+  THIS_EVENT(0),
+  THIS_AND_FUTURE(1);
+
+  companion object {
+    fun ofRaw(raw: Int): Span? {
+      return values().firstOrNull { it.raw == raw }
+    }
+  }
+}
+
 /** Generated class from Pigeon that represents data sent in messages. */
 data class Calendar (
   val id: String,
@@ -254,7 +265,9 @@ data class Event (
   val attendees: List<Attendee>,
   val description: String? = null,
   val url: String? = null,
-  val location: String? = null
+  val location: String? = null,
+  val recurrenceRule: String? = null,
+  val originalInstanceDate: Long? = null
 )
  {
   companion object {
@@ -270,7 +283,9 @@ data class Event (
       val description = pigeonVar_list[8] as String?
       val url = pigeonVar_list[9] as String?
       val location = pigeonVar_list[10] as String?
-      return Event(id, calendarId, title, isAllDay, startDate, endDate, reminders, attendees, description, url, location)
+      val recurrenceRule = pigeonVar_list[11] as String?
+      val originalInstanceDate = pigeonVar_list[12] as Long?
+      return Event(id, calendarId, title, isAllDay, startDate, endDate, reminders, attendees, description, url, location, recurrenceRule, originalInstanceDate)
     }
   }
   fun toList(): List<Any?> {
@@ -286,6 +301,8 @@ data class Event (
       description,
       url,
       location,
+      recurrenceRule,
+      originalInstanceDate,
     )
   }
   override fun equals(other: Any?): Boolean {
@@ -296,7 +313,7 @@ data class Event (
       return true
     }
     val other = other as Event
-    return CalendarApiPigeonUtils.deepEquals(this.id, other.id) && CalendarApiPigeonUtils.deepEquals(this.calendarId, other.calendarId) && CalendarApiPigeonUtils.deepEquals(this.title, other.title) && CalendarApiPigeonUtils.deepEquals(this.isAllDay, other.isAllDay) && CalendarApiPigeonUtils.deepEquals(this.startDate, other.startDate) && CalendarApiPigeonUtils.deepEquals(this.endDate, other.endDate) && CalendarApiPigeonUtils.deepEquals(this.reminders, other.reminders) && CalendarApiPigeonUtils.deepEquals(this.attendees, other.attendees) && CalendarApiPigeonUtils.deepEquals(this.description, other.description) && CalendarApiPigeonUtils.deepEquals(this.url, other.url) && CalendarApiPigeonUtils.deepEquals(this.location, other.location)
+    return CalendarApiPigeonUtils.deepEquals(this.id, other.id) && CalendarApiPigeonUtils.deepEquals(this.calendarId, other.calendarId) && CalendarApiPigeonUtils.deepEquals(this.title, other.title) && CalendarApiPigeonUtils.deepEquals(this.isAllDay, other.isAllDay) && CalendarApiPigeonUtils.deepEquals(this.startDate, other.startDate) && CalendarApiPigeonUtils.deepEquals(this.endDate, other.endDate) && CalendarApiPigeonUtils.deepEquals(this.reminders, other.reminders) && CalendarApiPigeonUtils.deepEquals(this.attendees, other.attendees) && CalendarApiPigeonUtils.deepEquals(this.description, other.description) && CalendarApiPigeonUtils.deepEquals(this.url, other.url) && CalendarApiPigeonUtils.deepEquals(this.location, other.location) && CalendarApiPigeonUtils.deepEquals(this.recurrenceRule, other.recurrenceRule) && CalendarApiPigeonUtils.deepEquals(this.originalInstanceDate, other.originalInstanceDate)
   }
 
   override fun hashCode(): Int {
@@ -312,6 +329,8 @@ data class Event (
     result = 31 * result + CalendarApiPigeonUtils.deepHash(this.description)
     result = 31 * result + CalendarApiPigeonUtils.deepHash(this.url)
     result = 31 * result + CalendarApiPigeonUtils.deepHash(this.location)
+    result = 31 * result + CalendarApiPigeonUtils.deepHash(this.recurrenceRule)
+    result = 31 * result + CalendarApiPigeonUtils.deepHash(this.originalInstanceDate)
     return result
   }
 }
@@ -411,21 +430,26 @@ private open class CalendarApiPigeonCodec : StandardMessageCodec() {
   override fun readValueOfType(type: Byte, buffer: ByteBuffer): Any? {
     return when (type) {
       129.toByte() -> {
-        return (readValue(buffer) as? List<Any?>)?.let {
-          Calendar.fromList(it)
+        return (readValue(buffer) as Long?)?.let {
+          Span.ofRaw(it.toInt())
         }
       }
       130.toByte() -> {
         return (readValue(buffer) as? List<Any?>)?.let {
-          Event.fromList(it)
+          Calendar.fromList(it)
         }
       }
       131.toByte() -> {
         return (readValue(buffer) as? List<Any?>)?.let {
-          Account.fromList(it)
+          Event.fromList(it)
         }
       }
       132.toByte() -> {
+        return (readValue(buffer) as? List<Any?>)?.let {
+          Account.fromList(it)
+        }
+      }
+      133.toByte() -> {
         return (readValue(buffer) as? List<Any?>)?.let {
           Attendee.fromList(it)
         }
@@ -435,20 +459,24 @@ private open class CalendarApiPigeonCodec : StandardMessageCodec() {
   }
   override fun writeValue(stream: ByteArrayOutputStream, value: Any?)   {
     when (value) {
-      is Calendar -> {
+      is Span -> {
         stream.write(129)
-        writeValue(stream, value.toList())
+        writeValue(stream, value.raw.toLong())
       }
-      is Event -> {
+      is Calendar -> {
         stream.write(130)
         writeValue(stream, value.toList())
       }
-      is Account -> {
+      is Event -> {
         stream.write(131)
         writeValue(stream, value.toList())
       }
-      is Attendee -> {
+      is Account -> {
         stream.write(132)
+        writeValue(stream, value.toList())
+      }
+      is Attendee -> {
+        stream.write(133)
         writeValue(stream, value.toList())
       }
       else -> super.writeValue(stream, value)
@@ -464,12 +492,12 @@ interface CalendarApi {
   fun retrieveCalendars(onlyWritableCalendars: Boolean, account: Account?, callback: (Result<List<Calendar>>) -> Unit)
   fun retrieveAccounts(callback: (Result<List<Account>>) -> Unit)
   fun deleteCalendar(calendarId: String, callback: (Result<Unit>) -> Unit)
-  fun createEvent(calendarId: String, title: String, startDate: Long, endDate: Long, isAllDay: Boolean, description: String?, url: String?, location: String?, reminders: List<Long>?, callback: (Result<Event>) -> Unit)
-  fun updateEvent(eventId: String, calendarId: String, title: String, startDate: Long, endDate: Long, isAllDay: Boolean, description: String?, url: String?, location: String?, reminders: List<Long>?, callback: (Result<Event>) -> Unit)
-  fun createEventInDefaultCalendar(title: String, startDate: Long, endDate: Long, isAllDay: Boolean, description: String?, url: String?, location: String?, reminders: List<Long>?, callback: (Result<Unit>) -> Unit)
-  fun createEventThroughNativePlatform(title: String?, startDate: Long?, endDate: Long?, isAllDay: Boolean?, description: String?, url: String?, location: String?, reminders: List<Long>?, callback: (Result<Unit>) -> Unit)
+  fun createEvent(calendarId: String, title: String, startDate: Long, endDate: Long, isAllDay: Boolean, description: String?, url: String?, location: String?, reminders: List<Long>?, recurrenceRule: String?, callback: (Result<Event>) -> Unit)
+  fun updateEvent(eventId: String, calendarId: String, title: String, startDate: Long, endDate: Long, isAllDay: Boolean, description: String?, url: String?, location: String?, reminders: List<Long>?, recurrenceRule: String?, span: Span?, originalInstanceDate: Long?, callback: (Result<Event>) -> Unit)
+  fun createEventInDefaultCalendar(title: String, startDate: Long, endDate: Long, isAllDay: Boolean, description: String?, url: String?, location: String?, reminders: List<Long>?, recurrenceRule: String?, callback: (Result<Unit>) -> Unit)
+  fun createEventThroughNativePlatform(title: String?, startDate: Long?, endDate: Long?, isAllDay: Boolean?, description: String?, url: String?, location: String?, reminders: List<Long>?, recurrenceRule: String?, callback: (Result<Unit>) -> Unit)
   fun retrieveEvents(calendarId: String, startDate: Long, endDate: Long, callback: (Result<List<Event>>) -> Unit)
-  fun deleteEvent(eventId: String, callback: (Result<Unit>) -> Unit)
+  fun deleteEvent(eventId: String, span: Span?, originalInstanceDate: Long?, callback: (Result<Unit>) -> Unit)
   fun createReminder(reminder: Long, eventId: String, callback: (Result<Event>) -> Unit)
   fun deleteReminder(reminder: Long, eventId: String, callback: (Result<Event>) -> Unit)
   fun createAttendee(eventId: String, name: String, email: String, role: Long, type: Long, callback: (Result<Event>) -> Unit)
@@ -600,7 +628,8 @@ interface CalendarApi {
             val urlArg = args[6] as String?
             val locationArg = args[7] as String?
             val remindersArg = args[8] as List<Long>?
-            api.createEvent(calendarIdArg, titleArg, startDateArg, endDateArg, isAllDayArg, descriptionArg, urlArg, locationArg, remindersArg) { result: Result<Event> ->
+            val recurrenceRuleArg = args[9] as String?
+            api.createEvent(calendarIdArg, titleArg, startDateArg, endDateArg, isAllDayArg, descriptionArg, urlArg, locationArg, remindersArg, recurrenceRuleArg) { result: Result<Event> ->
               val error = result.exceptionOrNull()
               if (error != null) {
                 reply.reply(CalendarApiPigeonUtils.wrapError(error))
@@ -629,7 +658,10 @@ interface CalendarApi {
             val urlArg = args[7] as String?
             val locationArg = args[8] as String?
             val remindersArg = args[9] as List<Long>?
-            api.updateEvent(eventIdArg, calendarIdArg, titleArg, startDateArg, endDateArg, isAllDayArg, descriptionArg, urlArg, locationArg, remindersArg) { result: Result<Event> ->
+            val recurrenceRuleArg = args[10] as String?
+            val spanArg = args[11] as Span?
+            val originalInstanceDateArg = args[12] as Long?
+            api.updateEvent(eventIdArg, calendarIdArg, titleArg, startDateArg, endDateArg, isAllDayArg, descriptionArg, urlArg, locationArg, remindersArg, recurrenceRuleArg, spanArg, originalInstanceDateArg) { result: Result<Event> ->
               val error = result.exceptionOrNull()
               if (error != null) {
                 reply.reply(CalendarApiPigeonUtils.wrapError(error))
@@ -656,7 +688,8 @@ interface CalendarApi {
             val urlArg = args[5] as String?
             val locationArg = args[6] as String?
             val remindersArg = args[7] as List<Long>?
-            api.createEventInDefaultCalendar(titleArg, startDateArg, endDateArg, isAllDayArg, descriptionArg, urlArg, locationArg, remindersArg) { result: Result<Unit> ->
+            val recurrenceRuleArg = args[8] as String?
+            api.createEventInDefaultCalendar(titleArg, startDateArg, endDateArg, isAllDayArg, descriptionArg, urlArg, locationArg, remindersArg, recurrenceRuleArg) { result: Result<Unit> ->
               val error = result.exceptionOrNull()
               if (error != null) {
                 reply.reply(CalendarApiPigeonUtils.wrapError(error))
@@ -682,7 +715,8 @@ interface CalendarApi {
             val urlArg = args[5] as String?
             val locationArg = args[6] as String?
             val remindersArg = args[7] as List<Long>?
-            api.createEventThroughNativePlatform(titleArg, startDateArg, endDateArg, isAllDayArg, descriptionArg, urlArg, locationArg, remindersArg) { result: Result<Unit> ->
+            val recurrenceRuleArg = args[8] as String?
+            api.createEventThroughNativePlatform(titleArg, startDateArg, endDateArg, isAllDayArg, descriptionArg, urlArg, locationArg, remindersArg, recurrenceRuleArg) { result: Result<Unit> ->
               val error = result.exceptionOrNull()
               if (error != null) {
                 reply.reply(CalendarApiPigeonUtils.wrapError(error))
@@ -723,7 +757,9 @@ interface CalendarApi {
           channel.setMessageHandler { message, reply ->
             val args = message as List<Any?>
             val eventIdArg = args[0] as String
-            api.deleteEvent(eventIdArg) { result: Result<Unit> ->
+            val spanArg = args[1] as Span?
+            val originalInstanceDateArg = args[2] as Long?
+            api.deleteEvent(eventIdArg, spanArg, originalInstanceDateArg) { result: Result<Unit> ->
               val error = result.exceptionOrNull()
               if (error != null) {
                 reply.reply(CalendarApiPigeonUtils.wrapError(error))

@@ -1,15 +1,15 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
-import 'calendar_api.g.dart';
-import 'eventide_exception.dart';
-import 'eventide_platform_interface.dart';
-import 'extensions/account_extensions.dart';
-import 'extensions/attendee_extensions.dart';
-import 'extensions/calendar_extensions.dart';
-import 'extensions/color_extensions.dart';
-import 'extensions/duration_extensions.dart';
-import 'extensions/event_extensions.dart';
+import 'package:eventide/src/calendar_api.g.dart';
+import 'package:eventide/src/eventide_exception.dart';
+import 'package:eventide/src/eventide_platform_interface.dart';
+import 'package:eventide/src/extensions/account_extensions.dart';
+import 'package:eventide/src/extensions/attendee_extensions.dart';
+import 'package:eventide/src/extensions/calendar_extensions.dart';
+import 'package:eventide/src/extensions/color_extensions.dart';
+import 'package:eventide/src/extensions/duration_extensions.dart';
+import 'package:eventide/src/extensions/event_extensions.dart';
 
 class Eventide extends EventidePlatform {
   final CalendarApi _calendarApi;
@@ -155,6 +155,7 @@ class Eventide extends EventidePlatform {
     String? url,
     String? location,
     Iterable<Duration>? reminders,
+    String? recurrenceRule,
   }) async {
     try {
       final event = await _calendarApi.createEvent(
@@ -167,6 +168,7 @@ class Eventide extends EventidePlatform {
         url: url,
         location: location,
         reminders: reminders?.map((e) => e.toNativeDuration()).toList(),
+        recurrenceRule: recurrenceRule,
       );
 
       return event.toETEvent().copyWithReminders(reminders);
@@ -202,6 +204,7 @@ class Eventide extends EventidePlatform {
     String? url,
     String? location,
     Iterable<Duration>? reminders,
+    String? recurrenceRule,
   }) async {
     try {
       await _calendarApi.createEventInDefaultCalendar(
@@ -213,6 +216,7 @@ class Eventide extends EventidePlatform {
         url: url,
         location: location,
         reminders: reminders?.map((e) => e.toNativeDuration()).toList(),
+        recurrenceRule: recurrenceRule,
       );
     } on PlatformException catch (e) {
       throw e.toETException();
@@ -243,6 +247,7 @@ class Eventide extends EventidePlatform {
     String? url,
     String? location,
     Iterable<Duration>? reminders,
+    String? recurrenceRule,
   }) async {
     try {
       await _calendarApi.createEventThroughNativePlatform(
@@ -254,6 +259,7 @@ class Eventide extends EventidePlatform {
         url: url,
         location: location,
         reminders: reminders?.map((e) => e.toNativeDuration()).toList(),
+        recurrenceRule: recurrenceRule,
       );
     } on PlatformException catch (e) {
       throw e.toETException();
@@ -310,6 +316,9 @@ class Eventide extends EventidePlatform {
     String? url,
     String? location,
     Iterable<Duration>? reminders,
+    String? recurrenceRule,
+    ETSpan span = ETSpan.thisEvent,
+    DateTime? originalInstanceDate,
   }) async {
     try {
       final updatedEvent = await _calendarApi.updateEvent(
@@ -323,6 +332,11 @@ class Eventide extends EventidePlatform {
         url: url ?? event.url,
         location: location ?? event.location,
         reminders: (reminders ?? event.reminders).map((e) => e.toNativeDuration()).toList(),
+        recurrenceRule: recurrenceRule ?? event.recurrenceRule,
+        span: span.toSpan(),
+        originalInstanceDate:
+            originalInstanceDate?.toUtc().millisecondsSinceEpoch ??
+            event.originalInstanceDate?.toUtc().millisecondsSinceEpoch,
       );
       return updatedEvent.toETEvent();
     } on PlatformException catch (e) {
@@ -340,9 +354,17 @@ class Eventide extends EventidePlatform {
   ///
   /// Throws a [ETGenericException] if any other error occurs during event deletion.
   @override
-  Future<void> deleteEvent({required String eventId}) async {
+  Future<void> deleteEvent({
+    required String eventId,
+    ETSpan span = ETSpan.thisEvent,
+    DateTime? originalInstanceDate,
+  }) async {
     try {
-      await _calendarApi.deleteEvent(eventId: eventId);
+      await _calendarApi.deleteEvent(
+        eventId: eventId,
+        span: span.toSpan(),
+        originalInstanceDate: originalInstanceDate?.toUtc().millisecondsSinceEpoch,
+      );
     } on PlatformException catch (e) {
       throw e.toETException();
     }

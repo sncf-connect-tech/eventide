@@ -174,6 +174,11 @@ func deepHashCalendarApi(value: Any?, hasher: inout Hasher) {
 }
 
 
+enum Span: Int {
+  case thisEvent = 0
+  case thisAndFuture = 1
+}
+
 /// Generated class from Pigeon that represents data sent in messages.
 struct Calendar: Hashable {
   var id: String
@@ -238,6 +243,8 @@ struct Event: Hashable {
   var description: String? = nil
   var url: String? = nil
   var location: String? = nil
+  var recurrenceRule: String? = nil
+  var originalInstanceDate: Int64? = nil
 
 
   // swift-format-ignore: AlwaysUseLowerCamelCase
@@ -253,6 +260,8 @@ struct Event: Hashable {
     let description: String? = nilOrValue(pigeonVar_list[8])
     let url: String? = nilOrValue(pigeonVar_list[9])
     let location: String? = nilOrValue(pigeonVar_list[10])
+    let recurrenceRule: String? = nilOrValue(pigeonVar_list[11])
+    let originalInstanceDate: Int64? = nilOrValue(pigeonVar_list[12])
 
     return Event(
       id: id,
@@ -265,7 +274,9 @@ struct Event: Hashable {
       attendees: attendees,
       description: description,
       url: url,
-      location: location
+      location: location,
+      recurrenceRule: recurrenceRule,
+      originalInstanceDate: originalInstanceDate
     )
   }
   func toList() -> [Any?] {
@@ -281,13 +292,15 @@ struct Event: Hashable {
       description,
       url,
       location,
+      recurrenceRule,
+      originalInstanceDate,
     ]
   }
   static func == (lhs: Event, rhs: Event) -> Bool {
     if Swift.type(of: lhs) != Swift.type(of: rhs) {
       return false
     }
-    return deepEqualsCalendarApi(lhs.id, rhs.id) && deepEqualsCalendarApi(lhs.calendarId, rhs.calendarId) && deepEqualsCalendarApi(lhs.title, rhs.title) && deepEqualsCalendarApi(lhs.isAllDay, rhs.isAllDay) && deepEqualsCalendarApi(lhs.startDate, rhs.startDate) && deepEqualsCalendarApi(lhs.endDate, rhs.endDate) && deepEqualsCalendarApi(lhs.reminders, rhs.reminders) && deepEqualsCalendarApi(lhs.attendees, rhs.attendees) && deepEqualsCalendarApi(lhs.description, rhs.description) && deepEqualsCalendarApi(lhs.url, rhs.url) && deepEqualsCalendarApi(lhs.location, rhs.location)
+    return deepEqualsCalendarApi(lhs.id, rhs.id) && deepEqualsCalendarApi(lhs.calendarId, rhs.calendarId) && deepEqualsCalendarApi(lhs.title, rhs.title) && deepEqualsCalendarApi(lhs.isAllDay, rhs.isAllDay) && deepEqualsCalendarApi(lhs.startDate, rhs.startDate) && deepEqualsCalendarApi(lhs.endDate, rhs.endDate) && deepEqualsCalendarApi(lhs.reminders, rhs.reminders) && deepEqualsCalendarApi(lhs.attendees, rhs.attendees) && deepEqualsCalendarApi(lhs.description, rhs.description) && deepEqualsCalendarApi(lhs.url, rhs.url) && deepEqualsCalendarApi(lhs.location, rhs.location) && deepEqualsCalendarApi(lhs.recurrenceRule, rhs.recurrenceRule) && deepEqualsCalendarApi(lhs.originalInstanceDate, rhs.originalInstanceDate)
   }
 
   func hash(into hasher: inout Hasher) {
@@ -303,6 +316,8 @@ struct Event: Hashable {
     deepHashCalendarApi(value: description, hasher: &hasher)
     deepHashCalendarApi(value: url, hasher: &hasher)
     deepHashCalendarApi(value: location, hasher: &hasher)
+    deepHashCalendarApi(value: recurrenceRule, hasher: &hasher)
+    deepHashCalendarApi(value: originalInstanceDate, hasher: &hasher)
   }
 }
 
@@ -402,12 +417,18 @@ private class CalendarApiPigeonCodecReader: FlutterStandardReader {
   override func readValue(ofType type: UInt8) -> Any? {
     switch type {
     case 129:
-      return Calendar.fromList(self.readValue() as! [Any?])
+      let enumResultAsInt: Int? = nilOrValue(self.readValue() as! Int?)
+      if let enumResultAsInt = enumResultAsInt {
+        return Span(rawValue: enumResultAsInt)
+      }
+      return nil
     case 130:
-      return Event.fromList(self.readValue() as! [Any?])
+      return Calendar.fromList(self.readValue() as! [Any?])
     case 131:
-      return Account.fromList(self.readValue() as! [Any?])
+      return Event.fromList(self.readValue() as! [Any?])
     case 132:
+      return Account.fromList(self.readValue() as! [Any?])
+    case 133:
       return Attendee.fromList(self.readValue() as! [Any?])
     default:
       return super.readValue(ofType: type)
@@ -417,17 +438,20 @@ private class CalendarApiPigeonCodecReader: FlutterStandardReader {
 
 private class CalendarApiPigeonCodecWriter: FlutterStandardWriter {
   override func writeValue(_ value: Any) {
-    if let value = value as? Calendar {
+    if let value = value as? Span {
       super.writeByte(129)
-      super.writeValue(value.toList())
-    } else if let value = value as? Event {
+      super.writeValue(value.rawValue)
+    } else if let value = value as? Calendar {
       super.writeByte(130)
       super.writeValue(value.toList())
-    } else if let value = value as? Account {
+    } else if let value = value as? Event {
       super.writeByte(131)
       super.writeValue(value.toList())
-    } else if let value = value as? Attendee {
+    } else if let value = value as? Account {
       super.writeByte(132)
+      super.writeValue(value.toList())
+    } else if let value = value as? Attendee {
+      super.writeByte(133)
       super.writeValue(value.toList())
     } else {
       super.writeValue(value)
@@ -457,12 +481,12 @@ protocol CalendarApi {
   func retrieveCalendars(onlyWritable onlyWritableCalendars: Bool, from account: Account?, completion: @escaping (Result<[Calendar], Error>) -> Void)
   func retrieveAccounts(completion: @escaping (Result<[Account], Error>) -> Void)
   func deleteCalendar(_ calendarId: String, completion: @escaping (Result<Void, Error>) -> Void)
-  func createEvent(calendarId: String, title: String, startDate: Int64, endDate: Int64, isAllDay: Bool, description: String?, url: String?, location: String?, reminders: [Int64]?, completion: @escaping (Result<Event, Error>) -> Void)
-  func updateEvent(withId eventId: String, calendarId: String, title: String, startDate: Int64, endDate: Int64, isAllDay: Bool, description: String?, url: String?, location: String?, reminders: [Int64]?, completion: @escaping (Result<Event, Error>) -> Void)
-  func createEventInDefaultCalendar(title: String, startDate: Int64, endDate: Int64, isAllDay: Bool, description: String?, url: String?, location: String?, reminders: [Int64]?, completion: @escaping (Result<Void, Error>) -> Void)
-  func createEventThroughNativePlatform(title: String?, startDate: Int64?, endDate: Int64?, isAllDay: Bool?, description: String?, url: String?, location: String?, reminders: [Int64]?, completion: @escaping (Result<Void, Error>) -> Void)
+  func createEvent(calendarId: String, title: String, startDate: Int64, endDate: Int64, isAllDay: Bool, description: String?, url: String?, location: String?, reminders: [Int64]?, recurrenceRule: String?, completion: @escaping (Result<Event, Error>) -> Void)
+  func updateEvent(withId eventId: String, calendarId: String, title: String, startDate: Int64, endDate: Int64, isAllDay: Bool, description: String?, url: String?, location: String?, reminders: [Int64]?, recurrenceRule: String?, span: Span?, originalInstanceDate: Int64?, completion: @escaping (Result<Event, Error>) -> Void)
+  func createEventInDefaultCalendar(title: String, startDate: Int64, endDate: Int64, isAllDay: Bool, description: String?, url: String?, location: String?, reminders: [Int64]?, recurrenceRule: String?, completion: @escaping (Result<Void, Error>) -> Void)
+  func createEventThroughNativePlatform(title: String?, startDate: Int64?, endDate: Int64?, isAllDay: Bool?, description: String?, url: String?, location: String?, reminders: [Int64]?, recurrenceRule: String?, completion: @escaping (Result<Void, Error>) -> Void)
   func retrieveEvents(calendarId: String, startDate: Int64, endDate: Int64, completion: @escaping (Result<[Event], Error>) -> Void)
-  func deleteEvent(withId eventId: String, completion: @escaping (Result<Void, Error>) -> Void)
+  func deleteEvent(withId eventId: String, span: Span?, originalInstanceDate: Int64?, completion: @escaping (Result<Void, Error>) -> Void)
   func createReminder(_ reminder: Int64, forEventId eventId: String, completion: @escaping (Result<Event, Error>) -> Void)
   func deleteReminder(_ reminder: Int64, withEventId eventId: String, completion: @escaping (Result<Event, Error>) -> Void)
   func createAttendee(eventId: String, name: String, email: String, role: Int64, type: Int64, completion: @escaping (Result<Event, Error>) -> Void)
@@ -576,7 +600,8 @@ class CalendarApiSetup {
         let urlArg: String? = nilOrValue(args[6])
         let locationArg: String? = nilOrValue(args[7])
         let remindersArg: [Int64]? = nilOrValue(args[8])
-        api.createEvent(calendarId: calendarIdArg, title: titleArg, startDate: startDateArg, endDate: endDateArg, isAllDay: isAllDayArg, description: descriptionArg, url: urlArg, location: locationArg, reminders: remindersArg) { result in
+        let recurrenceRuleArg: String? = nilOrValue(args[9])
+        api.createEvent(calendarId: calendarIdArg, title: titleArg, startDate: startDateArg, endDate: endDateArg, isAllDay: isAllDayArg, description: descriptionArg, url: urlArg, location: locationArg, reminders: remindersArg, recurrenceRule: recurrenceRuleArg) { result in
           switch result {
           case .success(let res):
             reply(wrapResult(res))
@@ -602,7 +627,10 @@ class CalendarApiSetup {
         let urlArg: String? = nilOrValue(args[7])
         let locationArg: String? = nilOrValue(args[8])
         let remindersArg: [Int64]? = nilOrValue(args[9])
-        api.updateEvent(withId: eventIdArg, calendarId: calendarIdArg, title: titleArg, startDate: startDateArg, endDate: endDateArg, isAllDay: isAllDayArg, description: descriptionArg, url: urlArg, location: locationArg, reminders: remindersArg) { result in
+        let recurrenceRuleArg: String? = nilOrValue(args[10])
+        let spanArg: Span? = nilOrValue(args[11])
+        let originalInstanceDateArg: Int64? = nilOrValue(args[12])
+        api.updateEvent(withId: eventIdArg, calendarId: calendarIdArg, title: titleArg, startDate: startDateArg, endDate: endDateArg, isAllDay: isAllDayArg, description: descriptionArg, url: urlArg, location: locationArg, reminders: remindersArg, recurrenceRule: recurrenceRuleArg, span: spanArg, originalInstanceDate: originalInstanceDateArg) { result in
           switch result {
           case .success(let res):
             reply(wrapResult(res))
@@ -626,7 +654,8 @@ class CalendarApiSetup {
         let urlArg: String? = nilOrValue(args[5])
         let locationArg: String? = nilOrValue(args[6])
         let remindersArg: [Int64]? = nilOrValue(args[7])
-        api.createEventInDefaultCalendar(title: titleArg, startDate: startDateArg, endDate: endDateArg, isAllDay: isAllDayArg, description: descriptionArg, url: urlArg, location: locationArg, reminders: remindersArg) { result in
+        let recurrenceRuleArg: String? = nilOrValue(args[8])
+        api.createEventInDefaultCalendar(title: titleArg, startDate: startDateArg, endDate: endDateArg, isAllDay: isAllDayArg, description: descriptionArg, url: urlArg, location: locationArg, reminders: remindersArg, recurrenceRule: recurrenceRuleArg) { result in
           switch result {
           case .success:
             reply(wrapResult(nil))
@@ -650,7 +679,8 @@ class CalendarApiSetup {
         let urlArg: String? = nilOrValue(args[5])
         let locationArg: String? = nilOrValue(args[6])
         let remindersArg: [Int64]? = nilOrValue(args[7])
-        api.createEventThroughNativePlatform(title: titleArg, startDate: startDateArg, endDate: endDateArg, isAllDay: isAllDayArg, description: descriptionArg, url: urlArg, location: locationArg, reminders: remindersArg) { result in
+        let recurrenceRuleArg: String? = nilOrValue(args[8])
+        api.createEventThroughNativePlatform(title: titleArg, startDate: startDateArg, endDate: endDateArg, isAllDay: isAllDayArg, description: descriptionArg, url: urlArg, location: locationArg, reminders: remindersArg, recurrenceRule: recurrenceRuleArg) { result in
           switch result {
           case .success:
             reply(wrapResult(nil))
@@ -686,7 +716,9 @@ class CalendarApiSetup {
       deleteEventChannel.setMessageHandler { message, reply in
         let args = message as! [Any?]
         let eventIdArg = args[0] as! String
-        api.deleteEvent(withId: eventIdArg) { result in
+        let spanArg: Span? = nilOrValue(args[1])
+        let originalInstanceDateArg: Int64? = nilOrValue(args[2])
+        api.deleteEvent(withId: eventIdArg, span: spanArg, originalInstanceDate: originalInstanceDateArg) { result in
           switch result {
           case .success:
             reply(wrapResult(nil))
