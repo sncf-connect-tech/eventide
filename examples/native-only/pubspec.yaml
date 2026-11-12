@@ -4,7 +4,7 @@ publish_to: 'none'
 resolution: workspace
 
 environment:
-  sdk: '>=3.6.0 <4.0.0'
+  sdk: '>=3.13.0 <4.0.0'
 
 dependencies:
   flutter:
@@ -14,6 +14,7 @@ dependencies:
   eventide:
     path: ../../package
   cupertino_icons: ^1.0.6
+  material_ui: ^1.11.0
 
 dev_dependencies:
   flutter_test:

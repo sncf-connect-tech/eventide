@@ -1,6 +1,6 @@
 // ignore_for_file: deprecated_member_use
 import 'package:eventide/eventide.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart';
 
@@ -17,10 +17,7 @@ final class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Eventide - Native Only Demo',
-      theme: ThemeData(
-        primarySwatch: Colors.purple,
-        useMaterial3: true,
-      ),
+      theme: ThemeData(primarySwatch: Colors.purple, useMaterial3: true),
       home: NativeOnlyDemoPage(),
     );
   }
@@ -56,18 +53,12 @@ class _NativeOnlyDemoPageState extends State<NativeOnlyDemoPage> {
                     children: [
                       Row(
                         children: [
-                          Icon(
-                            Icons.smartphone,
-                            color: Colors.purple.shade600,
-                            size: 28,
-                          ),
+                          Icon(Icons.smartphone, color: Colors.purple.shade600, size: 28),
                           const SizedBox(width: 12),
                           Text(
                             'Native Platform Mode',
-                            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.purple.shade700,
-                                ),
+                            style: Theme.of(context).textTheme.headlineSmall
+                                ?.copyWith(fontWeight: FontWeight.bold, color: Colors.purple.shade700),
                           ),
                         ],
                       ),
@@ -115,10 +106,7 @@ class _NativeOnlyDemoPageState extends State<NativeOnlyDemoPage> {
                             Expanded(
                               child: Text(
                                 'Perfect when you want to let users create events without requesting sensitive calendar permissions.',
-                                style: TextStyle(
-                                  color: Colors.purple.shade800,
-                                  fontStyle: FontStyle.italic,
-                                ),
+                                style: TextStyle(color: Colors.purple.shade800, fontStyle: FontStyle.italic),
                               ),
                             ),
                           ],
@@ -137,9 +125,7 @@ class _NativeOnlyDemoPageState extends State<NativeOnlyDemoPage> {
                     children: [
                       Text(
                         'Configuration:',
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
+                        style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 12),
                       SwitchListTile(
@@ -187,9 +173,7 @@ class _NativeOnlyDemoPageState extends State<NativeOnlyDemoPage> {
                       backgroundColor: Colors.purple,
                       foregroundColor: Colors.white,
                       elevation: 6,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                     ),
                   ),
                 ),
@@ -203,9 +187,7 @@ class _NativeOnlyDemoPageState extends State<NativeOnlyDemoPage> {
                     children: [
                       Text(
                         'How it works:',
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
+                        style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 8),
                       _buildSimpleFeature('📱 Opens system\'s native event creation UI'),
@@ -236,18 +218,8 @@ class _NativeOnlyDemoPageState extends State<NativeOnlyDemoPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                title,
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-              ),
-              Text(
-                description,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Colors.grey.shade600,
-                    ),
-              ),
+              Text(title, style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold)),
+              Text(description, style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.grey.shade600)),
             ],
           ),
         ),
@@ -286,10 +258,7 @@ class _NativeOnlyDemoPageState extends State<NativeOnlyDemoPage> {
             isAllDay: false,
             description: 'This is an event created from the Eventide app with prefilled parameters.',
             url: 'https://example.com',
-            reminders: [
-              const Duration(minutes: 15),
-              const Duration(minutes: 5),
-            ],
+            reminders: [const Duration(minutes: 15), const Duration(minutes: 5)],
           );
         }
       } else {
@@ -299,11 +268,13 @@ class _NativeOnlyDemoPageState extends State<NativeOnlyDemoPage> {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(_prefillParameters
-                ? _prefillAllDay
-                    ? 'All-day event with prefilled parameters created successfully!'
-                    : 'Event with prefilled parameters created successfully!'
-                : 'Native interface opened with empty form!'),
+            content: Text(
+              _prefillParameters
+                  ? _prefillAllDay
+                        ? 'All-day event with prefilled parameters created successfully!'
+                        : 'Event with prefilled parameters created successfully!'
+                  : 'Native interface opened with empty form!',
+            ),
             backgroundColor: Colors.green,
             behavior: SnackBarBehavior.floating,
           ),

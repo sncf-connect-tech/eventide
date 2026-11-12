@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -73,9 +73,8 @@ void main() {
 
     // Then
     expect(call, throwsException);
-    verify(
-      () => mockCalendarApi.createCalendar(title: 'Test Calendar', color: Colors.blue.toValue(), account: account),
-    ).called(1);
+    verify(() => mockCalendarApi.createCalendar(title: 'Test Calendar', color: Colors.blue.toValue(), account: account))
+        .called(1);
   });
 
   test('retrieveCalendars returns a list of ETCalendars', () async {
@@ -98,9 +97,8 @@ void main() {
 
     // Then
     expect(result, [calendars.last].toETCalendarList());
-    verify(
-      () => mockCalendarApi.retrieveCalendars(onlyWritableCalendars: true, account: any(named: 'account')),
-    ).called(1);
+    verify(() => mockCalendarApi.retrieveCalendars(onlyWritableCalendars: true, account: any(named: 'account')))
+        .called(1);
   });
 
   test('retrieveCalendars throws an exception when API fails', () async {
@@ -169,9 +167,8 @@ void main() {
     await eventide.updateCalendar(calendar.toETCalendar(), title: null, color: null);
 
     // Then
-    verify(
-      () => mockCalendarApi.updateCalendar(calendarId: calendar.id, title: calendar.title, color: calendar.color),
-    ).called(1);
+    verify(() => mockCalendarApi.updateCalendar(calendarId: calendar.id, title: calendar.title, color: calendar.color))
+        .called(1);
   });
 
   test('updateCalendar throws an exception when API fails', () async {
@@ -221,9 +218,8 @@ void main() {
 
   test('deleteCalendar throws an exception when API fails', () async {
     // Given
-    when(
-      () => mockCalendarApi.deleteCalendar(calendarId: any(named: 'calendarId')),
-    ).thenThrow(ETGenericException(message: 'API Error'));
+    when(() => mockCalendarApi.deleteCalendar(calendarId: any(named: 'calendarId')))
+        .thenThrow(ETGenericException(message: 'API Error'));
 
     // When
     Future<void> call() => eventide.deleteCalendar(calendarId: '1');

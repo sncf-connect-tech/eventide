@@ -1,7 +1,7 @@
 // ignore_for_file: deprecated_member_use
 
 import 'package:eventide/eventide.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 typedef OnCalendarFormSubmit = void Function(String title, Color color, ETAccount? account);
 
@@ -10,12 +10,7 @@ class CalendarForm extends StatefulWidget {
   final Iterable<ETAccount> availableAccounts;
   final ETCalendar? initialCalendar;
 
-  const CalendarForm({
-    required this.onSubmit,
-    this.availableAccounts = const [],
-    this.initialCalendar,
-    super.key,
-  });
+  const CalendarForm({required this.onSubmit, this.availableAccounts = const [], this.initialCalendar, super.key});
 
   @override
   State<CalendarForm> createState() => _CalendarFormState();
@@ -51,18 +46,13 @@ class _CalendarFormState extends State<CalendarForm> {
       children: [
         TextFormField(
           controller: _titleController,
-          decoration: const InputDecoration(
-            labelText: 'Calendar title',
-          ),
+          decoration: const InputDecoration(labelText: 'Calendar title'),
         ),
         const SizedBox(height: 16),
         if (widget.availableAccounts.isNotEmpty) ...[
           DropdownButtonFormField<ETAccount>(
             value: selectedAccount,
-            decoration: const InputDecoration(
-              labelText: 'Account',
-              hintText: 'Select an account',
-            ),
+            decoration: const InputDecoration(labelText: 'Account', hintText: 'Select an account'),
             items: widget.availableAccounts.map((account) {
               return DropdownMenuItem<ETAccount>(
                 value: account,
@@ -71,12 +61,7 @@ class _CalendarFormState extends State<CalendarForm> {
                   children: [
                     Icon(Icons.account_circle, color: Colors.blue, size: 20),
                     SizedBox(width: 8),
-                    Flexible(
-                      child: Text(
-                        account.name,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
+                    Flexible(child: Text(account.name, overflow: TextOverflow.ellipsis)),
                   ],
                 ),
               );
@@ -112,9 +97,7 @@ class _CalendarFormState extends State<CalendarForm> {
         const SizedBox(height: 16),
         DropdownButtonFormField<Color>(
           value: selectedColor,
-          decoration: const InputDecoration(
-            labelText: 'Calendar color',
-          ),
+          decoration: const InputDecoration(labelText: 'Calendar color'),
           items: const [
             DropdownMenuItem(
               value: Colors.red,
@@ -189,10 +172,7 @@ class _CalendarFormState extends State<CalendarForm> {
                 final title = _titleController.text.trim();
                 if (title.isEmpty) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Please enter a calendar title'),
-                      backgroundColor: Colors.red,
-                    ),
+                    const SnackBar(content: Text('Please enter a calendar title'), backgroundColor: Colors.red),
                   );
                   return;
                 }
@@ -201,10 +181,7 @@ class _CalendarFormState extends State<CalendarForm> {
 
                 Navigator.of(context).pop();
               },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: selectedColor,
-                foregroundColor: Colors.white,
-              ),
+              style: ElevatedButton.styleFrom(backgroundColor: selectedColor, foregroundColor: Colors.white),
               child: Text(widget.initialCalendar != null ? 'Update Calendar' : 'Create Calendar'),
             ),
           ],

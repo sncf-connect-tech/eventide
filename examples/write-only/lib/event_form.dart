@@ -1,5 +1,5 @@
 import 'package:eventide/eventide.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:timezone/timezone.dart';
 
 typedef OnEventFormSubmit = void Function(
@@ -16,12 +16,7 @@ final class EventForm extends StatefulWidget {
   final OnEventFormSubmit onSubmit;
   final DateTime? initialDate;
 
-  const EventForm({
-    required this.calendars,
-    required this.onSubmit,
-    this.initialDate,
-    super.key,
-  });
+  const EventForm({required this.calendars, required this.onSubmit, this.initialDate, super.key});
 
   @override
   State<EventForm> createState() => _EventFormState();
@@ -64,16 +59,12 @@ final class _EventFormState extends State<EventForm> {
         children: [
           TextFormField(
             controller: _titleController,
-            decoration: const InputDecoration(
-              labelText: 'Event title',
-            ),
+            decoration: const InputDecoration(labelText: 'Event title'),
           ),
           const SizedBox(height: 16),
           TextFormField(
             controller: _descriptionController,
-            decoration: const InputDecoration(
-              labelText: 'Event description',
-            ),
+            decoration: const InputDecoration(labelText: 'Event description'),
           ),
           if (widget.calendars.isNotEmpty) ...[
             const SizedBox(height: 16),
@@ -86,10 +77,7 @@ final class _EventFormState extends State<EventForm> {
                   leadingIcon: Container(
                     width: 16,
                     height: 16,
-                    decoration: BoxDecoration(
-                      color: calendar.color,
-                      borderRadius: BorderRadius.circular(2),
-                    ),
+                    decoration: BoxDecoration(color: calendar.color, borderRadius: BorderRadius.circular(2)),
                   ),
                 );
               }).toList(),
@@ -253,14 +241,5 @@ final class _EventFormState extends State<EventForm> {
 }
 
 extension on DateTime {
-  DateTime copyWith({
-    required TimeOfDay time,
-  }) =>
-      DateTime(
-        year,
-        month,
-        day,
-        time.hour,
-        time.minute,
-      );
+  DateTime copyWith({required TimeOfDay time}) => DateTime(year, month, day, time.hour, time.minute);
 }

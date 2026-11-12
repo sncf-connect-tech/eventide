@@ -6,45 +6,46 @@ import 'package:value_state/value_state.dart';
 final class EventDetailsCubit extends Cubit<Value<ETEvent>> {
   final Eventide _calendarPlugin;
 
-  EventDetailsCubit({
-    required ETEvent selectedEvent,
-    required Eventide calendarPlugin,
-  })  : _calendarPlugin = calendarPlugin,
-        super(Value.success(selectedEvent));
+  EventDetailsCubit({required ETEvent selectedEvent, required this._calendarPlugin})
+    : super(Value.success(selectedEvent));
 
   Future<void> createReminder(Duration durationBeforeEvent) async {
     if (state case Value(:final data?)) {
-      await state.fetchFrom(() async {
-        return await _calendarPlugin.createReminder(eventId: data.id, durationBeforeEvent: durationBeforeEvent);
-      }).forEach(emit);
+      await state
+          .fetchFrom(() async {
+            return await _calendarPlugin.createReminder(eventId: data.id, durationBeforeEvent: durationBeforeEvent);
+          })
+          .forEach(emit);
     }
   }
 
   Future<void> deleteReminder(Duration durationBeforeEvent) async {
     if (state case Value(:final data?)) {
-      await state.fetchFrom(() async {
-        return await _calendarPlugin.deleteReminder(eventId: data.id, durationBeforeEvent: durationBeforeEvent);
-      }).forEach(emit);
+      await state
+          .fetchFrom(() async {
+            return await _calendarPlugin.deleteReminder(eventId: data.id, durationBeforeEvent: durationBeforeEvent);
+          })
+          .forEach(emit);
     }
   }
 
-  Future<void> createAttendee({
-    required String name,
-    required String email,
-    required ETAttendeeType type,
-  }) async {
+  Future<void> createAttendee({required String name, required String email, required ETAttendeeType type}) async {
     if (state case Value(:final data?)) {
-      await state.fetchFrom(() async {
-        return await _calendarPlugin.createAttendee(eventId: data.id, name: name, email: email, type: type);
-      }).forEach(emit);
+      await state
+          .fetchFrom(() async {
+            return await _calendarPlugin.createAttendee(eventId: data.id, name: name, email: email, type: type);
+          })
+          .forEach(emit);
     }
   }
 
   Future<void> removeAttendee(ETAttendee attendee) async {
     if (state case Value(:final data?)) {
-      await state.fetchFrom(() async {
-        return await _calendarPlugin.deleteAttendee(eventId: data.id, attendee: attendee);
-      }).forEach(emit);
+      await state
+          .fetchFrom(() async {
+            return await _calendarPlugin.deleteAttendee(eventId: data.id, attendee: attendee);
+          })
+          .forEach(emit);
     }
   }
 
@@ -56,16 +57,18 @@ final class EventDetailsCubit extends Cubit<Value<ETEvent>> {
     required TZDateTime endDate,
   }) async {
     if (state case Value(:final data?)) {
-      await state.fetchFrom(() async {
-        return await _calendarPlugin.updateEvent(
-          data,
-          title: title,
-          description: description,
-          isAllDay: isAllDay,
-          startDate: startDate,
-          endDate: endDate,
-        );
-      }).forEach(emit);
+      await state
+          .fetchFrom(() async {
+            return await _calendarPlugin.updateEvent(
+              data,
+              title: title,
+              description: description,
+              isAllDay: isAllDay,
+              startDate: startDate,
+              endDate: endDate,
+            );
+          })
+          .forEach(emit);
     }
   }
 }
