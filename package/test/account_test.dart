@@ -61,9 +61,8 @@ void main() {
 
     test('throws ETGenericException for other platform exceptions', () async {
       // Given
-      when(
-        () => mockCalendarApi.retrieveAccounts(),
-      ).thenThrow(PlatformException(code: 'UNKNOWN_ERROR', message: 'Something went wrong'));
+      when(() => mockCalendarApi.retrieveAccounts())
+          .thenThrow(PlatformException(code: 'UNKNOWN_ERROR', message: 'Something went wrong'));
 
       // When & Then
       expect(() => eventide.retrieveAccounts(), throwsA(isA<ETGenericException>()));

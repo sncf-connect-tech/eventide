@@ -11,10 +11,7 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Eventide Simple Demo',
-      home: CalendarDemo(),
-    );
+    return MaterialApp(title: 'Eventide Simple Demo', home: CalendarDemo());
   }
 }
 
@@ -95,26 +92,13 @@ class _CalendarDemoState extends State<CalendarDemo> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text(
-              status,
-              style: TextStyle(fontSize: 16),
-              textAlign: TextAlign.center,
-            ),
+            Text(status, style: TextStyle(fontSize: 16), textAlign: TextAlign.center),
             SizedBox(height: 40),
-            ElevatedButton(
-              onPressed: getCalendars,
-              child: Text('📅 View Calendars'),
-            ),
+            ElevatedButton(onPressed: getCalendars, child: Text('📅 View Calendars')),
             SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: createEvent,
-              child: Text('🆕 Create Event'),
-            ),
+            ElevatedButton(onPressed: createEvent, child: Text('🆕 Create Event')),
             SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: openNativeInterface,
-              child: Text('🌟 Native Interface'),
-            ),
+            ElevatedButton(onPressed: openNativeInterface, child: Text('🌟 Native Interface')),
           ],
         ),
       ),

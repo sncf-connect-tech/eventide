@@ -1,9 +1,11 @@
 import 'package:calendar_view/calendar_view.dart';
 import 'package:eventide/eventide.dart';
+
 import '../../logic/calendar_cubit.dart';
 import '../components/custom_drawer.dart';
 import '../../../event_details/ui/views/event_details_screen.dart';
 import '../components/event_form.dart';
+
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:value_state/value_state.dart';
@@ -39,34 +41,34 @@ final class _CalendarScreenState extends State<CalendarScreen> with SingleTicker
       canPop: false,
       child: BlocListener<CalendarCubit, CalendarState>(
         listener: (context, state) {
-          state.when(failure: (error) {
-            if (error is ETPermissionException) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: const Text(
-                    'Full access denied. Please grant calendar permissions in settings.',
+          state.when(
+            failure: (error) {
+              if (error is ETPermissionException) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: const Text('Full access denied. Please grant calendar permissions in settings.'),
+                    backgroundColor: Colors.orange,
+                    action: SnackBarAction(
+                      label: 'Back',
+                      textColor: Colors.white,
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      },
+                    ),
+                    duration: const Duration(seconds: 5),
                   ),
-                  backgroundColor: Colors.orange,
-                  action: SnackBarAction(
-                    label: 'Back',
-                    textColor: Colors.white,
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                    },
+                );
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Error: ${error.toString()}'),
+                    backgroundColor: Colors.red,
+                    duration: const Duration(seconds: 3),
                   ),
-                  duration: const Duration(seconds: 5),
-                ),
-              );
-            } else {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('Error: ${error.toString()}'),
-                  backgroundColor: Colors.red,
-                  duration: const Duration(seconds: 3),
-                ),
-              );
-            }
-          });
+                );
+              }
+            },
+          );
         },
         child: BlocBuilder<CalendarCubit, CalendarState>(
           builder: (context, state) {
@@ -75,15 +77,17 @@ final class _CalendarScreenState extends State<CalendarScreen> with SingleTicker
 
             state.data?.visibleCalendars.forEach((calendar, events) {
               final mappedEvents = events
-                  .map((event) => CalendarEventData(
-                        event: event,
-                        title: event.title,
-                        date: event.startDate,
-                        endDate: event.endDate,
-                        color: calendar.color,
-                        startTime: event.startDate,
-                        endTime: event.endDate,
-                      ))
+                  .map(
+                    (event) => CalendarEventData(
+                      event: event,
+                      title: event.title,
+                      date: event.startDate,
+                      endDate: event.endDate,
+                      color: calendar.color,
+                      startTime: event.startDate,
+                      endTime: event.endDate,
+                    ),
+                  )
                   .toList();
 
               _controller.addAll(mappedEvents);
@@ -107,18 +111,9 @@ final class _CalendarScreenState extends State<CalendarScreen> with SingleTicker
                 child: TabBar(
                   controller: _tabController,
                   tabs: [
-                    Tab(
-                      icon: const Icon(Icons.calendar_view_month),
-                      text: 'Month',
-                    ),
-                    Tab(
-                      icon: const Icon(Icons.calendar_view_week),
-                      text: 'Week',
-                    ),
-                    Tab(
-                      icon: const Icon(Icons.calendar_view_day),
-                      text: 'Day',
-                    ),
+                    Tab(icon: const Icon(Icons.calendar_view_month), text: 'Month'),
+                    Tab(icon: const Icon(Icons.calendar_view_week), text: 'Week'),
+                    Tab(icon: const Icon(Icons.calendar_view_day), text: 'Day'),
                   ],
                 ),
               ),
@@ -131,17 +126,16 @@ final class _CalendarScreenState extends State<CalendarScreen> with SingleTicker
                       if (state case Value(:final data?)) {
                         final event = calendarEventData.event;
                         if (event is ETEvent) {
-                          final relatedCalendar =
-                              data.calendars.keys.singleWhere((calendar) => calendar.id == event.calendarId);
+                          final relatedCalendar = data.calendars.keys.singleWhere(
+                            (calendar) => calendar.id == event.calendarId,
+                          );
                           final calendarCubit = BlocProvider.of<CalendarCubit>(context);
 
                           Navigator.of(context)
                               .push(
                                 MaterialPageRoute(
-                                  builder: (context) => EventDetailsScreen(
-                                    event: event,
-                                    isCalendarWritable: relatedCalendar.isWritable,
-                                  ),
+                                  builder: (context) =>
+                                      EventDetailsScreen(event: event, isCalendarWritable: relatedCalendar.isWritable),
                                 ),
                               )
                               .then((_) => calendarCubit.loadFullContent());
@@ -203,12 +197,8 @@ final class _CalendarScreenState extends State<CalendarScreen> with SingleTicker
                       );
                     },
                   ),
-                  WeekView(
-                    controller: _controller,
-                  ),
-                  DayView(
-                    controller: _controller,
-                  ),
+                  WeekView(controller: _controller),
+                  DayView(controller: _controller),
                 ],
               ),
             );

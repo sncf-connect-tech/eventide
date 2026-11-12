@@ -1,6 +1,8 @@
 import 'package:eventide/eventide.dart';
+
 import '../../logic/calendar_cubit.dart';
 import 'calendar_form.dart';
+
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:value_state/value_state.dart';
@@ -10,247 +12,216 @@ class CustomDrawer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<CalendarCubit, CalendarState>(builder: (context, state) {
-      return Drawer(
-        child: ListView(
-          padding: EdgeInsets.zero,
-          children: <Widget>[
-            DrawerHeader(
-              decoration: BoxDecoration(
-                color: Colors.blue,
+    return BlocBuilder<CalendarCubit, CalendarState>(
+      builder: (context, state) {
+        return Drawer(
+          child: ListView(
+            padding: EdgeInsets.zero,
+            children: <Widget>[
+              DrawerHeader(
+                decoration: BoxDecoration(color: Colors.blue),
+                child: Text('Calendars', style: TextStyle(color: Colors.white, fontSize: 24)),
               ),
-              child: Text(
-                'Calendars',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 24,
-                ),
-              ),
-            ),
-            Container(
-              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: ElevatedButton.icon(
-                onPressed: () {
-                  final calendarCubit = BlocProvider.of<CalendarCubit>(context);
+              Container(
+                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    final calendarCubit = BlocProvider.of<CalendarCubit>(context);
 
-                  // Charger les comptes si ce n'est pas déjà fait
-                  calendarCubit.loadAvailableAccounts();
+                    // Charger les comptes si ce n'est pas déjà fait
+                    calendarCubit.loadAvailableAccounts();
 
-                  showDialog(
-                    context: context,
-                    builder: (dialogContext) {
-                      final currentState = calendarCubit.state;
-                      final availableAccounts = currentState.data?.availableAccounts ?? [];
+                    showDialog(
+                      context: context,
+                      builder: (dialogContext) {
+                        final currentState = calendarCubit.state;
+                        final availableAccounts = currentState.data?.availableAccounts ?? [];
 
-                      return AlertDialog(
-                        title: const Text('Create New Calendar'),
-                        content: CalendarForm(
-                          availableAccounts: availableAccounts,
-                          onSubmit: (title, color, account) async {
-                            try {
-                              await calendarCubit.createCalendar(
-                                title: title,
-                                color: color,
-                                account: account,
-                              );
+                        return AlertDialog(
+                          title: const Text('Create New Calendar'),
+                          content: CalendarForm(
+                            availableAccounts: availableAccounts,
+                            onSubmit: (title, color, account) async {
+                              try {
+                                await calendarCubit.createCalendar(title: title, color: color, account: account);
 
-                              if (dialogContext.mounted) {
-                                Navigator.of(dialogContext).pop();
+                                if (dialogContext.mounted) {
+                                  Navigator.of(dialogContext).pop();
+                                }
+
+                                if (context.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text('Calendar "$title" created successfully!'),
+                                      backgroundColor: Colors.green,
+                                    ),
+                                  );
+                                }
+                              } catch (e) {
+                                if (dialogContext.mounted) {
+                                  Navigator.of(dialogContext).pop();
+                                }
+
+                                if (context.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(content: Text('Error creating calendar: $e'), backgroundColor: Colors.red),
+                                  );
+                                }
                               }
-
-                              if (context.mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text('Calendar "$title" created successfully!'),
-                                    backgroundColor: Colors.green,
-                                  ),
-                                );
-                              }
-                            } catch (e) {
-                              if (dialogContext.mounted) {
-                                Navigator.of(dialogContext).pop();
-                              }
-
-                              if (context.mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text('Error creating calendar: $e'),
-                                    backgroundColor: Colors.red,
-                                  ),
-                                );
-                              }
-                            }
-                          },
-                        ),
-                      );
-                    },
-                  );
-                },
-                icon: const Icon(Icons.add),
-                label: const Text('Create Calendar'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue,
-                  foregroundColor: Colors.white,
-                  minimumSize: const Size(double.infinity, 48),
-                ),
-              ),
-            ),
-            const Divider(),
-            if (state case Value(:final data?)) ...[
-              if (data.calendars.isEmpty) ...[
-                ListTile(
-                  leading: Icon(Icons.info, color: Colors.blue),
-                  title: Text('No available calendar'),
-                ),
-                ListTile(
-                  leading: Icon(Icons.refresh),
-                  title: Text('Reload'),
-                  onTap: () {
-                    BlocProvider.of<CalendarCubit>(context).loadFullContent();
-                  },
-                ),
-              ] else ...[
-                ...() {
-                  final groupedCalendars = <String, List<ETCalendar>>{};
-                  for (final calendar in data.calendars.keys) {
-                    final accountName = calendar.account.name;
-                    groupedCalendars.putIfAbsent(accountName, () => []).add(calendar);
-                  }
-
-                  return groupedCalendars.entries.expand((entry) {
-                    final accountName = entry.key;
-                    final calendars = entry.value;
-
-                    return [
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-                        child: Text(
-                          accountName,
-                          style: TextStyle(
-                            color: Colors.grey[600],
-                            fontWeight: FontWeight.bold,
-                            fontSize: 12,
+                            },
                           ),
-                        ),
-                      ),
-                      ...calendars.map((calendar) {
-                        final eventCount = data.calendars[calendar]?.length ?? 0;
-                        final isVisible = data.visibleCalendarIds.contains(calendar.id);
-
-                        return CheckboxListTile(
-                          value: isVisible,
-                          onChanged: (bool? value) {
-                            BlocProvider.of<CalendarCubit>(context).toggleCalendarVisibility(calendar.id);
-                          },
-                          secondary: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Container(
-                                width: 16,
-                                height: 16,
-                                decoration: BoxDecoration(
-                                  color: calendar.color,
-                                  shape: BoxShape.circle,
-                                ),
-                              ),
-                              if (calendar.isWritable)
-                                IconButton(
-                                  icon: const Icon(Icons.edit, size: 18),
-                                  padding: EdgeInsets.zero,
-                                  constraints: const BoxConstraints(),
-                                  onPressed: () {
-                                    final calendarCubit = BlocProvider.of<CalendarCubit>(context);
-
-                                    showDialog(
-                                      context: context,
-                                      builder: (dialogContext) {
-                                        return AlertDialog(
-                                          title: const Text('Edit Calendar'),
-                                          content: CalendarForm(
-                                            availableAccounts: const [],
-                                            initialCalendar: calendar,
-                                            onSubmit: (title, color, account) async {
-                                              try {
-                                                await calendarCubit.updateCalendar(
-                                                  calendar: calendar,
-                                                  title: title,
-                                                  color: color,
-                                                );
-
-                                                if (dialogContext.mounted) {
-                                                  Navigator.of(dialogContext).pop();
-                                                }
-
-                                                if (context.mounted) {
-                                                  ScaffoldMessenger.of(context).showSnackBar(
-                                                    SnackBar(
-                                                      content: Text('Calendar "$title" updated successfully!'),
-                                                      backgroundColor: Colors.green,
-                                                    ),
-                                                  );
-                                                }
-                                              } catch (e) {
-                                                if (dialogContext.mounted) {
-                                                  Navigator.of(dialogContext).pop();
-                                                }
-
-                                                if (context.mounted) {
-                                                  ScaffoldMessenger.of(context).showSnackBar(
-                                                    SnackBar(
-                                                      content: Text('Error updating calendar: $e'),
-                                                      backgroundColor: Colors.red,
-                                                    ),
-                                                  );
-                                                }
-                                              }
-                                            },
-                                          ),
-                                        );
-                                      },
-                                    );
-                                  },
-                                ),
-                            ],
-                          ),
-                          title: Text(
-                            calendar.title,
-                            style: TextStyle(
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                          subtitle: Text(
-                            '$eventCount event${eventCount != 1 ? 's' : ''}',
-                            style: TextStyle(
-                              color: Colors.grey[600],
-                              fontSize: 12,
-                            ),
-                          ),
-                          controlAffinity: ListTileControlAffinity.leading,
                         );
-                      }),
-                    ];
-                  });
-                }(),
-              ]
-            ] else ...[
-              if (state.hasError)
-                ListTile(
-                  leading: Icon(Icons.error, color: Colors.red),
-                  title: Text('Error loading calendars'),
-                  subtitle: Text('Tap to retry'),
-                  onTap: () {
-                    BlocProvider.of<CalendarCubit>(context).loadFullContent();
+                      },
+                    );
                   },
-                )
-              else
-                ListTile(
-                  leading: CircularProgressIndicator(),
-                  title: Text('Loading calendars...'),
+                  icon: const Icon(Icons.add),
+                  label: const Text('Create Calendar'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue,
+                    foregroundColor: Colors.white,
+                    minimumSize: const Size(double.infinity, 48),
+                  ),
                 ),
+              ),
+              const Divider(),
+              if (state case Value(:final data?)) ...[
+                if (data.calendars.isEmpty) ...[
+                  ListTile(
+                    leading: Icon(Icons.info, color: Colors.blue),
+                    title: Text('No available calendar'),
+                  ),
+                  ListTile(
+                    leading: Icon(Icons.refresh),
+                    title: Text('Reload'),
+                    onTap: () {
+                      BlocProvider.of<CalendarCubit>(context).loadFullContent();
+                    },
+                  ),
+                ] else ...[
+                  ...() {
+                    final groupedCalendars = <String, List<ETCalendar>>{};
+                    for (final calendar in data.calendars.keys) {
+                      final accountName = calendar.account.name;
+                      groupedCalendars.putIfAbsent(accountName, () => []).add(calendar);
+                    }
+
+                    return groupedCalendars.entries.expand((entry) {
+                      final accountName = entry.key;
+                      final calendars = entry.value;
+
+                      return [
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                          child: Text(
+                            accountName,
+                            style: TextStyle(color: Colors.grey[600], fontWeight: FontWeight.bold, fontSize: 12),
+                          ),
+                        ),
+                        ...calendars.map((calendar) {
+                          final eventCount = data.calendars[calendar]?.length ?? 0;
+                          final isVisible = data.visibleCalendarIds.contains(calendar.id);
+
+                          return CheckboxListTile(
+                            value: isVisible,
+                            onChanged: (bool? value) {
+                              BlocProvider.of<CalendarCubit>(context).toggleCalendarVisibility(calendar.id);
+                            },
+                            secondary: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Container(
+                                  width: 16,
+                                  height: 16,
+                                  decoration: BoxDecoration(color: calendar.color, shape: BoxShape.circle),
+                                ),
+                                if (calendar.isWritable)
+                                  IconButton(
+                                    icon: const Icon(Icons.edit, size: 18),
+                                    padding: EdgeInsets.zero,
+                                    constraints: const BoxConstraints(),
+                                    onPressed: () {
+                                      final calendarCubit = BlocProvider.of<CalendarCubit>(context);
+
+                                      showDialog(
+                                        context: context,
+                                        builder: (dialogContext) {
+                                          return AlertDialog(
+                                            title: const Text('Edit Calendar'),
+                                            content: CalendarForm(
+                                              availableAccounts: const [],
+                                              initialCalendar: calendar,
+                                              onSubmit: (title, color, account) async {
+                                                try {
+                                                  await calendarCubit.updateCalendar(
+                                                    calendar: calendar,
+                                                    title: title,
+                                                    color: color,
+                                                  );
+
+                                                  if (dialogContext.mounted) {
+                                                    Navigator.of(dialogContext).pop();
+                                                  }
+
+                                                  if (context.mounted) {
+                                                    ScaffoldMessenger.of(context).showSnackBar(
+                                                      SnackBar(
+                                                        content: Text('Calendar "$title" updated successfully!'),
+                                                        backgroundColor: Colors.green,
+                                                      ),
+                                                    );
+                                                  }
+                                                } catch (e) {
+                                                  if (dialogContext.mounted) {
+                                                    Navigator.of(dialogContext).pop();
+                                                  }
+
+                                                  if (context.mounted) {
+                                                    ScaffoldMessenger.of(context).showSnackBar(
+                                                      SnackBar(
+                                                        content: Text('Error updating calendar: $e'),
+                                                        backgroundColor: Colors.red,
+                                                      ),
+                                                    );
+                                                  }
+                                                }
+                                              },
+                                            ),
+                                          );
+                                        },
+                                      );
+                                    },
+                                  ),
+                              ],
+                            ),
+                            title: Text(calendar.title, style: TextStyle(fontWeight: FontWeight.w500)),
+                            subtitle: Text(
+                              '$eventCount event${eventCount != 1 ? 's' : ''}',
+                              style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                            ),
+                            controlAffinity: ListTileControlAffinity.leading,
+                          );
+                        }),
+                      ];
+                    });
+                  }(),
+                ],
+              ] else ...[
+                if (state.hasError)
+                  ListTile(
+                    leading: Icon(Icons.error, color: Colors.red),
+                    title: Text('Error loading calendars'),
+                    subtitle: Text('Tap to retry'),
+                    onTap: () {
+                      BlocProvider.of<CalendarCubit>(context).loadFullContent();
+                    },
+                  )
+                else
+                  ListTile(leading: CircularProgressIndicator(), title: Text('Loading calendars...')),
+              ],
             ],
-          ],
-        ),
-      );
-    });
+          ),
+        );
+      },
+    );
   }
 }

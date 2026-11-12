@@ -1,5 +1,7 @@
 import 'package:eventide/eventide.dart';
+
 import 'event_form.dart';
+
 import 'package:material_ui/material_ui.dart';
 import 'package:timezone/data/latest.dart' as tz;
 
@@ -16,10 +18,7 @@ final class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Eventide - Write Only Demo',
-      theme: ThemeData(
-        primarySwatch: Colors.green,
-        useMaterial3: true,
-      ),
+      theme: ThemeData(primarySwatch: Colors.green, useMaterial3: true),
       home: WriteOnlyDemoPage(),
     );
   }
@@ -48,18 +47,12 @@ class WriteOnlyDemoPage extends StatelessWidget {
                     children: [
                       Row(
                         children: [
-                          Icon(
-                            Icons.info_outline,
-                            color: Colors.blue.shade600,
-                            size: 28,
-                          ),
+                          Icon(Icons.info_outline, color: Colors.blue.shade600, size: 28),
                           const SizedBox(width: 12),
                           Text(
                             'Write-Only Mode',
-                            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.blue.shade700,
-                                ),
+                            style: Theme.of(context).textTheme.headlineSmall
+                                ?.copyWith(fontWeight: FontWeight.bold, color: Colors.blue.shade700),
                           ),
                         ],
                       ),
@@ -107,10 +100,7 @@ class WriteOnlyDemoPage extends StatelessWidget {
                             Expanded(
                               child: Text(
                                 'Perfect for applications that only need to create events without accessing existing calendar data.',
-                                style: TextStyle(
-                                  color: Colors.amber.shade800,
-                                  fontStyle: FontStyle.italic,
-                                ),
+                                style: TextStyle(color: Colors.amber.shade800, fontStyle: FontStyle.italic),
                               ),
                             ),
                           ],
@@ -128,17 +118,12 @@ class WriteOnlyDemoPage extends StatelessWidget {
                   child: ElevatedButton.icon(
                     onPressed: () => _showCreateEventDialog(context),
                     icon: const Icon(Icons.add_circle_outline, size: 28),
-                    label: const Text(
-                      'Create New Event',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                    ),
+                    label: const Text('Create New Event', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.green,
                       foregroundColor: Colors.white,
                       elevation: 6,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                     ),
                   ),
                 ),
@@ -152,9 +137,7 @@ class WriteOnlyDemoPage extends StatelessWidget {
                     children: [
                       Text(
                         'Available Features:',
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
+                        style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 8),
                       _buildSimpleFeature('✅ Simple event creation'),
@@ -185,18 +168,8 @@ class WriteOnlyDemoPage extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                title,
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-              ),
-              Text(
-                description,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Colors.grey.shade600,
-                    ),
-              ),
+              Text(title, style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold)),
+              Text(description, style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.grey.shade600)),
             ],
           ),
         ),
