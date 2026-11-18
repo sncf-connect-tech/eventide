@@ -1160,4 +1160,179 @@ class RecurrenceTests {
         verify(exactly = 0) { contentResolver.update(eventContentUri, any(), "_id = ?", arrayOf("42")) }
         verify { contentResolver.insert(eventContentUri, any()) }
     }
+
+    @Test
+    fun `deleteReminder with thisEvent span detaches occurrence and deletes reminder on exception row`() = runTest {
+        mockPermissionGranted(permissionHandler)
+        mockRetrieveEvents(contentResolver, eventContentUri)
+        mockRetrieveAttendees(contentResolver, attendeesContentUri)
+        mockRetrieveReminders(contentResolver, remindersContentUri)
+
+        val rruleCursor = mockk<Cursor>(relaxed = true)
+        every {
+            contentResolver.query(eventContentUri, arrayOf(CalendarContract.Events.RRULE), "_id = ?", arrayOf("42"), null)
+        } returns rruleCursor
+        every { rruleCursor.moveToFirst() } returns true
+        every { rruleCursor.getString(0) } returns "FREQ=DAILY"
+
+        mockMasterSyncId()
+
+        val exceptionUri = mockk<Uri>(relaxed = true)
+        every { contentResolver.insert(exceptionContentUri.buildUpon().appendPath("42").build(), any()) } returns exceptionUri
+        every { exceptionUri.lastPathSegment } returns "99"
+
+        every {
+            contentResolver.delete(remindersContentUri, any(), arrayOf("99", "15"))
+        } returns 1
+
+        var result: Result<Event>? = null
+        val latch = CountDownLatch(1)
+        calendarImplem.deleteReminder(
+            reminder = 15L,
+            eventId = "42",
+            span = Span.THIS_EVENT,
+            originalInstanceDate = 1751880000000L,
+        ) {
+            result = it
+            latch.countDown()
+        }
+
+        latch.await()
+
+        assertTrue(result!!.isSuccess)
+        assertEquals("42", result.getOrNull()?.id)
+        assertEquals(1751880000000L, result.getOrNull()?.originalInstanceDate)
+        verify { contentResolver.delete(remindersContentUri, any(), arrayOf("99", "15")) }
+    }
+
+    @Test
+    fun `createReminder with thisEvent span reuses existing exception row and preserves series identity`() = runTest {
+        mockPermissionGranted(permissionHandler)
+        mockRetrieveEvents(contentResolver, eventContentUri)
+        mockRetrieveAttendees(contentResolver, attendeesContentUri)
+        mockRetrieveReminders(contentResolver, remindersContentUri)
+        mockExistingException(1751880000000L)
+
+        val reminderValuesSlot = slot<ContentValues>()
+        every { contentResolver.insert(remindersContentUri, capture(reminderValuesSlot)) } returns mockk(relaxed = true)
+
+        var result: Result<Event>? = null
+        val latch = CountDownLatch(1)
+        calendarImplem.createReminder(
+            reminder = 30L,
+            eventId = "42",
+            span = Span.THIS_EVENT,
+            originalInstanceDate = 1751880000000L,
+        ) {
+            result = it
+            latch.countDown()
+        }
+
+        latch.await()
+
+        assertTrue(result!!.isSuccess)
+        assertEquals("42", result.getOrNull()?.id)
+        assertEquals(1751880000000L, result.getOrNull()?.originalInstanceDate)
+        verify { contentResolver.insert(remindersContentUri, any()) }
+    }
+
+    @Test
+    fun `deleteAttendee with thisEvent span detaches occurrence and deletes attendee on exception row`() = runTest {
+        mockPermissionGranted(permissionHandler)
+        mockRetrieveEvents(contentResolver, eventContentUri)
+        mockRetrieveAttendees(contentResolver, attendeesContentUri)
+        mockRetrieveReminders(contentResolver, remindersContentUri)
+
+        val rruleCursor = mockk<Cursor>(relaxed = true)
+        every {
+            contentResolver.query(eventContentUri, arrayOf(CalendarContract.Events.RRULE), "_id = ?", arrayOf("42"), null)
+        } returns rruleCursor
+        every { rruleCursor.moveToFirst() } returns true
+        every { rruleCursor.getString(0) } returns "FREQ=DAILY"
+
+        mockMasterSyncId()
+
+        val exceptionUri = mockk<Uri>(relaxed = true)
+        every { contentResolver.insert(exceptionContentUri.buildUpon().appendPath("42").build(), any()) } returns exceptionUri
+        every { exceptionUri.lastPathSegment } returns "99"
+
+        every {
+            contentResolver.delete(attendeesContentUri, any(), arrayOf("99", "john@example.com"))
+        } returns 1
+
+        var result: Result<Event>? = null
+        val latch = CountDownLatch(1)
+        calendarImplem.deleteAttendee(
+            eventId = "42",
+            email = "john@example.com",
+            span = Span.THIS_EVENT,
+            originalInstanceDate = 1751880000000L,
+        ) {
+            result = it
+            latch.countDown()
+        }
+
+        latch.await()
+
+        assertTrue(result!!.isSuccess)
+        assertEquals("42", result.getOrNull()?.id)
+        verify { contentResolver.delete(attendeesContentUri, any(), arrayOf("99", "john@example.com")) }
+    }
+
+    @Test
+    fun `createAttendee with thisAndFuture span splits series and inserts attendee on new master`() = runTest {
+        mockPermissionGranted(permissionHandler)
+        mockRetrieveEvents(contentResolver, eventContentUri)
+        mockRetrieveAttendees(contentResolver, attendeesContentUri)
+        mockRetrieveReminders(contentResolver, remindersContentUri)
+
+        val splitCursor = mockk<Cursor>(relaxed = true)
+        every {
+            contentResolver.query(
+                eventContentUri,
+                match { it.size == 10 && it.contains(CalendarContract.Events.RRULE) },
+                CalendarContract.Events._ID + " = ?",
+                arrayOf("42"),
+                null,
+            )
+        } returns splitCursor
+        every { splitCursor.moveToFirst() } returns true
+        every { splitCursor.getLong(0) } returns 1L
+        every { splitCursor.getString(1) } returns "Standup"
+        every { splitCursor.getLong(4) } returns 1751793600000L
+        every { splitCursor.getLong(5) } returns 1751797200000L
+        every { splitCursor.getInt(7) } returns 0
+        every { splitCursor.getString(8) } returns "FREQ=DAILY"
+        every { splitCursor.getString(9) } returns "UTC"
+
+        every { contentResolver.update(eventContentUri, any(), "_id = ?", arrayOf("42")) } returns 1
+
+        val newSeriesUri = mockk<Uri>(relaxed = true)
+        every { contentResolver.insert(eventContentUri, any()) } returns newSeriesUri
+        every { newSeriesUri.lastPathSegment } returns "101"
+
+        every { contentResolver.insert(attendeesContentUri, any()) } returns mockk(relaxed = true)
+
+        var result: Result<Event>? = null
+        val latch = CountDownLatch(1)
+        calendarImplem.createAttendee(
+            eventId = "42",
+            name = "Jane",
+            email = "jane@example.com",
+            role = 1L,
+            type = 1L,
+            span = Span.THIS_AND_FUTURE,
+            originalInstanceDate = 1751880000000L,
+        ) {
+            result = it
+            latch.countDown()
+        }
+
+        latch.await()
+
+        assertTrue(result!!.isSuccess)
+        verify { contentResolver.update(eventContentUri, any(), "_id = ?", arrayOf("42")) }
+        verify { contentResolver.insert(eventContentUri, any()) }
+        verify { contentResolver.insert(attendeesContentUri, any()) }
+    }
 }

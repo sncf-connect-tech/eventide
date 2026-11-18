@@ -498,10 +498,10 @@ interface CalendarApi {
   fun createEventThroughNativePlatform(title: String?, startDate: Long?, endDate: Long?, isAllDay: Boolean?, description: String?, url: String?, location: String?, reminders: List<Long>?, recurrenceRule: String?, callback: (Result<Unit>) -> Unit)
   fun retrieveEvents(calendarId: String, startDate: Long, endDate: Long, callback: (Result<List<Event>>) -> Unit)
   fun deleteEvent(eventId: String, span: Span?, originalInstanceDate: Long?, callback: (Result<Unit>) -> Unit)
-  fun createReminder(reminder: Long, eventId: String, callback: (Result<Event>) -> Unit)
-  fun deleteReminder(reminder: Long, eventId: String, callback: (Result<Event>) -> Unit)
-  fun createAttendee(eventId: String, name: String, email: String, role: Long, type: Long, callback: (Result<Event>) -> Unit)
-  fun deleteAttendee(eventId: String, email: String, callback: (Result<Event>) -> Unit)
+  fun createReminder(reminder: Long, eventId: String, span: Span?, originalInstanceDate: Long?, callback: (Result<Event>) -> Unit)
+  fun deleteReminder(reminder: Long, eventId: String, span: Span?, originalInstanceDate: Long?, callback: (Result<Event>) -> Unit)
+  fun createAttendee(eventId: String, name: String, email: String, role: Long, type: Long, span: Span?, originalInstanceDate: Long?, callback: (Result<Event>) -> Unit)
+  fun deleteAttendee(eventId: String, email: String, span: Span?, originalInstanceDate: Long?, callback: (Result<Event>) -> Unit)
 
   companion object {
     /** The codec used by CalendarApi. */
@@ -779,7 +779,9 @@ interface CalendarApi {
             val args = message as List<Any?>
             val reminderArg = args[0] as Long
             val eventIdArg = args[1] as String
-            api.createReminder(reminderArg, eventIdArg) { result: Result<Event> ->
+            val spanArg = args[2] as Span?
+            val originalInstanceDateArg = args[3] as Long?
+            api.createReminder(reminderArg, eventIdArg, spanArg, originalInstanceDateArg) { result: Result<Event> ->
               val error = result.exceptionOrNull()
               if (error != null) {
                 reply.reply(CalendarApiPigeonUtils.wrapError(error))
@@ -800,7 +802,9 @@ interface CalendarApi {
             val args = message as List<Any?>
             val reminderArg = args[0] as Long
             val eventIdArg = args[1] as String
-            api.deleteReminder(reminderArg, eventIdArg) { result: Result<Event> ->
+            val spanArg = args[2] as Span?
+            val originalInstanceDateArg = args[3] as Long?
+            api.deleteReminder(reminderArg, eventIdArg, spanArg, originalInstanceDateArg) { result: Result<Event> ->
               val error = result.exceptionOrNull()
               if (error != null) {
                 reply.reply(CalendarApiPigeonUtils.wrapError(error))
@@ -824,7 +828,9 @@ interface CalendarApi {
             val emailArg = args[2] as String
             val roleArg = args[3] as Long
             val typeArg = args[4] as Long
-            api.createAttendee(eventIdArg, nameArg, emailArg, roleArg, typeArg) { result: Result<Event> ->
+            val spanArg = args[5] as Span?
+            val originalInstanceDateArg = args[6] as Long?
+            api.createAttendee(eventIdArg, nameArg, emailArg, roleArg, typeArg, spanArg, originalInstanceDateArg) { result: Result<Event> ->
               val error = result.exceptionOrNull()
               if (error != null) {
                 reply.reply(CalendarApiPigeonUtils.wrapError(error))
@@ -845,7 +851,9 @@ interface CalendarApi {
             val args = message as List<Any?>
             val eventIdArg = args[0] as String
             val emailArg = args[1] as String
-            api.deleteAttendee(eventIdArg, emailArg) { result: Result<Event> ->
+            val spanArg = args[2] as Span?
+            val originalInstanceDateArg = args[3] as Long?
+            api.deleteAttendee(eventIdArg, emailArg, spanArg, originalInstanceDateArg) { result: Result<Event> ->
               val error = result.exceptionOrNull()
               if (error != null) {
                 reply.reply(CalendarApiPigeonUtils.wrapError(error))

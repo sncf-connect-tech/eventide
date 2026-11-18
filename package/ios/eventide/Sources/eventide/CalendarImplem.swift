@@ -362,10 +362,20 @@ class CalendarImplem: CalendarApi {
         }
     }
     
-    func createReminder(_ reminder: Int64, forEventId eventId: String, completion: @escaping (Result<Event, Error>) -> Void) {
+    func createReminder(_ reminder: Int64, forEventId eventId: String, span: Span? = nil, originalInstanceDate: Int64? = nil, completion: @escaping (Result<Event, Error>) -> Void) {
         permissionHandler.checkCalendarAccessThenExecute(.fullAccess) { [self] in
             do {
-                let modifiedEvent = try easyEventStore.createReminder(timeInterval: TimeInterval(-reminder), eventId: eventId)
+                let modifiedEvent: Event
+                if let span, let originalInstanceDate {
+                    modifiedEvent = try easyEventStore.createReminder(
+                        timeInterval: TimeInterval(-reminder),
+                        eventId: eventId,
+                        originalInstanceDate: Date(from: originalInstanceDate),
+                        span: span
+                    )
+                } else {
+                    modifiedEvent = try easyEventStore.createReminder(timeInterval: TimeInterval(-reminder), eventId: eventId)
+                }
                 completion(.success(modifiedEvent))
                 
             } catch {
@@ -384,10 +394,20 @@ class CalendarImplem: CalendarApi {
 
     }
     
-    func deleteReminder(_ reminder: Int64, withEventId eventId: String, completion: @escaping (Result<Event, Error>) -> Void) {
+    func deleteReminder(_ reminder: Int64, withEventId eventId: String, span: Span? = nil, originalInstanceDate: Int64? = nil, completion: @escaping (Result<Event, Error>) -> Void) {
         permissionHandler.checkCalendarAccessThenExecute(.fullAccess) { [self] in
             do {
-                let modifiedEvent = try easyEventStore.deleteReminder(timeInterval: TimeInterval(-reminder), eventId: eventId)
+                let modifiedEvent: Event
+                if let span, let originalInstanceDate {
+                    modifiedEvent = try easyEventStore.deleteReminder(
+                        timeInterval: TimeInterval(-reminder),
+                        eventId: eventId,
+                        originalInstanceDate: Date(from: originalInstanceDate),
+                        span: span
+                    )
+                } else {
+                    modifiedEvent = try easyEventStore.deleteReminder(timeInterval: TimeInterval(-reminder), eventId: eventId)
+                }
                 completion(.success(modifiedEvent))
                 
             } catch {
@@ -411,6 +431,8 @@ class CalendarImplem: CalendarApi {
         email: String,
         role: Int64,
         type: Int64,
+        span: Span? = nil,
+        originalInstanceDate: Int64? = nil,
         completion: @escaping (Result<Event, Error>) -> Void
     ) {
         /// EventKit cannot add participants to an event nor change participant information.
@@ -427,6 +449,8 @@ class CalendarImplem: CalendarApi {
     func deleteAttendee(
         eventId: String,
         email: String,
+        span: Span? = nil,
+        originalInstanceDate: Int64? = nil,
         completion: @escaping (Result<Event, Error>) -> Void
     ) {
         /// EventKit cannot add participants to an event nor change participant information.

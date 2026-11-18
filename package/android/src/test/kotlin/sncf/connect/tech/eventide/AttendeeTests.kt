@@ -77,7 +77,7 @@ class AttendeeTests {
 
         var result: Result<Event>? = null
         val latch = CountDownLatch(1)
-        calendarImplem.createAttendee("1", "John Doe", "john.doe@example.com", 1, 1) {
+        calendarImplem.createAttendee("1", "John Doe", "john.doe@example.com", 1, 1, null, null) {
             result = it
             latch.countDown()
         }
@@ -98,7 +98,7 @@ class AttendeeTests {
         mockPermissionDenied(permissionHandler)
 
         var result: Result<Event>? = null
-        calendarImplem.createAttendee("1", "John Doe", "john.doe@example.com", 1, 1) {
+        calendarImplem.createAttendee("1", "John Doe", "john.doe@example.com", 1, 1, null, null) {
             result = it
         }
 
@@ -116,7 +116,7 @@ class AttendeeTests {
 
         var result: Result<Event>? = null
         val latch = CountDownLatch(1)
-        calendarImplem.deleteAttendee("1", "john.doe@example.com") {
+        calendarImplem.deleteAttendee("1", "john.doe@example.com", null, null) {
             result = it
             latch.countDown()
         }
@@ -131,7 +131,7 @@ class AttendeeTests {
         mockPermissionDenied(permissionHandler)
 
         var result: Result<Event>? = null
-        calendarImplem.deleteAttendee("1", "john.doe@example.com") {
+        calendarImplem.deleteAttendee("1", "john.doe@example.com", null, null) {
             result = it
         }
 
@@ -146,7 +146,7 @@ class AttendeeTests {
 
         var result: Result<Event>? = null
         val latch = CountDownLatch(1)
-        calendarImplem.deleteAttendee("eventId", "john.doe@example.com") {
+        calendarImplem.deleteAttendee("eventId", "john.doe@example.com", null, null) {
             result = it
             latch.countDown()
         }
@@ -164,7 +164,7 @@ class AttendeeTests {
 
         var result: Result<Event>? = null
         val latch = CountDownLatch(1)
-        calendarImplem.deleteAttendee("eventId", "john.doe@example.com") {
+        calendarImplem.deleteAttendee("eventId", "john.doe@example.com", null, null) {
             result = it
             latch.countDown()
         }

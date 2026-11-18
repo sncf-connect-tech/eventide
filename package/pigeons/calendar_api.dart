@@ -63,8 +63,8 @@ abstract class CalendarApi {
     required String? location,
     required List<int>? reminders,
     required String? recurrenceRule,
-    required int? originalInstanceDate,
     required Span? span,
+    required int? originalInstanceDate,
   });
 
   @async
@@ -97,16 +97,26 @@ abstract class CalendarApi {
   List<Event> retrieveEvents({required String calendarId, required int startDate, required int endDate});
 
   @async
-  @SwiftFunction('deleteRecurringEvent(withId:originalInstanceDate:span:)')
-  void deleteEvent({required String eventId, required int? originalInstanceDate, required Span? span});
+  @SwiftFunction('deleteEvent(withId:span:originalInstanceDate:)')
+  void deleteEvent({required String eventId, required Span? span, required int? originalInstanceDate});
 
   @async
-  @SwiftFunction('createReminder(_:forEventId:)')
-  Event createReminder({required int reminder, required String eventId});
+  @SwiftFunction('createReminder(_:forEventId:span:originalInstanceDate:)')
+  Event createReminder({
+    required int reminder,
+    required String eventId,
+    required Span? span,
+    required int? originalInstanceDate,
+  });
 
   @async
-  @SwiftFunction('deleteReminder(_:withEventId:)')
-  Event deleteReminder({required int reminder, required String eventId});
+  @SwiftFunction('deleteReminder(_:withEventId:span:originalInstanceDate:)')
+  Event deleteReminder({
+    required int reminder,
+    required String eventId,
+    required Span? span,
+    required int? originalInstanceDate,
+  });
 
   @async
   Event createAttendee({
@@ -115,10 +125,17 @@ abstract class CalendarApi {
     required String email,
     required int role,
     required int type,
+    required Span? span,
+    required int? originalInstanceDate,
   });
 
   @async
-  Event deleteAttendee({required String eventId, required String email});
+  Event deleteAttendee({
+    required String eventId,
+    required String email,
+    required Span? span,
+    required int? originalInstanceDate,
+  });
 }
 
 final class Calendar {

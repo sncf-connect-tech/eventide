@@ -529,4 +529,117 @@ final class ReminderTests: XCTestCase {
         
         waitForExpectations(timeout: timeout)
     }
+
+    func testCreateReminder_withSpanAndOriginalInstanceDate_permissionGranted() {
+        let expectation = expectation(description: "Reminder has been created with span")
+
+        let reminder: Int64 = 3600
+        let originalInstanceDate = Date().millisecondsSince1970
+
+        let mockEasyEventStore = MockEasyEventStore(
+            calendars: [
+                Calendar(
+                    id: "1",
+                    title: "title",
+                    color: UIColor.red.toInt64(),
+                    isWritable: true,
+                    account: Account(id: "local", name: "local", type: "local")
+                )
+            ],
+            events: [
+                Event(
+                    id: "1",
+                    calendarId: "1",
+                    title: "title",
+                    isAllDay: false,
+                    startDate: originalInstanceDate,
+                    endDate: Date().addingTimeInterval(TimeInterval(10)).millisecondsSince1970,
+                    reminders: [],
+                    attendees: [],
+                    description: "description",
+                    url: "url",
+                    recurrenceRule: "FREQ=DAILY",
+                    originalInstanceDate: originalInstanceDate
+                )
+            ]
+        )
+
+        calendarImplem = CalendarImplem(
+            easyEventStore: mockEasyEventStore,
+            permissionHandler: PermissionGranted()
+        )
+
+        calendarImplem.createReminder(
+            reminder,
+            forEventId: "1",
+            span: .thisEvent,
+            originalInstanceDate: originalInstanceDate
+        ) { result in
+            switch result {
+            case .success(let event):
+                XCTAssertEqual(event.reminders, [-reminder])
+                expectation.fulfill()
+            case .failure:
+                XCTFail("Reminder should have been created")
+            }
+        }
+
+        waitForExpectations(timeout: timeout)
+    }
+
+    func testDeleteReminder_withSpanAndOriginalInstanceDate_permissionGranted() {
+        let expectation = expectation(description: "Reminder has been deleted with span")
+
+        let originalInstanceDate = Date().millisecondsSince1970
+
+        let mockEasyEventStore = MockEasyEventStore(
+            calendars: [
+                Calendar(
+                    id: "1",
+                    title: "title",
+                    color: UIColor.red.toInt64(),
+                    isWritable: true,
+                    account: Account(id: "local", name: "local", type: "local")
+                )
+            ],
+            events: [
+                Event(
+                    id: "1",
+                    calendarId: "1",
+                    title: "title",
+                    isAllDay: false,
+                    startDate: originalInstanceDate,
+                    endDate: Date().addingTimeInterval(TimeInterval(10)).millisecondsSince1970,
+                    reminders: [3600],
+                    attendees: [],
+                    description: "description",
+                    url: "url",
+                    recurrenceRule: "FREQ=DAILY",
+                    originalInstanceDate: originalInstanceDate
+                )
+            ]
+        )
+
+        calendarImplem = CalendarImplem(
+            easyEventStore: mockEasyEventStore,
+            permissionHandler: PermissionGranted()
+        )
+
+        calendarImplem.deleteReminder(
+            3600,
+            withEventId: "1",
+            span: .thisAndFuture,
+            originalInstanceDate: originalInstanceDate
+        ) { result in
+            switch result {
+            case .success(let event):
+                XCTAssertTrue(event.reminders.isEmpty)
+                expectation.fulfill()
+            case .failure:
+                XCTFail("Reminder should have been deleted")
+            }
+        }
+
+        waitForExpectations(timeout: timeout)
+    }
 }

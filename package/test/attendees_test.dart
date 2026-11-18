@@ -27,6 +27,8 @@ void main() {
           email: any(named: 'email'),
           role: any(named: 'role'),
           type: any(named: 'type'),
+          span: any(named: 'span'),
+          originalInstanceDate: any(named: 'originalInstanceDate'),
         ),
       ).thenAnswer(
         (_) async => Event(
@@ -57,6 +59,8 @@ void main() {
           email: 'john.doe@gmail.com',
           role: any(named: 'role'),
           type: any(named: 'type'),
+          span: Span.thisEvent,
+          originalInstanceDate: null,
         ),
       ).called(1);
     });
@@ -73,6 +77,8 @@ void main() {
         () => mockCalendarApi.deleteAttendee(
           eventId: any(named: 'eventId'),
           email: any(named: 'email'),
+          span: any(named: 'span'),
+          originalInstanceDate: any(named: 'originalInstanceDate'),
         ),
       ).thenAnswer(
         (_) async => Event(
@@ -89,7 +95,14 @@ void main() {
 
       await eventide.deleteAttendee(eventId: "eventId", attendee: attendee);
 
-      verify(() => mockCalendarApi.deleteAttendee(eventId: 'eventId', email: 'email')).called(1);
+      verify(
+        () => mockCalendarApi.deleteAttendee(
+          eventId: 'eventId',
+          email: 'email',
+          span: Span.thisEvent,
+          originalInstanceDate: null,
+        ),
+      ).called(1);
     });
   });
 

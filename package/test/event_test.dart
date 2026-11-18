@@ -376,6 +376,8 @@ void main() {
         () => mockCalendarApi.createReminder(
           reminder: any(named: 'reminder'),
           eventId: any(named: 'eventId'),
+          span: any(named: 'span'),
+          originalInstanceDate: any(named: 'originalInstanceDate'),
         ),
       ).thenAnswer((_) async => event.copyWithReminders(reminders.toNativeList()));
 
@@ -434,6 +436,8 @@ void main() {
         () => mockCalendarApi.createReminder(
           reminder: any(named: 'reminder'),
           eventId: any(named: 'eventId'),
+          span: any(named: 'span'),
+          originalInstanceDate: any(named: 'originalInstanceDate'),
         ),
       ).thenAnswer((_) async => event.copyWithReminders(reminders.toNativeList()));
 
@@ -496,6 +500,8 @@ void main() {
         () => mockCalendarApi.createReminder(
           reminder: any(named: 'reminder'),
           eventId: any(named: 'eventId'),
+          span: any(named: 'span'),
+          originalInstanceDate: any(named: 'originalInstanceDate'),
         ),
       ).thenAnswer((_) async => event.copyWithReminders(reminders.toNativeList()));
 

@@ -487,10 +487,10 @@ protocol CalendarApi {
   func createEventThroughNativePlatform(title: String?, startDate: Int64?, endDate: Int64?, isAllDay: Bool?, description: String?, url: String?, location: String?, reminders: [Int64]?, recurrenceRule: String?, completion: @escaping (Result<Void, Error>) -> Void)
   func retrieveEvents(calendarId: String, startDate: Int64, endDate: Int64, completion: @escaping (Result<[Event], Error>) -> Void)
   func deleteEvent(withId eventId: String, span: Span?, originalInstanceDate: Int64?, completion: @escaping (Result<Void, Error>) -> Void)
-  func createReminder(_ reminder: Int64, forEventId eventId: String, completion: @escaping (Result<Event, Error>) -> Void)
-  func deleteReminder(_ reminder: Int64, withEventId eventId: String, completion: @escaping (Result<Event, Error>) -> Void)
-  func createAttendee(eventId: String, name: String, email: String, role: Int64, type: Int64, completion: @escaping (Result<Event, Error>) -> Void)
-  func deleteAttendee(eventId: String, email: String, completion: @escaping (Result<Event, Error>) -> Void)
+  func createReminder(_ reminder: Int64, forEventId eventId: String, span: Span?, originalInstanceDate: Int64?, completion: @escaping (Result<Event, Error>) -> Void)
+  func deleteReminder(_ reminder: Int64, withEventId eventId: String, span: Span?, originalInstanceDate: Int64?, completion: @escaping (Result<Event, Error>) -> Void)
+  func createAttendee(eventId: String, name: String, email: String, role: Int64, type: Int64, span: Span?, originalInstanceDate: Int64?, completion: @escaping (Result<Event, Error>) -> Void)
+  func deleteAttendee(eventId: String, email: String, span: Span?, originalInstanceDate: Int64?, completion: @escaping (Result<Event, Error>) -> Void)
 }
 
 /// Generated setup class from Pigeon to handle messages through the `binaryMessenger`.
@@ -736,7 +736,9 @@ class CalendarApiSetup {
         let args = message as! [Any?]
         let reminderArg = args[0] as! Int64
         let eventIdArg = args[1] as! String
-        api.createReminder(reminderArg, forEventId: eventIdArg) { result in
+        let spanArg: Span? = nilOrValue(args[2])
+        let originalInstanceDateArg: Int64? = nilOrValue(args[3])
+        api.createReminder(reminderArg, forEventId: eventIdArg, span: spanArg, originalInstanceDate: originalInstanceDateArg) { result in
           switch result {
           case .success(let res):
             reply(wrapResult(res))
@@ -754,7 +756,9 @@ class CalendarApiSetup {
         let args = message as! [Any?]
         let reminderArg = args[0] as! Int64
         let eventIdArg = args[1] as! String
-        api.deleteReminder(reminderArg, withEventId: eventIdArg) { result in
+        let spanArg: Span? = nilOrValue(args[2])
+        let originalInstanceDateArg: Int64? = nilOrValue(args[3])
+        api.deleteReminder(reminderArg, withEventId: eventIdArg, span: spanArg, originalInstanceDate: originalInstanceDateArg) { result in
           switch result {
           case .success(let res):
             reply(wrapResult(res))
@@ -775,7 +779,9 @@ class CalendarApiSetup {
         let emailArg = args[2] as! String
         let roleArg = args[3] as! Int64
         let typeArg = args[4] as! Int64
-        api.createAttendee(eventId: eventIdArg, name: nameArg, email: emailArg, role: roleArg, type: typeArg) { result in
+        let spanArg: Span? = nilOrValue(args[5])
+        let originalInstanceDateArg: Int64? = nilOrValue(args[6])
+        api.createAttendee(eventId: eventIdArg, name: nameArg, email: emailArg, role: roleArg, type: typeArg, span: spanArg, originalInstanceDate: originalInstanceDateArg) { result in
           switch result {
           case .success(let res):
             reply(wrapResult(res))
@@ -793,7 +799,9 @@ class CalendarApiSetup {
         let args = message as! [Any?]
         let eventIdArg = args[0] as! String
         let emailArg = args[1] as! String
-        api.deleteAttendee(eventId: eventIdArg, email: emailArg) { result in
+        let spanArg: Span? = nilOrValue(args[2])
+        let originalInstanceDateArg: Int64? = nilOrValue(args[3])
+        api.deleteAttendee(eventId: eventIdArg, email: emailArg, span: spanArg, originalInstanceDate: originalInstanceDateArg) { result in
           switch result {
           case .success(let res):
             reply(wrapResult(res))

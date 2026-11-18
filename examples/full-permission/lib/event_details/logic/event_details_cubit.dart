@@ -9,41 +9,68 @@ final class EventDetailsCubit extends Cubit<Value<ETEvent>> {
   EventDetailsCubit({required ETEvent selectedEvent, required this._calendarPlugin})
     : super(Value.success(selectedEvent));
 
-  Future<void> createReminder(Duration durationBeforeEvent) async {
+  Future<void> createReminder(Duration durationBeforeEvent, {ETSpan span = ETSpan.thisEvent}) async {
     if (state case Value(:final data?)) {
       await state
           .fetchFrom(() async {
-            return await _calendarPlugin.createReminder(eventId: data.id, durationBeforeEvent: durationBeforeEvent);
+            return await _calendarPlugin.createReminder(
+              eventId: data.id,
+              durationBeforeEvent: durationBeforeEvent,
+              span: span,
+              originalInstanceDate: data.originalInstanceDate,
+            );
           })
           .forEach(emit);
     }
   }
 
-  Future<void> deleteReminder(Duration durationBeforeEvent) async {
+  Future<void> deleteReminder(Duration durationBeforeEvent, {ETSpan span = ETSpan.thisEvent}) async {
     if (state case Value(:final data?)) {
       await state
           .fetchFrom(() async {
-            return await _calendarPlugin.deleteReminder(eventId: data.id, durationBeforeEvent: durationBeforeEvent);
+            return await _calendarPlugin.deleteReminder(
+              eventId: data.id,
+              durationBeforeEvent: durationBeforeEvent,
+              span: span,
+              originalInstanceDate: data.originalInstanceDate,
+            );
           })
           .forEach(emit);
     }
   }
 
-  Future<void> createAttendee({required String name, required String email, required ETAttendeeType type}) async {
+  Future<void> createAttendee({
+    required String name,
+    required String email,
+    required ETAttendeeType type,
+    ETSpan span = ETSpan.thisEvent,
+  }) async {
     if (state case Value(:final data?)) {
       await state
           .fetchFrom(() async {
-            return await _calendarPlugin.createAttendee(eventId: data.id, name: name, email: email, type: type);
+            return await _calendarPlugin.createAttendee(
+              eventId: data.id,
+              name: name,
+              email: email,
+              type: type,
+              span: span,
+              originalInstanceDate: data.originalInstanceDate,
+            );
           })
           .forEach(emit);
     }
   }
 
-  Future<void> removeAttendee(ETAttendee attendee) async {
+  Future<void> removeAttendee(ETAttendee attendee, {ETSpan span = ETSpan.thisEvent}) async {
     if (state case Value(:final data?)) {
       await state
           .fetchFrom(() async {
-            return await _calendarPlugin.deleteAttendee(eventId: data.id, attendee: attendee);
+            return await _calendarPlugin.deleteAttendee(
+              eventId: data.id,
+              attendee: attendee,
+              span: span,
+              originalInstanceDate: data.originalInstanceDate,
+            );
           })
           .forEach(emit);
     }

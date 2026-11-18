@@ -87,18 +87,35 @@ abstract class EventidePlatform extends PlatformInterface {
 
   Future<void> deleteEvent({required String eventId, ETSpan span = ETSpan.thisEvent, DateTime? originalInstanceDate});
 
-  Future<ETEvent> createReminder({required String eventId, required Duration durationBeforeEvent});
+  Future<ETEvent> createReminder({
+    required String eventId,
+    required Duration durationBeforeEvent,
+    ETSpan span = ETSpan.thisEvent,
+    DateTime? originalInstanceDate,
+  });
 
-  Future<ETEvent> deleteReminder({required String eventId, required Duration durationBeforeEvent});
+  Future<ETEvent> deleteReminder({
+    required String eventId,
+    required Duration durationBeforeEvent,
+    ETSpan span = ETSpan.thisEvent,
+    DateTime? originalInstanceDate,
+  });
 
   Future<ETEvent> createAttendee({
     required String eventId,
     required String name,
     required String email,
     required ETAttendeeType type,
+    ETSpan span = ETSpan.thisEvent,
+    DateTime? originalInstanceDate,
   });
 
-  Future<ETEvent> deleteAttendee({required String eventId, required ETAttendee attendee});
+  Future<ETEvent> deleteAttendee({
+    required String eventId,
+    required ETAttendee attendee,
+    ETSpan span = ETSpan.thisEvent,
+    DateTime? originalInstanceDate,
+  });
 }
 
 /// Represents a calendar.

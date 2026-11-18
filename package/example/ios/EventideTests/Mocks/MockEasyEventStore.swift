@@ -364,6 +364,10 @@ class MockEasyEventStore: EasyEventStoreProtocol {
 
         return events[eventIndex]
     }
+
+    func createReminder(timeInterval: TimeInterval, eventId: String, originalInstanceDate: Date, span: Span) throws -> Event {
+        return try createReminder(timeInterval: timeInterval, eventId: eventId)
+    }
     
     func deleteReminder(timeInterval: TimeInterval, eventId: String) throws -> Event {
         guard let eventIndex = events.firstIndex(where: { $0.id == eventId }) else {
@@ -385,6 +389,10 @@ class MockEasyEventStore: EasyEventStoreProtocol {
         events[eventIndex].reminders.remove(at: reminderIndex)
         
         return events[eventIndex]
+    }
+
+    func deleteReminder(timeInterval: TimeInterval, eventId: String, originalInstanceDate: Date, span: Span) throws -> Event {
+        return try deleteReminder(timeInterval: timeInterval, eventId: eventId)
     }
     
     func retrieveAttendees(eventId: String) throws -> [Attendee] {

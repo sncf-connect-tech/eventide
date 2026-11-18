@@ -118,4 +118,127 @@ void main() {
       ).called(1);
     });
   });
+
+  group('reminder and attendee recurrence forwarding', () {
+    test('createReminder forwards span and originalInstanceDate', () async {
+      when(
+        () => mockCalendarApi.createReminder(
+          reminder: any(named: 'reminder'),
+          eventId: any(named: 'eventId'),
+          span: any(named: 'span'),
+          originalInstanceDate: any(named: 'originalInstanceDate'),
+        ),
+      ).thenAnswer((_) async => baseEvent);
+
+      await eventide.createReminder(
+        eventId: 'master1',
+        durationBeforeEvent: const Duration(minutes: 15),
+        span: ETSpan.thisEvent,
+        originalInstanceDate: startDate,
+      );
+
+      verify(
+        () => mockCalendarApi.createReminder(
+          reminder: any(named: 'reminder'),
+          eventId: 'master1',
+          span: Span.thisEvent,
+          originalInstanceDate: startDate.toUtc().millisecondsSinceEpoch,
+        ),
+      ).called(1);
+    });
+
+    test('deleteReminder forwards span and originalInstanceDate', () async {
+      when(
+        () => mockCalendarApi.deleteReminder(
+          reminder: any(named: 'reminder'),
+          eventId: any(named: 'eventId'),
+          span: any(named: 'span'),
+          originalInstanceDate: any(named: 'originalInstanceDate'),
+        ),
+      ).thenAnswer((_) async => baseEvent);
+
+      await eventide.deleteReminder(
+        eventId: 'master1',
+        durationBeforeEvent: const Duration(minutes: 15),
+        span: ETSpan.thisAndFuture,
+        originalInstanceDate: startDate,
+      );
+
+      verify(
+        () => mockCalendarApi.deleteReminder(
+          reminder: any(named: 'reminder'),
+          eventId: 'master1',
+          span: Span.thisAndFuture,
+          originalInstanceDate: startDate.toUtc().millisecondsSinceEpoch,
+        ),
+      ).called(1);
+    });
+
+    test('createAttendee forwards span and originalInstanceDate', () async {
+      when(
+        () => mockCalendarApi.createAttendee(
+          eventId: any(named: 'eventId'),
+          name: any(named: 'name'),
+          email: any(named: 'email'),
+          role: any(named: 'role'),
+          type: any(named: 'type'),
+          span: any(named: 'span'),
+          originalInstanceDate: any(named: 'originalInstanceDate'),
+        ),
+      ).thenAnswer((_) async => baseEvent);
+
+      await eventide.createAttendee(
+        eventId: 'master1',
+        name: 'Jane',
+        email: 'jane@example.com',
+        type: ETAttendeeType.requiredPerson,
+        span: ETSpan.thisEvent,
+        originalInstanceDate: startDate,
+      );
+
+      verify(
+        () => mockCalendarApi.createAttendee(
+          eventId: 'master1',
+          name: 'Jane',
+          email: 'jane@example.com',
+          role: any(named: 'role'),
+          type: any(named: 'type'),
+          span: Span.thisEvent,
+          originalInstanceDate: startDate.toUtc().millisecondsSinceEpoch,
+        ),
+      ).called(1);
+    });
+
+    test('deleteAttendee forwards span and originalInstanceDate', () async {
+      when(
+        () => mockCalendarApi.deleteAttendee(
+          eventId: any(named: 'eventId'),
+          email: any(named: 'email'),
+          span: any(named: 'span'),
+          originalInstanceDate: any(named: 'originalInstanceDate'),
+        ),
+      ).thenAnswer((_) async => baseEvent);
+
+      await eventide.deleteAttendee(
+        eventId: 'master1',
+        attendee: ETAttendee(
+          name: 'Jane',
+          email: 'jane@example.com',
+          type: ETAttendeeType.requiredPerson,
+          status: ETAttendanceStatus.accepted,
+        ),
+        span: ETSpan.thisAndFuture,
+        originalInstanceDate: startDate,
+      );
+
+      verify(
+        () => mockCalendarApi.deleteAttendee(
+          eventId: 'master1',
+          email: 'jane@example.com',
+          span: Span.thisAndFuture,
+          originalInstanceDate: startDate.toUtc().millisecondsSinceEpoch,
+        ),
+      ).called(1);
+    });
+  });
 }

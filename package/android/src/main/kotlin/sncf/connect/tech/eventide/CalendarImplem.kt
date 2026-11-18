@@ -769,7 +769,7 @@ class CalendarImplem(
 
         replaceReminders(newId, reminders)
 
-        retrieveEvent(newId, callback)
+        retrieveTargetEvent(newId, eventId, Span.THIS_EVENT, originalInstanceDate, callback)
     }
 
     /**
@@ -1159,7 +1159,13 @@ class CalendarImplem(
         callback(Result.success(Unit))
     }
 
-    override fun createReminder(reminder: Long, eventId: String, callback: (Result<Event>) -> Unit) {
+    override fun createReminder(
+        reminder: Long,
+        eventId: String,
+        span: Span?,
+        originalInstanceDate: Long?,
+        callback: (Result<Event>) -> Unit
+    ) {
         permissionHandler.requestWritePermission { granted ->
             if (!granted) {
                 callback(
@@ -1175,15 +1181,18 @@ class CalendarImplem(
 
             CoroutineScope(Dispatchers.IO).launch {
                 try {
+                    val targetEventId = resolveTargetEventId(eventId, span, originalInstanceDate)
                     val values = ContentValues().apply {
-                        put(CalendarContract.Reminders.EVENT_ID, eventId)
+                        put(CalendarContract.Reminders.EVENT_ID, targetEventId)
                         put(CalendarContract.Reminders.MINUTES, reminder)
                         put(CalendarContract.Reminders.METHOD, CalendarContract.Reminders.METHOD_ALERT)
                     }
                     contentResolver.insert(remindersContentUri, values)
 
-                    retrieveEvent(eventId, callback)
+                    retrieveTargetEvent(targetEventId, eventId, span, originalInstanceDate, callback)
 
+                } catch (e: FlutterError) {
+                    callback(Result.failure(e))
                 } catch (e: Exception) {
                     callback(
                         Result.failure(
@@ -1199,7 +1208,13 @@ class CalendarImplem(
         }
     }
 
-    override fun deleteReminder(reminder: Long, eventId: String, callback: (Result<Event>) -> Unit) {
+    override fun deleteReminder(
+        reminder: Long,
+        eventId: String,
+        span: Span?,
+        originalInstanceDate: Long?,
+        callback: (Result<Event>) -> Unit
+    ) {
         permissionHandler.requestWritePermission { granted ->
             if (!granted) {
                 callback(
@@ -1215,13 +1230,14 @@ class CalendarImplem(
 
             CoroutineScope(Dispatchers.IO).launch {
                 try {
+                    val targetEventId = resolveTargetEventId(eventId, span, originalInstanceDate)
                     val selection =
                         CalendarContract.Reminders.EVENT_ID + " = ?" + " AND " + CalendarContract.Reminders.MINUTES + " = ?"
-                    val selectionArgs = arrayOf(eventId, reminder.toString())
+                    val selectionArgs = arrayOf(targetEventId, reminder.toString())
 
                     val deleted = contentResolver.delete(remindersContentUri, selection, selectionArgs)
                     if (deleted > 0) {
-                        retrieveEvent(eventId, callback)
+                        retrieveTargetEvent(targetEventId, eventId, span, originalInstanceDate, callback)
                     } else {
                         callback(
                             Result.failure(
@@ -1232,6 +1248,8 @@ class CalendarImplem(
                             )
                         )
                     }
+                } catch (e: FlutterError) {
+                    callback(Result.failure(e))
                 } catch (e: Exception) {
                     callback(
                         Result.failure(
@@ -1253,6 +1271,8 @@ class CalendarImplem(
         email: String,
         role: Long,
         type: Long,
+        span: Span?,
+        originalInstanceDate: Long?,
         callback: (Result<Event>) -> Unit
     ) {
         permissionHandler.requestWritePermission { granted ->
@@ -1270,8 +1290,9 @@ class CalendarImplem(
 
             CoroutineScope(Dispatchers.IO).launch {
                 try {
+                    val targetEventId = resolveTargetEventId(eventId, span, originalInstanceDate)
                     val values = ContentValues().apply {
-                        put(CalendarContract.Attendees.EVENT_ID, eventId)
+                        put(CalendarContract.Attendees.EVENT_ID, targetEventId)
                         put(CalendarContract.Attendees.ATTENDEE_NAME, name)
                         put(CalendarContract.Attendees.ATTENDEE_EMAIL, email)
                         put(CalendarContract.Attendees.ATTENDEE_RELATIONSHIP, type)
@@ -1279,8 +1300,10 @@ class CalendarImplem(
                     }
                     contentResolver.insert(attendeesContentUri, values)
 
-                    retrieveEvent(eventId, callback)
+                    retrieveTargetEvent(targetEventId, eventId, span, originalInstanceDate, callback)
 
+                } catch (e: FlutterError) {
+                    callback(Result.failure(e))
                 } catch (e: Exception) {
                     callback(
                         Result.failure(
@@ -1299,6 +1322,8 @@ class CalendarImplem(
     override fun deleteAttendee(
         eventId: String,
         email: String,
+        span: Span?,
+        originalInstanceDate: Long?,
         callback: (Result<Event>) -> Unit
     ) {
         permissionHandler.requestWritePermission { granted ->
@@ -1316,13 +1341,14 @@ class CalendarImplem(
 
             CoroutineScope(Dispatchers.IO).launch {
                 try {
+                    val targetEventId = resolveTargetEventId(eventId, span, originalInstanceDate)
                     val selection =
                         CalendarContract.Attendees.EVENT_ID + " = ?" + " AND " + CalendarContract.Attendees.ATTENDEE_EMAIL + " = ?"
-                    val selectionArgs = arrayOf(eventId, email)
+                    val selectionArgs = arrayOf(targetEventId, email)
 
                     val deleted = contentResolver.delete(attendeesContentUri, selection, selectionArgs)
                     if (deleted > 0) {
-                        retrieveEvent(eventId, callback)
+                        retrieveTargetEvent(targetEventId, eventId, span, originalInstanceDate, callback)
                     } else {
                         callback(
                             Result.failure(
@@ -1333,6 +1359,8 @@ class CalendarImplem(
                             )
                         )
                     }
+                } catch (e: FlutterError) {
+                    callback(Result.failure(e))
                 } catch (e: Exception) {
                     callback(
                         Result.failure(
@@ -1554,6 +1582,146 @@ class CalendarImplem(
                 )
             )
         }
+    }
+
+    private fun replaceAttendees(targetEventId: String, attendees: List<Attendee>?) {
+        if (attendees == null) return
+
+        val attendeeSelection = CalendarContract.Attendees.EVENT_ID + " = ?"
+        contentResolver.delete(attendeesContentUri, attendeeSelection, arrayOf(targetEventId))
+
+        attendees.forEach { attendee ->
+            val attendeeValues = ContentValues().apply {
+                put(CalendarContract.Attendees.EVENT_ID, targetEventId)
+                put(CalendarContract.Attendees.ATTENDEE_NAME, attendee.name)
+                put(CalendarContract.Attendees.ATTENDEE_EMAIL, attendee.email)
+                put(CalendarContract.Attendees.ATTENDEE_RELATIONSHIP, attendee.type)
+                put(CalendarContract.Attendees.ATTENDEE_TYPE, attendee.role)
+                put(CalendarContract.Attendees.ATTENDEE_STATUS, attendee.status)
+            }
+            contentResolver.insert(attendeesContentUri, attendeeValues)
+        }
+    }
+
+    private fun retrieveTargetEvent(
+        targetEventId: String,
+        seriesEventId: String,
+        span: Span?,
+        originalInstanceDate: Long?,
+        callback: (Result<Event>) -> Unit,
+    ) {
+        retrieveEvent(targetEventId) { result ->
+            if (span == Span.THIS_EVENT && originalInstanceDate != null && targetEventId != seriesEventId) {
+                callback(result.map { it.copy(id = seriesEventId, originalInstanceDate = originalInstanceDate) })
+            } else {
+                callback(result)
+            }
+        }
+    }
+
+    private fun resolveTargetEventId(
+        eventId: String,
+        span: Span?,
+        originalInstanceDate: Long?,
+    ): String {
+        if (span == null || originalInstanceDate == null) {
+            return eventId
+        }
+
+        return when (span) {
+            Span.THIS_EVENT -> {
+                existingException(eventId, originalInstanceDate)?.let { return it }
+                val rrule = RecurrenceHelper.getMasterRrule(contentResolver, eventContentUri, eventId)
+                if (rrule == null) {
+                    return eventId
+                }
+
+                ensureMasterSyncId(eventId)
+                val exceptionUri = exceptionContentUri.buildUpon().appendPath(eventId).build()
+                val values = ContentValues().apply {
+                    put(CalendarContract.Events.ORIGINAL_INSTANCE_TIME, originalInstanceDate)
+                    put(CalendarContract.Events.STATUS, CalendarContract.Events.STATUS_CONFIRMED)
+                }
+                contentResolver.insert(exceptionUri, values)?.lastPathSegment ?: eventId
+            }
+
+            Span.THIS_AND_FUTURE -> splitSeriesAt(eventId, originalInstanceDate)
+        }
+    }
+
+    private fun splitSeriesAt(eventId: String, originalInstanceDate: Long): String {
+        val projection = arrayOf(
+            CalendarContract.Events.CALENDAR_ID,
+            CalendarContract.Events.TITLE,
+            CalendarContract.Events.DESCRIPTION,
+            CalendarContract.Events.EVENT_LOCATION,
+            CalendarContract.Events.DTSTART,
+            CalendarContract.Events.DTEND,
+            CalendarContract.Events.DURATION,
+            CalendarContract.Events.ALL_DAY,
+            CalendarContract.Events.RRULE,
+            CalendarContract.Events.EVENT_TIMEZONE,
+        )
+        val cursor = contentResolver.query(
+            eventContentUri,
+            projection,
+            CalendarContract.Events._ID + " = ?",
+            arrayOf(eventId),
+            null,
+        )
+
+        var insertValues: ContentValues? = null
+        var existingRrule: String? = null
+
+        cursor?.use {
+            if (it.moveToFirst()) {
+                val rrule = it.getString(8)
+                val dtStart = it.getLong(4)
+                if (rrule.isNullOrEmpty() || dtStart == originalInstanceDate) {
+                    return eventId
+                }
+                existingRrule = rrule
+
+                val isAllDay = it.getInt(7) == 1
+                val durationStr = if (!it.isNull(6)) it.getString(6) else null
+                val dtEnd = if (!it.isNull(5)) it.getLong(5) else dtStart + 3_600_000L
+                val untilPart = RecurrenceHelper.getUntilString(rrule)
+                val stripped = RecurrenceHelper.stripUntilAndCount(rrule)
+                val newRrule = if (untilPart != null) "$stripped;$untilPart" else stripped
+
+                insertValues = ContentValues().apply {
+                    put(CalendarContract.Events.CALENDAR_ID, it.getLong(0))
+                    put(CalendarContract.Events.TITLE, it.getString(1))
+                    put(CalendarContract.Events.DESCRIPTION, it.getString(2))
+                    put(CalendarContract.Events.EVENT_LOCATION, it.getString(3))
+                    put(CalendarContract.Events.DTSTART, originalInstanceDate)
+                    put(
+                        CalendarContract.Events.DURATION,
+                        durationStr ?: RecurrenceHelper.formatRfcDuration(dtEnd - dtStart, isAllDay),
+                    )
+                    put(CalendarContract.Events.ALL_DAY, if (isAllDay) 1 else 0)
+                    put(CalendarContract.Events.RRULE, newRrule)
+                    put(CalendarContract.Events.EVENT_TIMEZONE, it.getString(9) ?: "UTC")
+                    put(CalendarContract.Events.STATUS, CalendarContract.Events.STATUS_CONFIRMED)
+                }
+            }
+        }
+
+        val rrule = existingRrule ?: return eventId
+        val values = insertValues ?: return eventId
+
+        val patchedRrule = RecurrenceHelper.patchWithUntil(rrule, originalInstanceDate)
+        val truncateValues = ContentValues().apply { put(CalendarContract.Events.RRULE, patchedRrule) }
+        contentResolver.update(eventContentUri, truncateValues, CalendarContract.Events._ID + " = ?", arrayOf(eventId))
+
+        val newId = contentResolver.insert(eventContentUri, values)?.lastPathSegment ?: return eventId
+
+        val existingReminders = readNow { retrieveReminders(eventId, it) }.getOrNull()
+        replaceReminders(newId, existingReminders)
+        val existingAttendees = readNow { retrieveAttendees(eventId, it) }.getOrNull()
+        replaceAttendees(newId, existingAttendees)
+
+        return newId
     }
 
     /**

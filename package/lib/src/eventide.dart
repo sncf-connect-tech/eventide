@@ -380,11 +380,18 @@ class Eventide extends EventidePlatform {
   ///
   /// Throws a [ETGenericException] if any other error occurs during reminder creation.
   @override
-  Future<ETEvent> createReminder({required String eventId, required Duration durationBeforeEvent}) async {
+  Future<ETEvent> createReminder({
+    required String eventId,
+    required Duration durationBeforeEvent,
+    ETSpan span = ETSpan.thisEvent,
+    DateTime? originalInstanceDate,
+  }) async {
     try {
       final updatedEvent = await _calendarApi.createReminder(
         reminder: durationBeforeEvent.toNativeDuration(),
         eventId: eventId,
+        span: span.toSpan(),
+        originalInstanceDate: originalInstanceDate?.toUtc().millisecondsSinceEpoch,
       );
       return updatedEvent.toETEvent();
     } on PlatformException catch (e) {
@@ -400,11 +407,18 @@ class Eventide extends EventidePlatform {
   ///
   /// Throws a [ETGenericException] if any other error occurs during reminder deletion.
   @override
-  Future<ETEvent> deleteReminder({required String eventId, required Duration durationBeforeEvent}) async {
+  Future<ETEvent> deleteReminder({
+    required String eventId,
+    required Duration durationBeforeEvent,
+    ETSpan span = ETSpan.thisEvent,
+    DateTime? originalInstanceDate,
+  }) async {
     try {
       final updatedEvent = await _calendarApi.deleteReminder(
         reminder: durationBeforeEvent.toNativeDuration(),
         eventId: eventId,
+        span: span.toSpan(),
+        originalInstanceDate: originalInstanceDate?.toUtc().millisecondsSinceEpoch,
       );
       return updatedEvent.toETEvent();
     } on PlatformException catch (e) {
@@ -427,6 +441,8 @@ class Eventide extends EventidePlatform {
     required String name,
     required String email,
     required ETAttendeeType type,
+    ETSpan span = ETSpan.thisEvent,
+    DateTime? originalInstanceDate,
   }) async {
     try {
       final event = await _calendarApi.createAttendee(
@@ -435,6 +451,8 @@ class Eventide extends EventidePlatform {
         email: email,
         role: type.nativeRole,
         type: type.nativeType,
+        span: span.toSpan(),
+        originalInstanceDate: originalInstanceDate?.toUtc().millisecondsSinceEpoch,
       );
       return event.toETEvent();
     } on PlatformException catch (e) {
@@ -452,9 +470,19 @@ class Eventide extends EventidePlatform {
   ///
   /// Throws a [ETGenericException] if any other error occurs during attendee deletion.
   @override
-  Future<ETEvent> deleteAttendee({required String eventId, required ETAttendee attendee}) async {
+  Future<ETEvent> deleteAttendee({
+    required String eventId,
+    required ETAttendee attendee,
+    ETSpan span = ETSpan.thisEvent,
+    DateTime? originalInstanceDate,
+  }) async {
     try {
-      final event = await _calendarApi.deleteAttendee(eventId: eventId, email: attendee.email);
+      final event = await _calendarApi.deleteAttendee(
+        eventId: eventId,
+        email: attendee.email,
+        span: span.toSpan(),
+        originalInstanceDate: originalInstanceDate?.toUtc().millisecondsSinceEpoch,
+      );
       return event.toETEvent();
     } on PlatformException catch (e) {
       throw e.toETException();

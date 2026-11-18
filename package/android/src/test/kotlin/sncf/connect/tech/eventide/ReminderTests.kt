@@ -107,7 +107,7 @@ class ReminderTests {
 
         var result: Result<Event>? = null
         val latch = CountDownLatch(1)
-        calendarImplem.createReminder(minutes, eventId) {
+        calendarImplem.createReminder(minutes, eventId, null, null) {
             result = it
             latch.countDown()
         }
@@ -125,7 +125,7 @@ class ReminderTests {
         val minutes = 10L
 
         var result: Result<Event>? = null
-        calendarImplem.createReminder(minutes, eventId) {
+        calendarImplem.createReminder(minutes, eventId, null, null) {
             result = it
         }
 
@@ -142,7 +142,7 @@ class ReminderTests {
 
         var result: Result<Event>? = null
         val latch = CountDownLatch(1)
-        calendarImplem.createReminder(minutes, eventId) {
+        calendarImplem.createReminder(minutes, eventId, null, null) {
             result = it
             latch.countDown()
         }
@@ -188,7 +188,7 @@ class ReminderTests {
 
         var result: Result<Event>? = null
         val latch = CountDownLatch(1)
-        calendarImplem.deleteReminder(minutes, eventId) {
+        calendarImplem.deleteReminder(minutes, eventId, null, null) {
             result = it
             latch.countDown()
         }
@@ -206,7 +206,7 @@ class ReminderTests {
         val minutes = 10L
 
         var result: Result<Event>? = null
-        calendarImplem.deleteReminder(minutes, eventId) {
+        calendarImplem.deleteReminder(minutes, eventId, null, null) {
             result = it
         }
 
@@ -223,7 +223,7 @@ class ReminderTests {
 
         var result: Result<Event>? = null
         val latch = CountDownLatch(1)
-        calendarImplem.deleteReminder(minutes, eventId) {
+        calendarImplem.deleteReminder(minutes, eventId, null, null) {
             result = it
             latch.countDown()
         }
@@ -243,7 +243,7 @@ class ReminderTests {
 
         var result: Result<Event>? = null
         val latch = CountDownLatch(1)
-        calendarImplem.deleteReminder(minutes, eventId) {
+        calendarImplem.deleteReminder(minutes, eventId, null, null) {
             result = it
             latch.countDown()
         }

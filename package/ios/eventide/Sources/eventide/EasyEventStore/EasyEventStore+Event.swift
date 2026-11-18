@@ -389,7 +389,7 @@ extension EasyEventStore {
         
     /// Fetches the specific EKEvent occurrence for [eventId] whose occurrenceDate
     /// matches [originalInstanceDateMs] (within a 60-second tolerance).
-    private func findOccurrence(eventId: String, originalInstanceDate: Date) -> EKEvent? {
+    func findOccurrence(eventId: String, originalInstanceDate: Date) -> EKEvent? {
         let predicate = eventStore.predicateForEvents(
             withStart: originalInstanceDate.addingTimeInterval(-86400),
             end: originalInstanceDate.addingTimeInterval(86400),
