@@ -47,7 +47,7 @@ extension EKEvent {
             url: url?.absoluteString,
             location: location,
             recurrenceRule: recurrenceRules?.first.map { RRuleSerializer.serialize($0) },
-            originalInstanceDate: (recurrenceRules?.isEmpty == false) ? occurrenceDate.millisecondsSince1970 : nil
+            originalInstanceDate: (hasRecurrenceRules || isDetached) ? occurrenceDate?.millisecondsSince1970 : nil
         )
     }
 }
