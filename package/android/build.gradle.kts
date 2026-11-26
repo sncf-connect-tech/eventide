@@ -51,7 +51,7 @@ extensions.configure<com.android.build.api.dsl.LibraryExtension>("android") {
         }
     }
 
-    ndkVersion = "28.2.13676358"
+    ndkVersion = flutter.ndkVersion
 }
 
 kotlin {

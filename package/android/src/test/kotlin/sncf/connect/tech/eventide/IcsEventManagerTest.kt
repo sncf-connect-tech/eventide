@@ -79,4 +79,34 @@ class IcsEventManagerTest {
         assertTrue(icsContent.contains("TRIGGER:-PT10M"))
         assertTrue(icsContent.contains("TRIGGER:-PT30M"))
     }
+
+    @Test
+    fun `generateIcsContent includes RRULE line when recurrenceRule is provided`() {
+        val ics = icsEventManager.generateIcsContent(
+            title = "Standup",
+            startDate = 1751880000000L,
+            endDate = 1751883600000L,
+            isAllDay = false,
+            description = null,
+            location = null,
+            reminders = emptyList(),
+            recurrenceRule = "FREQ=WEEKLY;BYDAY=MO",
+        )
+        assertTrue(ics.contains("RRULE:FREQ=WEEKLY;BYDAY=MO"), "Expected RRULE line, got:\n$ics")
+    }
+
+    @Test
+    fun `generateIcsContent omits RRULE line when recurrenceRule is null`() {
+        val ics = icsEventManager.generateIcsContent(
+            title = "Standup",
+            startDate = 1751880000000L,
+            endDate = 1751883600000L,
+            isAllDay = false,
+            description = null,
+            location = null,
+            reminders = emptyList(),
+            recurrenceRule = null,
+        )
+        assertTrue(!ics.contains("RRULE:"), "Expected no RRULE line, got:\n$ics")
+    }
 }

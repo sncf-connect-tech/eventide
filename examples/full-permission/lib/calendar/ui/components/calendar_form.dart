@@ -42,151 +42,152 @@ class _CalendarFormState extends State<CalendarForm> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        TextFormField(
-          controller: _titleController,
-          decoration: const InputDecoration(labelText: 'Calendar title'),
-        ),
-        const SizedBox(height: 16),
-        if (widget.availableAccounts.isNotEmpty) ...[
-          DropdownButtonFormField<ETAccount>(
-            value: selectedAccount,
-            decoration: const InputDecoration(labelText: 'Account', hintText: 'Select an account'),
-            items: widget.availableAccounts.map((account) {
-              return DropdownMenuItem<ETAccount>(
-                value: account,
+    return SingleChildScrollView(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          TextFormField(
+            controller: _titleController,
+            decoration: const InputDecoration(labelText: 'Calendar title'),
+          ),
+          const SizedBox(height: 16),
+          if (widget.availableAccounts.isNotEmpty) ...[
+            DropdownButtonFormField<ETAccount>(
+              value: selectedAccount,
+              decoration: const InputDecoration(labelText: 'Account', hintText: 'Select an account'),
+              items: widget.availableAccounts.map((account) {
+                return DropdownMenuItem<ETAccount>(
+                  value: account,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.account_circle, color: Colors.blue, size: 20),
+                      SizedBox(width: 8),
+                      Flexible(child: Text(account.name, overflow: TextOverflow.ellipsis)),
+                    ],
+                  ),
+                );
+              }).toList(),
+              onChanged: (ETAccount? value) {
+                setState(() {
+                  selectedAccount = value;
+                });
+              },
+            ),
+          ] else ...[
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.orange.withOpacity(0.1),
+                border: Border.all(color: Colors.orange),
+                borderRadius: BorderRadius.circular(4),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.info, color: Colors.orange, size: 20),
+                  SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'No accounts available. Calendar will be created in default account.',
+                      style: TextStyle(color: Colors.orange[800]),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+          const SizedBox(height: 16),
+          DropdownButtonFormField<Color>(
+            value: selectedColor,
+            decoration: const InputDecoration(labelText: 'Calendar color'),
+            items: const [
+              DropdownMenuItem(
+                value: Colors.red,
                 child: Row(
-                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.account_circle, color: Colors.blue, size: 20),
+                    Icon(Icons.circle, color: Colors.red, size: 20),
                     SizedBox(width: 8),
-                    Flexible(child: Text(account.name, overflow: TextOverflow.ellipsis)),
+                    Text('Red'),
                   ],
                 ),
-              );
-            }).toList(),
-            onChanged: (ETAccount? value) {
+              ),
+              DropdownMenuItem(
+                value: Colors.green,
+                child: Row(
+                  children: [
+                    Icon(Icons.circle, color: Colors.green, size: 20),
+                    SizedBox(width: 8),
+                    Text('Green'),
+                  ],
+                ),
+              ),
+              DropdownMenuItem(
+                value: Colors.blue,
+                child: Row(
+                  children: [
+                    Icon(Icons.circle, color: Colors.blue, size: 20),
+                    SizedBox(width: 8),
+                    Text('Blue'),
+                  ],
+                ),
+              ),
+              DropdownMenuItem(
+                value: Colors.orange,
+                child: Row(
+                  children: [
+                    Icon(Icons.circle, color: Colors.orange, size: 20),
+                    SizedBox(width: 8),
+                    Text('Orange'),
+                  ],
+                ),
+              ),
+              DropdownMenuItem(
+                value: Colors.purple,
+                child: Row(
+                  children: [
+                    Icon(Icons.circle, color: Colors.purple, size: 20),
+                    SizedBox(width: 8),
+                    Text('Purple'),
+                  ],
+                ),
+              ),
+            ],
+            onChanged: (Color? value) {
               setState(() {
-                selectedAccount = value;
+                selectedColor = value ?? selectedColor;
               });
             },
           ),
-        ] else ...[
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: Colors.orange.withOpacity(0.1),
-              border: Border.all(color: Colors.orange),
-              borderRadius: BorderRadius.circular(4),
-            ),
-            child: Row(
-              children: [
-                Icon(Icons.info, color: Colors.orange, size: 20),
-                SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    'No accounts available. Calendar will be created in default account.',
-                    style: TextStyle(color: Colors.orange[800]),
-                  ),
-                ),
-              ],
-            ),
+          const SizedBox(height: 24),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: const Text('Cancel'),
+              ),
+              const SizedBox(width: 8),
+              ElevatedButton(
+                onPressed: () {
+                  final title = _titleController.text.trim();
+                  if (title.isEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Please enter a calendar title'), backgroundColor: Colors.red),
+                    );
+                    return;
+                  }
+
+                  widget.onSubmit(title, selectedColor, selectedAccount);
+                },
+                style: ElevatedButton.styleFrom(backgroundColor: selectedColor, foregroundColor: Colors.white),
+                child: Text(widget.initialCalendar != null ? 'Update Calendar' : 'Create Calendar'),
+              ),
+            ],
           ),
         ],
-        const SizedBox(height: 16),
-        DropdownButtonFormField<Color>(
-          value: selectedColor,
-          decoration: const InputDecoration(labelText: 'Calendar color'),
-          items: const [
-            DropdownMenuItem(
-              value: Colors.red,
-              child: Row(
-                children: [
-                  Icon(Icons.circle, color: Colors.red, size: 20),
-                  SizedBox(width: 8),
-                  Text('Red'),
-                ],
-              ),
-            ),
-            DropdownMenuItem(
-              value: Colors.green,
-              child: Row(
-                children: [
-                  Icon(Icons.circle, color: Colors.green, size: 20),
-                  SizedBox(width: 8),
-                  Text('Green'),
-                ],
-              ),
-            ),
-            DropdownMenuItem(
-              value: Colors.blue,
-              child: Row(
-                children: [
-                  Icon(Icons.circle, color: Colors.blue, size: 20),
-                  SizedBox(width: 8),
-                  Text('Blue'),
-                ],
-              ),
-            ),
-            DropdownMenuItem(
-              value: Colors.orange,
-              child: Row(
-                children: [
-                  Icon(Icons.circle, color: Colors.orange, size: 20),
-                  SizedBox(width: 8),
-                  Text('Orange'),
-                ],
-              ),
-            ),
-            DropdownMenuItem(
-              value: Colors.purple,
-              child: Row(
-                children: [
-                  Icon(Icons.circle, color: Colors.purple, size: 20),
-                  SizedBox(width: 8),
-                  Text('Purple'),
-                ],
-              ),
-            ),
-          ],
-          onChanged: (Color? value) {
-            setState(() {
-              selectedColor = value ?? selectedColor;
-            });
-          },
-        ),
-        const SizedBox(height: 24),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: const Text('Cancel'),
-            ),
-            const SizedBox(width: 8),
-            ElevatedButton(
-              onPressed: () {
-                final title = _titleController.text.trim();
-                if (title.isEmpty) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Please enter a calendar title'), backgroundColor: Colors.red),
-                  );
-                  return;
-                }
-
-                widget.onSubmit(title, selectedColor, selectedAccount);
-
-                Navigator.of(context).pop();
-              },
-              style: ElevatedButton.styleFrom(backgroundColor: selectedColor, foregroundColor: Colors.white),
-              child: Text(widget.initialCalendar != null ? 'Update Calendar' : 'Create Calendar'),
-            ),
-          ],
-        ),
-      ],
+      ),
     );
   }
 }

@@ -1,5 +1,7 @@
 import 'package:calendar_view/calendar_view.dart';
 import 'package:eventide/eventide.dart';
+// ignore: deprecated_member_use
+import 'package:flutter/material.dart' as flutter_material show Material, MaterialType;
 
 import '../../logic/calendar_cubit.dart';
 import '../components/custom_drawer.dart';
@@ -80,7 +82,9 @@ final class _CalendarScreenState extends State<CalendarScreen> with SingleTicker
                   .map(
                     (event) => CalendarEventData(
                       event: event,
-                      title: event.title,
+                      title: (event.recurrenceRule != null || event.originalInstanceDate != null)
+                          ? '🔁 ${event.title}'
+                          : event.title,
                       date: event.startDate,
                       endDate: event.endDate,
                       color: calendar.color,
@@ -117,89 +121,124 @@ final class _CalendarScreenState extends State<CalendarScreen> with SingleTicker
                   ],
                 ),
               ),
-              body: TabBarView(
-                controller: _tabController,
-                children: [
-                  MonthView(
-                    controller: _controller,
-                    onEventTap: (calendarEventData, date) {
-                      if (state case Value(:final data?)) {
-                        final event = calendarEventData.event;
-                        if (event is ETEvent) {
-                          final relatedCalendar = data.calendars.keys.singleWhere(
-                            (calendar) => calendar.id == event.calendarId,
-                          );
-                          final calendarCubit = BlocProvider.of<CalendarCubit>(context);
+              // Bridge for calendar_view, which still uses package:flutter/material.dart widgets.
+              body: flutter_material.Material(
+                type: flutter_material.MaterialType.transparency,
+                child: TabBarView(
+                  controller: _tabController,
+                  children: [
+                    MonthView(
+                      controller: _controller,
+                      minMonth: DateTime(1990),
+                      maxMonth: DateTime(2050),
+                      onPageChange: (date, pageIndex) {
+                        BlocProvider.of<CalendarCubit>(context).loadEventsForMonth(date);
+                      },
+                      onEventTap: (calendarEventData, date) {
+                        if (state case Value(:final data?)) {
+                          final event = calendarEventData.event;
+                          if (event is ETEvent) {
+                            final relatedCalendar = data.calendars.keys.singleWhere(
+                              (calendar) => calendar.id == event.calendarId,
+                            );
+                            final calendarCubit = BlocProvider.of<CalendarCubit>(context);
 
-                          Navigator.of(context)
-                              .push(
-                                MaterialPageRoute(
-                                  builder: (context) =>
-                                      EventDetailsScreen(event: event, isCalendarWritable: relatedCalendar.isWritable),
-                                ),
-                              )
-                              .then((_) => calendarCubit.loadFullContent());
+                            Navigator.of(context)
+                                .push(
+                                  MaterialPageRoute(
+                                    builder: (context) => EventDetailsScreen(
+                                      event: event,
+                                      isCalendarWritable: relatedCalendar.isWritable,
+                                    ),
+                                  ),
+                                )
+                                .then((_) => calendarCubit.loadFullContent());
+                          }
                         }
-                      }
-                    },
-                    onDateLongPress: (date) {
-                      final calendarCubit = BlocProvider.of<CalendarCubit>(context);
+                      },
+                      onDateLongPress: (date) {
+                        final calendarCubit = BlocProvider.of<CalendarCubit>(context);
 
-                      showDialog(
-                        context: context,
-                        builder: (context) {
-                          return AlertDialog(
-                            title: const Text('Create event'),
-                            content: Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                              child: EventForm(
-                                calendars: [...?state.data?.calendars.keys],
-                                initialDate: date,
-                                onSubmit: (selectedCalendar, title, description, isAllDay, startDate, endDate) async {
-                                  if (selectedCalendar == null) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text('Please select a calendar.'),
-                                        backgroundColor: Colors.red,
-                                      ),
-                                    );
-                                    return;
-                                  }
-                                  try {
-                                    await calendarCubit.createEvent(
-                                      calendar: selectedCalendar,
-                                      title: title,
-                                      description: description,
-                                      isAllDay: isAllDay,
-                                      startDate: startDate,
-                                      endDate: endDate,
-                                    );
+                        showDialog(
+                          context: context,
+                          builder: (context) {
+                            return AlertDialog(
+                              title: const Text('Create event'),
+                              content: Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                                child: EventForm(
+                                  calendars: [...?state.data?.calendars.keys],
+                                  initialDate: date,
+                                  onSubmit:
+                                      (
+                                        selectedCalendar,
+                                        title,
+                                        description,
+                                        isAllDay,
+                                        startDate,
+                                        endDate,
+                                        recurrenceRule,
+                                      ) async {
+                                        if (selectedCalendar == null) {
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            const SnackBar(
+                                              content: Text('Please select a calendar.'),
+                                              backgroundColor: Colors.red,
+                                            ),
+                                          );
+                                          return;
+                                        }
+                                        try {
+                                          await calendarCubit.createEvent(
+                                            calendar: selectedCalendar,
+                                            title: title,
+                                            description: description,
+                                            isAllDay: isAllDay,
+                                            startDate: startDate,
+                                            endDate: endDate,
+                                            recurrenceRule: recurrenceRule,
+                                          );
 
-                                    if (context.mounted) {
-                                      Navigator.of(context).pop();
-                                    }
-                                  } catch (e) {
-                                    if (context.mounted) {
-                                      Navigator.of(context).pop();
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        SnackBar(
-                                          content: Text('Error creating event: $e'),
-                                          backgroundColor: Colors.red,
-                                        ),
-                                      );
-                                    }
-                                  }
-                                },
+                                          if (context.mounted) {
+                                            Navigator.of(context).pop();
+                                          }
+                                        } catch (e) {
+                                          if (context.mounted) {
+                                            Navigator.of(context).pop();
+                                            ScaffoldMessenger.of(context).showSnackBar(
+                                              SnackBar(
+                                                content: Text('Error creating event: $e'),
+                                                backgroundColor: Colors.red,
+                                              ),
+                                            );
+                                          }
+                                        }
+                                      },
+                                ),
                               ),
-                            ),
-                          );
-                        },
-                      );
-                    },
-                  ),
-                  WeekView(controller: _controller),
-                  DayView(controller: _controller),
-                ],
+                            );
+                          },
+                        );
+                      },
+                    ),
+                    WeekView(
+                      controller: _controller,
+                      minDay: DateTime(1990),
+                      maxDay: DateTime(2050),
+                      onPageChange: (date, pageIndex) {
+                        BlocProvider.of<CalendarCubit>(context).loadEventsForMonth(date);
+                      },
+                    ),
+                    DayView(
+                      controller: _controller,
+                      minDay: DateTime(1990),
+                      maxDay: DateTime(2050),
+                      onPageChange: (date, pageIndex) {
+                        BlocProvider.of<CalendarCubit>(context).loadEventsForMonth(date);
+                      },
+                    ),
+                  ],
+                ),
               ),
             );
           },

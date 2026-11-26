@@ -17,6 +17,10 @@ extension EventToETEvent on Event {
       location: location,
       reminders: reminders.toDurationList(),
       attendees: attendees.toETAttendeeList(),
+      recurrenceRule: recurrenceRule,
+      originalInstanceDate: originalInstanceDate != null
+          ? DateTime.fromMillisecondsSinceEpoch(originalInstanceDate!, isUtc: true)
+          : null,
     );
   }
 }
@@ -35,6 +39,8 @@ extension ETEventCopy on ETEvent {
       location: location,
       reminders: reminders ?? this.reminders,
       attendees: attendees,
+      recurrenceRule: recurrenceRule,
+      originalInstanceDate: originalInstanceDate,
     );
   }
 }
@@ -42,5 +48,14 @@ extension ETEventCopy on ETEvent {
 extension EventListToETEvent on List<Event> {
   List<ETEvent> toETEventList() {
     return map((e) => e.toETEvent()).toList();
+  }
+}
+
+extension SpanToETSpan on ETSpan {
+  Span toSpan() {
+    return switch (this) {
+      .thisEvent => Span.thisEvent,
+      .thisAndFuture => Span.thisAndFuture,
+    };
   }
 }

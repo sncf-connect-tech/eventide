@@ -204,13 +204,23 @@ final class _EventFormState extends State<EventForm> {
           ElevatedButton(
             onPressed: widget.calendars.isEmpty || _selectedCalendar != null
                 ? () {
+                    final startDate = isAllDay
+                        ? TZDateTime.utc(_selectedStartDate.year, _selectedStartDate.month, _selectedStartDate.day)
+                        : TZDateTime.from(_selectedStartDate, getLocation('Europe/Paris'));
+                    final endDate = isAllDay
+                        ? TZDateTime.utc(
+                            _selectedEndDate.year,
+                            _selectedEndDate.month,
+                            _selectedEndDate.day,
+                          ).add(const Duration(days: 1))
+                        : TZDateTime.from(_selectedEndDate, getLocation('Europe/Paris'));
                     widget.onSubmit(
                       _selectedCalendar,
                       _titleController.text,
                       _descriptionController.text,
                       isAllDay,
-                      TZDateTime.from(_selectedStartDate, getLocation('Europe/Paris')),
-                      TZDateTime.from(_selectedEndDate, getLocation('Europe/Paris')),
+                      startDate,
+                      endDate,
                     );
                   }
                 : null,

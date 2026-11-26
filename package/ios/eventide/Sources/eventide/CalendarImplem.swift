@@ -131,6 +131,7 @@ class CalendarImplem: CalendarApi {
         url: String?,
         location: String?,
         reminders: [Int64]?,
+        recurrenceRule: String? = nil,
         completion: @escaping (Result<Event, Error>) -> Void) {
         permissionHandler.checkCalendarAccessThenExecute(.writeOnly) { [self] in
             do {
@@ -143,7 +144,8 @@ class CalendarImplem: CalendarApi {
                     description: description,
                     url: url,
                     location: location,
-                    timeIntervals: reminders?.compactMap { TimeInterval(-$0) }
+                    timeIntervals: reminders?.compactMap { TimeInterval(-$0) },
+                    recurrenceRule: recurrenceRule
                 )
                 completion(.success(createdEvent))
 
@@ -171,6 +173,7 @@ class CalendarImplem: CalendarApi {
         url: String?,
         location: String?,
         reminders: [Int64]?,
+        recurrenceRule: String? = nil,
         completion: @escaping (Result<Void, Error>) -> Void
     ) {
         permissionHandler.checkCalendarAccessThenExecute(.writeOnly) { [self] in
@@ -183,7 +186,8 @@ class CalendarImplem: CalendarApi {
                     description: description,
                     url: url,
                     location: location,
-                    timeIntervals: reminders?.compactMap { TimeInterval(-$0) }
+                    timeIntervals: reminders?.compactMap { TimeInterval(-$0) },
+                    recurrenceRule: recurrenceRule
                 )
                 completion(.success(()))
 
@@ -212,6 +216,7 @@ class CalendarImplem: CalendarApi {
         url: String?,
         location: String?,
         reminders: [Int64]?,
+        recurrenceRule: String? = nil,
         completion: @escaping (Result<Void, Error>) -> Void
     ) {
         easyEventStore.presentEventCreationViewController(
@@ -222,7 +227,8 @@ class CalendarImplem: CalendarApi {
             description: description,
             url: url,
             location: location,
-            timeIntervals: reminders?.compactMap { TimeInterval(-$0) }
+            timeIntervals: reminders?.compactMap { TimeInterval(-$0) },
+            recurrenceRule: recurrenceRule
         ) { result in
             completion(result)
         }
@@ -269,22 +275,46 @@ class CalendarImplem: CalendarApi {
         url: String?,
         location: String?,
         reminders: [Int64]?,
+        recurrenceRule: String? = nil,
+        span: Span? = nil,
+        originalInstanceDate: Int64? = nil,
         completion: @escaping (Result<Event, Error>) -> Void
     ) {
         permissionHandler.checkCalendarAccessThenExecute(.fullAccess) { [self] in
             do {
-                let event = try easyEventStore.updateEvent(
-                    eventId: eventId,
-                    calendarId: calendarId,
-                    title: title,
-                    startDate: Date(from: startDate),
-                    endDate: Date(from: endDate),
-                    isAllDay: isAllDay,
-                    description: description,
-                    url: url,
-                    location: location,
-                    timeIntervals: reminders?.compactMap { TimeInterval(-$0) }
-                )
+                let event: Event
+                if let span, let originalInstanceDate {
+                    event = try easyEventStore.updateEvent(
+                        eventId: eventId,
+                        calendarId: calendarId,
+                        title: title,
+                        startDate: Date(from: startDate),
+                        endDate: Date(from: endDate),
+                        isAllDay: isAllDay,
+                        description: description,
+                        url: url,
+                        location: location,
+                        timeIntervals: reminders?.compactMap { TimeInterval(-$0) },
+                        recurrenceRule: recurrenceRule,
+                        originalInstanceDate: Date(from: originalInstanceDate),
+                        span: span
+                    )
+                    
+                } else {
+                    event = try easyEventStore.updateEvent(
+                        eventId: eventId,
+                        calendarId: calendarId,
+                        title: title,
+                        startDate: Date(from: startDate),
+                        endDate: Date(from: endDate),
+                        isAllDay: isAllDay,
+                        description: description,
+                        url: url,
+                        location: location,
+                        timeIntervals: reminders?.compactMap { TimeInterval(-$0) },
+                    )
+                }
+                
                 completion(.success(event))
                 
             } catch {
@@ -302,10 +332,19 @@ class CalendarImplem: CalendarApi {
         }
     }
     
-    func deleteEvent(withId eventId: String, completion: @escaping (Result<Void, Error>) -> Void) {
+    func deleteEvent(withId eventId: String, span: Span? = nil, originalInstanceDate: Int64? = nil, completion: @escaping (Result<Void, Error>) -> Void) {
         permissionHandler.checkCalendarAccessThenExecute(.fullAccess) { [self] in
             do {
-                try easyEventStore.deleteEvent(eventId: eventId)
+                if let span, let originalInstanceDate {
+                    try easyEventStore.deleteEvent(
+                        eventId: eventId,
+                        originalInstanceDate: Date(from: originalInstanceDate),
+                        span: span
+                    )
+                } else {
+                    try easyEventStore.deleteEvent(eventId: eventId)
+                }
+                
                 completion(.success(()))
                 
             } catch {
@@ -323,10 +362,20 @@ class CalendarImplem: CalendarApi {
         }
     }
     
-    func createReminder(_ reminder: Int64, forEventId eventId: String, completion: @escaping (Result<Event, Error>) -> Void) {
+    func createReminder(_ reminder: Int64, forEventId eventId: String, span: Span? = nil, originalInstanceDate: Int64? = nil, completion: @escaping (Result<Event, Error>) -> Void) {
         permissionHandler.checkCalendarAccessThenExecute(.fullAccess) { [self] in
             do {
-                let modifiedEvent = try easyEventStore.createReminder(timeInterval: TimeInterval(-reminder), eventId: eventId)
+                let modifiedEvent: Event
+                if let span, let originalInstanceDate {
+                    modifiedEvent = try easyEventStore.createReminder(
+                        timeInterval: TimeInterval(-reminder),
+                        eventId: eventId,
+                        originalInstanceDate: Date(from: originalInstanceDate),
+                        span: span
+                    )
+                } else {
+                    modifiedEvent = try easyEventStore.createReminder(timeInterval: TimeInterval(-reminder), eventId: eventId)
+                }
                 completion(.success(modifiedEvent))
                 
             } catch {
@@ -345,10 +394,20 @@ class CalendarImplem: CalendarApi {
 
     }
     
-    func deleteReminder(_ reminder: Int64, withEventId eventId: String, completion: @escaping (Result<Event, Error>) -> Void) {
+    func deleteReminder(_ reminder: Int64, withEventId eventId: String, span: Span? = nil, originalInstanceDate: Int64? = nil, completion: @escaping (Result<Event, Error>) -> Void) {
         permissionHandler.checkCalendarAccessThenExecute(.fullAccess) { [self] in
             do {
-                let modifiedEvent = try easyEventStore.deleteReminder(timeInterval: TimeInterval(-reminder), eventId: eventId)
+                let modifiedEvent: Event
+                if let span, let originalInstanceDate {
+                    modifiedEvent = try easyEventStore.deleteReminder(
+                        timeInterval: TimeInterval(-reminder),
+                        eventId: eventId,
+                        originalInstanceDate: Date(from: originalInstanceDate),
+                        span: span
+                    )
+                } else {
+                    modifiedEvent = try easyEventStore.deleteReminder(timeInterval: TimeInterval(-reminder), eventId: eventId)
+                }
                 completion(.success(modifiedEvent))
                 
             } catch {
@@ -372,6 +431,8 @@ class CalendarImplem: CalendarApi {
         email: String,
         role: Int64,
         type: Int64,
+        span: Span? = nil,
+        originalInstanceDate: Int64? = nil,
         completion: @escaping (Result<Event, Error>) -> Void
     ) {
         /// EventKit cannot add participants to an event nor change participant information.
@@ -388,6 +449,8 @@ class CalendarImplem: CalendarApi {
     func deleteAttendee(
         eventId: String,
         email: String,
+        span: Span? = nil,
+        originalInstanceDate: Int64? = nil,
         completion: @escaping (Result<Event, Error>) -> Void
     ) {
         /// EventKit cannot add participants to an event nor change participant information.

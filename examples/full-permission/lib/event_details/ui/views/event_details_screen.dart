@@ -25,14 +25,48 @@ final class EventDetailsScreen extends StatelessWidget {
         appBar: AppBar(
           title: Text(event.title),
           actions: [
-            if (isCalendarWritable)
+            if (isCalendarWritable) ...[
+              Builder(
+                builder: (context) => IconButton(
+                  icon: const Icon(Icons.delete),
+                  onPressed: () async {
+                    final cubit = context.read<EventDetailsCubit>();
+                    final currentEvent = cubit.state.data ?? event;
+                    ETSpan span = ETSpan.thisEvent;
+                    if (currentEvent.recurrenceRule != null || currentEvent.originalInstanceDate != null) {
+                      final chosen = await _showSpanDialog(context, title: 'Delete recurring event');
+                      if (chosen == null) return;
+                      span = chosen;
+                    }
+                    try {
+                      await cubit.deleteEvent(span: span);
+                      if (context.mounted) {
+                        Navigator.of(context).pop();
+                      }
+                    } catch (e) {
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Error deleting event: $e'), backgroundColor: Colors.red),
+                        );
+                      }
+                    }
+                  },
+                ),
+              ),
               Builder(
                 builder: (context) => IconButton(
                   icon: const Icon(Icons.edit),
-                  onPressed: () {
+                  onPressed: () async {
                     final cubit = context.read<EventDetailsCubit>();
                     final currentEvent = (context.read<EventDetailsCubit>().state).data ?? event;
+                    ETSpan span = ETSpan.thisEvent;
+                    if (currentEvent.recurrenceRule != null || currentEvent.originalInstanceDate != null) {
+                      final chosen = await _showSpanDialog(context, title: 'Edit recurring event');
+                      if (chosen == null) return;
+                      span = chosen;
+                    }
 
+                    if (!context.mounted) return;
                     showDialog(
                       context: context,
                       builder: (dialogContext) => AlertDialog(
@@ -42,7 +76,7 @@ final class EventDetailsScreen extends StatelessWidget {
                           child: EventForm(
                             calendars: const [],
                             initialEvent: currentEvent,
-                            onSubmit: (_, title, description, isAllDay, startDate, endDate) async {
+                            onSubmit: (_, title, description, isAllDay, startDate, endDate, recurrenceRule) async {
                               try {
                                 await cubit.updateEvent(
                                   title: title,
@@ -50,6 +84,8 @@ final class EventDetailsScreen extends StatelessWidget {
                                   isAllDay: isAllDay,
                                   startDate: startDate,
                                   endDate: endDate,
+                                  recurrenceRule: recurrenceRule,
+                                  span: span,
                                 );
 
                                 if (dialogContext.mounted) {
@@ -73,6 +109,7 @@ final class EventDetailsScreen extends StatelessWidget {
                   },
                 ),
               ),
+            ],
           ],
         ),
         body: Padding(
@@ -86,6 +123,21 @@ final class EventDetailsScreen extends StatelessWidget {
                   children: [
                     if (event.description != null) Text(event.description!),
                     Text("${event.startDate.toString()} -> ${event.endDate.toString()}"),
+                    if (event.recurrenceRule != null) ...[
+                      const SizedBox(height: 6),
+                      Row(
+                        children: [
+                          const Icon(Icons.repeat, size: 18, color: Colors.blue),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              'Repeats: ${RecurrenceOption.fromRule(event.recurrenceRule).label} (${event.recurrenceRule})',
+                              style: const TextStyle(fontWeight: FontWeight.w500, color: Colors.blue),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                     if (event.url != null) Text(event.url!),
                     const Divider(),
                     Row(
@@ -163,6 +215,25 @@ final class EventDetailsScreen extends StatelessWidget {
             },
           ),
         ),
+      ),
+    );
+  }
+
+  Future<ETSpan?> _showSpanDialog(BuildContext context, {required String title}) {
+    return showDialog<ETSpan>(
+      context: context,
+      builder: (context) => SimpleDialog(
+        title: Text(title),
+        children: [
+          SimpleDialogOption(
+            onPressed: () => Navigator.pop(context, ETSpan.thisEvent),
+            child: const Padding(padding: EdgeInsets.symmetric(vertical: 8), child: Text('This event only')),
+          ),
+          SimpleDialogOption(
+            onPressed: () => Navigator.pop(context, ETSpan.thisAndFuture),
+            child: const Padding(padding: EdgeInsets.symmetric(vertical: 8), child: Text('This and future events')),
+          ),
+        ],
       ),
     );
   }

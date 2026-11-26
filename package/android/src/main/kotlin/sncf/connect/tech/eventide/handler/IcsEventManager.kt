@@ -22,7 +22,8 @@ class IcsEventManager(private val context: Context) {
         isAllDay: Boolean?,
         description: String?,
         location: String?,
-        reminders: List<Long>?
+        reminders: List<Long>?,
+        recurrenceRule: String? = null
     ): String = StringBuilder().apply {
         val prodId = "-//${context.packageName}//EventidePlugin//FR"
 
@@ -44,6 +45,15 @@ class IcsEventManager(private val context: Context) {
         } else {
             crlf("DTSTART:${icsDateTimeFormat.format(Date(startDate))}")
             crlf("DTEND:${icsDateTimeFormat.format(Date(endDate))}")
+        }
+
+        recurrenceRule?.let { rule ->
+            val cleanRule = rule.trim()
+            if (cleanRule.startsWith("RRULE:", ignoreCase = true)) {
+                crlf(cleanRule)
+            } else {
+                crlf("RRULE:$cleanRule")
+            }
         }
 
         title?.let { append(foldLine("SUMMARY:${escape(it)}")) }

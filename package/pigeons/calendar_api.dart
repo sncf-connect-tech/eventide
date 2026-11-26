@@ -44,10 +44,13 @@ abstract class CalendarApi {
     required String? url,
     required String? location,
     required List<int>? reminders,
+    required String? recurrenceRule,
   });
 
   @async
-  @SwiftFunction('updateEvent(withId:calendarId:title:startDate:endDate:isAllDay:description:url:location:reminders:)')
+  @SwiftFunction(
+    'updateEvent(withId:calendarId:title:startDate:endDate:isAllDay:description:url:location:reminders:recurrenceRule:span:originalInstanceDate:)',
+  )
   Event updateEvent({
     required String eventId,
     required String calendarId,
@@ -59,6 +62,9 @@ abstract class CalendarApi {
     required String? url,
     required String? location,
     required List<int>? reminders,
+    required String? recurrenceRule,
+    required Span? span,
+    required int? originalInstanceDate,
   });
 
   @async
@@ -71,6 +77,7 @@ abstract class CalendarApi {
     required String? url,
     required String? location,
     required List<int>? reminders,
+    required String? recurrenceRule,
   });
 
   @async
@@ -83,22 +90,33 @@ abstract class CalendarApi {
     String? url,
     String? location,
     List<int>? reminders,
+    String? recurrenceRule,
   });
 
   @async
   List<Event> retrieveEvents({required String calendarId, required int startDate, required int endDate});
 
   @async
-  @SwiftFunction('deleteEvent(withId:)')
-  void deleteEvent({required String eventId});
+  @SwiftFunction('deleteEvent(withId:span:originalInstanceDate:)')
+  void deleteEvent({required String eventId, required Span? span, required int? originalInstanceDate});
 
   @async
-  @SwiftFunction('createReminder(_:forEventId:)')
-  Event createReminder({required int reminder, required String eventId});
+  @SwiftFunction('createReminder(_:forEventId:span:originalInstanceDate:)')
+  Event createReminder({
+    required int reminder,
+    required String eventId,
+    required Span? span,
+    required int? originalInstanceDate,
+  });
 
   @async
-  @SwiftFunction('deleteReminder(_:withEventId:)')
-  Event deleteReminder({required int reminder, required String eventId});
+  @SwiftFunction('deleteReminder(_:withEventId:span:originalInstanceDate:)')
+  Event deleteReminder({
+    required int reminder,
+    required String eventId,
+    required Span? span,
+    required int? originalInstanceDate,
+  });
 
   @async
   Event createAttendee({
@@ -107,10 +125,17 @@ abstract class CalendarApi {
     required String email,
     required int role,
     required int type,
+    required Span? span,
+    required int? originalInstanceDate,
   });
 
   @async
-  Event deleteAttendee({required String eventId, required String email});
+  Event deleteAttendee({
+    required String eventId,
+    required String email,
+    required Span? span,
+    required int? originalInstanceDate,
+  });
 }
 
 final class Calendar {
@@ -141,6 +166,8 @@ final class Event {
   final String? description;
   final String? url;
   final String? location;
+  final String? recurrenceRule;
+  final int? originalInstanceDate;
 
   const Event({
     required this.id,
@@ -154,6 +181,8 @@ final class Event {
     required this.description,
     required this.url,
     required this.location,
+    required this.recurrenceRule,
+    required this.originalInstanceDate,
   });
 }
 
@@ -180,3 +209,5 @@ final class Attendee {
     required this.status,
   });
 }
+
+enum Span { thisEvent, thisAndFuture }

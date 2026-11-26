@@ -9,7 +9,7 @@ import io.flutter.plugin.common.PluginRegistry.RequestPermissionsResultListener
 
 class PermissionHandler(): RequestPermissionsResultListener {
     var activity: Activity? = null
-    private var permissionCallback: (Boolean) -> Unit = {}
+    private val callbacks = mutableListOf<(Boolean) -> Unit>()
 
     companion object {
         @JvmStatic val requestCode = 1001
@@ -22,15 +22,14 @@ class PermissionHandler(): RequestPermissionsResultListener {
 
             if (hasRead && hasWrite) {
                 callback(true)
-            } else if (!hasRead && !hasWrite) {
-                permissionCallback = callback
-                ActivityCompat.requestPermissions(activity, arrayOf(READ_CALENDAR, WRITE_CALENDAR), requestCode)
-            } else if (!hasRead) {
-                permissionCallback = callback
-                ActivityCompat.requestPermissions(activity, arrayOf(READ_CALENDAR), requestCode)
             } else {
-                permissionCallback = callback
-                ActivityCompat.requestPermissions(activity, arrayOf(WRITE_CALENDAR), requestCode)
+                callbacks.add(callback)
+                val perms = when {
+                    !hasRead && !hasWrite -> arrayOf(READ_CALENDAR, WRITE_CALENDAR)
+                    !hasRead -> arrayOf(READ_CALENDAR)
+                    else -> arrayOf(WRITE_CALENDAR)
+                }
+                ActivityCompat.requestPermissions(activity, perms, requestCode)
             }
         }
     }
@@ -41,7 +40,7 @@ class PermissionHandler(): RequestPermissionsResultListener {
             if (hasReadPermission) {
                 callback(true)
             } else {
-                permissionCallback = callback
+                callbacks.add(callback)
                 ActivityCompat.requestPermissions(activity, arrayOf(READ_CALENDAR), requestCode)
             }
         }
@@ -53,7 +52,7 @@ class PermissionHandler(): RequestPermissionsResultListener {
             if (hasWritePermission) {
                 callback(true)
             } else {
-                permissionCallback = callback
+                callbacks.add(callback)
                 ActivityCompat.requestPermissions(activity, arrayOf(WRITE_CALENDAR), requestCode)
             }
         }
@@ -62,7 +61,9 @@ class PermissionHandler(): RequestPermissionsResultListener {
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray): Boolean {
         if (requestCode == PermissionHandler.requestCode) {
             val allGranted = grantResults.isNotEmpty() && grantResults.all { it == PERMISSION_GRANTED }
-            permissionCallback(allGranted)
+            val pending = callbacks.toList()
+            callbacks.clear()
+            pending.forEach { it(allGranted) }
             return true
         }
         return false
