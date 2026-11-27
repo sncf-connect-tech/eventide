@@ -17,6 +17,7 @@ Detailed documentation for all Eventide API methods.
   - [retrieveEvents](#retrieve-events)
   - [updateEvent](#update-event)
   - [deleteEvent](#delete-event)
+  - [Recurring events](#recurring-events)
 - [Reminders](#reminders)
   - [createReminder](#create-reminder)
   - [deleteReminder](#delete-reminder)
@@ -54,7 +55,7 @@ Future<ETCalendar> createCalendar({
 
 Creates a new calendar with the specified title, color, and optional account.
 
-> On iOS, default source will (local or iCloud)
+> On iOS, the default source is used if no account is specified (for example, local or iCloud).
 
 > On Android, a default local account will be used if no account is specified.
 
@@ -114,6 +115,7 @@ Future<ETEvent> createEvent({
   String? url,
   String? location,
   Iterable<Duration>? reminders,
+  String? recurrenceRule,
 })
 ```
 
@@ -131,6 +133,7 @@ Future<void> createEventInDefaultCalendar({
   String? url,
   String? location,
   Iterable<Duration>? reminders,
+  String? recurrenceRule,
 })
 ```
 
@@ -154,6 +157,7 @@ Future<void> createEventThroughNativePlatform({
   String? url,
   String? location,
   Iterable<Duration>? reminders,
+  String? recurrenceRule,
 })
 ```
 
@@ -161,7 +165,7 @@ Creates a new event using the native platform UI. This method does not require a
 
 > On iOS, this method will open a prefilled native modal to let the user create the event.
 
-> On Android, such modal does not exist as user can have . Both `createEventInDefaultCalendar()` and `createEventThroughNativePlatform()` work under the hood by "sharing" a virtual ics file. On Android, this method prompts user to choose the calendar app they want the event added into.
+> On Android, both `createEventInDefaultCalendar()` and `createEventThroughNativePlatform()` share a prefilled `.ics` file so the user can choose a compatible calendar app.
 
 > See [PLATFORM_SETUP.md](./PLATFORM_SETUP.md) for permission related details.
 
@@ -191,6 +195,9 @@ Future<ETEvent> updateEvent(
   String? url,
   String? location,
   Iterable<Duration>? reminders,
+  String? recurrenceRule,
+  ETSpan span = ETSpan.thisEvent,
+  DateTime? originalInstanceDate,
 })
 ```
 
@@ -211,7 +218,32 @@ Throws an ETGenericException if any other error occurs.
 ```dart
 Future<void> deleteEvent({
   required String eventId,
+  ETSpan span = ETSpan.thisEvent,
+  DateTime? originalInstanceDate,
 })
+```
+
+### Recurring events
+
+Use `recurrenceRule` to supply an iCalendar RRULE, for example `FREQ=WEEKLY;BYDAY=MO`. When using the native event creation flow, the receiving calendar app controls how it handles the prefilled rule.
+
+To target an occurrence of a recurring event, pass its `ETEvent.originalInstanceDate` along with the event ID. This is the occurrence's original start, which can differ from its current `startDate` if the occurrence was moved. `updateEvent` uses the event's `originalInstanceDate` when no override is supplied. For ID-based operations, pass the date explicitly when targeting an occurrence.
+
+| Scope | Effect |
+| --- | --- |
+| `ETSpan.thisEvent` (default) | Changes only the selected occurrence when its original date is supplied. |
+| `ETSpan.thisAndFuture` | Changes the selected occurrence and later occurrences in the series. |
+
+For example, to delete a single occurrence loaded with `retrieveEvents`:
+
+```dart
+final originalDate = event.originalInstanceDate;
+if (originalDate != null) {
+  await eventide.deleteEvent(
+    eventId: event.id,
+    originalInstanceDate: originalDate,
+  );
+}
 ```
 
 ---
@@ -226,6 +258,8 @@ Future<void> deleteEvent({
 Future<ETEvent> createReminder({
   required String eventId,
   required Duration durationBeforeEvent,
+  ETSpan span = ETSpan.thisEvent,
+  DateTime? originalInstanceDate,
 })
 ```
 
@@ -235,6 +269,8 @@ Future<ETEvent> createReminder({
 Future<ETEvent> deleteReminder({
   required String eventId,
   required Duration durationBeforeEvent,
+  ETSpan span = ETSpan.thisEvent,
+  DateTime? originalInstanceDate,
 })
 ```
 
@@ -242,7 +278,7 @@ Future<ETEvent> deleteReminder({
 
 ## Attendees
 
-⚠️ **Platform Limitation:** Attendee creation and deletion are only supported on Android.
+Attendees can be read on both iOS and Android. Adding or removing attendees is supported only on Android; those calls throw `ETNotSupportedByPlatform` on iOS.
 
 ### Create Attendee
 
@@ -252,15 +288,19 @@ Future<ETEvent> createAttendee({
   required String name,
   required String email,
   required ETAttendeeType type,
+  ETSpan span = ETSpan.thisEvent,
+  DateTime? originalInstanceDate,
 })
 ```
 
-#### Delete Attendee
+### Delete Attendee
 
 ```dart
 Future<ETEvent> deleteAttendee({
   required String eventId,
   required ETAttendee attendee,
+  ETSpan span = ETSpan.thisEvent,
+  DateTime? originalInstanceDate,
 })
 ```
 
@@ -332,7 +372,7 @@ Eventide automatically handles the permission flow for you - no need to manually
 
 ## ⚠️ Exception Handling
 
-Eventide provides several custom exception types for better error handling. See [eventide_exception.dart](../lib/src/eventide_exception.dart)
+Eventide provides typed exceptions for permission, availability, and operation failures. See [the shared exception definitions](../packages/eventide_platform_interface/lib/src/exceptions.dart).
 
 ### Example Usage
 

@@ -1,19 +1,15 @@
 # eventide_platform_interface
 
-A new Flutter plugin project.
+The shared Dart contract for the [Eventide](https://pub.dev/packages/eventide) Flutter plugin. It defines `EventidePlatformInterface`, the `ETAccount`, `ETCalendar`, `ETEvent`, and `ETAttendee` models, `ETSpan` for recurrence scope, and typed exceptions such as `ETPermissionException` and `ETNotSupportedByPlatform`.
 
-## Getting Started
+## Implementing a platform
 
-This project is a starting point for a Flutter
-[plug-in package](https://flutter.dev/to/develop-plugins),
-a specialized package that includes platform-specific implementation code for
-Android and/or iOS.
+1. Add a dependency on `eventide_platform_interface`. Until its first pub.dev release, use the workspace copy in this repository.
+2. Extend `EventidePlatformInterface` and override the operations your platform supports. Use the shared models and exceptions; keep native APIs and Pigeon types private to your implementation.
+3. Give your Dart plugin class a static `registerWith()` method that assigns the implementation to `EventidePlatformInterface.instance`. Declare `implements: eventide` and the platform's `dartPluginClass` in your plugin's `pubspec.yaml` so Flutter can register it.
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+See the [Android](https://github.com/sncf-connect-tech/eventide/tree/main/packages/eventide_android) and [iOS](https://github.com/sncf-connect-tech/eventide/tree/main/packages/eventide_ios) implementations and Flutter's [federated plugin guide](https://docs.flutter.dev/packages-and-plugins/developing-packages#federated-plugins).
 
-The plugin project was generated without specifying the `--platforms` flag, no platforms are currently supported.
-To add platforms, run `flutter create -t plugin --platforms <platforms> .` in this directory,
-then update pigeon/messages.dart and pubspec.yaml to include the new platforms.
-You can also find a detailed instruction on how to add platforms in the `pubspec.yaml` at https://flutter.dev/to/pubspec-plugin-platforms.
+## Compatibility
+
+Extend the platform interface rather than implementing it. This lets existing platform implementations inherit a default when a new method is added. Prefer compatible additions over removing methods or changing their signatures; see Flutter's guidance on [platform interface breaking changes](https://flutter.dev/go/platform-interface-breaking-changes).

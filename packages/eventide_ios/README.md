@@ -1,15 +1,11 @@
 # eventide_ios
 
-A new Flutter plugin project.
+The endorsed iOS implementation of [Eventide](https://pub.dev/packages/eventide). It uses EventKit for calendar access and EventKitUI for the system event editor.
 
-## Getting Started
+## Using Eventide in an app
 
-This project is a starting point for a Flutter
-[plug-in package](https://flutter.dev/to/develop-plugins),
-a specialized package that includes platform-specific implementation code for
-Android and/or iOS.
+Add `eventide` to your app. Flutter selects `eventide_ios` automatically with the federated version; a separate dependency is unnecessary. See the [iOS permission setup](https://github.com/sncf-connect-tech/eventide/blob/main/doc/PLATFORM_SETUP.md#ios) to select the usage descriptions for your app's `Info.plist`.
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+On iOS 17 and later, `createEventInDefaultCalendar` can write to the default calendar with write-only access. `createEventThroughNativePlatform` presents the system editor without requesting calendar access. Existing attendees can be read; `createAttendee` and `deleteAttendee` throw `ETNotSupportedByPlatform`.
 
+See the [platform contract](https://github.com/sncf-connect-tech/eventide/tree/main/packages/eventide_platform_interface) and the [contributor guide](https://github.com/sncf-connect-tech/eventide/blob/main/CONTRIBUTING.md) for the API boundary and how to run the Swift package's XCTest suite.

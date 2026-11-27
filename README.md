@@ -1,98 +1,65 @@
-## 📆 Eventide
+# Eventide
 
-[![pub package](https://img.shields.io/pub/v/eventide.svg)](https://pub.dev/packages/eventide) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) [![Tests](https://github.com/sncf-connect-tech/eventide/actions/workflows/ci.yaml/badge.svg)](https://github.com/sncf-connect-tech/eventide/actions/workflows/ci.yml) [![codecov](https://codecov.io/gh/sncf-connect-tech/eventide/graph/badge.svg?token=jxA8pZnWmR)](https://codecov.io/gh/sncf-connect-tech/eventide)
+Eventide is a Flutter plugin for reading and modifying device calendars on Android and iOS. It handles permission requests and can open the system's event creation flow without requesting calendar access.
 
-Eventide provides an easy-to-use flutter interface to access & modify native device calendars (iOS & Android).
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](packages/eventide/LICENSE)
+[![CI](https://github.com/sncf-connect-tech/eventide/actions/workflows/ci.yaml/badge.svg)](https://github.com/sncf-connect-tech/eventide/actions/workflows/ci.yaml)
+[![Codecov](https://codecov.io/gh/sncf-connect-tech/eventide/graph/badge.svg?token=jxA8pZnWmR)](https://codecov.io/gh/sncf-connect-tech/eventide)
 
----
+| [`eventide`](packages/eventide/) | [`eventide_android`](packages/eventide_android/) | [`eventide_ios`](packages/eventide_ios/) | [`eventide_platform_interface`](packages/eventide_platform_interface/) |
+| --- | --- | --- | --- |
+| [![Pub](https://img.shields.io/pub/v/eventide.svg)](https://pub.dev/packages/eventide) | First release pending | First release pending | First release pending |
 
-## 🔥 Features
+## Platform support
 
-|    | Eventide |
----- | --------------------------------
-:white_check_mark: | Automatic permission handling
-:white_check_mark: | Create/retrieve/delete calendars
-:white_check_mark: | Create/retrieve/delete events
-:white_check_mark: | Create/delete reminders
-:white_check_mark: | Custom exceptions
-:white_check_mark: | Attendees
-:white_check_mark: | Edit calendars/events
-:building_construction: | Event recurrence
+| Android | iOS |
+| --- | --- |
+| Calendar access through `CalendarContract`; event creation via `.ics` sharing without calendar permissions. | Calendar access through EventKit; event creation through EventKitUI without calendar access, or directly in the default calendar with write-only access on iOS 17 and later. |
 
----
+Both platforms support accounts, calendar and event management (including updates), reminders, recurring events, and reading attendees. Adding and removing attendees is available on Android.
 
-## 🚀 Quick Start
+## Getting started
 
-### Platform Setup
+Add the app-facing package to your Flutter app:
 
-Detailed setup for Android and iOS can be found in [PLATFORM_SETUP.md](./doc/PLATFORM_SETUP.md).
+```sh
+flutter pub add eventide
+```
 
-### Automatic permission handling
+Follow the [platform setup guide](doc/PLATFORM_SETUP.md) for the features you use. Eventide requests permissions at runtime when needed; your app still declares the corresponding permissions or usage descriptions.
 
-Eventide automatically handles the permission flow for you - no need to manually request permissions. See [API_REFERENCE.md](./doc/API_REFERENCE.md#automatic-permission-handling).
-
-### Usage
+To open the platform's event creation flow:
 
 ```dart
 import 'package:eventide/eventide.dart';
 
-final eventide = Eventide();
-
-// Create an event in calendar
-final calendars = await eventide.retrieveCalendars();
-
-await eventide.createEvent(
-  calendarId: calendars.first.id,
-  title: 'Important Meeting',
-  startDate: DateTime.now().add(Duration(days: 1)),
-  endDate: DateTime.now().add(Duration(days: 1, hours: 1)),
-  reminders: [const Duration(minutes: 15)],
-);
-
-// Create an event in the default calendar (Privacy-first)
-await eventide.createEventInDefaultCalendar(
-  title: 'Important Meeting',
-  startDate: DateTime.now().add(Duration(days: 1)),
-  endDate: DateTime.now().add(Duration(days: 1, hours: 1)),
-);
-
-// Create an event using native platform UI (No permissions required)
-await eventide.createEventThroughNativePlatform(
-  title: 'Team Standup',
-);
+Future<void> addTeamStandup() async {
+  await Eventide().createEventThroughNativePlatform(title: 'Team standup');
+}
 ```
 
----
+See the [integration guide](packages/eventide/README.md) for more examples and the [API reference](doc/API_REFERENCE.md) for supported operations and exceptions.
 
-## 📚 Documentation
-- [Accounts](./doc/API_REFERENCE.md#accounts)
-  - [retrieveAccounts](./doc/API_REFERENCE.md#retrieve-accounts)
-- [Calendars](./doc/API_REFERENCE.md#calendars)
-  - [createCalendar](./doc/API_REFERENCE.md#create-calendar)
-  - [retrieveCalendars](./doc/API_REFERENCE.md#retrieve-calendars)
-  - [deleteCalendar](./doc/API_REFERENCE.md#delete-calendar)
-- [Events](./doc/API_REFERENCE.md#events)
-  - [createEvent](./doc/API_REFERENCE.md#create-event)
-  - [createEventInDefaultCalendar](./doc/API_REFERENCE.md#create-event-in-default-calendar)
-  - [createEventThroughNativePlatform](./doc/API_REFERENCE.md#create-event-through-native-platform)
-  - [retrieveEvents](./doc/API_REFERENCE.md#retrieve-events)
-  - [deleteEvent](./doc/API_REFERENCE.md#delete-event)
-- [Reminders](./doc/API_REFERENCE.md#reminders)
-  - [createReminder](./doc/API_REFERENCE.md#create-reminder)
-  - [deleteReminder](./doc/API_REFERENCE.md#delete-reminder)
-- [Attendees](./doc/API_REFERENCE.md#attendees)
-  - [createAttendee](./doc/API_REFERENCE.md#create-attendee)
-  - [deleteAttendee](./doc/API_REFERENCE.md#delete-attendee)
-- [Automatic permission handling](./doc/API_REFERENCE.md#automatic-permission-handling)
-- [Exception Handling](./doc/API_REFERENCE.md#exception-handling)
-- [Platform Setup](./doc/PLATFORM_SETUP.md)
+## Packages in this repository
 
----
+Eventide follows Flutter's [federated plugin architecture](https://docs.flutter.dev/packages-and-plugins/developing-packages#federated-plugins).
 
-## License
+| Package | Description | When to use |
+| --- | --- | --- |
+| [`eventide`](packages/eventide/) | Public API for Flutter apps | Add this to your app for Android and iOS support |
+| [`eventide_android`](packages/eventide_android/) | Endorsed Android implementation | Work on `CalendarContract`, Android permissions, or `.ics` sharing |
+| [`eventide_ios`](packages/eventide_ios/) | Endorsed iOS implementation | Work on EventKit, EventKitUI, or iOS permissions |
+| [`eventide_platform_interface`](packages/eventide_platform_interface/) | Shared contract, models, and exceptions | Implement a platform or substitute an implementation in tests |
 
-Copyright © 2026 SNCF Connect & Tech. This project is licensed under the [MIT License](./LICENSE).
+This documentation describes the federated version in this repository, ahead of the first pub.dev release of the platform packages.
 
-## Feedback
+## Examples
 
-Please file any issues, bugs or feature requests as an issue on the [Github page](https://github.com/sncf-connect-tech/eventide/issues).
+| Example | What it shows |
+| --- | --- |
+| [Plugin example](packages/eventide/example/) | Main development app for trying the public API |
+| [Full permission](examples/full-permission/) | Browsing calendars and managing events with calendar access |
+| [Write only](examples/write-only/) | Adding events with `createEventInDefaultCalendar` |
+| [Native only](examples/native-only/) | Opening the system creation flow with `createEventThroughNativePlatform` |
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) to work on the plugin or [open an issue](https://github.com/sncf-connect-tech/eventide/issues) to report a problem. Eventide is maintained by SNCF Connect & Tech under the [MIT License](packages/eventide/LICENSE).
