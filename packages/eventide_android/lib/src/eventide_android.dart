@@ -1,0 +1,496 @@
+import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
+
+import 'package:eventide_platform_interface/eventide_platform_interface.dart';
+
+import 'package:eventide_android/src/calendar_api.g.dart';
+import 'package:eventide_android/src/extensions/account_extensions.dart';
+import 'package:eventide_android/src/extensions/attendee_extensions.dart';
+import 'package:eventide_android/src/extensions/calendar_extensions.dart';
+import 'package:eventide_android/src/extensions/color_extensions.dart';
+import 'package:eventide_android/src/extensions/duration_extensions.dart';
+import 'package:eventide_android/src/extensions/event_extensions.dart';
+
+class EventideAndroid extends EventidePlatformInterface {
+  final CalendarApi _calendarApi;
+
+  EventideAndroid({@visibleForTesting CalendarApi? calendarApi}) : _calendarApi = calendarApi ?? CalendarApi();
+
+  /// Registers this class as the default instance of [EventidePlatformInterface].
+  static void registerWith() {
+    EventidePlatformInterface.instance = EventideAndroid();
+  }
+
+  /// Creates a new calendar with the given [title], [color] and optional [account].
+  ///
+  /// If [account] is provided, the calendar will be created under that account.
+  /// If [account] is null, the calendar will be created in the default account/source:
+  /// - On iOS: Uses default source (local or iCloud)
+  /// - On Android: Uses "local" as the account name
+  ///
+  /// Returns the created [ETCalendar].
+  ///
+  /// Throws a [ETPermissionException] if the user refuses to grant calendar permissions.
+  ///
+  /// Throws a [ETNotFoundException] on iOS if no suitable calendar source is found or if the created calendar id is not found.
+  ///
+  /// Throws a [ETGenericException] on iOS if the color hex cannot be converted to a UIColor.
+  ///
+  /// Throws a [ETGenericException] if any other error occurs during calendar creation.
+
+  @override
+  Future<ETCalendar> createCalendar({required String title, required Color color, ETAccount? account}) async {
+    try {
+      final calendar = await _calendarApi.createCalendar(
+        title: title,
+        color: color.toValue(),
+        account: account?.toAccount(),
+      );
+      return calendar.toETCalendar();
+    } on PlatformException catch (e) {
+      throw e.toETException();
+    }
+  }
+
+  /// Retrieves a list of calendars.
+  /// If [onlyWritableCalendars] is `true`, only writable calendars are returned.
+  ///
+  /// If [account] is provided, only calendars from that account are returned.
+  ///
+  /// Returns a list of [ETCalendar]s.
+  ///
+  /// Throws a [ETPermissionException] if the user refuses to grant calendar permissions.
+  ///
+  /// Throws a [ETGenericException] if any other error occurs during calendars retrieval.
+  @override
+  Future<Iterable<ETCalendar>> retrieveCalendars({bool onlyWritableCalendars = true, ETAccount? account}) async {
+    try {
+      final calendars = await _calendarApi.retrieveCalendars(
+        onlyWritableCalendars: onlyWritableCalendars,
+        account: account?.toAccount(),
+      );
+      return calendars.toETCalendarList();
+    } on PlatformException catch (e) {
+      throw e.toETException();
+    }
+  }
+
+  /// Retrieves all available accounts from the device.
+  ///
+  /// Returns a list of [ETAccount] representing all accounts that have calendars.
+  /// This includes Google accounts, local accounts, Exchange accounts, etc.
+  ///
+  /// Throws a [ETPermissionException] if the user refuses to grant calendar permissions.
+  ///
+  /// Throws a [ETGenericException] if any other error occurs during accounts retrieval.
+  @override
+  Future<Iterable<ETAccount>> retrieveAccounts() async {
+    try {
+      final accounts = await _calendarApi.retrieveAccounts();
+      return accounts.toETAccountList();
+    } on PlatformException catch (e) {
+      throw e.toETException();
+    }
+  }
+
+  /// Updates the given [calendar] with optional new values for [title] and [color].
+  /// Only the provided parameters will be updated, the others will remain unchanged.
+  ///
+  /// Returns the updated [ETCalendar].
+  ///
+  /// Throws a [ETPermissionException] if the user refuses to grant calendar permissions.
+  ///
+  /// Throws a [ETNotFoundException] if the calendar with the given [calendar.id] is not found.
+  ///
+  /// Throws a [ETNotEditableException] if the calendar is not editable.
+  ///
+  /// Throws a [ETGenericException] if any other error occurs during calendar update.
+  @override
+  Future<ETCalendar> updateCalendar(ETCalendar calendar, {String? title, Color? color}) async {
+    try {
+      final updatedCalendar = await _calendarApi.updateCalendar(
+        calendarId: calendar.id,
+        title: title ?? calendar.title,
+        color: color?.toValue() ?? calendar.color.toValue(),
+      );
+      return updatedCalendar.toETCalendar();
+    } on PlatformException catch (e) {
+      throw e.toETException();
+    }
+  }
+
+  /// Deletes the calendar with the given [calendarId].
+  ///
+  /// Throws a [ETPermissionException] if the user refuses to grant calendar permissions.
+  ///
+  /// Throws a [ETNotFoundException] if the calendar with the given [calendarId] is not found.
+  ///
+  /// Throws a [ETNotEditableException] if the calendar is not editable.
+  ///
+  /// Throws a [ETGenericException] if any other error occurs during calendar deletion.
+  @override
+  Future<void> deleteCalendar({required String calendarId}) async {
+    try {
+      await _calendarApi.deleteCalendar(calendarId: calendarId);
+    } on PlatformException catch (e) {
+      throw e.toETException();
+    }
+  }
+
+  /// Creates a new event with the given [title], [startDate], [endDate], and [calendarId].
+  /// Optionally, you can provide a [description], [url], [location], and a list of [reminders] duration.
+  ///
+  /// /!\ Note that a [Duration] in seconds will not be supported by Android for API limitations.
+  ///
+  /// Returns the created [ETEvent].
+  ///
+  /// Throws a [ETPermissionException] if the user refuses to grant calendar permissions.
+  ///
+  /// Throws a [ETNotFoundException] if the calendar with the given [calendarId] is not found or if the created event id is not found.
+  ///
+  /// Throws a [ETGenericException] if any other error occurs during event creation.
+  @override
+  Future<ETEvent> createEvent({
+    required String calendarId,
+    required String title,
+    required DateTime startDate,
+    required DateTime endDate,
+    bool isAllDay = false,
+    String? description,
+    String? url,
+    String? location,
+    Iterable<Duration>? reminders,
+    String? recurrenceRule,
+  }) async {
+    try {
+      final event = await _calendarApi.createEvent(
+        calendarId: calendarId,
+        title: title,
+        startDate: startDate.toUtc().millisecondsSinceEpoch,
+        endDate: endDate.toUtc().millisecondsSinceEpoch,
+        isAllDay: isAllDay,
+        description: description,
+        url: url,
+        location: location,
+        reminders: reminders?.map((e) => e.toNativeDuration()).toList(),
+        recurrenceRule: recurrenceRule,
+      );
+
+      return event.toETEvent().copyWithReminders(reminders);
+    } on PlatformException catch (e) {
+      throw e.toETException();
+    }
+  }
+
+  /// Creates a new event in the default calendar with the given [title], [startDate], [endDate].
+  /// Optionally, you can provide a [description], [url], [location], and a list of [reminders] duration.
+  ///
+  /// On iOS, this method will prompt user for write only permission and will insert your event in user's default calendar.
+  ///
+  /// On Android, this method will prompt user to choose the calendar app whom they want the event added into.
+  /// It is the same Android native implementation as [createEventThroughNativePlatform].
+  ///
+  /// / /!\ Note that a [Duration] in seconds will not be supported by Android for API limitations.
+  ///
+  /// Returns the created [ETEvent].
+  ///
+  /// Throws a [ETPermissionException] if the user refuses to grant calendar permissions.
+  ///
+  /// Throws a [ETNotFoundException] if the default calendar is not found or if the created event id is not found.
+  ///
+  /// Throws a [ETGenericException] if any other error occurs during event creation.
+  @override
+  Future<void> createEventInDefaultCalendar({
+    required String title,
+    required DateTime startDate,
+    required DateTime endDate,
+    bool isAllDay = false,
+    String? description,
+    String? url,
+    String? location,
+    Iterable<Duration>? reminders,
+    String? recurrenceRule,
+  }) async {
+    try {
+      await _calendarApi.createEventInDefaultCalendar(
+        title: title,
+        startDate: startDate.toUtc().millisecondsSinceEpoch,
+        endDate: endDate.toUtc().millisecondsSinceEpoch,
+        isAllDay: isAllDay,
+        description: description,
+        url: url,
+        location: location,
+        reminders: reminders?.map((e) => e.toNativeDuration()).toList(),
+        recurrenceRule: recurrenceRule,
+      );
+    } on PlatformException catch (e) {
+      throw e.toETException();
+    }
+  }
+
+  /// Creates a new event with optional [title], [startDate], [endDate], [isAllDay], [description], [url], [location], and a list of [reminders] duration.
+  ///
+  /// On iOS, this method will present the native event creation UI with the provided parameters pre-filled. The user can then choose to create the event or cancel the operation.
+  ///
+  /// On Android, this method will prompt user to choose the calendar app whom they want the event added into.
+  /// It is the same Android native implementation as [createEventInDefaultCalendar].
+  ///
+  /// /!\ Note that a [Duration] in seconds will not be supported by Android for API limitations.
+  ///
+  /// Throws a [ETPresentationException] if there is an error presenting the native event creation UI.
+  ///
+  /// Throws a [ETUserCanceledException] if the user cancels the event creation.
+  ///
+  /// Throws a [ETGenericException] if any other error occurs during event creation.
+  @override
+  Future<void> createEventThroughNativePlatform({
+    String? title,
+    DateTime? startDate,
+    DateTime? endDate,
+    bool? isAllDay,
+    String? description,
+    String? url,
+    String? location,
+    Iterable<Duration>? reminders,
+    String? recurrenceRule,
+  }) async {
+    try {
+      await _calendarApi.createEventThroughNativePlatform(
+        title: title,
+        startDate: startDate?.toUtc().millisecondsSinceEpoch,
+        endDate: endDate?.toUtc().millisecondsSinceEpoch,
+        isAllDay: isAllDay,
+        description: description,
+        url: url,
+        location: location,
+        reminders: reminders?.map((e) => e.toNativeDuration()).toList(),
+        recurrenceRule: recurrenceRule,
+      );
+    } on PlatformException catch (e) {
+      throw e.toETException();
+    }
+  }
+
+  /// Retrieves a list of events from the calendar with the given [calendarId].
+  /// Optionally, you can provide a [startDate] and [endDate] to filter the events.
+  ///
+  /// Returns a list of [Event]s.
+  ///
+  /// Throws a [ETPermissionException] if the user refuses to grant calendar permissions.
+  ///
+  /// Throws a [ETNotFoundException] if the calendar with the given [calendarId] is not found.
+  ///
+  /// Throws a [ETGenericException] if any other error occurs during events retrieval.
+  @override
+  Future<Iterable<ETEvent>> retrieveEvents({required String calendarId, DateTime? startDate, DateTime? endDate}) async {
+    try {
+      final start = (startDate ?? DateTime.now()).toUtc();
+      final end = (endDate ?? DateTime.now()).toUtc();
+      final events = await _calendarApi.retrieveEvents(
+        calendarId: calendarId,
+        startDate: start.millisecondsSinceEpoch,
+        endDate: end.millisecondsSinceEpoch,
+      );
+      return events.toETEventList();
+    } on PlatformException catch (e) {
+      throw e.toETException();
+    }
+  }
+
+  /// Updates the given [event] with optional new values for [calendarId], [title], [startDate], [endDate], [isAllDay], [description], [url], [location], and a list of [reminders] duration.
+  /// Only the provided parameters will be updated, the others will remain unchanged.
+  ///
+  /// Returns the updated [ETEvent].
+  ///
+  /// Throws a [ETPermissionException] if the user refuses to grant calendar permissions.
+  ///
+  /// Throws a [ETNotFoundException] if the event with the given [event.id] is not found or if the new calendar with the given [calendarId] is not found.
+  ///
+  /// Throws a [ETNotEditableException] if the calendar is not editable.
+  ///
+  /// Throws a [ETGenericException] if any other error occurs during event update.
+  @override
+  Future<ETEvent> updateEvent(
+    ETEvent event, {
+    String? calendarId,
+    String? title,
+    DateTime? startDate,
+    DateTime? endDate,
+    bool? isAllDay,
+    String? description,
+    String? url,
+    String? location,
+    Iterable<Duration>? reminders,
+    String? recurrenceRule,
+    ETSpan span = ETSpan.thisEvent,
+    DateTime? originalInstanceDate,
+  }) async {
+    try {
+      final updatedEvent = await _calendarApi.updateEvent(
+        eventId: event.id,
+        calendarId: calendarId ?? event.calendarId,
+        title: title ?? event.title,
+        startDate: (startDate ?? event.startDate).toUtc().millisecondsSinceEpoch,
+        endDate: (endDate ?? event.endDate).toUtc().millisecondsSinceEpoch,
+        isAllDay: isAllDay ?? event.isAllDay,
+        description: description ?? event.description,
+        url: url ?? event.url,
+        location: location ?? event.location,
+        reminders: (reminders ?? event.reminders).map((e) => e.toNativeDuration()).toList(),
+        recurrenceRule: recurrenceRule ?? event.recurrenceRule,
+        span: span.toSpan(),
+        originalInstanceDate:
+            originalInstanceDate?.toUtc().millisecondsSinceEpoch ??
+            event.originalInstanceDate?.toUtc().millisecondsSinceEpoch,
+      );
+      return updatedEvent.toETEvent();
+    } on PlatformException catch (e) {
+      throw e.toETException();
+    }
+  }
+
+  /// Deletes the event with the given [eventId] from the calendar with the given [calendarId].
+  ///
+  /// Throws a [ETPermissionException] if the user refuses to grant calendar permissions.
+  ///
+  /// Throws a [ETNotFoundException] if the event with the given [eventId] is not found.
+  ///
+  /// Throws a [ETNotEditableException] if the calendar is not editable.
+  ///
+  /// Throws a [ETGenericException] if any other error occurs during event deletion.
+  @override
+  Future<void> deleteEvent({
+    required String eventId,
+    ETSpan span = ETSpan.thisEvent,
+    DateTime? originalInstanceDate,
+  }) async {
+    try {
+      await _calendarApi.deleteEvent(
+        eventId: eventId,
+        span: span.toSpan(),
+        originalInstanceDate: originalInstanceDate?.toUtc().millisecondsSinceEpoch,
+      );
+    } on PlatformException catch (e) {
+      throw e.toETException();
+    }
+  }
+
+  /// Creates a new reminder with the given [durationBeforeEvent] for the event with the given [eventId].
+  ///
+  /// /!\ Note that a [Duration] in seconds will not be supported by Android for API limitations.
+  ///
+  /// Throws a [ETPermissionException] if the user refuses to grant calendar permissions.
+  ///
+  /// Throws a [ETNotFoundException] if the event with the given [eventId] is not found.
+  ///
+  /// Throws a [ETGenericException] if any other error occurs during reminder creation.
+  @override
+  Future<ETEvent> createReminder({
+    required String eventId,
+    required Duration durationBeforeEvent,
+    ETSpan span = ETSpan.thisEvent,
+    DateTime? originalInstanceDate,
+  }) async {
+    try {
+      final updatedEvent = await _calendarApi.createReminder(
+        reminder: durationBeforeEvent.toNativeDuration(),
+        eventId: eventId,
+        span: span.toSpan(),
+        originalInstanceDate: originalInstanceDate?.toUtc().millisecondsSinceEpoch,
+      );
+      return updatedEvent.toETEvent();
+    } on PlatformException catch (e) {
+      throw e.toETException();
+    }
+  }
+
+  /// Deletes the reminder with the given [durationBeforeEvent] for the event with the given [eventId].
+  ///
+  /// Throws a [ETPermissionException] if the user refuses to grant calendar permissions.
+  ///
+  /// Throws a [ETNotFoundException] if the event with the given [eventId] is not found.
+  ///
+  /// Throws a [ETGenericException] if any other error occurs during reminder deletion.
+  @override
+  Future<ETEvent> deleteReminder({
+    required String eventId,
+    required Duration durationBeforeEvent,
+    ETSpan span = ETSpan.thisEvent,
+    DateTime? originalInstanceDate,
+  }) async {
+    try {
+      final updatedEvent = await _calendarApi.deleteReminder(
+        reminder: durationBeforeEvent.toNativeDuration(),
+        eventId: eventId,
+        span: span.toSpan(),
+        originalInstanceDate: originalInstanceDate?.toUtc().millisecondsSinceEpoch,
+      );
+      return updatedEvent.toETEvent();
+    } on PlatformException catch (e) {
+      throw e.toETException();
+    }
+  }
+
+  /// Creates a new attendee with the given [name], [email], and [type] for the event with the given [eventId].
+  ///
+  /// Throws a [ETNotSupportedByPlatform] if the method is called on iOS. Make sure you handle it.
+  ///
+  /// Throws a [ETPermissionException] if the user refuses to grant calendar permissions.
+  ///
+  /// Throws a [ETNotFoundException] if the event with the given [eventId] is not found.
+  ///
+  /// Throws a [ETGenericException] if any other error occurs during attendee creation.
+  @override
+  Future<ETEvent> createAttendee({
+    required String eventId,
+    required String name,
+    required String email,
+    required ETAttendeeType type,
+    ETSpan span = ETSpan.thisEvent,
+    DateTime? originalInstanceDate,
+  }) async {
+    try {
+      final event = await _calendarApi.createAttendee(
+        eventId: eventId,
+        name: name,
+        email: email,
+        role: type.nativeRole,
+        type: type.nativeType,
+        span: span.toSpan(),
+        originalInstanceDate: originalInstanceDate?.toUtc().millisecondsSinceEpoch,
+      );
+      return event.toETEvent();
+    } on PlatformException catch (e) {
+      throw e.toETException();
+    }
+  }
+
+  /// Deletes the attendee with the given [attendee] for the event with the given [eventId].
+  ///
+  /// Throws a [ETNotSupportedByPlatform] if the method is called on iOS. Make sure you handle it.
+  ///
+  /// Throws a [ETPermissionException] if the user refuses to grant calendar permissions.
+  ///
+  /// Throws a [ETNotFoundException] if the event with the given [eventId] is not found.
+  ///
+  /// Throws a [ETGenericException] if any other error occurs during attendee deletion.
+  @override
+  Future<ETEvent> deleteAttendee({
+    required String eventId,
+    required ETAttendee attendee,
+    ETSpan span = ETSpan.thisEvent,
+    DateTime? originalInstanceDate,
+  }) async {
+    try {
+      final event = await _calendarApi.deleteAttendee(
+        eventId: eventId,
+        email: attendee.email,
+        span: span.toSpan(),
+        originalInstanceDate: originalInstanceDate?.toUtc().millisecondsSinceEpoch,
+      );
+      return event.toETEvent();
+    } on PlatformException catch (e) {
+      throw e.toETException();
+    }
+  }
+}

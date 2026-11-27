@@ -12,254 +12,284 @@ env:
   FLUTTER_MINIMUM_VERSION: 3.47.0
   JAVA_VERSION: 17
   JAVA_DISTRIBUTION: corretto
-  PACKAGE_PATH: ./package
+  EXAMPLE_PATH: packages/eventide/example
+  IOS_PACKAGE_PATH: packages/eventide_ios/ios/eventide_ios
 
 jobs:
-  flutter-tests:
+  changes:
     runs-on: ubuntu-latest
+    permissions:
+      pull-requests: read
+    outputs:
+      dart: ${{ github.event_name == 'push' || steps.filter.outputs.dart == 'true' }}
+      ios: ${{ github.event_name == 'push' || steps.filter.outputs.ios == 'true' }}
+      android: ${{ github.event_name == 'push' || steps.filter.outputs.android == 'true' }}
+      examples: ${{ github.event_name == 'push' || steps.filter.outputs.examples == 'true' }}
+    steps:
+      - uses: dorny/paths-filter@v3
+        id: filter
+        if: github.event_name == 'pull_request'
+        with:
+          filters: |
+            dart:
+              - '.github/workflows/ci.yaml'
+              - '.fvmrc'
+              - '**/pubspec.yaml'
+              - '**/pubspec.lock'
+              - '**/analysis_options.yaml'
+              - 'packages/**/*.dart'
+              - 'examples/**/*.dart'
+            ios:
+              - '.github/workflows/ci.yaml'
+              - '.fvmrc'
+              - 'codecov.yml'
+              - '**/pubspec.yaml'
+              - '**/pubspec.lock'
+              - 'packages/eventide_ios/**'
+              - 'packages/eventide_platform_interface/**'
+              - 'packages/eventide/**'
+            android:
+              - '.github/workflows/ci.yaml'
+              - '.fvmrc'
+              - 'codecov.yml'
+              - '**/pubspec.yaml'
+              - '**/pubspec.lock'
+              - 'packages/eventide_android/**'
+              - 'packages/eventide_platform_interface/**'
+              - 'packages/eventide/**'
+            examples:
+              - '.github/workflows/ci.yaml'
+              - '.fvmrc'
+              - '**/pubspec.yaml'
+              - '**/pubspec.lock'
+              - 'examples/**'
+              - 'packages/eventide_android/**'
+              - 'packages/eventide_platform_interface/**'
+              - 'packages/eventide/**'
 
+  flutter-tests:
+    needs: changes
+    if: needs.changes.outputs.dart == 'true'
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-
       - uses: subosito/flutter-action@v2
         with:
-          channel: 'stable'
-
-      - name: Install dependencies
-        run: flutter pub get
-
-      - name: Analyze project source
-        run: dart analyze . --fatal-infos
-
-      - name: Import sort
-        run: dart run import_sorter:main . --no-comments --exit-if-changed
-
-      - name: Format code
-        run: dart format . --set-exit-if-changed
-
-      - name: Run tests
+          channel: stable
+      - run: flutter pub get
+      - run: dart analyze . --fatal-infos
+      - name: Check import order
         run: |
-          cd ${{ env.PACKAGE_PATH }}
-          flutter test ./test/* --coverage
-
-      - name: Upload coverage report as artifact
-        uses: actions/upload-artifact@v4
+          for package in packages/eventide{,_platform_interface,_ios,_android} packages/eventide/example examples/*/; do
+            (
+              cd "$package"
+              # import_sorter expects a lockfile next to the package's pubspec.
+              ln -s "$GITHUB_WORKSPACE/pubspec.lock" pubspec.lock
+              trap 'unlink pubspec.lock' EXIT
+              dart run import_sorter:main --no-comments --exit-if-changed '^(?!.*\.g\.dart$).*\.dart'
+            )
+          done
+      - run: dart format . --set-exit-if-changed --output=none
+      - name: Run Dart tests with coverage
+        run: flutter test --coverage packages/eventide{,_platform_interface,_ios,_android}/test
+      - uses: actions/upload-artifact@v4
         with:
           name: flutter-coverage
-          path: ${{ env.PACKAGE_PATH }}/coverage/lcov.info
+          path: coverage/lcov.info
+          if-no-files-found: error
 
   flutter-minimum-version-tests:
+    needs: changes
+    if: needs.changes.outputs.dart == 'true'
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v6
-
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: ${{ env.FLUTTER_MINIMUM_VERSION }}
-          channel: 'stable'
-
-      - name: Install dependencies
-        run: flutter pub get
-
-      - name: Analyze project source
-        run: dart analyze . --fatal-infos
-
-      - name: Run tests
-        run: |
-          cd ${{ env.PACKAGE_PATH }}
-          flutter test ./test/*
+          channel: stable
+      - run: flutter pub get
+      - run: dart analyze . --fatal-infos
+      - run: flutter test packages/eventide{,_platform_interface,_ios,_android}/test
 
   ios-tests:
+    needs: changes
+    if: needs.changes.outputs.ios == 'true'
     runs-on: macos-latest
-
     steps:
       - uses: actions/checkout@v6
-
       - uses: subosito/flutter-action@v2
         with:
-          channel: 'stable'
-
-      - name: Install dependencies
+          channel: stable
+      - name: Prepare Flutter and SwiftPM dependencies
+        working-directory: ${{ env.EXAMPLE_PATH }}
         run: |
           brew install xcresultparser
           flutter config --enable-swift-package-manager
-          flutter pub get
-          cd ${{ env.PACKAGE_PATH }}/example/ios
-          flutter build ios --config-only
-
-      - name: Get latest iOS simulator info
-        id: ios-simulator
+          flutter precache --ios
+          flutter build ios --simulator --config-only --no-codesign
+          framework_package="$PWD/ios/Flutter/ephemeral/Packages/.packages/FlutterFramework"
+          test -f "$framework_package/Package.swift"
+          ln -s "$framework_package" "$GITHUB_WORKSPACE/$IOS_PACKAGE_PATH/../FlutterFramework"
+      - name: Run Swift package tests
+        working-directory: ${{ env.IOS_PACKAGE_PATH }}
         run: |
-          # Get the latest iPhone model and iOS version available
-          latest_iphone=$(xcrun simctl list devicetypes | grep -E "iPhone [0-9]+" | sort -V | tail -1 | sed 's/.*\(iPhone [0-9][0-9]*\).*/\1/')
-          latest_ios=$(xcrun simctl list runtimes | grep iOS | sort -V | tail -1 | awk '{print $2}' | sed 's/[()]//g')
-          echo "iphone_name=$latest_iphone" >> $GITHUB_OUTPUT
-          echo "ios_version=$latest_ios" >> $GITHUB_OUTPUT
-          echo "Using iPhone: $latest_iphone with iOS: $latest_ios"
-
-      - name: Run tests
+          simulator=$(xcrun simctl list devices available --json | python3 -c '
+          import json, sys
+          devices = json.load(sys.stdin)["devices"]
+          ios_runtimes = [runtime for runtime in devices if ".iOS-" in runtime]
+          for runtime in sorted(ios_runtimes, key=lambda name: tuple(map(int, name.split(".iOS-")[1].split("-"))), reverse=True):
+              for device in devices[runtime]:
+                  if device["name"].startswith("iPhone"):
+                      print(device["udid"])
+                      sys.exit(0)
+          sys.exit("No available iPhone simulator")')
+          sdk=$(dirname "$(dirname "$(command -v flutter)")")
+          engine="$sdk/bin/cache/artifacts/engine/ios/Flutter.xcframework"
+          framework=$(find "$engine" -path '*/ios-*-simulator/Flutter.framework' -type d -print -quit)
+          test -n "$framework"
+          framework_dir=$(dirname "$framework")
+          xcodebuild test -scheme eventide_ios \
+            -destination "platform=iOS Simulator,id=$simulator" \
+            -enableCodeCoverage YES \
+            -resultBundlePath "$RUNNER_TEMP/EventideTests.xcresult" \
+            FRAMEWORK_SEARCH_PATHS="$framework_dir" \
+            LD_RUNPATH_SEARCH_PATHS="\$(inherited) $framework_dir"
+      - name: Convert Swift coverage to Cobertura
         run: |
-          xcodebuild test -workspace ${{ env.PACKAGE_PATH }}/example/ios/Runner.xcworkspace \
-            -scheme EventideTests \
-            -destination "platform=iOS Simulator,name=${{ steps.ios-simulator.outputs.iphone_name }},OS=${{ steps.ios-simulator.outputs.ios_version }},arch=arm64" \
-            -resultBundlePath ${{ env.PACKAGE_PATH }}/example/ios/build/reports/EventideTests.xcresult \
-            -quiet
-
-      - name: Prepare coverage xml file
-        run: |
-          xcresultparser \
-            --output-format cobertura \
-            ${{ env.PACKAGE_PATH }}/example/ios/build/reports/EventideTests.xcresult > ${{ env.PACKAGE_PATH }}/example/ios/build/reports/ios-coverage.xml
-
-      - name: Upload coverage report as artifact
-        uses: actions/upload-artifact@v4
+          # Xcode can report /var paths without the /private prefix on macOS.
+          source_root="$GITHUB_WORKSPACE"
+          if [[ "$source_root" == /private/var/* ]]; then
+            source_root="${source_root#/private}"
+          fi
+          xcresultparser --output-format cobertura --project-root "$source_root" \
+            "$RUNNER_TEMP/EventideTests.xcresult" > ios-coverage.xml
+          grep -q 'filename="packages/eventide_ios/ios/eventide_ios/Sources/' ios-coverage.xml
+      - uses: actions/upload-artifact@v4
         with:
           name: ios-coverage
-          path: ${{ env.PACKAGE_PATH }}/example/ios/build/reports/ios-coverage.xml
+          path: ios-coverage.xml
+          if-no-files-found: error
 
   android-tests:
+    needs: changes
+    if: needs.changes.outputs.android == 'true'
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v6
-
       - uses: actions/setup-java@v5
         with:
           distribution: ${{ env.JAVA_DISTRIBUTION }}
           java-version: ${{ env.JAVA_VERSION }}
-          cache: 'gradle'
-
+          cache: gradle
       - uses: subosito/flutter-action@v2
         with:
-          channel: 'stable'
-
-      - name: Install dependencies
-        run: flutter pub get
-
-      - name: Build and test
+          channel: stable
+      - name: Prepare Flutter for Gradle
+        working-directory: ${{ env.EXAMPLE_PATH }}
         run: |
-          ${{ env.PACKAGE_PATH }}/example/android/gradlew testDebugUnitTest -p ${{ env.PACKAGE_PATH }}/example/android/
-
-      - name: Upload coverage report as artifact
-        uses: actions/upload-artifact@v4
+          flutter pub get
+          printf 'flutter.sdk=%s\n' "$(dirname "$(dirname "$(command -v flutter)")")" > android/local.properties
+      - name: Run Kotlin tests
+        working-directory: ${{ env.EXAMPLE_PATH }}/android
+        run: ./gradlew :eventide_android:testDebugUnitTest
+      - uses: actions/upload-artifact@v4
         with:
           name: android-coverage
-          path: ${{ env.PACKAGE_PATH }}/android/build/reports/jacocoTestReport.xml
-    
-  ios-build-spm:
-    runs-on: macos-latest
+          path: packages/eventide_android/android/build/reports/jacocoTestReport.xml
+          if-no-files-found: error
 
+  ios-build-spm:
+    needs: changes
+    if: needs.changes.outputs.ios == 'true'
+    runs-on: macos-latest
     steps:
       - uses: actions/checkout@v6
-
       - uses: subosito/flutter-action@v2
         with:
-          channel: 'stable'
-
-      - name: Install dependencies
-        run: |
-          flutter config --enable-swift-package-manager
-          flutter pub get
-          cd ${{ env.PACKAGE_PATH }}/example
-          flutter build ios --config-only --no-codesign
-
-      - name: Build iOS framework with SPM
-        run: |
-          cd ${{ env.PACKAGE_PATH }}/example
-          flutter build ios --simulator
+          channel: stable
+      - run: flutter config --enable-swift-package-manager
+      - run: flutter build ios --simulator --no-codesign
+        working-directory: ${{ env.EXAMPLE_PATH }}
 
   android-build:
+    needs: changes
+    if: needs.changes.outputs.android == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-
+      - uses: actions/setup-java@v5
+        with:
+          distribution: ${{ env.JAVA_DISTRIBUTION }}
+          java-version: ${{ env.JAVA_VERSION }}
       - uses: subosito/flutter-action@v2
         with:
-          channel: 'stable'
-
-      - name: Install dependencies
-        run: |
-          flutter pub get
-
-      - name: Build Android APK
-        run: |
-          cd ${{ env.PACKAGE_PATH }}/example
-          flutter build apk --debug
+          channel: stable
+      - run: flutter build apk --debug
+        working-directory: ${{ env.EXAMPLE_PATH }}
 
   more-complex-examples-build:
+    needs: changes
+    if: needs.changes.outputs.examples == 'true'
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         app: [full-permission, native-only, write-only]
     steps:
       - uses: actions/checkout@v6
-
+      - uses: actions/setup-java@v5
+        with:
+          distribution: ${{ env.JAVA_DISTRIBUTION }}
+          java-version: ${{ env.JAVA_VERSION }}
       - uses: subosito/flutter-action@v2
         with:
-          channel: 'stable'
-
-      - name: Install dependencies
-        run: flutter pub get
-
-      - name: Build ${{ matrix.app }} APK
-        run: |
-          cd examples/${{ matrix.app }}
-          flutter build apk --debug
+          channel: stable
+      - run: flutter build apk --debug
+        working-directory: examples/${{ matrix.app }}
 
   upload-coverage:
     runs-on: ubuntu-latest
     needs: [flutter-tests, ios-tests, android-tests]
-    if: always() && !cancelled() && (needs.flutter-tests.result == 'success' || needs.ios-tests.result == 'success' || needs.android-tests.result == 'success')
+    if: always() && !cancelled() && contains(needs.*.result, 'success')
     steps:
-      - name: Download flutter coverage report
-        uses: actions/download-artifact@v4
-        if: needs.flutter-tests.result == 'success'
+      - uses: actions/checkout@v6
+      - uses: actions/download-artifact@v4
         with:
-          name: flutter-coverage
-          path: ${{ env.PACKAGE_PATH }}/coverage
-
-      - name: Download ios coverage report
-        uses: actions/download-artifact@v4
-        if: needs.ios-tests.result == 'success'
-        with:
-          name: ios-coverage
-          path: ${{ env.PACKAGE_PATH }}/build/reports
-
-      - name: Download android coverage report
-        uses: actions/download-artifact@v4
-        if: needs.android-tests.result == 'success'
-        with:
-          name: android-coverage
-          path: ${{ env.PACKAGE_PATH }}/android/build/reports/
-
-      - name: Prepare coverage files list
-        id: coverage-files
-        run: |
-          cd ${{ env.PACKAGE_PATH }}
-          files=""
-          if [ -f "coverage/lcov.info" ]; then
-            files="$files,coverage/lcov.info"
-            echo "Found Flutter coverage file"
-          fi
-          if [ -f "build/reports/ios-coverage.xml" ]; then
-            files="$files,build/reports/ios-coverage.xml"
-            echo "Found iOS coverage file"
-          fi
-          if [ -f "android/build/reports/jacocoTestReport.xml" ]; then
-            files="$files,android/build/reports/jacocoTestReport.xml"
-            echo "Found Android coverage file"
-          fi
-          files=${files#,}
-          echo "Coverage files: $files"
-          echo "files=$files" >> $GITHUB_OUTPUT
-
-      - name: Upload combined coverage report to Codecov
-        uses: codecov/codecov-action@v5
-        if: steps.coverage-files.outputs.files != ''
+          pattern: '*-coverage'
+          path: build/reports
+          merge-multiple: true
+      - uses: codecov/codecov-action@v5
+        if: hashFiles('build/reports/lcov.info') != ''
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           fail_ci_if_error: false
-          files: ${{ steps.coverage-files.outputs.files }}
-          flags: unittests
-          name: codecov-umbrella
+          disable_search: true
+          files: build/reports/lcov.info
+          flags: flutter
+      - uses: codecov/codecov-action@v5
+        if: hashFiles('build/reports/ios-coverage.xml') != ''
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: false
+          disable_search: true
+          files: build/reports/ios-coverage.xml
+          flags: ios
+      - uses: codecov/codecov-action@v5
+        if: hashFiles('build/reports/jacocoTestReport.xml') != ''
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: false
+          disable_search: true
+          files: build/reports/jacocoTestReport.xml
+          flags: android
+
+  ci-status:
+    needs: [changes, flutter-tests, flutter-minimum-version-tests, ios-tests, android-tests, ios-build-spm, android-build, more-complex-examples-build, upload-coverage]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check CI result
+        env:
+          INCOMPLETE: ${{ contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled') }}
+        run: test "$INCOMPLETE" = false

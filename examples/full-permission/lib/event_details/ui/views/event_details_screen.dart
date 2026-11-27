@@ -2,14 +2,13 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:eventide/eventide.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:material_ui/material_ui.dart';
+import 'package:value_state/value_state.dart';
 
 import '../../../calendar/ui/components/event_form.dart';
 import '../../logic/event_details_cubit.dart';
 import '../components/attendee_form.dart';
-
-import 'package:material_ui/material_ui.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:value_state/value_state.dart';
 
 final class EventDetailsScreen extends StatelessWidget {
   final ETEvent event;

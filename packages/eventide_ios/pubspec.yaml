@@ -1,0 +1,32 @@
+name: eventide_ios
+description: "An iOS implementation of the Eventide plugin interface."
+version: 1.0.0
+repository: https://github.com/sncf-connect-tech/eventide/tree/main/packages/eventide_ios
+resolution: workspace
+
+environment:
+  sdk: '>=3.13.0 <4.0.0'
+  flutter: '>=3.47.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  meta: ^1.16.0
+  eventide_platform_interface: ^1.0.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+  pigeon: ^26.1.0
+  mocktail: ^1.0.4
+  clock: ^1.1.2
+  timezone: ^0.10.1
+
+flutter:
+  plugin:
+    implements: eventide
+    platforms:
+      ios:
+        pluginClass: EventidePlugin
+        dartPluginClass: EventideIOS

@@ -1,0 +1,563 @@
+//
+//  CalendarTests.swift
+//  EventideTests
+//
+//  Created by CHOUPAULT Alexis on 21/03/2025.
+//
+
+import XCTest
+@testable import eventide_ios
+
+final class CalendarTests: XCTestCase {
+    private let timeout = TimeInterval(5)
+    private var calendarImplem: CalendarImplem!
+
+    func testCreateCalendar_permissionGranted() {
+        let expectation = expectation(description: "Calendar has been created")
+        
+        let mockEasyEventStore = MockEasyEventStore()
+        
+        calendarImplem = CalendarImplem(
+            easyEventStore: mockEasyEventStore,
+            permissionHandler: PermissionGranted()
+        )
+        
+        calendarImplem.createCalendar(title: "title", color: 0xFF0000, in: Account(id: "Test account", name: "Test account", type: "calDAV")) { createCalendarResult in
+            switch (createCalendarResult) {
+            case .success(let calendar):
+                XCTAssert(calendar.title == "title")
+                XCTAssert(calendar.color == 0xFF0000)
+                XCTAssert(calendar.account.name == "Test account")
+                XCTAssert(calendar.account.type == "calDAV")
+                XCTAssert(mockEasyEventStore.calendars.count == 1)
+                expectation.fulfill()
+            case .failure:
+                XCTFail("Calendar should have been created")
+            }
+        }
+        
+        waitForExpectations(timeout: timeout)
+    }
+    
+    func testRetrieveCalendars_onlyWritable_permissionGranted() {
+        let expectation = expectation(description: "Calendars have been retrieved")
+        
+        let mockEasyEventStore = MockEasyEventStore(
+            calendars: [
+                Calendar(
+                    id: "1",
+                    title: "title",
+                    color: UIColor.red.toInt64(),
+                    isWritable: false,
+                    account: Account(id: "local", name: "local", type: "local")
+                ),
+                Calendar(
+                    id: "2",
+                    title: "title",
+                    color: UIColor.blue.toInt64(),
+                    isWritable: true,
+                    account: Account(id: "iCloud", name: "iCloud", type: "calDAV")
+                )
+            ]
+        )
+        
+        calendarImplem = CalendarImplem(
+            easyEventStore: mockEasyEventStore,
+            permissionHandler: PermissionGranted()
+        )
+        
+        calendarImplem.retrieveCalendars(onlyWritable: true, from: nil) { retrieveCalendarsResult in
+            switch (retrieveCalendarsResult) {
+            case .success(let calendars):
+                XCTAssert(calendars.count == 1)
+                XCTAssert(calendars.last!.id == "2")
+                expectation.fulfill()
+            case .failure:
+                XCTFail("Calendars should have been retrieved")
+            }
+        }
+        
+        waitForExpectations(timeout: timeout)
+    }
+    
+    func testRetrieveCalendars_onlyWritableWithAccountFilter_permissionGranted() {
+        let expectation = expectation(description: "No eligible calendar")
+        
+        let account1 = Account(id: "local", name: "local", type: "local")
+        let account2 = Account(id: "iCloud", name: "iCloud", type: "calDAV")
+        let mockEasyEventStore = MockEasyEventStore(
+            calendars: [
+                Calendar(
+                    id: "1",
+                    title: "title",
+                    color: UIColor.red.toInt64(),
+                    isWritable: false,
+                    account: account1
+                ),
+                Calendar(
+                    id: "2",
+                    title: "title",
+                    color: UIColor.blue.toInt64(),
+                    isWritable: true,
+                    account: account2
+                )
+            ]
+        )
+        
+        calendarImplem = CalendarImplem(
+            easyEventStore: mockEasyEventStore,
+            permissionHandler: PermissionGranted()
+        )
+        
+        calendarImplem.retrieveCalendars(onlyWritable: true, from: account1) { retrieveCalendarsResult in
+            switch (retrieveCalendarsResult) {
+            case .success(let calendars):
+                XCTAssert(calendars.isEmpty)
+                expectation.fulfill()
+            case .failure:
+                XCTFail("Calendars should have been retrieved")
+            }
+        }
+        
+        waitForExpectations(timeout: timeout)
+    }
+    
+    func testRetrieveCalendars_accountFilter_permissionGranted() {
+        let expectation = expectation(description: "Calendar has been retrieved")
+        
+        let account1 = Account(id: "local", name: "local", type: "local")
+        let account2 = Account(id: "iCloud", name: "iCloud", type: "calDAV")
+        let mockEasyEventStore = MockEasyEventStore(
+            calendars: [
+                Calendar(
+                    id: "1",
+                    title: "title",
+                    color: UIColor.red.toInt64(),
+                    isWritable: false,
+                    account: account1
+                ),
+                Calendar(
+                    id: "2",
+                    title: "title",
+                    color: UIColor.blue.toInt64(),
+                    isWritable: true,
+                    account: account2
+                )
+            ]
+        )
+        
+        calendarImplem = CalendarImplem(
+            easyEventStore: mockEasyEventStore,
+            permissionHandler: PermissionGranted()
+        )
+        
+        calendarImplem.retrieveCalendars(
+            onlyWritable: false,
+            from: account2
+        ) { retrieveCalendarsResult in
+            switch (retrieveCalendarsResult) {
+            case .success(let calendars):
+                XCTAssert(calendars.count == 1)
+                XCTAssert(calendars.last!.id == "2")
+                expectation.fulfill()
+            case .failure:
+                XCTFail("Calendars should have been retrieved")
+            }
+        }
+        
+        waitForExpectations(timeout: timeout)
+    }
+    
+    func testRetrieveCalendars_all_permissionGranted() {
+        let expectation = expectation(description: "Calendars have been retrieved")
+        
+        let mockEasyEventStore = MockEasyEventStore(
+            calendars: [
+                Calendar(
+                    id: "1",
+                    title: "title",
+                    color: UIColor.red.toInt64(),
+                    isWritable: false,
+                    account: Account(id: "local", name: "local", type: "local")
+                ),
+                Calendar(
+                    id: "2",
+                    title: "title",
+                    color: UIColor.blue.toInt64(),
+                    isWritable: true,
+                    account: Account(id: "local", name: "iCloud", type: "calDAV")
+                )
+            ]
+        )
+        
+        calendarImplem = CalendarImplem(
+            easyEventStore: mockEasyEventStore,
+            permissionHandler: PermissionGranted()
+        )
+        
+        calendarImplem.retrieveCalendars(onlyWritable: false, from: nil) { retrieveCalendarsResult in
+            switch (retrieveCalendarsResult) {
+            case .success(let calendars):
+                XCTAssert(calendars.count == 2)
+                XCTAssert(calendars.first!.id == "1")
+                XCTAssert(calendars.last!.id == "2")
+                expectation.fulfill()
+            case .failure:
+                XCTFail("Calendars should have been retrieved")
+            }
+        }
+        
+        waitForExpectations(timeout: timeout)
+    }
+
+    func testRetrieveCalendars_emptyResult_permissionGranted() {
+        let expectation = expectation(description: "Empty calendars list returned")
+
+        let mockEasyEventStore = MockEasyEventStore(calendars: [])
+
+        calendarImplem = CalendarImplem(
+            easyEventStore: mockEasyEventStore,
+            permissionHandler: PermissionGranted()
+        )
+
+        calendarImplem.retrieveCalendars(onlyWritable: false, from: nil) { retrieveCalendarsResult in
+            switch (retrieveCalendarsResult) {
+            case .success(let calendars):
+                XCTAssertEqual(calendars.count, 0)
+                expectation.fulfill()
+            case .failure:
+                XCTFail("Should return empty list, not error")
+            }
+        }
+
+        waitForExpectations(timeout: timeout)
+    }
+
+    func testDeleteCalendar_writable_permissionGranted() {
+        let expectation = expectation(description: "Calendar has been deleted")
+
+        let mockEasyEventStore = MockEasyEventStore(
+            calendars: [
+                Calendar(
+                    id: "1",
+                    title: "title",
+                    color: UIColor.red.toInt64(),
+                    isWritable: true,
+                    account: Account(id: "local", name: "local", type: "local")
+                )
+            ]
+        )
+
+        calendarImplem = CalendarImplem(
+            easyEventStore: mockEasyEventStore,
+            permissionHandler: PermissionGranted()
+        )
+
+        calendarImplem.deleteCalendar("1") { deleteCalendarResult in
+            switch (deleteCalendarResult) {
+            case .success:
+                XCTAssert(mockEasyEventStore.calendars.isEmpty)
+                expectation.fulfill()
+            case .failure:
+                XCTFail("Calendar should have been deleted")
+            }
+        }
+        
+        waitForExpectations(timeout: timeout)
+    }
+    
+    func testDeleteCalendar_notFound_permissionGranted() {
+        let expectation = expectation(description: "Calendar has not been deleted")
+        
+        let mockEasyEventStore = MockEasyEventStore(
+            calendars: [
+                Calendar(
+                    id: "2",
+                    title: "title",
+                    color: UIColor.red.toInt64(),
+                    isWritable: false,
+                    account: Account(id: "local", name: "local", type: "local")
+                )
+            ]
+        )
+        
+        calendarImplem = CalendarImplem(
+            easyEventStore: mockEasyEventStore,
+            permissionHandler: PermissionGranted()
+        )
+        
+        calendarImplem.deleteCalendar("1") { deleteCalendarResult in
+            switch (deleteCalendarResult) {
+            case .success:
+                XCTFail("Calendar should not have been deleted")
+            case .failure(let error):
+                guard let error = error as? PigeonError else {
+                    XCTFail("error should be of type PigeonError")
+                    return
+                }
+                XCTAssert(error.code == "NOT_FOUND")
+                XCTAssert(mockEasyEventStore.calendars.count == 1)
+                expectation.fulfill()
+            }
+        }
+        
+        waitForExpectations(timeout: timeout)
+    }
+    
+    func testDeleteCalendar_notWritable_permissionGranted() {
+        let expectation = expectation(description: "Calendar has not been deleted")
+        
+        let mockEasyEventStore = MockEasyEventStore(
+            calendars: [
+                Calendar(
+                    id: "1",
+                    title: "title",
+                    color: UIColor.red.toInt64(),
+                    isWritable: false,
+                    account: Account(id: "local", name: "local", type: "local")
+                )
+            ]
+        )
+        
+        calendarImplem = CalendarImplem(
+            easyEventStore: mockEasyEventStore,
+            permissionHandler: PermissionGranted()
+        )
+        
+        calendarImplem.deleteCalendar("1") { deleteCalendarResult in
+            switch (deleteCalendarResult) {
+            case .success:
+                XCTFail("Calendar should not have been deleted")
+            case .failure(let error):
+                guard let error = error as? PigeonError else {
+                    XCTFail("error should be of type PigeonError")
+                    return
+                }
+                XCTAssert(error.code == "NOT_EDITABLE")
+                XCTAssert(mockEasyEventStore.calendars.count == 1)
+                expectation.fulfill()
+            }
+        }
+        
+        waitForExpectations(timeout: timeout)
+    }
+    
+    func testCreateCalendar_permissionRefused() {
+        let expectation = expectation(description: "Calendar has not been created")
+        
+        let mockEasyEventStore = MockEasyEventStore()
+        
+        calendarImplem = CalendarImplem(
+            easyEventStore: mockEasyEventStore,
+            permissionHandler: PermissionRefused()
+        )
+        
+        calendarImplem.createCalendar(title: "title", color: 0xFF0000, in: Account(id: "Test account", name: "Test account", type: "calDAV")) { createCalendarResult in
+            switch (createCalendarResult) {
+            case .success:
+                XCTFail("Calendar should not have been created")
+            case .failure(let error):
+                guard let error = error as? PigeonError else {
+                    XCTFail("error should be of type PigeonError")
+                    return
+                }
+                XCTAssert(error.code == "ACCESS_REFUSED")
+                XCTAssert(mockEasyEventStore.calendars.isEmpty)
+                expectation.fulfill()
+            }
+        }
+        
+        waitForExpectations(timeout: timeout)
+    }
+    
+    func testRetrieveCalendars_permissionRefused() {
+        let expectation = expectation(description: "Calendars have not been retrieved")
+        
+        let mockEasyEventStore = MockEasyEventStore()
+        
+        calendarImplem = CalendarImplem(
+            easyEventStore: mockEasyEventStore,
+            permissionHandler: PermissionRefused()
+        )
+        
+        calendarImplem.retrieveCalendars(onlyWritable: true, from: nil) { retrieveCalendarsResult in
+            switch (retrieveCalendarsResult) {
+            case .success:
+                XCTFail("Calendars should not have been retrieved")
+            case .failure(let error):
+                guard let error = error as? PigeonError else {
+                    XCTFail("error should be of type PigeonError")
+                    return
+                }
+                XCTAssert(error.code == "ACCESS_REFUSED")
+                XCTAssert(mockEasyEventStore.calendars.isEmpty)
+                expectation.fulfill()
+            }
+        }
+        
+        waitForExpectations(timeout: timeout)
+    }
+    
+    func testDeleteCalendar_permissionRefused() {
+        let expectation = expectation(description: "Calendar has not been deleted")
+        
+        let mockEasyEventStore = MockEasyEventStore(
+            calendars: [
+                Calendar(
+                    id: "1",
+                    title: "title",
+                    color: UIColor.red.toInt64(),
+                    isWritable: true,
+                    account: Account(id: "local", name: "local", type: "local")
+                )
+            ]
+        )
+        
+        calendarImplem = CalendarImplem(
+            easyEventStore: mockEasyEventStore,
+            permissionHandler: PermissionRefused()
+        )
+        
+        calendarImplem.deleteCalendar("1") { deleteCalendarResult in
+            switch (deleteCalendarResult) {
+            case .success:
+                XCTFail("Calendar should not have been deleted")
+            case .failure(let error):
+                guard let error = error as? PigeonError else {
+                    XCTFail("error should be of type PigeonError")
+                    return
+                }
+                XCTAssert(error.code == "ACCESS_REFUSED")
+                XCTAssert(mockEasyEventStore.calendars.count == 1)
+                expectation.fulfill()
+            }
+        }
+        
+        waitForExpectations(timeout: timeout)
+    }
+    
+    func testCreateCalendar_permissionError() {
+        let expectation = expectation(description: "Calendar has not been created")
+        
+        let mockEasyEventStore = MockEasyEventStore()
+        
+        calendarImplem = CalendarImplem(
+            easyEventStore: mockEasyEventStore,
+            permissionHandler: PermissionError()
+        )
+        
+        calendarImplem.createCalendar(title: "title", color: 0xFF0000, in: Account(id: "Test account", name: "Test account", type: "calDAV")) { createCalendarResult in
+            switch (createCalendarResult) {
+            case .success:
+                XCTFail("Calendar should not have been created")
+            case .failure(let error):
+                guard let _ = error as? PermissionError.PermErr else {
+                    XCTFail("error should be of type PermissionError.PermErr")
+                    return
+                }
+                XCTAssert(mockEasyEventStore.calendars.isEmpty)
+                expectation.fulfill()
+            }
+        }
+        
+        waitForExpectations(timeout: timeout)
+    }
+    
+    func testRetrieveCalendars_permissionError() {
+        let expectation = expectation(description: "Calendars have not been retrieved")
+        
+        let mockEasyEventStore = MockEasyEventStore()
+        
+        calendarImplem = CalendarImplem(
+            easyEventStore: mockEasyEventStore,
+            permissionHandler: PermissionError()
+        )
+        
+        calendarImplem.retrieveCalendars(onlyWritable: true, from: nil) { retrieveCalendarsResult in
+            switch (retrieveCalendarsResult) {
+            case .success:
+                XCTFail("Calendars should not have been retrieved")
+            case .failure(let error):
+                guard let _ = error as? PermissionError.PermErr else {
+                    XCTFail("error should be of type PermissionError.PermErr")
+                    return
+                }
+                XCTAssert(mockEasyEventStore.calendars.isEmpty)
+                expectation.fulfill()
+            }
+        }
+        
+        waitForExpectations(timeout: timeout)
+    }
+    
+    func testDeleteCalendar_permissionError() {
+        let expectation = expectation(description: "Calendar has not been deleted")
+        
+        let mockEasyEventStore = MockEasyEventStore(
+            calendars: [
+                Calendar(
+                    id: "1",
+                    title: "title",
+                    color: UIColor.red.toInt64(),
+                    isWritable: true,
+                    account: Account(id: "local", name: "local", type: "local")
+                )
+            ]
+        )
+        
+        calendarImplem = CalendarImplem(
+            easyEventStore: mockEasyEventStore,
+            permissionHandler: PermissionError()
+        )
+        
+        calendarImplem.deleteCalendar("1") { deleteCalendarResult in
+            switch (deleteCalendarResult) {
+            case .success:
+                XCTFail("Calendar should not have been deleted")
+            case .failure(let error):
+                guard let _ = error as? PermissionError.PermErr else {
+                    XCTFail("error should be of type PermissionError.PermErr")
+                    return
+                }
+                XCTAssert(mockEasyEventStore.calendars.count == 1)
+                expectation.fulfill()
+            }
+        }
+        
+        waitForExpectations(timeout: timeout)
+    }
+
+    func testUpdateCalendar_permissionGranted() {
+        let expectation = expectation(description: "Calendar has been updated")
+
+        let mockEasyEventStore = MockEasyEventStore(
+            calendars: [
+                Calendar(
+                    id: "1",
+                    title: "Old Title",
+                    color: UIColor.red.toInt64(),
+                    isWritable: true,
+                    account: Account(id: "local", name: "local", type: "local")
+                )
+            ]
+        )
+
+        calendarImplem = CalendarImplem(
+            easyEventStore: mockEasyEventStore,
+            permissionHandler: PermissionGranted()
+        )
+
+        calendarImplem.updateCalendar(withId: "1", title: "New Title", color: 0x00FF00) { result in
+            switch (result) {
+            case .success:
+                XCTAssert(mockEasyEventStore.calendars[0].title == "New Title")
+                XCTAssert(mockEasyEventStore.calendars[0].color == 0x00FF00)
+                expectation.fulfill()
+            case .failure:
+                XCTFail("Calendar should have been updated")
+            }
+        }
+
+        waitForExpectations(timeout: timeout)
+    }
+}
