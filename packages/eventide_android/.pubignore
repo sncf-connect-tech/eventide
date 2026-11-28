@@ -1,0 +1,8 @@
+*.iml
+/.dart_tool/
+/build/
+/coverage/
+/pubspec.lock
+/pigeon/
+/test/
+/android/src/test/

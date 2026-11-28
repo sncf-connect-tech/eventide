@@ -1,16 +1,17 @@
-import 'package:calendar_view/calendar_view.dart';
-import 'package:eventide/eventide.dart';
-// ignore: deprecated_member_use
+// ignore_for_file: deprecated_member_use
+
 import 'package:flutter/material.dart' as flutter_material show Material, MaterialType;
 
+import 'package:calendar_view/calendar_view.dart';
+import 'package:eventide/eventide.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:material_ui/material_ui.dart';
+import 'package:value_state/value_state.dart';
+
+import '../../../event_details/ui/views/event_details_screen.dart';
 import '../../logic/calendar_cubit.dart';
 import '../components/custom_drawer.dart';
-import '../../../event_details/ui/views/event_details_screen.dart';
 import '../components/event_form.dart';
-
-import 'package:material_ui/material_ui.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:value_state/value_state.dart';
 
 final class CalendarScreen extends StatefulWidget {
   const CalendarScreen({super.key});

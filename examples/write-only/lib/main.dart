@@ -1,9 +1,8 @@
 import 'package:eventide/eventide.dart';
-
-import 'event_form.dart';
-
 import 'package:material_ui/material_ui.dart';
 import 'package:timezone/data/latest.dart' as tz;
+
+import 'event_form.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();

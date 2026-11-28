@@ -2,6 +2,23 @@ codecov:
   branch: main
   disable_default_path_fixes: true
 
+flags:
+  flutter:
+    carryforward: true
+    paths:
+      - packages/eventide/lib/
+      - packages/eventide_android/lib/
+      - packages/eventide_ios/lib/
+      - packages/eventide_platform_interface/lib/
+  ios:
+    carryforward: true
+    paths:
+      - packages/eventide_ios/ios/eventide_ios/Sources/
+  android:
+    carryforward: true
+    paths:
+      - packages/eventide_android/android/src/main/
+
 coverage:
   range: 60..80
   round: down
@@ -9,39 +26,52 @@ coverage:
 
   status:
     patch:
-      project:
+      flutter:
         enabled: yes
         target: 80%
         threshold: 5%
+        flags: [flutter]
       ios:
         enabled: yes
         target: 80%
         threshold: 5%
+        flags: [ios]
       android:
         enabled: yes
         target: 80%
         threshold: 5%
+        flags: [android]
     project:
       flutter:
         enabled: yes
         target: 80%
         threshold: 5%
+        flags: [flutter]
       ios:
         enabled: yes
         target: 80%
         threshold: 5%
+        flags: [ios]
       android:
         enabled: yes
         target: 80%
         threshold: 5%
+        flags: [android]
 
 fixes:
-  - "Users/runner/work/eventide/eventide/example/ios/EventideTests::ios/"
+  - "sncf/connect/tech/eventide/::packages/eventide_android/android/src/main/kotlin/sncf/connect/tech/eventide/"
 
 ignore:
   - "**/*.g.*"
-  - "example/"
-  - "**/EasyEventStore.swift"
+  - "**/Tests/**"
+  - "**/example/**"
+  - "examples/**"
+  - "**/EasyEventStore/**"
   - "**/PermissionHandler.swift"
   - "**/AppDelegate.swift"
   - "**/GeneratedPluginRegistrant.m"
+  - "**/EventidePlugin.swift"
+  - "**/EventidePlugin.kt"
+  - "**/EventEditViewControllerManager.swift"
+  - "**/CalendarActivityManager.kt"
+  - "**/EKEventStoreSingleton.swift"

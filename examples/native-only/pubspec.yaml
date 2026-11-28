@@ -12,7 +12,7 @@ dependencies:
   timezone: ^0.10.1
 
   eventide:
-    path: ../../package
+    path: ../../packages/eventide
   cupertino_icons: ^1.0.6
   material_ui: ^1.11.0
 
